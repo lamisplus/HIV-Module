@@ -179,7 +179,7 @@ function SubMenu(props) {
         <Segment inverted>
           {/*!props.art && patientObj.commenced!==true && patientObj.enrollment.targetGroupId===473) || (!props.art && (patientObj.commenced!==true || patientObj.commenced===true)  && patientObj.mentalHealth!==true) */}
           {(patientObj.commenced === false ||
-            patientObj.createBy !== "Lamis data migration system") &&
+            patientObj.createBy.toUpperCase() !== "LAMIS DATA MIGRATION SYSTEM") &&
           (patientObj.commenced !== true ||
             patientObj.clinicalEvaluation !== true ||
             (patientObj.targetGroupId !== 473
