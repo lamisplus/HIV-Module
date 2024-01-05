@@ -11,4 +11,13 @@
   <component name="JpaPluginProjectSettings">
     <option name="lastSelectedLanguage" value="Java" />
   </component>
+  <component name="PersistenceUnitSettings">
+    <persistence-units>
+      <persistence-unit name="Default" defaultSearchScope="Project">
+        <packages>
+          <package value="org.lamisplus.modules.hiv.extensions" />
+        </packages>
+      </persistence-unit>
+    </persistence-units>
+  </component>
 </project>

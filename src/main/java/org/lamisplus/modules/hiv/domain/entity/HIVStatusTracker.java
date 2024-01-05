@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @Builder(toBuilder = true)
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(force = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(of = "id")
 public class HIVStatusTracker extends HivAuditEntity implements Persistable<Long>, Serializable {
@@ -52,6 +52,9 @@ public class HIVStatusTracker extends HivAuditEntity implements Persistable<Long
     @Size(max = 100)
     @Column(name = "reason_for_interruption")
     private String reasonForInterruption;
+    @Size(max = 100)
+    @Column(name = "biometric_status")
+    private String biometricStatus;
 
     @Size(max = 150)
     @Column(name = "CAUSE_OF_DEATH")

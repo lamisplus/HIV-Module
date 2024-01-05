@@ -15,6 +15,7 @@ public class PatientTrackingDto {
 	private String reasonForTracking;
 	private String careInFacilityDiscountinued;
 	private String reasonForDiscountinuation;
+	private String biometricStatus;
 	private String causeOfDeath;
 	private String reasonForLossToFollowUp;
 	private String referredFor;

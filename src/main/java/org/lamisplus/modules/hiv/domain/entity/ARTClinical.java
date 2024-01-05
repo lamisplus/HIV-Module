@@ -149,6 +149,8 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	private String  pregnancyStatus;
 	@Column(name = "cd4_type")
 	private String  cd4Type;
+	@Column(name = "reason")
+	private String reason;
 	
 	
 	

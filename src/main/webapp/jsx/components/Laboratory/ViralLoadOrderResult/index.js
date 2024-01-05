@@ -27,11 +27,9 @@ const LaboratoryModule = (props) => {
           { headers: {"Authorization" : `Bearer ${token}`} }
           )
           .then((response) => {
-              //setLoading(false)
               setOrderList(response.data);                
           })
-          .catch((error) => {  
-              //setLoading(false)  
+          .catch((error) => {   
           });        
     }
 

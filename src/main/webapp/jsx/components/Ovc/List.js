@@ -135,7 +135,7 @@ const List = (props) => {
       <br />
       <MaterialTable
         icons={tableIcons}
-        title="OVC Import / Export Tracker"
+        title="OVC Patients Linked to Treatment"
         columns={[
           // { title: " ID", field: "Id" },
           {
@@ -147,22 +147,23 @@ const List = (props) => {
           { title: "Status", field: "status", filtering: false },
           { title: "Actions", field: "actions", filtering: false },
         ]}
-        data={(query) =>
-          new Promise((resolve, reject) =>
-            axios
-              .get(`${baseUrl}linkages`, {
-                headers: { Authorization: `Bearer ${token}` },
-              })
-              .then((response) => console.log(response))
-              .then((result) => {
-                resolve({
-                  data: result.data.records.map((row) => ({})),
-                  page: query.page,
-                  totalCount: result.data.totalRecords,
-                });
-              })
-          )
-        }
+        data={[]}
+        // data={(query) =>
+        //   new Promise((resolve, reject) =>
+        //     axios
+        //       .get(`${baseUrl}linkages`, {
+        //         headers: { Authorization: `Bearer ${token}` },
+        //       })
+        //       .then((response) => console.log(response))
+        //       .then((result) => {
+        //         resolve({
+        //           data: result.data.records.map((row) => ({})),
+        //           page: query.page,
+        //           totalCount: result.data.totalRecords,
+        //         });
+        //       })
+        //   )
+        // }
         options={{
           search: true,
           headerStyle: {

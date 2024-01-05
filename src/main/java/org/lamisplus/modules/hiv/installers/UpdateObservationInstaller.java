@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 @Order(2)
 @Installer(name = "update-observation",
         description = "remove unique type constraint",
-        version = 1)
+        version = 2)
 public class UpdateObservationInstaller extends AcrossLiquibaseInstaller {
     public UpdateObservationInstaller() {
         super("classpath:installers/hiv/schema/update-observation.xml");

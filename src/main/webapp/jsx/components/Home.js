@@ -4,7 +4,7 @@ import Dashboard from "./Patient/PatientList";
 import VisualisationHome from "./Visualisation/Index";
 import LostToFollowUp from "./Patient/PatientListIit";
 import ArtPatients from "./Patient/ArtPatients";
-// import Index from "./Ovc/Index";
+import Ovc from "./Ovc/Index";
 import { Link } from "react-router-dom";
 import Button from "@material-ui/core/Button";
 import { FaUserPlus } from "react-icons/fa";
@@ -61,9 +61,9 @@ const Home = () => {
                   <Tab eventKey="art-patients" title="ART Patients">
                     <ArtPatients />
                   </Tab>
-                  {/*<Tab eventKey="list" title="OVC Linkage">*/}
-                  {/*  <Index />*/}
-                  {/*</Tab>*/}
+                  <Tab eventKey="list" title="OVC Linkage">
+                    <Ovc />
+                  </Tab>
                   {/* <Tab eventKey="visualization" title="Data Visualisation">                   
                     <VisualisationHome />
                   </Tab>                     */}

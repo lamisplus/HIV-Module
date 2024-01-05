@@ -165,7 +165,7 @@ const TbScreening = (props) => {
         props.setTbObj({
           ...props.tbObj,
           ["outcome"]: "Not Presumptive",
-          ["status"]: "Currently on TB Treatment",
+          ["status"]: "Currently on TB treatment",
           ["activeTb"]: true,
         });
       }
@@ -315,7 +315,7 @@ const TbScreening = (props) => {
         props.setTbObj({
           ...props.tbObj,
           ["outcome"]: "Presumptive",
-          ["status"]: "Currently on TPT",
+          ["status"]: "Currently on INH prophylaxis (IPT)",
           ["eligibleForTPT"]: "No",
         });
       } else if (
@@ -330,7 +330,7 @@ const TbScreening = (props) => {
         props.setTbObj({
           ...props.tbObj,
           ["outcome"]: "Not Presumptive",
-          ["status"]: "Currently on TPT",
+          ["status"]: "Currently on INH prophylaxis (IPT)",
           ["eligibleForTPT"]: "No",
         });
       }
@@ -454,7 +454,7 @@ const TbScreening = (props) => {
   };
 
   const handleInputChangeContrain = (e) => {
-    console.log(e.target.name, e.target.checked);
+    //console.log(e.target.name, e.target.checked);
     if (e.target.checked) {
       props.setTbObj({ ...props.tbObj, [e.target.name]: e.target.checked });
     } else {
@@ -472,7 +472,10 @@ const TbScreening = (props) => {
             <div className="row">
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <Label>Are you currently on TB treatment?</Label>
+                  <Label>
+                    Are you currently on TB treatment?{" "}
+                    <span style={{ color: "red" }}> *</span>
+                  </Label>
                   <InputGroup>
                     <Input
                       type="select"
@@ -493,7 +496,10 @@ const TbScreening = (props) => {
                   <>
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label>TB treatment start date </Label>
+                        <Label>
+                          TB treatment start date{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </Label>
                         <InputGroup>
                           <Input
                             type="date"
@@ -509,7 +515,10 @@ const TbScreening = (props) => {
                     </div>
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label>Treatment Type </Label>
+                        <Label>
+                          Treatment Type{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </Label>
                         <InputGroup>
                           <Input
                             type="select"
@@ -530,7 +539,10 @@ const TbScreening = (props) => {
                     </div>
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label>Treatment Outcome </Label>
+                        <Label>
+                          Treatment Outcome{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </Label>
                         <InputGroup>
                           <Input
                             type="select"
@@ -551,7 +563,10 @@ const TbScreening = (props) => {
                     </div>
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label>TB Treatment Completion Date </Label>
+                        <Label>
+                          TB Treatment Completion Date{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </Label>
                         <InputGroup>
                           <Input
                             type="date"
@@ -572,7 +587,10 @@ const TbScreening = (props) => {
                   <>
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label>Are you coughing? </Label>
+                        <Label>
+                          Are you coughing?{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </Label>
                         <InputGroup>
                           <Input
                             type="select"
@@ -592,7 +610,7 @@ const TbScreening = (props) => {
                       <FormGroup>
                         <Label>
                           Do you have fever for 2 weeks or more? (Unexplained
-                          fever){" "}
+                          fever) <span style={{ color: "red" }}> *</span>
                         </Label>
                         <InputGroup>
                           <Input
@@ -613,6 +631,7 @@ const TbScreening = (props) => {
                       <FormGroup>
                         <Label>
                           Are you losing weight? (Unplanned weight loss)
+                          <span style={{ color: "red" }}> *</span>
                         </Label>
                         <InputGroup>
                           <Input
@@ -633,7 +652,7 @@ const TbScreening = (props) => {
                       <FormGroup>
                         <Label>
                           Are you having night sweats? (drenching or excessive
-                          night sweats)
+                          night sweats)<span style={{ color: "red" }}> *</span>
                         </Label>
                         <InputGroup>
                           <Input
@@ -701,7 +720,10 @@ const TbScreening = (props) => {
                     )}
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label>Is TB test confirmed positive?</Label>
+                        <Label>
+                          Is TB test confirmed positive?{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </Label>
                         <InputGroup>
                           <Input
                             type="select"
@@ -721,7 +743,7 @@ const TbScreening = (props) => {
                       <FormGroup>
                         <Label>
                           Are you currently on Tuberculosis Preventive Therapy (
-                          TPT )
+                          TPT ) <span style={{ color: "red" }}> *</span>
                         </Label>
                         <InputGroup>
                           <Input
@@ -746,7 +768,10 @@ const TbScreening = (props) => {
                   <>
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label>Have you previously completed TPT?</Label>
+                        <Label>
+                          Have you previously completed TPT?{" "}
+                          <span style={{ color: "red" }}> *</span>
+                        </Label>
                         <InputGroup>
                           <Input
                             type="select"

@@ -47,26 +47,47 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             nativeQuery = true)
     Page<PatientProjection> getPatientsByFacilityId(Long facilityId, Pageable page);
     
-    @Query(value = "SELECT p.id AS id,p.created_by as createBy, p.date_of_registration as dateOfRegistration, p.first_name as firstName, p.surname AS surname,\n" +
-            "             p.other_name AS otherName,\n" +
-            "            p.hospital_number AS hospitalNumber, CAST (EXTRACT(YEAR from AGE(NOW(), date_of_birth)) AS INTEGER) AS age,\n" +
-            "            INITCAP(p.sex) AS gender, p.date_of_birth AS dateOfBirth, p.is_date_of_birth_estimated AS isDobEstimated,\n" +
-            "            p.facility_id as facilityId , p.uuid as personUuid,\n" +
-            "            CAST(CASE when e.id is null then FALSE ELSE TRUE END AS Boolean) AS isEnrolled,\n" +
-            "            e.target_group_id AS targetGroupId, e.id as enrollmentId, e.unique_id as uniqueId, pc.display as enrollmentStatus,\n" +
-            "            ca.commenced, \n" +
-            "            b.biometric_type as biometricStatus\n" +
-            "            FROM patient_person p LEFT Join biometric b ON b.person_uuid = p.uuid LEFT JOIN hiv_enrollment e ON p.uuid = e.person_uuid\n" +
-            "            LEFT JOIN\n" +
-            "            (SELECT TRUE as commenced, hac.person_uuid FROM hiv_art_clinical hac WHERE hac.archived=0 AND hac.is_commencement is true\n" +
-            "            GROUP BY hac.person_uuid)ca ON p.uuid = ca.person_uuid\n" +
-            "            LEFT JOIN base_application_codeset pc on pc.id = e.status_at_registration_id\n" +
-            "            WHERE p.archived=0 AND p.facility_id=?1\n" +
-            "            AND e.id IS NULL\n" +
-            "            AND (first_name ilike ?2 OR surname ilike ?2 OR other_name ilike '' OR full_name ilike ?2 OR hospital_number ilike ?2)\n" +
-            "            GROUP BY e.id, e.target_group_id,ca.commenced, p.id, p.first_name,\n" +
-            "            p.first_name, b.biometric_type, pc.display,p.surname, p.other_name, p.hospital_number, p.date_of_birth" +
-            "            ORDER BY p.id DESC",
+    @Query(value = "SELECT \n" +
+            "    p.id AS id,\n" +
+            "    p.created_by AS createBy,\n" +
+            "    p.date_of_registration AS dateOfRegistration,\n" +
+            "    p.first_name AS firstName,\n" +
+            "    p.surname AS surname,\n" +
+            "    p.other_name AS otherName,\n" +
+            "    p.hospital_number AS hospitalNumber,\n" +
+            "    CAST(EXTRACT(YEAR FROM AGE(NOW(), p.date_of_birth)) AS INTEGER) AS age,\n" +
+            "    INITCAP(p.sex) AS gender,\n" +
+            "    p.date_of_birth AS dateOfBirth,\n" +
+            "    p.is_date_of_birth_estimated AS isDobEstimated,\n" +
+            "    p.facility_id AS facilityId,\n" +
+            "    p.uuid AS personUuid,\n" +
+            "    CAST(CASE WHEN e.id IS NULL THEN FALSE ELSE TRUE END AS BOOLEAN) AS isEnrolled,\n" +
+            "    e.target_group_id AS targetGroupId,\n" +
+            "    e.id AS enrollmentId,\n" +
+            "    e.unique_id AS uniqueId,\n" +
+            "    pc.display AS enrollmentStatus,\n" +
+            "    ca.commenced,\n" +
+            "    b.biometric_type AS biometricStatus\n" +
+            "FROM patient_person p\n" +
+            "LEFT JOIN biometric b ON b.person_uuid = p.uuid\n" +
+            "LEFT JOIN hiv_enrollment e ON p.uuid = e.person_uuid\n" +
+            "LEFT JOIN (\n" +
+            "    SELECT TRUE AS commenced, hac.person_uuid\n" +
+            "    FROM hiv_art_clinical hac\n" +
+            "    WHERE hac.archived = 0 AND hac.is_commencement IS TRUE\n" +
+            "    GROUP BY hac.person_uuid\n" +
+            ") ca ON p.uuid = ca.person_uuid\n" +
+            "LEFT JOIN base_application_codeset pc ON pc.id = e.status_at_registration_id\n" +
+            "WHERE p.archived = 0\n" +
+            "    AND p.facility_id = ?1\n" +
+            "    AND e.id IS NULL\n" +
+            "    AND (\n" +
+            "\t\tp.hospital_number ILIKE ?2\n" +
+            "        OR p.first_name ILIKE ?2\n" +
+            "        OR p.surname ILIKE ?2\n" +
+            "        OR p.other_name ILIKE ?2\n" +
+            "    )\n" +
+            "ORDER BY p.id DESC",
             nativeQuery = true)
     Page<PatientProjection> getPatientsByFacilityBySearchParam(Long facilityId, String searchParam,  Pageable page);
     

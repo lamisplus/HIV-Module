@@ -9,7 +9,7 @@ export const usePeadiatricFormValidationSchema = (onSubmit) => {
     caregiverName: "",
     sex: "",
     cccNumber: "",
-
+    encounterDate:"",
     dateTask1Executed: "",
     task1HCW: "",
     task1Comments: "",
@@ -62,21 +62,21 @@ export const usePeadiatricFormValidationSchema = (onSubmit) => {
 
   const PeadiatricFormInitialSchema = yup.object({
     // facilityName: yup.string(),
-    childName: yup.string(),
+    childName: yup.string().matches(/^[^0-9]*$/, 'Numbers are not allowed'),
     dob: yup.string(),
-    caregiverName: yup.string(),
+    caregiverName: yup.string().matches(/^[^0-9]*$/, 'Numbers are not allowed'),
     sex: yup.string(),
-    cccNumber: yup.string(),
+    cccNumber: yup.number(),
 
     dateTask1Executed: yup.date(),
-    task1HCW: yup.string(),
+    task1HCW: yup.string().matches(/^[^0-9]*$/, 'Numbers are not allowed'),
     task1Comments: yup.string(),
     task1ChildMetCriteria: yup.string(),
     task1ChildAndCaregiverKnowledgeable: yup.string(),
     task1CaregiverWilling: yup.string(),
-
+    encounterDate: yup.date(),
     dateTask2Executed: yup.date(),
-    task2HCW: yup.string(),
+    task2HCW: yup.string().matches(/^[^0-9]*$/, 'Numbers are not allowed'),
     task2Comments: yup.string(),
     task2FreeFromPhysicalIllness: yup.string(),
     task2ChildConsisitentFamilyPeer: yup.string(),
@@ -87,8 +87,8 @@ export const usePeadiatricFormValidationSchema = (onSubmit) => {
     task2AssessedCaregiverCommunicatedToChild: yup.string(),
     task2DiscussedManagementOfConfidentiality: yup.string(),
 
-    dateTask3Executed: yup.string(),
-    task3HCW: yup.string(),
+    dateTask3Executed: yup.date(),
+    task3HCW: yup.string().matches(/^[^0-9]*$/, 'Numbers are not allowed'),
     task3Comments: yup.string(),
     task3ReassuredTheCaregiverAndChild: yup.string(),
     task3AssessedChildAndCaregiverComfort: yup.string(),
@@ -102,8 +102,8 @@ export const usePeadiatricFormValidationSchema = (onSubmit) => {
     task3ConcludedSessionWithReassurance: yup.string(),
 
 
-    dateTask4Executed:yup.string(),
-    task4HCW:yup.string(),
+    dateTask4Executed:yup.date(),
+    task4HCW:yup.string().matches(/^[^0-9]*$/, 'Numbers are not allowed'),
     task4Comments:yup.string(),
     task4AssessedFunctionalSchoolEngagement: yup.string(),
     task4AssessedFamilySocialAndPeerRelationship: yup.string(),

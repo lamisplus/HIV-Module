@@ -107,9 +107,10 @@ public class ArtClinicVisitService {
 	}
 	
 	
-	public void archivedClinicVisit(Long id) {
+	public void archivedClinicVisit(Long id, String message) {
 		ARTClinical artClinical = getExistClinicVisit(id);
 		artClinical.setArchived(1);
+		artClinical.setReason(message);
 		artClinicalRepository.save(artClinical);
 	}
 	

@@ -706,7 +706,7 @@ const ClinicVisit = (props) => {
   const addArvDrugOrder = (e) => {
     if (validateArvDrug()) {
       const actualRegimen =
-        patientAge <= 5 ? childRegimenLine : adultRegimenLine; //determine the regimen to filter by age
+        patientAge <= 17 ? childRegimenLine : adultRegimenLine; //determine the regimen to filter by age
       const regimenName = actualRegimen.find(
         (x) => x.id === parseInt(arvDrugObj.regimenLine)
       );

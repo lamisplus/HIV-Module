@@ -119,20 +119,24 @@ const Patients = (props) => {
   };
 
   const calculate_age = (dob) => {
-    const today = new Date();
-    const dateParts = dob.split("-");
-    const birthDate = new Date(dob); // create a date object directlyfrom`dob1`argument
-    let age_now = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
+    if (dob !== null && dob != "") {
+      //Check if the DOB is not null or empty
+      const today = new Date();
+      const dateParts = dob.split("-");
+      const birthDate = new Date(dob); // create a date object directly from`dob1`argument
+      let age_now = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (age_now <= 0 && m < 0 && today.getDate() < birthDate.getDate()) {
+        age_now--;
+      }
 
-    if (age_now <= 0 && m < 0 && today.getDate() < birthDate.getDate()) {
-      age_now--;
+      if (age_now === 0) {
+        return m + " month(s)";
+      }
+      return age_now + " year(s)";
+    } else {
+      return null;
     }
-
-    if (age_now === 0) {
-      return m + " month(s)";
-    }
-    return age_now + " year(s)";
   };
 
   return (

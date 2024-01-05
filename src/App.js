@@ -15,7 +15,7 @@ import PatientDetail from './main/webapp/jsx/components/Patient/PatientDetail'
 import RegisterPatientPage from './main/webapp/jsx/components/Patient/RegisterPatient';
 import EnrollPatientPage from './main/webapp/jsx/components/Patient/EnrollPatient';
 import UpdatePatientEnrollment from './main/webapp/jsx/components/Patient/UpdatePatientEnrollment';
-import ServiceForm from "./main/webapp/jsx/components/Otz/ServiceForm";
+
 
 export default function App() {
   return (

@@ -110,19 +110,22 @@ function PatientCard(props) {
   };
   const getPhoneNumber = (identifier) => {
     const identifiers = identifier;
-    const phoneNumber = identifiers.contactPoint.find(obj => obj.type === 'phone');       
-    return phoneNumber ? phoneNumber.value : '';
+    const phoneNumber = identifiers.contactPoint.find(
+      (obj) => obj.type === "phone"
+    );
+    return phoneNumber ? phoneNumber.value : "";
   };
   const getAddress = (identifier) => {
     const identifiers = identifier;
     const address = identifiers.address.find((obj) => obj.city);
+    console.log(address);
     const houseAddress =
-      address && address.line[0] !== null ? address.line[0] : "";
+      address?.line && address?.line[0] !== null ? address?.line[0] : "";
     const landMark =
       address && address.city && address.city !== null ? address.city : "";
     return address ? houseAddress + " " + landMark : "";
   };
-
+  console.log(patientObject);
   return (
     <Sticky>
       <div className={classes.root}>
@@ -213,7 +216,9 @@ function PatientCard(props) {
                           {" "}
                           Phone Number :
                           <b style={{ color: "#0B72AA" }}>
-                          {patientObject.contactPoint!==null ? getPhoneNumber(patientObject.contactPoint) : ""}
+                            {patientObject.contactPoint !== null
+                              ? getPhoneNumber(patientObject.contactPoint)
+                              : ""}
                           </b>
                         </span>
                       </Col>
@@ -222,7 +227,8 @@ function PatientCard(props) {
                           {" "}
                           Address :
                           <b style={{ color: "#0B72AA" }}>
-                            {getAddress(patientObject.address)}{" "}
+                            {patientObject.address &&
+                              getAddress(patientObject.address)}{" "}
                           </b>
                         </span>
                       </Col>

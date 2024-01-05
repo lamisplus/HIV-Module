@@ -22,6 +22,7 @@ import Remove from "@material-ui/icons/Remove";
 import SaveAlt from "@material-ui/icons/SaveAlt";
 import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { makeStyles } from "@material-ui/core/styles";
@@ -122,6 +123,23 @@ const Patient = (props) => {
     }
   };
 
+  const exportFile = async () => {
+    try {
+      const response = await axios
+        .get(`${baseUrl}linkages/export`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((resp) => {
+          toast.success(`${resp.data}`, {
+            position: toast.POSITION.TOP_CENTER,
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    } catch (e) {}
+  };
+
   return (
     <>
       <div>
@@ -131,7 +149,7 @@ const Patient = (props) => {
           className=" float-right mr-1"
           startIcon={<IosShareIcon />}
           style={{ backgroundColor: "rgb(153, 46, 98)" }}
-          // onClick={syncDataBase}
+          onClick={exportFile}
         >
           <span style={{ textTransform: "capitalize" }}>Export </span>
         </Button>{" "}
@@ -175,6 +193,7 @@ const Patient = (props) => {
               filtering: false,
             },
             { title: "Created Date", field: "createdDate", filtering: false },
+            { title: "Actions", field: "actions", filtering: false },
           ]}
           data={(query) =>
             new Promise((resolve, reject) =>
@@ -193,6 +212,52 @@ const Patient = (props) => {
                       cboName: row.cboName,
                       enrolledInOvcProgram: row.enrolledInOvcProgram,
                       createdDate: row.createdDate,
+                      actions: (
+                        <Link
+                          to={{
+                            pathname: "/register-patient",
+                            state: { patientObj: row },
+                          }}
+                        >
+                          <ButtonGroup
+                            variant="contained"
+                            aria-label="split button"
+                            style={{
+                              backgroundColor: "rgb(153, 46, 98)",
+                              height: "30px",
+                              width: "215px",
+                            }}
+                            size="large"
+                          >
+                            <Button
+                              color="primary"
+                              size="small"
+                              aria-label="select merge strategy"
+                              aria-haspopup="menu"
+                              style={{
+                                backgroundColor: "rgb(153, 46, 98)",
+                              }}
+                            >
+                              <MdDashboard />
+                            </Button>
+                            <Button
+                              style={{
+                                backgroundColor: "rgb(153, 46, 98)",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: "12px",
+                                  color: "#fff",
+                                  fontWeight: "bolder",
+                                }}
+                              >
+                                Enroll Patient
+                              </span>
+                            </Button>
+                          </ButtonGroup>
+                        </Link>
+                      ),
                     })),
                   });
                 })

@@ -109,6 +109,7 @@ public class StatusManagementService {
 				);
 		Optional<HIVStatusTracker> patientNegativeStatus = hivStatusTrackerRepository
 				.getStatusByPersonUuidAndDateRange(personUuid, quarterEnd);
+
 		if (patientNegativeStatus.isPresent() && staticStatus.contains(patientNegativeStatus.get().getHivStatus())) {
 			String hivStatus = patientNegativeStatus.get().getHivStatus();
 				String finalStatus = hivStatus.replaceAll("_", " ").toUpperCase();

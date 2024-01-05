@@ -76,6 +76,11 @@ function Index(props) {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
+        localStorage.setItem(
+          "faciltyId",
+          response.data.currentOrganisationUnitId
+        );
+
         setPermissions(response.data.permissions);
       })
       .catch((error) => {});
@@ -92,14 +97,14 @@ function Index(props) {
         </Tab.Pane>
       ),
     },
-    // {
-    //   menuItem: "Import / Export",
-    //   render: () => (
-    //     <Tab.Pane>
-    //       <List permissions={permissions} />
-    //     </Tab.Pane>
-    //   ),
-    // },
+    {
+      menuItem: "OVC Treatment",
+      render: () => (
+        <Tab.Pane>
+          <List permissions={permissions} />
+        </Tab.Pane>
+      ),
+    },
   ];
 
   return (

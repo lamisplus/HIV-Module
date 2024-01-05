@@ -51,9 +51,9 @@ public class ARTClinicVisitController {
         return ResponseEntity.ok (artClinicVisitService.updateClinicVisit (id, artClinicVisitDto));
     }
 
-    @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> deleteArtClinicVisitId(@PathVariable("id") Long id) {
-        artClinicVisitService.archivedClinicVisit (id);
+    @DeleteMapping(value = "/{id}/{reason}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> deleteArtClinicVisitId(@PathVariable("id") Long id, @PathVariable("reason") String reason) {
+        artClinicVisitService.archivedClinicVisit (id, reason);
         return ResponseEntity.accepted ().build ();
     }
 }

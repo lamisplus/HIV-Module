@@ -43,6 +43,63 @@
         </sql>
     </changeSet>
 
+    <changeSet failOnError="true"  id="20231204-10" author="victor">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_status_tracker" columnName="biometric_status" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE hiv_status_tracker
+            ADD biometric_status VARCHAR(100)
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true"  id="2023998800" author="victor">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_patient_tracker" columnName="biometric_status" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE hiv_patient_tracker
+            ADD biometric_status VARCHAR(100)
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true"  id="2023864553535" author="mathew">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM base_application_codeset WHERE code='BIOMETRIC_STATUS_NDR_VALID';
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+
+            INSERT INTO base_application_codeset (codeset_group, display, language, version, code, date_created, created_by, date_modified, modified_by, archived) VALUES ('BIOMETRIC_STATUS', 'NDR Valid', 'en', NULL, 'BIOMETRIC_STATUS_NDR_VALID', '2023-10-05 22:15:49.6', 'guest@lamisplus.org', '2023-10-05 22:15:49.6', 'guest@lamisplus.org', 0);
+            INSERT INTO base_application_codeset (codeset_group, display, language, version, code, date_created, created_by, date_modified, modified_by, archived) VALUES ('BIOMETRIC_STATUS', 'NDR Invalid', 'en', NULL, 'BIOMETRIC_STATUS_NDR_INVALID', '2023-10-05 22:16:20.843', 'guest@lamisplus.org', '2023-10-05 22:16:20.843', 'guest@lamisplus.org', 0);
+            INSERT INTO base_application_codeset (codeset_group, display, language, version, code, date_created, created_by, date_modified, modified_by, archived) VALUES ('BIOMETRIC_STATUS', '"Invalid - Long-Term IIT"', 'en', NULL, 'BIOMETRIC_STATUS_INVALID_-_LONG-TERM_IIT', '2023-10-05 22:16:48.097', 'guest@lamisplus.org', '2023-10-05 22:16:48.097', 'guest@lamisplus.org', 0);
+            INSERT INTO base_application_codeset (codeset_group, display, language, version, code, date_created, created_by, date_modified, modified_by, archived) VALUES ('BIOMETRIC_STATUS', 'Invalid - Nonexistent', 'en', NULL, 'BIOMETRIC_STATUS_INVALID_-_NONEXISTENT', '2023-10-05 22:15:49.6', 'guest@lamisplus.org', '2023-10-05 22:15:49.6', 'guest@lamisplus.org', 0);
+            INSERT INTO base_application_codeset (codeset_group, display, language, version, code, date_created, created_by, date_modified, modified_by, archived) VALUES ('BIOMETRIC_STATUS', 'Invalid - Duplicates', 'en', NULL, 'BIOMETRIC_STATUS_INVALID_-_DUPLICATES', '2023-10-05 22:16:20.843', 'guest@lamisplus.org', '2023-10-05 22:16:20.843', 'guest@lamisplus.org', 0);
+            INSERT INTO base_application_codeset (codeset_group, display, language, version, code, date_created, created_by, date_modified, modified_by, archived) VALUES ('BIOMETRIC_STATUS', 'Invalid - Biometrical Naive', 'en', NULL, 'BIOMETRIC_STATUS_INVALID_-_BIOMETRICAL_NAIVE', '2023-10-05 22:16:48.097', 'guest@lamisplus.org', '2023-10-05 22:16:48.097', 'guest@lamisplus.org', 0);
+            INSERT INTO base_application_codeset (codeset_group, display, language, version, code, date_created, created_by, date_modified, modified_by, archived) VALUES ('REASON_DISCONTINUATION', 'Others', 'en', NULL, 'REASON_DISCONTINUATION_OTHERS', '2023-10-05 22:16:48.097', 'guest@lamisplus.org', '2023-10-05 22:16:48.097', 'guest@lamisplus.org', 0);
+            SELECT pg_catalog.setval('base_application_codeset_id_seq', (Select max(id) FROM base_application_codeset) , true);
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true"  id="2023100111" author="mathew">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM base_application_codeset WHERE code='BIOMETRIC_STATUS_NDR_VALID';
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+
+            DELETE FROM  base_application_codeset where codeset_group='REASON_DISCONTINUATION' AND id IN('1016','1017','1018','1019');
+
+        </sql>
+    </changeSet>
 
 
 </databaseChangeLog>

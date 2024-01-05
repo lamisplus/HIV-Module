@@ -87,12 +87,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const PeadiatricDisclosureChecklist = (props) => {
+  console.log(props?.activeContent?.actionType)
   const [saving, setSavings] = useState(false);
-
+  
+  const PatientObject= props.patientObj && props.patientObj ? props.patientObj : null
   const submitNewRecord = (values) => {
     const observation = {
       data: values,
-      dateOfObservation: moment(new Date()).format("YYYY-MM-DD"),
+      dateOfObservation: values.encounterDate===""?  moment(new Date()).format("YYYY-MM-DD") : values.encounterDate,
       facilityId: null,
       personId: props.patientObj.id,
       type: "Paediatric OTZ",
@@ -106,6 +108,7 @@ const PeadiatricDisclosureChecklist = (props) => {
         setSavings(false);
         // props.patientObj.mentalHealth = true;
         toast.success("Paediatric OTZ screening save successful.");
+        props.setActiveContent({...props.activeContent, route:'recent-history'})//Redirect to patient home page
       })
       .catch((error) => {
         setSavings(false);
@@ -117,10 +120,17 @@ const PeadiatricDisclosureChecklist = (props) => {
       });
   };
 
+  const handleFilterNumber = (e, setFieldValue) => {
+    
+    // Apply your regex to filter out numbers
+    const newValue = e.target.value.replace(/\d/g, "");
+    setFieldValue(e.target.name, newValue);
+  };
+
   const updateOldRecord = (values) => {
     const observation = {
       data: values,
-      dateOfObservation: moment(new Date()).format("YYYY-MM-DD"),
+      dateOfObservation: values.encounterDate===""?  moment(new Date()).format("YYYY-MM-DD") : values.encounterDate,
       facilityId: null,
       personId: props.patientObj.id,
       type: "Paediatric OTZ",
@@ -134,6 +144,7 @@ const PeadiatricDisclosureChecklist = (props) => {
         setSavings(false);
         // props.patientObj.mentalHealth = true;
         toast.success("Paediatric OTZ screening save successful.");
+        props.setActiveContent({...props.activeContent, route:'recent-history'})//Redirect to patient home page
       })
       .catch((error) => {
         setSavings(false);
@@ -181,7 +192,7 @@ const PeadiatricDisclosureChecklist = (props) => {
       .then((response) => {
         const patientDTO = response.data.data
         formik.setValues(patientDTO)
-        
+        //props.setActiveContent({...props.activeContent, route:'recent-history'})//Redirect to patient home page
       })
       .catch((error) => {
         console.log(error);
@@ -194,7 +205,7 @@ const PeadiatricDisclosureChecklist = (props) => {
     }
   }, [])
   
-
+const isViewActionType = props?.activeContent?.actionType === 'view'
 
   return (
     <>
@@ -260,6 +271,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                       <Label>Facility Name</Label>
 
                       <Input
+                      readOnly={isViewActionType}
                         type="text"
                         name="facilityName"
                         id="facilityName"
@@ -282,55 +294,82 @@ const PeadiatricDisclosureChecklist = (props) => {
                   </div> */}
 
 
+                  {/*<div className="form-group mb-3 col-md-4">*/}
+                  {/*  <FormGroup>*/}
+                  {/*    <Label>Child's Name</Label>*/}
+
+                  {/*    <Input
+                  readOnly={isViewActionType}*/}
+                  {/*      type="text"*/}
+                  {/*      name="childName"*/}
+                  {/*      id="childName"*/}
+                  {/*      value={PatientObject.firstName + " " + PatientObject.surname}*/}
+                  {/*      onChange={formik.handleChange}*/}
+                  {/*      onBlur={formik.handleBlur}*/}
+                  {/*      hidden*/}
+                  {/*      style={{*/}
+                  {/*        border: "1px solid #014D88",*/}
+                  {/*        borderRadius: "0.25rem",*/}
+                  {/*      }}*/}
+                  {/*    ></Input>*/}
+                  {/*  </FormGroup>*/}
+                  {/*  {formik.errors.childName !== "" ? (*/}
+                  {/*    <span className={classes.error}>*/}
+                  {/*      {formik.errors.childName}*/}
+                  {/*    </span>*/}
+                  {/*  ) : (*/}
+                  {/*    ""*/}
+                  {/*  )}*/}
+                  {/*</div>*/}
+                  {/*<div className="form-group mb-3 col-md-4">*/}
+                  {/*  <FormGroup>*/}
+                  {/*    <Label>Sex</Label>*/}
+                  {/*    <Input
+                  readOnly={isViewActionType}*/}
+                  {/*      name="sex"*/}
+                  {/*      id="sex"*/}
+                  {/*      type="select"*/}
+                  {/*      value={PatientObject.sex}*/}
+                  {/*      onChange={formik.handleChange}*/}
+                  {/*      onBlur={formik.handleBlur}*/}
+                  {/*      style={{*/}
+                  {/*        border: "1px solid #014D88",*/}
+                  {/*        borderRadius: "0.25rem",*/}
+                  {/*      }}*/}
+                  {/*    >*/}
+                  {/*      <option value="">Select</option>*/}
+                  {/*      <option value="Male">Male</option>*/}
+                  {/*      <option value="Female">Female</option>*/}
+                  {/*    </Input>*/}
+                  {/*  </FormGroup>*/}
+                  {/*  {formik.errors.sex !== "" ? (*/}
+                  {/*    <span className={classes.error}>{formik.errors.sex}</span>*/}
+                  {/*  ) : (*/}
+                  {/*    ""*/}
+                  {/*  )}*/}
+                  {/*</div>*/}
                   <div className="form-group mb-3 col-md-4">
                     <FormGroup>
-                      <Label>Child's Name</Label>
-
+                      <Label>Encounter Date</Label>
                       <Input
-                        type="text"
-                        name="childName"
-                        id="childName"
-                        value={formik.values.childName}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
+                      readOnly={isViewActionType}
+                          name="encounterDate"
+                          id="encounterDate"
+                          type="date"
+                          value={formik.values.encounterDate}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          max= {moment(new Date()).format("YYYY-MM-DD") }
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
                       ></Input>
                     </FormGroup>
-                    {formik.errors.childName !== "" ? (
-                      <span className={classes.error}>
-                        {formik.errors.childName}
-                      </span>
+                    {formik.errors.encounterDate !== "" ? (
+                        <span className={classes.error}>{formik.errors.encounterDate}</span>
                     ) : (
-                      ""
-                    )}
-                  </div>
-                  <div className="form-group mb-3 col-md-4">
-                    <FormGroup>
-                      <Label>Sex</Label>
-                      <Input
-                        name="sex"
-                        id="sex"
-                        type="select"
-                        value={formik.values.sex}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                      >
-                        <option value="">Select</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                      </Input>
-                    </FormGroup>
-                    {formik.errors.sex !== "" ? (
-                      <span className={classes.error}>{formik.errors.sex}</span>
-                    ) : (
-                      ""
+                        ""
                     )}
                   </div>
 
@@ -338,11 +377,12 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Caregiver's Name</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="caregiverName"
                         id="caregiverName"
                         type="text"
                         value={formik.values.caregiverName}
-                        onChange={formik.handleChange}
+                        onChange={(e)=>handleFilterNumber(e, formik?.setFieldValue)}
                         onBlur={formik.handleBlur}
                         style={{
                           border: "1px solid #014D88",
@@ -363,9 +403,10 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>CCC Number</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="cccNumber"
                         id="cccNumber"
-                        type="text"
+                        type="number"
                         value={formik.values.cccNumber}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
@@ -384,28 +425,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     )}
                   </div>
 
-                  <div className="form-group mb-3 col-md-4">
-                    <FormGroup>
-                      <Label>Date of birth</Label>
-                      <Input
-                        name="dob"
-                        id="dob"
-                        type="date"
-                        value={formik.values.dob}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                      ></Input>
-                    </FormGroup>
-                    {formik.errors.dob !== "" ? (
-                      <span className={classes.error}>{formik.errors.dob}</span>
-                    ) : (
-                      ""
-                    )}
-                  </div>
+
                 </div>
               </div>
 
@@ -451,12 +471,14 @@ const PeadiatricDisclosureChecklist = (props) => {
                       <Label>Date Task 1 executed</Label>
 
                       <Input
+                      readOnly={isViewActionType}
                         type="date"
                         name="dateTask1Executed"
                         id="dateTask1Executed"
                         value={formik.values.dateTask1Executed}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
+                        max= {moment(new Date()).format("YYYY-MM-DD") }
                         style={{
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
@@ -477,11 +499,12 @@ const PeadiatricDisclosureChecklist = (props) => {
                       <Label>Task facilitator name</Label>
 
                       <Input
+                      readOnly={isViewActionType}
                         type="text"
                         name="task1HCW"
                         id="task1HCW"
                         value={formik.values.task1HCW}
-                        onChange={formik.handleChange}
+                        onChange={(e) => handleFilterNumber(e, formik?.setFieldValue)}
                         onBlur={formik.handleBlur}
                         style={{
                           border: "1px solid #014D88",
@@ -504,6 +527,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         Child met the age criteria (between 6 and 10 years)
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task1ChildMetCriteria"
                         id="task1ChildMetCriteria"
                         type="select"
@@ -536,6 +560,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         disclosure
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task1ChildAndCaregiverKnowledgeable"
                         id="task1ChildAndCaregiverKnowledgeable"
                         type="select"
@@ -568,6 +593,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Caregiver willing to disclose to the child</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task1CaregiverWilling"
                         id="task1CaregiverWilling"
                         type="select"
@@ -597,6 +623,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Task 1 comments</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task1Comments"
                         id="task1Comments"
                         type="textarea"
@@ -663,12 +690,14 @@ const PeadiatricDisclosureChecklist = (props) => {
                       <Label>Date Task 2 executed</Label>
 
                       <Input
+                      readOnly={isViewActionType}
                         type="date"
                         name="dateTask2Executed"
                         id="dateTask2Executed"
                         value={formik.values.dateTask2Executed}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
+                        max= {moment(new Date()).format("YYYY-MM-DD") }
                         style={{
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
@@ -689,11 +718,12 @@ const PeadiatricDisclosureChecklist = (props) => {
                       <Label>Task 2 facilitator name</Label>
 
                       <Input
+                      readOnly={isViewActionType}
                         type="text"
                         name="task2HCW"
                         id="task2HCW"
                         value={formik.values.task2HCW}
-                        onChange={formik.handleChange}
+                        onChange={(e) => handleFilterNumber(e, formik?.setFieldValue)}
                         onBlur={formik.handleBlur}
                         style={{
                           border: "1px solid #014D88",
@@ -717,6 +747,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         trauma, psychological illness or physical illness
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task2FreeFromPhysicalIllness"
                         id="task2FreeFromPhysicalIllness"
                         type="select"
@@ -749,6 +780,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         support
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task2ChildConsisitentFamilyPeer"
                         id="task2ChildConsisitentFamilyPeer"
                         type="select"
@@ -782,6 +814,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         playing activites
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task2ChildDemostrateInEnvAndPlaying"
                         id="task2ChildDemostrateInEnvAndPlaying"
                         type="select"
@@ -818,6 +851,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         illness and addressed needs and concerns
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task2AssessedWhatChildAlreadyKnows"
                         id="task2AssessedWhatChildAlreadyKnows"
                         type="select"
@@ -852,6 +886,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         community, able to freely discuss school activities)
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="taskAssessedFunctionalSchoolEngagement"
                         id="taskAssessedFunctionalSchoolEngagement"
                         type="select"
@@ -887,6 +922,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         Assessed caregiver readiness for disclosure to the child
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task2assessedCaregiverReadinessForDisclosureToChild"
                         id="task2assessedCaregiverReadinessForDisclosureToChild"
                         type="select"
@@ -921,45 +957,46 @@ const PeadiatricDisclosureChecklist = (props) => {
                     )}
                   </div>
 
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>
-                        Assessed what the caregiver has communicated to the
-                        child
-                      </Label>
-                      <Input
-                        name="task2AssessedCaregiverCommunicatedToChild"
-                        id="task2AssessedCaregiverCommunicatedToChild"
-                        type="select"
-                        value={
-                          formik.values
-                            .task2AssessedCaregiverCommunicatedToChild
-                        }
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                          marginTop: "20px",
-                        }}
-                      >
-                        <option value="">Select</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                      </Input>
-                    </FormGroup>
-                    {formik.errors.task2AssessedCaregiverCommunicatedToChild !==
-                    "" ? (
-                      <span className={classes.error}>
-                        {
-                          formik.errors
-                            .task2AssessedCaregiverCommunicatedToChild
-                        }
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </div>
+                  {/*<div className="form-group mb-3 col-md-6">*/}
+                  {/*  <FormGroup>*/}
+                  {/*    <Label>*/}
+                  {/*      Assessed what the caregiver has communicated to the*/}
+                  {/*      child*/}
+                  {/*    </Label>*/}
+                  {/*    <Input
+                  readOnly={isViewActionType}*/}
+                  {/*      name="task2AssessedCaregiverCommunicatedToChild"*/}
+                  {/*      id="task2AssessedCaregiverCommunicatedToChild"*/}
+                  {/*      type="select"*/}
+                  {/*      value={*/}
+                  {/*        formik.values*/}
+                  {/*          .task2AssessedCaregiverCommunicatedToChild*/}
+                  {/*      }*/}
+                  {/*      onChange={formik.handleChange}*/}
+                  {/*      onBlur={formik.handleBlur}*/}
+                  {/*      style={{*/}
+                  {/*        border: "1px solid #014D88",*/}
+                  {/*        borderRadius: "0.25rem",*/}
+                  {/*        marginTop: "20px",*/}
+                  {/*      }}*/}
+                  {/*    >*/}
+                  {/*      <option value="">Select</option>*/}
+                  {/*      <option value="yes">Yes</option>*/}
+                  {/*      <option value="no">No</option>*/}
+                  {/*    </Input>*/}
+                  {/*  </FormGroup>*/}
+                  {/*  {formik.errors.task2AssessedCaregiverCommunicatedToChild !==*/}
+                  {/*  "" ? (*/}
+                  {/*    <span className={classes.error}>*/}
+                  {/*      {*/}
+                  {/*        formik.errors*/}
+                  {/*          .task2AssessedCaregiverCommunicatedToChild*/}
+                  {/*      }*/}
+                  {/*    </span>*/}
+                  {/*  ) : (*/}
+                  {/*    ""*/}
+                  {/*  )}*/}
+                  {/*</div>*/}
 
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
@@ -968,6 +1005,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         regarding one's health with the child and caregiver
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task2DiscussedManagementOfConfidentiality"
                         id="task2DiscussedManagementOfConfidentiality"
                         type="select"
@@ -1005,6 +1043,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Task 2 comments</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task2Comments"
                         id="task2Comments"
                         type="textarea"
@@ -1072,12 +1111,14 @@ const PeadiatricDisclosureChecklist = (props) => {
                       <Label>Date Task 3 executed</Label>
 
                       <Input
+                      readOnly={isViewActionType}
                         type="date"
                         name="dateTask3Executed"
                         id="dateTask3Executed"
                         value={formik.values.dateTask3Executed}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
+                        max= {moment(new Date()).format("YYYY-MM-DD") }
                         style={{
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
@@ -1098,11 +1139,12 @@ const PeadiatricDisclosureChecklist = (props) => {
                       <Label>Task 3 facilitator name</Label>
 
                       <Input
+                      readOnly={isViewActionType}
                         type="text"
                         name="task3HCW"
                         id="task3HCW"
                         value={formik.values.task3HCW}
-                        onChange={formik.handleChange}
+                        onChange={(e) => handleFilterNumber(e, formik?.setFieldValue)}
                         onBlur={formik.handleBlur}
                         style={{
                           border: "1px solid #014D88",
@@ -1123,6 +1165,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Reassured the caregiver and the child</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3ReassuredTheCaregiverAndChild"
                         id="task3ReassuredTheCaregiverAndChild"
                         type="select"
@@ -1152,6 +1195,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Assessed child and caregiver comfort</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3AssessedChildAndCaregiverComfort"
                         id="task3AssessedChildAndCaregiverComfort"
                         type="select"
@@ -1184,6 +1228,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Assessed safety (environment and timing)</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3AssessedSafety"
                         id="task3AssessedSafety"
                         type="select"
@@ -1214,6 +1259,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Assessed the depth of Child's knowledge</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3AssessedTheDepthOfChildKnowledge"
                         id="task3AssessedTheDepthOfChildKnowledge"
                         type="select"
@@ -1250,6 +1296,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         language the child can understand
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3SupportedCaregiverToDisclose"
                         id="task3SupportedCaregiverToDisclose"
                         type="select"
@@ -1283,6 +1330,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         caregiver and addressed concerns or negative reactions
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3ObservedTheImmediateReactionOfChildAndCaregiver"
                         id="task3ObservedTheImmediateReactionOfChildAndCaregiver"
                         type="select"
@@ -1317,50 +1365,52 @@ const PeadiatricDisclosureChecklist = (props) => {
                     )}
                   </div>
 
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>
-                        Assessed what the caregiver has communicated to the
-                        child
-                      </Label>
-                      <Input
-                        name="task2AssessedCaregiverCommunicatedToChild"
-                        id="task2AssessedCaregiverCommunicatedToChild"
-                        type="select"
-                        value={
-                          formik.values
-                            .task2AssessedCaregiverCommunicatedToChild
-                        }
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                          // marginTop: "20px"
-                        }}
-                      >
-                        <option value="">Select</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                      </Input>
-                    </FormGroup>
-                    {formik.errors.task2AssessedCaregiverCommunicatedToChild !==
-                    "" ? (
-                      <span className={classes.error}>
-                        {
-                          formik.errors
-                            .task2AssessedCaregiverCommunicatedToChild
-                        }
-                      </span>
-                    ) : (
-                      ""
-                    )}
-                  </div>
+                  {/*<div className="form-group mb-3 col-md-6">*/}
+                  {/*  <FormGroup>*/}
+                  {/*    <Label>*/}
+                  {/*      Assessed what the caregiver has communicated to the*/}
+                  {/*      child*/}
+                  {/*    </Label>*/}
+                  {/*    <Input
+                  readOnly={isViewActionType}*/}
+                  {/*      name="task2AssessedCaregiverCommunicatedToChild"*/}
+                  {/*      id="task2AssessedCaregiverCommunicatedToChild"*/}
+                  {/*      type="select"*/}
+                  {/*      value={*/}
+                  {/*        formik.values*/}
+                  {/*          .task2AssessedCaregiverCommunicatedToChild*/}
+                  {/*      }*/}
+                  {/*      onChange={formik.handleChange}*/}
+                  {/*      onBlur={formik.handleBlur}*/}
+                  {/*      style={{*/}
+                  {/*        border: "1px solid #014D88",*/}
+                  {/*        borderRadius: "0.25rem",*/}
+                  {/*        // marginTop: "20px"*/}
+                  {/*      }}*/}
+                  {/*    >*/}
+                  {/*      <option value="">Select</option>*/}
+                  {/*      <option value="yes">Yes</option>*/}
+                  {/*      <option value="no">No</option>*/}
+                  {/*    </Input>*/}
+                  {/*  </FormGroup>*/}
+                  {/*  {formik.errors.task2AssessedCaregiverCommunicatedToChild !==*/}
+                  {/*  "" ? (*/}
+                  {/*    <span className={classes.error}>*/}
+                  {/*      {*/}
+                  {/*        formik.errors*/}
+                  {/*          .task2AssessedCaregiverCommunicatedToChild*/}
+                  {/*      }*/}
+                  {/*    </span>*/}
+                  {/*  ) : (*/}
+                  {/*    ""*/}
+                  {/*  )}*/}
+                  {/*</div>*/}
 
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
                       <Label>Invited questions from the child</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3InvitedQuestionsFromChild"
                         id="task3InvitedQuestionsFromChild"
                         type="select"
@@ -1394,6 +1444,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         child and caregiver
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3RevistedBenefitsOfDisclosureWithChild"
                         id="task3RevistedBenefitsOfDisclosureWithChild"
                         type="select"
@@ -1434,6 +1485,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         caregiver
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3ExplainedCareOptionsAvailable"
                         id="task3ExplainedCareOptionsAvailable"
                         type="select"
@@ -1469,6 +1521,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         caregiver
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3ConcludedSessionWithReassurance"
                         id="task3ConcludedSessionWithReassurance"
                         type="select"
@@ -1502,6 +1555,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Task 3 comments</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task3Comments"
                         id="task3Comments"
                         type="textarea"
@@ -1569,12 +1623,14 @@ const PeadiatricDisclosureChecklist = (props) => {
                       <Label>Date Task 4 executed</Label>
 
                       <Input
+                      readOnly={isViewActionType}
                         type="date"
                         name="dateTask4Executed"
                         id="dateTask4Executed"
                         value={formik.values.dateTask4Executed}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
+                        max= {moment(new Date()).format("YYYY-MM-DD") }
                         style={{
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
@@ -1595,11 +1651,12 @@ const PeadiatricDisclosureChecklist = (props) => {
                       <Label>Task 4 facilitator name</Label>
 
                       <Input
+                      readOnly={isViewActionType}
                         type="text"
                         name="task4HCW"
                         id="task4HCW"
                         value={formik.values.task4HCW}
-                        onChange={formik.handleChange}
+                        onChange={(e) => handleFilterNumber(e, formik?.setFieldValue)}
                         onBlur={formik.handleBlur}
                         style={{
                           border: "1px solid #014D88",
@@ -1620,6 +1677,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Assessed functional school engagement</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task4AssessedFunctionalSchoolEngagement"
                         id="task4AssessedFunctionalSchoolEngagement"
                         type="select"
@@ -1655,6 +1713,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         support after disclosure
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task4AssessedFamilySocialAndPeerRelationship"
                         id="task4AssessedFamilySocialAndPeerRelationship"
                         type="select"
@@ -1694,6 +1753,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         children's activities like playing
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task4AssessedInterestAndEngagementOfChild"
                         id="task4AssessedInterestAndEngagementOfChild"
                         type="select"
@@ -1734,6 +1794,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         self-perception and outlook
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task4AllowedQuestionsFromChild"
                         id="task4AllowedQuestionsFromChild"
                         type="select"
@@ -1766,6 +1827,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         Addressed negative body or self-image issues
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task4AddressedNegativeBodyOrSelfImageIssues"
                         id="task4AddressedNegativeBodyOrSelfImageIssues"
                         type="select"
@@ -1806,6 +1868,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         behaviors
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task4AssessedChildForMoodiness"
                         id="task4AssessedChildForMoodiness"
                         type="select"
@@ -1839,6 +1902,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                         complications developed post disclosure if indicated
                       </Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task4ReferredAppropriately"
                         id="task4ReferredAppropriately"
                         type="select"
@@ -1869,6 +1933,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Given age-appropriate adherence information</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task4GivenAppropriateAdherenceInformation"
                         id="task4GivenAppropriateAdherenceInformation"
                         type="select"
@@ -1906,6 +1971,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Task 4 comments</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="task4Comments"
                         id="task4Comments"
                         type="textarea"
@@ -1932,6 +1998,7 @@ const PeadiatricDisclosureChecklist = (props) => {
                     <FormGroup>
                       <Label>Final comments</Label>
                       <Input
+                      readOnly={isViewActionType}
                         name="finalComments"
                         id="finalComments"
                         type="textarea"

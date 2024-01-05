@@ -1,6 +1,6 @@
 {
   "name": "LamisPlus",
-  "version": "0.1.0",
+  "version": "2.8.0",
   "homepage": ".",
   "private": true,
   "dependencies": {
@@ -60,6 +60,7 @@
     "material-ui-color-picker": "^3.5.1",
     "material-ui-dropzone": "^3.4.0",
     "metismenujs": "^1.2.1",
+    "moment": "^2.30.1",
     "nouislider-react": "^3.3.9",
     "p-min-delay": "^3.1.0",
     "rc-color-picker": "^1.2.6",
@@ -126,13 +127,12 @@
   "scripts": {
     "start": "react-scripts  start",
     "jsreport": "jsreport-start",
-    "build": "react-scripts build  && xcopy /s /y build src\\main\\resources\\views\\static\\hiv",
+    "build": "react-scripts  build  && xcopy /s /y build src\\main\\resources\\views\\static\\hiv",
     "serve": "serve -s build",
     "run-build": "react-scripts build && serve",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
- 
   "browserslist": {
     "production": [
       ">0.2%",

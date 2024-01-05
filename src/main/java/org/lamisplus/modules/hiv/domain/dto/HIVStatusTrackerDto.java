@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
 import javax.validation.constraints.Size;
@@ -32,6 +33,8 @@ public class HIVStatusTrackerDto implements Serializable {
     private LocalDate agreedDate;
     @Size(max = 100)
     private String reasonForInterruption;
+    @Size(max = 100)
+    private String biometricStatus;
     @Size(max = 100)
     private String causeOfDeath;
     @Size(max = 200)
