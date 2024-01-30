@@ -62,27 +62,69 @@ const PharmacyHistory = (props) => {
     }, [props.patientObj.id, props.refillList]);
 
 
+    // useEffect(() => {
+    //     const calculatePillBalances = (currentDate, refillList) => {
+    //         return refillList.map((refill) => {
+    //             return refill.extra.regimens.map((prescription) => {
+    //                 const daysDifference = Math.ceil((currentDate - new Date(refill.visitDate)) / (1000 * 60 * 60 * 24) );
+    //                 const expectedQuantity = Math.min(prescription.dispense, daysDifference * prescription.frequency);
+    //                 const pillBalance = prescription.dispense - expectedQuantity;
+    //                 return pillBalance;
+    //             });
+    //         });
+    //     };
+
+    //     const getCurrentDate = () => new Date();
+    //     const currentDate = getCurrentDate();
+    //     // Calculate pill balances for each row in the refillList
+    //     const calculatedPillBalances = calculatePillBalances(currentDate, props.refillList);
+    //     // Update the state with the calculated pill balances
+    //     setPillBalances(calculatedPillBalances);
+    //     // Log the pillBalances array
+    //     console.log('Pill Balances:', calculatedPillBalances);
+    // }, [props.refillList]);
+
+    // useEffect(() => {
+    //     const calculatePillBalances = (currentDate, refillList) => {
+    //         return refillList.map((refill) => {
+    //             return refill.extra.regimens.map((prescription) => {
+    //                 const daysDifference = Math.ceil((currentDate - new Date(refill.visitDate)) / (1000 * 60 * 60 * 24));
+    //                 const pillsTaken = Math.min(daysDifference, prescription.duration) * prescription.frequency;
+    //                 const pillBalance = prescription.dispense - pillsTaken;
+    //                 return pillBalance;
+    //             });
+    //         })
+    //     };
+    
+    //     const getCurrentDate = () => new Date();
+    //     const currentDate = getCurrentDate();
+    //     const calculatedPillBalances = calculatePillBalances(currentDate, props.refillList);
+    //     setPillBalances(calculatedPillBalances);
+    //     // console.log('Pill Balances:', calculatedPillBalances);
+    // }, [props.refillList]);
+
     useEffect(() => {
         const calculatePillBalances = (currentDate, refillList) => {
             return refillList.map((refill) => {
                 return refill.extra.regimens.map((prescription) => {
-                    const daysDifference = Math.ceil((currentDate - new Date(refill.visitDate)) / (1000 * 60 * 60 * 24) );
-                    const expectedQuantity = Math.min(prescription.dispense, daysDifference * prescription.frequency);
-                    const pillBalance = prescription.dispense - expectedQuantity;
+                    const visitDate = new Date(refill.visitDate);
+                    const daysDifference = Math.ceil((currentDate - visitDate) / (1000 * 60 * 60 * 24));
+                    const pillsTaken = Math.min(daysDifference - 1, prescription.duration) * prescription.frequency;
+                    const pillBalance = prescription.dispense - pillsTaken;
                     return pillBalance;
                 });
-            });
+            })
         };
-
+    
         const getCurrentDate = () => new Date();
         const currentDate = getCurrentDate();
-        // Calculate pill balances for each row in the refillList
         const calculatedPillBalances = calculatePillBalances(currentDate, props.refillList);
-        // Update the state with the calculated pill balances
         setPillBalances(calculatedPillBalances);
         // Log the pillBalances array
-        console.log('Pill Balances:', calculatedPillBalances);
+        // console.log('Pill Balances:', calculatedPillBalances);
     }, [props.refillList]);
+    
+    
 
     const onClickHome = (row, actionType) => {
         // props.setActiveContent({...props.activeContent, route:'pharmacy', activeTab:"hsitory"})

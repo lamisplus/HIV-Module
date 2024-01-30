@@ -157,11 +157,11 @@ const Tracking = (props) => {
     // acknowlegdeTelephoneNumber: "",
   });
 
-  console.log(
-    "this is the patient obj",
-    patientObj,
-    localStorage.getItem("faciltyId")
-  );
+  // console.log(
+  //   "this is the patient obj",
+  //   patientObj,
+  //   localStorage.getItem("faciltyId")
+  // );
 
   const checkNumberLimit = (e) => {
     const limit = 11;
@@ -172,23 +172,23 @@ const Tracking = (props) => {
   const handleInputChangePhoneNumber = (e, inputName) => {
     const limit = 11;
     const NumberValue = checkNumberLimit(e.target.value.replace(/\D/g, ""));
-    setBasicInfo({ ...payload, [inputName]: NumberValue });
+    setPayload({ ...payload, [inputName]: NumberValue });
   };
 
-  console.log("that is good ", payload);
-  console.log("the person uuid", patientObj.personUuid);
+  // console.log("that is good ", payload);
+  // console.log("the person uuid", patientObj.personUuid);
   // fetch info for the form
   const getTreatmentInfo = () => {
     let facId = localStorage.getItem("faciltyId");
     //  .get(`${baseUrl}treatment-transfers/${facId}/${patientObj.personUuid}`
     axios
-      .get(`${baseUrl}treatment-transfers/info/${patientObj.personUuid}`, {
+      .get(`${baseUrl}treatment-transfers/info/${facId}/${patientObj.personUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        console.log(`peson uuid: ${patientObj.personUuid}`);
+        // console.log(`peson uuid: ${patientObj.personUuid}`);
         setTransferInfo(response.data);
-        console.log("getTreatmentInfo", response.data);
+        // console.log("getTreatmentInfo", response.data);
         //   setPatientObj1(response.data);
       })
       .catch((error) => {});
@@ -202,7 +202,7 @@ const Tracking = (props) => {
       })
       .then((response) => {
         // setTransferInfo(response.data);
-        console.log("getCurrentMedication", response.data);
+        // console.log("getCurrentMedication", response.data);
         setCurrentMedication(response.data);
       })
       .catch((error) => {});
@@ -221,7 +221,7 @@ const Tracking = (props) => {
       )
       .then((response) => {
         // setTransferInfo(response.data);
-        console.log("getLabResult", response.data);
+        // console.log("getLabResult", response.data);
         setLabResult(response.data);
       })
       .catch((error) => {});
@@ -265,7 +265,7 @@ const Tracking = (props) => {
         }
       )
       .then((response) => {
-        console.log(response.data);
+        // console.log(response.data);
 
         let updatedFaclilties = response.data.map((each, id) => {
           return {
@@ -283,12 +283,6 @@ const Tracking = (props) => {
   const calculateBMI = () => {
     let squareH = Number(transferInfo?.height) * Number(transferInfo?.height);
     let value = Number(transferInfo.weight) / squareH;
-    console.log(
-      "calculating BMI",
-      Number(transferInfo?.height),
-      Number(transferInfo.weight),
-      value
-    );
     setBMI(value);
   };
   // when component mounts
@@ -313,7 +307,7 @@ const Tracking = (props) => {
 
   // handle Facility Name to slect drop down
   const handleInputChangeObject = (e) => {
-    console.log(e);
+    // console.log(e);
     setPayload({
       ...payload,
       facilityTransferTo: e.name,
@@ -1179,7 +1173,7 @@ const Tracking = (props) => {
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                     <Label for="">Phone Number of Treatment supporter </Label>
-                    <Input
+                    {/* <Input
                       type="number"
                       name="phoneNumberOfTreatmentSupporter"
                       id="phoneNumberOfTreatmentSupporter"
@@ -1198,7 +1192,27 @@ const Tracking = (props) => {
                       </span>
                     ) : (
                       ""
-                    )}
+                    )} */}
+                    <Input
+                          type="text"
+                          name="phoneNumberOfTreatmentSupporter"
+                          id="phoneNumberOfTreatmentSupporter"
+                          value={payload.phoneNumberOfTreatmentSupporter}
+                          onChange={(e) => {
+                            handleInputChangePhoneNumber(e, "phoneNumberOfTreatmentSupporter");
+                          }}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.2rem",
+                          }}
+                        />
+                        {errors.phoneNumberOfTreatmentSupporter !== "" ? (
+                          <span className={classes.error}>
+                            {errors.phoneNumberOfTreatmentSupporter}
+                          </span>
+                        ) : (
+                          ""
+                        )}
                   </FormGroup>
                 </div>
 
@@ -1457,7 +1471,7 @@ const Tracking = (props) => {
                   <FormGroup>
                     <Label for="">Received date</Label>
                     <Input
-                      type="text"
+                      type="date"
                       name="acknowlegdeReceiveDate"
                       id="acknowlegdeReceiveDate"
                       onChange={handleInputChange}
@@ -1482,13 +1496,13 @@ const Tracking = (props) => {
                   <FormGroup>
                     <Label for="">Date of visit</Label>
                     <Input
-                      type="text"
+                      type="date"
                       name="acknowledgementDateOfVisit"
                       id="acknowledgementDateOfVisit"
                       onChange={handleInputChange}
                       value={payload.acknowledgementDateOfVisit}
                       //min= {moment(objValues.dateOfLastViralLoad).format("YYYY-MM-DD") }
-                      // max={moment(new Date()).format("YYYY-MM-DD")}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.25rem",
@@ -1557,7 +1571,7 @@ const Tracking = (props) => {
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                     <Label for="">Telephone Number</Label>
-                    <Input
+                    {/* <Input
                       type="number"
                       name="clinicianTelephoneNumber"
                       id="clinicianTelephoneNumber"
@@ -1576,7 +1590,27 @@ const Tracking = (props) => {
                       </span>
                     ) : (
                       ""
-                    )}
+                    )} */}
+                    <Input
+                          type="text"
+                          name="clinicianTelephoneNumber"
+                          id="clinicianTelephoneNumber"
+                          onChange={(e) => {
+                            handleInputChangePhoneNumber(e, "clinicianTelephoneNumber");
+                          }}
+                          value={payload.clinicianTelephoneNumber}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.2rem",
+                          }}
+                        />
+                        {errors.clinicianTelephoneNumber !== "" ? (
+                          <span className={classes.error}>
+                            {errors.clinicianTelephoneNumber}
+                          </span>
+                        ) : (
+                          ""
+                        )}
                   </FormGroup>
                 </div>
               </div>
