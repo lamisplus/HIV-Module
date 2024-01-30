@@ -220,6 +220,7 @@ const ClientVerification = (props) =>{
     //Validations of the forms
     const validateAttempt = () => { 
         //attempt.verificationAttempts=selected
+        temp.indicationForClientVerification = selected.length > 0 ? "" : "This field is required";
         temp.dateOfAttempt =attempt.dateOfAttempt?"": "This field is required"
         temp.verificationStatus = attempt.verificationStatus ? "" : "This field is required"
         temp.outcome = attempt.outcome ? "" : "This field is required"
@@ -741,7 +742,7 @@ const ClientVerification = (props) =>{
                           {" "}
                           Adherence Counselling
                         </option>
-                        <option value="TB Screen"> TB scrren </option>
+                        <option value="TB Screen"> TB screen </option>
                         <option value="Others"> Others </option>
                       </Input>
                     </div>

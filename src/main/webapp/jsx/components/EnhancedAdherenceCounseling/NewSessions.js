@@ -137,7 +137,7 @@ const NEWEACSESSION = (props) => {
         GetPatientDTOObj();
         CheckEACStatus();
     }, [props.activeContent]);
-    console.log(props.activeContent.obj)
+    // console.log(props.activeContent.obj)
     //Get EAC Status
     const CheckEACStatus =()=>{
         axios

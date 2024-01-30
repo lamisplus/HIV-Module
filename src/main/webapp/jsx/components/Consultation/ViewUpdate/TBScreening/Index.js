@@ -347,6 +347,7 @@ const TBScreeningForm = (props) => {
               id="tbStatusId"
               value={props.tbObj.tbStatusId}
               onChange={handleInputChange}
+              disabled
               style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
             >
               <option value="">Select </option>

@@ -162,7 +162,7 @@ const ClinicVisit = (props) => {
 
         const lastVitalSigns = response.data[response.data.length - 1]
         if (lastVitalSigns.encounterDate === moment(new Date()).format("YYYY-MM-DD") === true) {
-          console.log(lastVitalSigns)
+         
           setcurrentVitalSigns(lastVitalSigns)
           setShowCurrentVitalSigns(true)
         }

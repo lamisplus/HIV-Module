@@ -156,7 +156,7 @@ const Tracking = (props) => {
     GetPatientDTOObj();
     //GetFormDetail();
     if (props.activeContent && props.activeContent.obj) {
-      console.log(props.activeContent.obj);
+      // console.log(props.activeContent.obj);
       setObjValues({ ...props.activeContent.obj });
       setAttemptList(props.activeContent.obj.attempts);
     }

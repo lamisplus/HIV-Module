@@ -59,6 +59,8 @@ import OtzPeadiatricDisclosureChecklist from "./../Otz/PeadiatricDisclosureCheck
 import OtzRegister from "./../Otz/Register";
 import Tracking from "../ClientVerfication/ClientVerification";
 import ClientVerification from "../ClientVerfication/ClientVerification";
+import EnrollmentOtz from "../Otz/Enrollment";
+
 
 const styles = (theme) => ({
   root: {
@@ -113,7 +115,6 @@ function PatientCard(props) {
   const [patientObj1, setPatientObj1] = useState(null);
   useEffect(() => {
     PatientCurrentObject();
-    //CheckBiometric();
   }, []);
 
   ///GET Patient
@@ -154,8 +155,11 @@ function PatientCard(props) {
           />
           <Sticky>
             <SubMenu
-              patientObj={patientObj}
-              setActiveContent={setActiveContent}
+               patientObj={patientObj}
+               setActiveContent={setActiveContent}
+               expandedPatientObj={patientObj1}
+               art={art}
+               activeContent={activeContent}
             />
           </Sticky>
           <br />
@@ -442,11 +446,25 @@ function PatientCard(props) {
             />
           )}
 
-          {activeContent.route === "otz-service-form" && (
+{activeContent.route === "otz-service-form" && (
             <OtzServiceForm
               patientObj={patientObj}
               setActiveContent={setActiveContent}
-              activeContent={activeContent}
+              activeContent={{...activeContent,
+                patientId: patientObj?.id || patientObj1?.id,
+              }}
+              expandedPatientObj={patientObj1}
+              art={art}
+
+            />
+          )}
+          {activeContent.route === "otz-enrollment-form" && (
+            <EnrollmentOtz
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={{...activeContent,
+                patientId: patientObj?.id || patientObj1?.id,
+              }}
             />
           )}
           {activeContent.route === "otz-register" && (
@@ -456,7 +474,6 @@ function PatientCard(props) {
               activeContent={activeContent}
             />
           )}
-
           {activeContent.route === "filled-transferForm" && (
             <DashboardFilledTransferForm
               patientObj={patientObj}

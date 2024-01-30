@@ -94,8 +94,8 @@ const EnrollmentOtz = (props) => {
     const observation = {
       data: values,
       dateOfObservation:
-        values.dateDone != ""
-          ? values.dateDone
+        values?.dateDone != ""
+          ? values?.dateDone
           : moment(new Date()).format("YYYY-MM-DD"),
       facilityId: null,
       personId: props?.patientObj?.id,
@@ -139,8 +139,8 @@ const EnrollmentOtz = (props) => {
     const observation = {
       data: values,
       dateOfObservation:
-        values.dateDone != ""
-          ? values.dateDone
+        values?.dateDone != ""
+          ? values?.dateDone
           : moment(new Date()).format("YYYY-MM-DD"),
       facilityId: null,
       personId: currentRecord?.personId,
@@ -200,7 +200,7 @@ const EnrollmentOtz = (props) => {
   };
 
   const handleSubmitAdherence = (values, param) => {
-    console.log(currentRecord, props?.activeContent?.id);
+    // console.log(currentRecord, props?.activeContent?.id);
     if (currentRecord?.id || props?.activeContent?.id) {
       updateOldRecord(values, param);
       return;
@@ -295,7 +295,7 @@ const EnrollmentOtz = (props) => {
     const newValue = e.target.value.replace(/\d/g, "");
     setFieldValue(e.target.name, newValue);
   };
-  console.log(formik.errors);
+  // console.log(formik.errors);
   return (
     <>
       <ToastContainer autoClose={3000} hideProgressBar />
@@ -303,11 +303,6 @@ const EnrollmentOtz = (props) => {
         className="row page-titles mx-0"
         style={{ marginTop: "0px", marginBottom: "-10px" }}
       >
-        {/* <ol className="breadcrumb">
-          <li className="breadcrumb-item active">
-            <h2> OTZ Enrollment Form</h2>
-          </li>
-        </ol> */}
       </div>
 
       <Card className={classes.root}>
@@ -327,7 +322,6 @@ const EnrollmentOtz = (props) => {
                   <h5 className="card-title" style={{ color: "#fff" }}>
                     OTZ enrollment form
                   </h5>
-
                   <>
                     <span className="float-end" style={{ cursor: "pointer" }}>
                       <FaPlus />
@@ -337,7 +331,7 @@ const EnrollmentOtz = (props) => {
 
                 <div className="row p-4">
                   <div className="form-group mb-3 col-md-4">
-                    <CustomFormGroup formik={formik} name="artStartDate">
+                    {/* <CustomFormGroup formik={formik} name="artStartDate"> */}
                       <Label>ART start date</Label>
                       <Input
                         name="artStartDate"
@@ -358,11 +352,11 @@ const EnrollmentOtz = (props) => {
                           ).format("YYYY-MM-DD"),
                         }}
                       />
-                    </CustomFormGroup>
+                    {/* </CustomFormGroup> */}
                   </div>
 
                   <div className="form-group mb-3 col-md-4">
-                    <CustomFormGroup formik={formik} name="dateEnrolledIntoOtz">
+                    {/* <CustomFormGroup formik={formik} name="dateEnrolledIntoOtz"> */}
                       <Label>Date enrolled into OTZ</Label>
                       <Input
                         name="dateEnrolledIntoOtz"
@@ -387,7 +381,7 @@ const EnrollmentOtz = (props) => {
                           max: moment(Date.now()).format("YYYY-MM-DD"),
                         }}
                       />
-                    </CustomFormGroup>
+                    {/* </CustomFormGroup> */}
                     {formik?.touched?.dateEnrolledIntoOtz &&
                     formik?.errors?.dateEnrolledIntoOtz !== "" ? (
                       <span className={classes.error}>
@@ -400,7 +394,7 @@ const EnrollmentOtz = (props) => {
                   {props?.activeContent?.enrollment?.pregnancyStatusId === 73 ||
                   props?.activeContent?.enrollment?.pregnancyStatusId === 75 ? (
                     <div className="form-group mb-3 col-md-4">
-                      <CustomFormGroup formik={formik} name="otzPlus">
+                      {/* <CustomFormGroup formik={formik} name="otzPlus"> */}
                         <Label>OTZ plus</Label>
                         <Input
                           name="otzPlus"
@@ -419,7 +413,7 @@ const EnrollmentOtz = (props) => {
                           <option value="yes">Yes</option>
                           <option value="no">No</option>
                         </Input>
-                      </CustomFormGroup>
+                      {/* </CustomFormGroup> */}
                       {formik?.touched?.otzPlus &&
                       formik?.errors?.otzPlus !== "" ? (
                         <span className={classes.error}>
@@ -432,10 +426,10 @@ const EnrollmentOtz = (props) => {
                   ) : null}
 
                   <div className="form-group mb-3 col-md-4">
-                    <CustomFormGroup
+                    {/* <CustomFormGroup
                       formik={formik}
                       name="baselineViralLoadAtEnrollment"
-                    >
+                    > */}
                       <Label>
                         Baseline Viral Load At Enrollment into OTZ (copies/ml)
                       </Label>
@@ -454,7 +448,7 @@ const EnrollmentOtz = (props) => {
                           borderRadius: "0.25rem",
                         }}
                       ></Input>
-                    </CustomFormGroup>
+                    {/* </CustomFormGroup> */}
                     {formik?.errors?.baselineViralLoadAtEnrollment !== "" ? (
                       <span className={classes.error}>
                         {formik?.errors?.baselineViralLoadAtEnrollment}
@@ -465,7 +459,7 @@ const EnrollmentOtz = (props) => {
                   </div>
 
                   <div className="form-group mb-3 col-md-6">
-                    <CustomFormGroup formik={formik} name="dateDone">
+                    {/* <CustomFormGroup formik={formik} name="dateDone"> */}
                       <Label>Date viral load test done</Label>
                       <Input
                         name="dateDone"
@@ -482,19 +476,19 @@ const EnrollmentOtz = (props) => {
                           max: moment(Date.now()).format("YYYY-MM-DD"),
                         }}
                         value={formik?.values?.dateDone}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
+                        onChange={formik?.handleChange}
+                        onBlur={formik?.handleBlur}
                         disabled={!formik?.values?.dateEnrolledIntoOtz}
                         style={{
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
                         }}
                       />
-                    </CustomFormGroup>
+                    {/* </CustomFormGroup> */}
                     {formik?.touched?.dateDone &&
-                    formik.errors.dateDone !== "" ? (
+                    formik?.errors?.dateDone !== "" ? (
                       <span className={classes.error}>
-                        {formik.errors.dateDone}
+                        {formik?.errors?.dateDone}
                       </span>
                     ) : (
                       ""

@@ -130,7 +130,7 @@ const Patients = (props) => {
       let todayYear = today.getFullYear();
       let todayDate = today.getDate();
 
-      console.log(todayMonth, todayYear);
+      // console.log(todayMonth, todayYear);
 
       // get the day, month and year from date of birth
       let birthDateMonth = birthDate.getMonth();
@@ -144,7 +144,7 @@ const Patients = (props) => {
         //Checking the month to confirm if the age has been cloocked
 
         let monthGap = todayMonth - birthDateMonth;
-        console.log("monthGap", monthGap);
+        // console.log("monthGap", monthGap);
 
         // If 'monthGap'> 0, the age has been clocked, 'monthGap'< 0, the age has not been clocked, 'monthGap'= 0, we are in the month then check date to confirm clocked age
 
@@ -155,7 +155,7 @@ const Patients = (props) => {
           return confirmedAge + " year(s)";
         } else if (monthGap === 0) {
           let dateGap = todayDate - birthdateDate;
-          console.log("date gap", todayDate, birthdateDate, dateGap);
+          // console.log("date gap", todayDate, birthdateDate, dateGap);
 
           if (dateGap > 0) {
             return assumedAge + " year(s)";

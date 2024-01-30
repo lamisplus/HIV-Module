@@ -154,6 +154,7 @@ const DashboardFilledTransferForm = (props) => {
     value: "",
     label: "",
   });
+  // console.log(defaultFacility);
 
   // console.log(props);
   // props.activeContent.actionType
@@ -201,6 +202,7 @@ const DashboardFilledTransferForm = (props) => {
       })
       .then((response) => {
         // setTransferInfo(response.data);
+        console.log("getCurrentMedication", response.data);
         setCurrentMedication(response.data);
       })
       .catch((error) => {});
@@ -250,6 +252,7 @@ const DashboardFilledTransferForm = (props) => {
       )
       .then((response) => {
         setCurrentCD4(response.data);
+        console.log("currentCD4", response.data);
         // setLabResult(response.data);
       })
       .catch((error) => {});

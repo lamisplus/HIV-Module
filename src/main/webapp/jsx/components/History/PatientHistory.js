@@ -123,7 +123,6 @@ const PatientnHistory = (props) => {
         ...props.activeContent,
         route: "otz-peadiatric-disclosure-checklist",
         id: row.id,
-
         actionType: action,
       });
     } else if (row.path === "Service-OTZ") {

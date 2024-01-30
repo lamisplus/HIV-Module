@@ -1,7 +1,7 @@
 import { useFormik } from "formik";
 import * as yup from "yup";
 
-export const useServiceFormValidationSchema = (onSubmit, inititalBaselineViralLoad) => {
+export const useServiceFormValidationSchema = (onSubmit) => {
   const serviceFormInitialValues = {
     // artStartDate: "",
     dateEnrolledIntoOtz: "",

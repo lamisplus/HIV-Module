@@ -160,6 +160,7 @@ const TBScreeningForm = (props) => {
               onChange={handleInputChange}
               style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
               required
+              disabled
             >
               <option value="">Select </option>
               {tbStatus &&

@@ -83,14 +83,14 @@ function PatientCard(props) {
   //   }
 
   const calculate_age = (dob) => {
-    console.log("the date of birth", dob);
+    // console.log("the date of birth", dob);
 
     if (dob !== null && dob != "") {
       //Check if the DOB is not null or empty
       const today = new Date();
       const dateParts = dob.split("-");
       const birthDate = new Date(dob);
-      console.log(birthDate);
+      // console.log(birthDate);
 
       // get the day, month and year of today
       let todayMonth = today.getMonth();
@@ -101,7 +101,7 @@ function PatientCard(props) {
       let birthDateMonth = birthDate.getMonth();
       let birthDateYear = birthDate.getFullYear();
       let birthdateDate = birthDate.getDate();
-      console.log(birthDateMonth, birthDateYear, birthdateDate);
+      // console.log(birthDateMonth, birthDateYear, birthdateDate);
       // substract birthdate year from today year  ie todayYear - birthdateYear which  will give  "AssumedAge" is the age  we assume the patient will clock this year
 
       let assumedAge = todayYear - birthDateYear;
@@ -109,7 +109,7 @@ function PatientCard(props) {
         //Checking the month to confirm if the age has been cloocked
 
         let monthGap = todayMonth - birthDateMonth;
-        console.log("monthGap", monthGap);
+        // console.log("monthGap", monthGap);
 
         // If 'monthGap'> 0, the age has been clocked, 'monthGap'< 0, the age has not been clocked, 'monthGap'= 0, we are in the month then check date to confirm clocked age
 
@@ -120,7 +120,7 @@ function PatientCard(props) {
           return confirmedAge + " year(s)";
         } else if (monthGap === 0) {
           let dateGap = todayDate - birthdateDate;
-          console.log("date gap", todayDate, birthdateDate, dateGap);
+          // console.log("date gap", todayDate, birthdateDate, dateGap);
 
           if (dateGap > 0) {
             return assumedAge + " year(s)";
@@ -158,14 +158,14 @@ function PatientCard(props) {
   const getAddress = (identifier) => {
     const identifiers = identifier;
     const address = identifiers.address.find((obj) => obj.city);
-    console.log(address);
+    // console.log(address);
     const houseAddress =
       address?.line && address?.line[0] !== null ? address?.line[0] : "";
     const landMark =
       address && address.city && address.city !== null ? address.city : "";
     return address ? houseAddress + " " + landMark : "";
   };
-  console.log(patientObject);
+  // console.log(patientObject);
   return (
     <Sticky>
       <div className={classes.root}>

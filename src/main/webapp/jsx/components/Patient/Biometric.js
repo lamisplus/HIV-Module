@@ -161,8 +161,8 @@ function Biometrics(props) {
             }
 
         }).catch(async (error)=>{
-            console.log("getPersonBiometrics error")
-            console.log(error)
+            // console.log("getPersonBiometrics error")
+            // console.log(error)
 
             let biometricItems =  _.map(fingersCodeset.data, (item)=>{
                 return _.extend({}, item, {captured: false});
@@ -174,9 +174,9 @@ function Biometrics(props) {
 
     const clear_storelist = () =>{
         axios.post(`${baseUrl}biometrics/store-list/${props.patientId}`,props.patientId,{ headers: {"Authorization" : `Bearer ${token}`}}).then((response)=>{
-            console.log('cleared store')
+            // console.log('cleared store')
         }).catch((error)=>{
-            console.log("cleared store error")
+            // console.log("cleared store error")
             console.log(error)
 
         })
@@ -321,7 +321,7 @@ function Biometrics(props) {
             }
         }).catch((error)=>{
             toast.error("Something went wrong");
-            console.log(error)
+            // console.log(error)
 
         })
     }
@@ -345,7 +345,7 @@ function Biometrics(props) {
                 })
                 .catch(error => {
                     toast.error("Something went wrong saving biometrics");
-                    console.log(error);
+                    // console.log(error);
                 });
         }else{
 
