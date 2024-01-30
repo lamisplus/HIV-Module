@@ -333,8 +333,7 @@ const ClientVerification = (props) => {
     observation.data = clientVerificationObj;
     // console.log("Observation", observation);
     if (clientVerificationFormObj()) {
-      console.log("I got here line 340", clientVerificationObj);
-      console.log("Observation fucn", observation);
+     
       if (attemptList.length > 0) {
         observation.dateOfObservation =
           observation.dateOfObservation !== ""
@@ -343,7 +342,7 @@ const ClientVerification = (props) => {
         observation.personId = patientObj.id;
 
         // observation.data=attemptList
-        console.log("Submit", observation);
+       
 
         setSaving(true);
         if (
