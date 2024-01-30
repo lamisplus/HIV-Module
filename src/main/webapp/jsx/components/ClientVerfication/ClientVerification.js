@@ -932,37 +932,6 @@ const ClientVerification = (props) => {
               )}
             </MatButton>
 
-            {/* <MatButton
-              type="submit"
-              variant="contained"
-              color="primary"
-              className={classes.button}
-              startIcon={<SaveIcon />}
-              hidden={props.activeContent.actionType === "view" ? true : false}
-              onClick={handleSubmit}
-              style={{
-                backgroundColor: "#014d88",
-                color: "#ffffff",
-                opacity: attemptList.length <= 0 && !saving ? 0.5 : 1,
-                pointerEvents:
-                  attemptList.length <= 0 && !saving ? "none" : "auto",
-              }}
-              disabled={attemptList.length <= 0 && !saving ? true : false}
-            >
-              {!saving ? (
-                <span style={{ textTransform: "capitalize" }}>
-                  {props.activeContent.actionType === "update"
-                    ? "Update"
-                    : "Save"}
-                </span>
-              ) : (
-                <span style={{ textTransform: "capitalize" }}>
-                  {props.activeContent.actionType === "update"
-                    ? "Update..."
-                    : "Save..."}
-                </span>
-              )}
-            </MatButton> */}
           </form>
         </CardBody>
       </Card>
