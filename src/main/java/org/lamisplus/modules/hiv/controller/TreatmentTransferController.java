@@ -17,10 +17,10 @@ public class TreatmentTransferController {
 
     private final TreatmentTransferService treatmentTransferService;
 
-    @GetMapping("/info/{patientUuid}")
+    @GetMapping("/info/{facilityId}/{patientUuid}")
     @ApiOperation(value = "Get patient treatment transfer information.")
-    public ResponseEntity<TransferPatientInfo> getTransferPatientInformation(@PathVariable("patientUuid") String uuid) {
-        return ResponseEntity.ok(treatmentTransferService.getTransferPatientInfo(uuid));
+    public ResponseEntity<TransferPatientInfo> getTransferPatientInformation(@PathVariable("patientUuid") String uuid, @PathVariable("facilityId") Long facilityId) {
+        return ResponseEntity.ok(treatmentTransferService.getTransferPatientInfo(uuid,facilityId));
     }
 
     @GetMapping("/patient_result/{facilityId}/{patientUuid}")
@@ -28,6 +28,7 @@ public class TreatmentTransferController {
     public ResponseEntity<List<LabReport>> getPatientLabResult(@PathVariable("patientUuid") String uuid, @PathVariable("facilityId") Long facilityId) {
         return ResponseEntity.ok(treatmentTransferService.retrieveTransferPatientLabResult(facilityId, uuid));
     }
+
 
     @GetMapping("/{personUuid}")
     @ApiOperation(value = "Get patient current Medication")

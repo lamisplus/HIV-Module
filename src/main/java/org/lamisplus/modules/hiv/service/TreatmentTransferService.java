@@ -10,6 +10,7 @@ import org.lamisplus.modules.base.domain.repositories.ApplicationCodesetReposito
 import org.lamisplus.modules.hiv.controller.exception.NoRecordFoundException;
 import org.lamisplus.modules.hiv.domain.dto.*;
 import org.lamisplus.modules.hiv.domain.entity.Observation;
+import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
 import org.lamisplus.modules.hiv.repositories.ObservationRepository;
 
 import org.lamisplus.modules.hiv.utility.Constants;
@@ -32,11 +33,14 @@ public class TreatmentTransferService {
     private final StatusManagementService statusManagementService;
     private final ApplicationCodesetRepository applicationCodesetRepository;
     private final HivEnrollmentService hivEnrollmentService;
+    private final HivEnrollmentRepository hivEnrollmentr;
 
-    public TransferPatientInfo getTransferPatientInfo(String patientUuid) {
+    public TransferPatientInfo getTransferPatientInfo(String patientUuid, Long facilityId) {
         try {
             if (patientUuid != null) {
-                return observationRepository.getTransferPatientInfo(patientUuid)
+                TransferPatientInfo patient = observationRepository.getTransferPatientInfo(patientUuid, facilityId).get();
+                log.info("Transfer patient info: {}", patient);
+                return observationRepository.getTransferPatientInfo(patientUuid, facilityId)
                         .orElseThrow(() -> new NoRecordFoundException("Patient record not found"));
             } else {
                 throw new IllegalArgumentException("patientUuid and facilityId cannot be null");
@@ -85,6 +89,7 @@ public class TreatmentTransferService {
             throw new IllegalArgumentException("TransferPatientInfo is null");
         }
         Optional<HivEnrollmentDTO> enrollment = hivEnrollmentService.getHivEnrollmentByPersonIdAndArchived(dto.getPatientId());
+//        Optional<HivEnrollmentDTO> enrollment = hivEnrollmentRepository.findByUUID(dto.getPatientUuid());
         ApplicationCodeSet codeSet = applicationCodesetRepository.findByDisplay(Constants.TRANSFER_OUT_DISPLAY);
         if (codeSet == null) {
             throw new EntityNotFoundException(ApplicationCodeSet.class, "display", Constants.TRANSFER_OUT_DISPLAY);
@@ -112,7 +117,7 @@ public class TreatmentTransferService {
 
 
     private JsonNode mapTransferPatientInfoToDto(TransferPatientDto transferPatientDto) {
-        TransferPatientInfo transferPatientInfo = getTransferPatientInfo(transferPatientDto.getPersonUuid());
+        TransferPatientInfo transferPatientInfo = getTransferPatientInfo(transferPatientDto.getPersonUuid(), transferPatientDto.getFacilityId());
         if (transferPatientInfo == null) {
             throw new EntityNotFoundException(Observation.class, "Person uuid", transferPatientDto.getPersonUuid());
         }
