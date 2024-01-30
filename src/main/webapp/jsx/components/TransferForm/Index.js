@@ -180,7 +180,6 @@ const Tracking = (props) => {
   // fetch info for the form
   const getTreatmentInfo = () => {
     let facId = localStorage.getItem("faciltyId");
-    //  .get(`${baseUrl}treatment-transfers/${facId}/${patientObj.personUuid}`
     axios
       .get(`${baseUrl}treatment-transfers/info/${facId}/${patientObj.personUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -188,8 +187,6 @@ const Tracking = (props) => {
       .then((response) => {
         // console.log(`peson uuid: ${patientObj.personUuid}`);
         setTransferInfo(response.data);
-        // console.log("getTreatmentInfo", response.data);
-        //   setPatientObj1(response.data);
       })
       .catch((error) => {});
   };
