@@ -541,7 +541,7 @@ const TbScreening = (props) => {
                       <FormGroup>
                         <Label>
                           Treatment Outcome{" "}
-                          <span style={{ color: "red" }}> *</span>
+
                         </Label>
                         <InputGroup>
                           <Input
@@ -565,7 +565,7 @@ const TbScreening = (props) => {
                       <FormGroup>
                         <Label>
                           TB Treatment Completion Date{" "}
-                          <span style={{ color: "red" }}> *</span>
+
                         </Label>
                         <InputGroup>
                           <Input
