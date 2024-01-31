@@ -917,7 +917,7 @@ const Tracking = (props) => {
                     </thead>
                     <tbody>
                       {currentMedication &&
-                        currentMedication.map((each, index) => {
+                        currentMedication.slice(0,5).map((each, index) => {
                           return (
                             <tr>
                               <td scope="row">{each?.regimenName}</td>
@@ -1025,7 +1025,7 @@ const Tracking = (props) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {labResult.map((each, index) => {
+                      {labResult.slice(0,5).map((each, index) => {
                         return (
                           <tr>
                             <td scope="row">{each.dateReported}</td>

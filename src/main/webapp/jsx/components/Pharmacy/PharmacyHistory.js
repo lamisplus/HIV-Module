@@ -69,7 +69,7 @@ const PharmacyHistory = (props) => {
                     const visitDate = new Date(refill.visitDate);
                     const daysDifference = Math.ceil((currentDate - visitDate) / (1000 * 60 * 60 * 24));
                     const pillsTaken = Math.min(daysDifference - 1, prescription.duration) * prescription.frequency;
-                    console.log('prescribed: Taken: dispense', prescription.prescribed  + ": "+ pillsTaken + ":" + prescription.dispense)
+                    // console.log('prescribed: Taken: dispense', prescription.prescribed  + ": "+ pillsTaken + ":" + prescription.dispense)
                     if (prescription.dispense  > prescription.prescribed) {
                         // If dispensed is greater than prescribed, set pillBalance to 0
                         pillBalance = 0;
