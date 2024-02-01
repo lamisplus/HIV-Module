@@ -16,6 +16,7 @@ import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,43 +35,147 @@ public class ObservationService {
 
    private final ArtPharmacyRepository pharmacyRepository;
 
-    public ObservationDto createAnObservation(ObservationDto observationDto) {
-       try {
-           log.info("saving an observation of type {}", observationDto.getType());
-           Long personId = observationDto.getPersonId();
-           Person person = getPerson(personId);
-           Long orgId = currentUserOrganizationService.getCurrentUserOrganization();
-           boolean anExistingClinicalEvaluation = getAnExistingClinicalEvaluationType("Clinical evaluation", person, orgId).isEmpty();
-           List<Observation> personObservations =
-                   observationRepository.getAllByPersonAndFacilityId(person, person.getFacilityId());
-           if (!anExistingClinicalEvaluation && observationDto.getType().equals("Clinical evaluation")) {
-               throw new RecordExistException(Observation.class, "type", observationDto.getType());
-           }
+    public ObservationDto createAnObservation(ObservationDto observationDto) throws RecordExistException {
+        try {
+            log.info("Saving an observation of type {}", observationDto.getType());
 
-           boolean sameEncounterObservation = personObservations
-                   .stream()
-                   .anyMatch(o -> o.getType().equals(observationDto.getType())
-                           && o.getDateOfObservation().equals(observationDto.getDateOfObservation()));
-           if(sameEncounterObservation){
-               throw new RecordExistException(Observation.class, "date of observation", ""+observationDto.getDateOfObservation());
-           }
+            Long personId = observationDto.getPersonId();
+            Person person = getPerson(personId);
+            Long orgId = currentUserOrganizationService.getCurrentUserOrganization();
 
-           processAndUpdateIptFromPharmacy(observationDto, person);
-           observationDto.setFacilityId(orgId);
-           Visit visit = handleHIVisitEncounter.processAndCreateVisit(personId, observationDto.getDateOfObservation());
-           if (visit != null) {
-               observationDto.setVisitId(visit.getId());
-           }
-           log.info("appending additional info and saving observation of type {}", observationDto.getType());
-           appendAdditionalInfoAndSaveObservation(observationDto, person, visit);
-           log.info("observation save successfully ");
-           return observationDto;
-       }catch (Exception e) {
-           log.error("An error occurred while saving an observation");
-           log.error("error message: " + e.getMessage());
-           throw new IllegalStateException("An error occurred while saving "+e.getMessage());
-       }
+            checkForExistingClinicalEvaluation(person, orgId, observationDto);
+
+            checkForSameEncounterObservation(person, observationDto);
+
+            processAndUpdateIptFromPharmacy(observationDto, person);
+
+            observationDto.setFacilityId(orgId);
+            Visit visit = handleHIVisitEncounter.processAndCreateVisit(personId, observationDto.getDateOfObservation());
+
+            if (visit != null) {
+                observationDto.setVisitId(visit.getId());
+            }
+
+            log.info("Appending additional info and saving observation of type {}", observationDto.getType());
+            appendAdditionalInfoAndSaveObservation(observationDto, person, visit);
+
+            log.info("Observation saved successfully ");
+            return observationDto;
+
+        } catch (RecordExistException e) {
+            // Handle RecordExistException
+            log.error("Record already exists: " + e.getMessage());
+            throw e; // Rethrow the exception if needed
+
+        } catch (Exception e) {
+            // Handle other exceptions
+            log.error("An error occurred while saving an observation");
+            log.error("Error message: " + e.getMessage());
+            throw new IllegalStateException("An error occurred while saving " + e.getMessage());
+        }
     }
+
+    private void checkForExistingClinicalEvaluation(Person person, Long orgId, ObservationDto observationDto)
+            throws RecordExistException {
+        boolean anExistingClinicalEvaluation = getAnExistingClinicalEvaluationType("Clinical evaluation", person, orgId).isEmpty();
+        if (!anExistingClinicalEvaluation && observationDto.getType().equals("Clinical evaluation")) {
+            throw new RecordExistException(Observation.class, "type", observationDto.getType());
+        }
+    }
+
+    private void checkForSameEncounterObservation(Person person, ObservationDto observationDto)
+            throws RecordExistException {
+        List<Observation> personObservations = observationRepository.getAllByPersonAndFacilityId(person, person.getFacilityId());
+        boolean sameEncounterObservation = personObservations.stream()
+                .anyMatch(o -> o.getType().equals(observationDto.getType())
+                        && o.getDateOfObservation().equals(observationDto.getDateOfObservation()));
+        if (sameEncounterObservation) {
+            throw new RecordExistException(Observation.class, "date of observation", "" + observationDto.getDateOfObservation());
+        }
+    }
+
+
+//    public ObservationDto createAnObservation(ObservationDto observationDto) throws RecordExistException {
+//        try {
+//            log.info("saving an observation of type {}", observationDto.getType());
+//            Long personId = observationDto.getPersonId();
+//            Person person = getPerson(personId);
+//            Long orgId = currentUserOrganizationService.getCurrentUserOrganization();
+//            boolean anExistingClinicalEvaluation = getAnExistingClinicalEvaluationType("Clinical evaluation", person, orgId).isEmpty();
+//            List<Observation> personObservations =
+//                    observationRepository.getAllByPersonAndFacilityId(person, person.getFacilityId());
+//            if (!anExistingClinicalEvaluation && observationDto.getType().equals("Clinical evaluation")) {
+//                throw new RecordExistException(Observation.class, "type", observationDto.getType());
+//            }
+//
+//            boolean sameEncounterObservation = personObservations
+//                    .stream()
+//                    .anyMatch(o -> o.getType().equals(observationDto.getType())
+//                            && o.getDateOfObservation().equals(observationDto.getDateOfObservation()));
+//            if(sameEncounterObservation){
+//                throw new RecordExistException(Observation.class, "date of observation", ""+observationDto.getDateOfObservation());
+//            }
+//
+//            processAndUpdateIptFromPharmacy(observationDto, person);
+//            observationDto.setFacilityId(orgId);
+//            Visit visit = handleHIVisitEncounter.processAndCreateVisit(personId, observationDto.getDateOfObservation());
+//            if (visit != null) {
+//                observationDto.setVisitId(visit.getId());
+//            }
+//            log.info("appending additional info and saving observation of type {}", observationDto.getType());
+//            appendAdditionalInfoAndSaveObservation(observationDto, person, visit);
+//            log.info("observation save successfully ");
+//            return observationDto;
+//
+//        } catch (RecordExistException e) {
+//            // Handle RecordExistException
+//            log.error("Record already exists: " + e.getMessage());
+//            throw e; // Rethrow the exception if needed
+//
+//        } catch (Exception e) {
+//            // Handle other exceptions
+//            log.error("An error occurred while saving an observation");
+//            log.error("Error message: " + e.getMessage());
+//            throw new IllegalStateException("An error occurred while saving " + e.getMessage());
+//        }
+//    }
+//    public ObservationDto createAnObservation(ObservationDto observationDto) {
+//       try {
+//           log.info("saving an observation of type {}", observationDto.getType());
+//           Long personId = observationDto.getPersonId();
+//           Person person = getPerson(personId);
+//           Long orgId = currentUserOrganizationService.getCurrentUserOrganization();
+//           boolean anExistingClinicalEvaluation = getAnExistingClinicalEvaluationType("Clinical evaluation", person, orgId).isEmpty();
+//           List<Observation> personObservations =
+//                   observationRepository.getAllByPersonAndFacilityId(person, person.getFacilityId());
+//           if (!anExistingClinicalEvaluation && observationDto.getType().equals("Clinical evaluation")) {
+//               throw new RecordExistException(Observation.class, "type", observationDto.getType());
+//           }
+//
+//           boolean sameEncounterObservation = personObservations
+//                   .stream()
+//                   .anyMatch(o -> o.getType().equals(observationDto.getType())
+//                           && o.getDateOfObservation().equals(observationDto.getDateOfObservation()));
+//           if(sameEncounterObservation){
+//               throw new RecordExistException(Observation.class, "date of observation", ""+observationDto.getDateOfObservation());
+//           }
+//
+//           processAndUpdateIptFromPharmacy(observationDto, person);
+//           observationDto.setFacilityId(orgId);
+//           Visit visit = handleHIVisitEncounter.processAndCreateVisit(personId, observationDto.getDateOfObservation());
+//           if (visit != null) {
+//               observationDto.setVisitId(visit.getId());
+//           }
+//           log.info("appending additional info and saving observation of type {}", observationDto.getType());
+//           appendAdditionalInfoAndSaveObservation(observationDto, person, visit);
+//           log.info("observation save successfully ");
+//           return observationDto;
+//       }catch (Exception e) {
+//           log.error("An error occurred while saving an observation");
+//           log.error("error message: " + e.getMessage());
+//           throw new IllegalStateException("An error occurred while saving "+e.getMessage());
+//       }
+//    }
 
     private void appendAdditionalInfoAndSaveObservation(ObservationDto observationDto, Person person, Visit visit) {
         Observation observation = new Observation();
