@@ -112,33 +112,33 @@ const UserRegistration = (props) => {
   let patientObj = locationState
     ? locationState.patientObj
     : {
-        active: true,
-        streetAddress: "",
-        address: [],
-        contact: [],
-        contactPoint: [],
-        dateOfBirth: "",
-        deceased: false,
-        deceasedDateTime: null,
-        firstName: "",
-        genderId: "",
-        identifier: "",
-        otherName: "",
-        maritalStatusId: "",
-        educationId: "",
-        employmentStatusId: "",
-        dateOfRegistration: "",
-        isDateOfBirthEstimated: null,
-        age: "",
-        phoneNumber: "",
-        altPhonenumber: "",
-        dob: "",
-        countryId: 1,
-        stateId: "",
-        district: "",
-        sexId: "",
-        ninNumber: "",
-      };
+      active: true,
+      streetAddress: "",
+      address: [],
+      contact: [],
+      contactPoint: [],
+      dateOfBirth: "",
+      deceased: false,
+      deceasedDateTime: null,
+      firstName: "",
+      genderId: "",
+      identifier: "",
+      otherName: "",
+      maritalStatusId: "",
+      educationId: "",
+      employmentStatusId: "",
+      dateOfRegistration: "",
+      isDateOfBirthEstimated: null,
+      age: "",
+      phoneNumber: "",
+      altPhonenumber: "",
+      dob: "",
+      countryId: 1,
+      stateId: "",
+      district: "",
+      sexId: "",
+      ninNumber: "",
+    };
   const [basicInfo, setBasicInfo] = useState(patientObj);
   const [relatives, setRelatives] = useState({
     address: "",
@@ -259,7 +259,7 @@ const UserRegistration = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setGenders(response.data.sort());
-    } catch (e) {}
+    } catch (e) { }
   }, []);
   const loadMaritalStatus = useCallback(async () => {
     try {
@@ -268,7 +268,7 @@ const UserRegistration = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMaritalStatusOptions(response.data.sort());
-    } catch (e) {}
+    } catch (e) { }
   }, []);
   const loadEducation = useCallback(async () => {
     try {
@@ -277,7 +277,7 @@ const UserRegistration = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEducationOptions(response.data.sort());
-    } catch (e) {}
+    } catch (e) { }
   }, []);
   const loadOccupation = useCallback(async () => {
     try {
@@ -286,7 +286,7 @@ const UserRegistration = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setOccupationOptions(response.data.sort());
-    } catch (e) {}
+    } catch (e) { }
   }, []);
   const loadRelationships = useCallback(async () => {
     try {
@@ -295,7 +295,7 @@ const UserRegistration = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setRelationshipOptions(response.data.sort());
-    } catch (e) {}
+    } catch (e) { }
   }, []);
   const loadTopLevelCountry = useCallback(async () => {
     const response = await axios.get(
@@ -362,31 +362,65 @@ const UserRegistration = (props) => {
       });
   };
   //Date of Birth and Age handle
-  const handleDobChange = (e) => {
-    let dob = e !== null ? e : e?.target?.value;
-    if (dob) {
-      const today = new Date();
-      const birthDate = new Date(dob);
-      let age_now = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age_now--;
-      }
-      basicInfo.age = age_now;
+  // const handleDobChange = (e) => {
+  //   let dob = e !== null ? e : e?.target?.value;
+  //   if (dob) {
+  //     const today = new Date();
+  //     const birthDate = new Date(dob);
+  //     let age_now = today.getFullYear() - birthDate.getFullYear();
+  //     const m = today.getMonth() - birthDate.getMonth();
+  //     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+  //       age_now--;
+  //     }
+  //     basicInfo.age = age_now;
 
-      if (basicInfo?.enrolledInOvcProgram === "YES") {
-        setChecked(true);
-        setOvcEnrolled(true);
+  //     if (basicInfo?.enrolledInOvcProgram === "YES") {
+  //       setChecked(true);
+  //       setOvcEnrolled(true);
+  //     }
+  //     //setBasicInfo({...basicInfo, age: age_now});
+  //   } else {
+  //     setBasicInfo({ ...basicInfo, age: "" });
+  //   }
+  //   setBasicInfo({ ...basicInfo, dob: dob });
+  //   if (basicInfo.age !== "" && basicInfo.age >= 60) {
+  //     toggle();
+  //   }
+  // };
+
+  const handleDobChange = (e) => {
+    let dob = e?.target?.value || (typeof e === 'string' ? e : null);
+    // Check if dob is a valid date string
+    if (dob && !isNaN(Date.parse(dob))) {
+      setBasicInfo((prevInfo) => {
+        const today = new Date();
+        const birthDate = new Date(dob);
+        let age_now = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age_now--;
+        }
+        if (basicInfo?.enrolledInOvcProgram === "YES") {
+          setChecked(true);
+          setOvcEnrolled(true);
+        }
+        return {
+          ...prevInfo,
+          age: age_now,
+          dob: dob,
+        };
+      });
+
+      if (basicInfo.age !== "" && basicInfo.age >= 60) {
+        toggle();
       }
-      //setBasicInfo({...basicInfo, age: age_now});
     } else {
-      setBasicInfo({ ...basicInfo, age: "" });
-    }
-    setBasicInfo({ ...basicInfo, dob: dob });
-    if (basicInfo.age !== "" && basicInfo.age >= 60) {
-      toggle();
+      // console.error(`Invalid date format: ${dob}`);
     }
   };
+
+
+
   const handleDateOfBirthChange = (e) => {
     if (e.target.value === "Actual") {
       setAgeDisabled(true);
@@ -719,7 +753,7 @@ const UserRegistration = (props) => {
         if (error.response && error.response.data) {
           let errorMessage =
             error.response.data.apierror &&
-            error.response.data.apierror.message !== ""
+              error.response.data.apierror.message !== ""
               ? error.response.data.apierror.message
               : "Something went wrong, please try again";
           if (
@@ -730,10 +764,10 @@ const UserRegistration = (props) => {
           ) {
             toast.error(
               error.response.data.apierror.message +
-                " : " +
-                error.response.data.apierror.subErrors[0].field +
-                " " +
-                error.response.data.apierror.subErrors[0].message,
+              " : " +
+              error.response.data.apierror.subErrors[0].field +
+              " " +
+              error.response.data.apierror.subErrors[0].message,
               { position: toast.POSITION.BOTTOM_CENTER }
             );
           } else {
@@ -2018,7 +2052,7 @@ const UserRegistration = (props) => {
                     </div>
 
                     {objValues.entryPointId === "21" ||
-                    objValues.statusAtRegistrationId === "55" ? (
+                      objValues.statusAtRegistrationId === "55" ? (
                       <>
                         <div className="form-group mb-3 col-md-6">
                           <FormGroup>
@@ -2255,7 +2289,7 @@ const UserRegistration = (props) => {
                       </FormGroup>
                     </div>
                     {objValues.sourceOfReferrerId === "870" ||
-                    objValues.sourceOfReferrerId === 870 ? (
+                      objValues.sourceOfReferrerId === 870 ? (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                           <Label>LIP Name</Label>
@@ -2366,29 +2400,29 @@ const UserRegistration = (props) => {
                             {(basicInfo.sexId === 377 ||
                               basicInfo.sexId === "377" ||
                               basicInfo?.gender === "Female") && (
-                              <>
-                                {kP
-                                  .filter((x) => x.display !== "MSM")
-                                  .map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                      {value.display}
-                                    </option>
-                                  ))}
-                              </>
-                            )}
+                                <>
+                                  {kP
+                                    .filter((x) => x.display !== "MSM")
+                                    .map((value) => (
+                                      <option key={value.id} value={value.id}>
+                                        {value.display}
+                                      </option>
+                                    ))}
+                                </>
+                              )}
                             {(basicInfo.sexId === 376 ||
                               basicInfo.sexId === "376" ||
                               basicInfo?.gender === "Male") && (
-                              <>
-                                {kP
-                                  .filter((x) => x.display !== "FSW")
-                                  .map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                      {value.display}
-                                    </option>
-                                  ))}
-                              </>
-                            )}
+                                <>
+                                  {kP
+                                    .filter((x) => x.display !== "FSW")
+                                    .map((value) => (
+                                      <option key={value.id} value={value.id}>
+                                        {value.display}
+                                      </option>
+                                    ))}
+                                </>
+                              )}
                           </Input>
                           {errors.targetGroupId !== "" ? (
                             <span className={classes.error}>
