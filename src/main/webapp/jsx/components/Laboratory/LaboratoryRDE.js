@@ -230,7 +230,7 @@ const Laboratory = (props) => {
     }
 
     const addOrder = e => {  
-        console.log(errors) 
+        // console.log(errors) 
         if(validate()){
             
             tests.visitId=visitId

@@ -314,7 +314,7 @@ const ServiceForm = (props) => {
   };
   
 const isViewActionType = props?.activeContent?.actionType === "view"
-
+console.log(props?.activeContent?.actionType)
 
 
   return (

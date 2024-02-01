@@ -17,7 +17,7 @@ function SubMenu(props) {
             Observation();
         }
     }, [props.patientObj]);
-    console.log(patientObj)
+    // console.log(patientObj)
      //Get list of RegimenLine
     const Observation =()=>{
         axios

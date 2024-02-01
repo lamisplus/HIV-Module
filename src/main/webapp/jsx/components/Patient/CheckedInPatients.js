@@ -139,7 +139,7 @@ const Patients = (props) => {
         return hospitalNumber ? hospitalNumber.value : '';
     };
 
-    console.log(patientList)
+    // console.log(patientList)
     return (
         <div>
             <Card>

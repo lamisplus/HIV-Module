@@ -235,7 +235,7 @@ const Pharmacy = (props) => {
             )
             .then((response) => {
                 const data=response.data
-                console.log(data);
+                // console.log(data);
                 setObjValues(data);
                 setRegimenDrugList(data && data.extra ? data.extra.regimens : [])
                 DsdModelType(objValues.dsdModel)
@@ -413,7 +413,7 @@ const Pharmacy = (props) => {
                 setSelectedCombinedRegimen(response.data)         
                 const regimenName = regimenType.find((x) => { 
                     if(x.value==parseInt(drugId)){
-                        console.log(x)
+                        // console.log(x)
                         return x
                     }
                 })                           
@@ -447,7 +447,7 @@ const Pharmacy = (props) => {
                 setSelectedCombinedRegimen(response.data)         
                 const regimenName = regimenTypeOI.find((x) => { 
                     if(x.value==parseInt(drugId)){
-                        console.log(x)
+                        // console.log(x)
                         return x
                     }
                 })                           
@@ -481,7 +481,7 @@ const Pharmacy = (props) => {
                 setSelectedCombinedRegimen(response.data)         
                 const regimenName = regimenTypeTB.find((x) => { 
                     if(x.value==parseInt(drugId)){
-                        console.log(x)
+                        // console.log(x)
                         return x
                     }
                 })                           

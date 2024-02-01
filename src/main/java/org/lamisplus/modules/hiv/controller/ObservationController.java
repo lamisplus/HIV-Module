@@ -46,10 +46,10 @@ public class ObservationController {
 		return ResponseEntity.ok(observationService.getAllObservationByPerson(id));
 	}
 	
-	@GetMapping(value = "/check-ipt-eligible/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public  ResponseEntity<Map<String, Boolean>> checkIptEligible(@PathVariable("id") Long personId) {
-		return ResponseEntity.ok(observationService.isEligibleForIpt(personId));
-	}
+//	@GetMapping(value = "/check-ipt-eligible/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+//	public  ResponseEntity<Map<String, Boolean>> checkIptEligible(@PathVariable("id") Long personId) {
+//		return ResponseEntity.ok(observationService.isEligibleForIpt(personId));
+//	}
 
 //    @PostMapping(value="/eac", produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity<HIVEacDto> handleEac(@RequestBody HIVEacDto dto) {

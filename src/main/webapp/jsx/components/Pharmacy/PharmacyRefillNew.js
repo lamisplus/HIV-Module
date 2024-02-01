@@ -502,7 +502,7 @@ const Pharmacy = (props) => {
                     setSelectedCombinedRegimen(response.data)         
                     const regimenName = regimenTypeOI.find((x) => { 
                         if(x.value==parseInt(drugId)){
-                            console.log(x)
+                            // console.log(x)
                             return x
                         }
                     })                           
@@ -539,7 +539,7 @@ const Pharmacy = (props) => {
                 setSelectedCombinedRegimen(response.data)         
                 const regimenName = regimenTypeTB.find((x) => { 
                     if(x.value==parseInt(drugId)){
-                        console.log(x)
+                        // console.log(x)
                         return x
                     }
                 })                           
@@ -588,7 +588,7 @@ const Pharmacy = (props) => {
             const response = await axios.get(`${baseUrl}hiv/regimen/drugs/${id}`,
             { headers: {"Authorization" : `Bearer ${token}`} })
             if(response.data){ 
-                console.log(response.data)                  
+                // console.log(response.data)                 
                 setSelectedCombinedRegimen(response.data)         
                 const regimenName = regimenTypeOther.find((x) => { 
                     if(x.value==parseInt(drugId)){

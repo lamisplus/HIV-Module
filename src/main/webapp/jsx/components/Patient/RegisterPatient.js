@@ -676,7 +676,7 @@ const UserRegistration = (props) => {
             basicInfo.dateOfBirth == "Actual" ? false : true,
           ninNumber: basicInfo.ninNumber,
         };
-        console.log(patientForm);
+        // console.log(patientForm);
         const phone = {
           type: "phone",
           value: basicInfo.phoneNumber,

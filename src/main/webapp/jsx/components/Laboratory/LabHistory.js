@@ -146,7 +146,7 @@ const LabHistory = (props) => {
     
   }
     const labStatus =(status)=> {
-        console.log(status)
+        // console.log(status)
           if(status===0){
             return "blue"
           }else if(status===1){

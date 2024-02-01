@@ -111,7 +111,7 @@ const Laboratory = (props) => {
                    const patientDTO= response.data.enrollment
                    setEnrollDate (patientDTO && patientDTO.dateOfRegistration ? patientDTO.dateOfRegistration :"")
                    //setEacStatusObj(response.data);
-                   console.log(enrollDate)
+                //    console.log(enrollDate)
                })
                .catch((error) => {
                //console.log(error);

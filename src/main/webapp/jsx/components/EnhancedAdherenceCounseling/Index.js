@@ -13,7 +13,7 @@ const LaboratoryModule = (props) => {
     useEffect ( () => {
       setKey(props.activeContent.activeTab)
     }, [props.activeContent.id]);
-console.log(props)
+// console.log(props)
     
   return (
     <Fragment>  

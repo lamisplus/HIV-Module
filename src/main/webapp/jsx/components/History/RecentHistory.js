@@ -164,6 +164,8 @@ const RecentHistory = (props) => {
       return "CV";
     } else if (name === "ART Commencement") {
       return "AC";
+    } else if (name === "ART Transfer Out") {
+      return "AT";
     } else {
       return "RA";
     }
@@ -260,7 +262,7 @@ const RecentHistory = (props) => {
         activeTab: "history",
         actionType: action,
       });
-    } else if (row.path === "Client-verfication-form") {
+    } else if (row.path === "client-verfication-form") {
       props.setActiveContent({
         ...props.activeContent,
         route: "client-verfication-form-update",
@@ -308,7 +310,7 @@ const RecentHistory = (props) => {
         activeTab: "home",
         actionType: action,
       });
-    } else if (row.path === "Transfer") {
+    } else if (row.path === "ART-Transfer-Out") {
       props.setActiveContent({
         ...props.activeContent,
         route: "filled-transferForm",
@@ -627,7 +629,7 @@ const RecentHistory = (props) => {
             toast.error("Something went wrong. Please try again...");
           }
         });
-    } else if (row.path === "Transfer") {
+    } else if (row.path === "ART-Transfer-Out") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
       axios

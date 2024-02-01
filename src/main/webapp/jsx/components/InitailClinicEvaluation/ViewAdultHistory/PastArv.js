@@ -90,7 +90,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 const BasicInfo = (props) => {
-    console.log(props.observation)
+    // console.log(props.observation)
     const classes = useStyles();
     const history = useHistory();
     const [errors, setErrors] = useState({});

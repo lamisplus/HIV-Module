@@ -57,7 +57,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const AddAllergy = (props) => {
-    console.log(props)
+  
     let history = useHistory();
     const classes = useStyles()
     //const [values, setValues] = useState([]);

@@ -87,7 +87,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const PeadiatricDisclosureChecklist = (props) => {
-  console.log(props?.activeContent?.actionType)
+  // console.log(props?.activeContent?.actionType)
   const [saving, setSavings] = useState(false);
   
   const PatientObject= props.patientObj && props.patientObj ? props.patientObj : null

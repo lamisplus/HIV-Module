@@ -29,9 +29,9 @@ public class ObservationService {
     private final PersonRepository personRepository;
 
     private final CurrentUserOrganizationService currentUserOrganizationService;
-    
+
    private final HandleHIVVisitEncounter handleHIVisitEncounter;
-   
+
    private final ArtPharmacyRepository pharmacyRepository;
 
     public ObservationDto createAnObservation(ObservationDto observationDto) {
@@ -46,7 +46,7 @@ public class ObservationService {
            if (!anExistingClinicalEvaluation && observationDto.getType().equals("Clinical evaluation")) {
                throw new RecordExistException(Observation.class, "type", observationDto.getType());
            }
-    
+
            boolean sameEncounterObservation = personObservations
                    .stream()
                    .anyMatch(o -> o.getType().equals(observationDto.getType())
@@ -54,7 +54,7 @@ public class ObservationService {
            if(sameEncounterObservation){
                throw new RecordExistException(Observation.class, "date of observation", ""+observationDto.getDateOfObservation());
            }
-           
+
            processAndUpdateIptFromPharmacy(observationDto, person);
            observationDto.setFacilityId(orgId);
            Visit visit = handleHIVisitEncounter.processAndCreateVisit(personId, observationDto.getDateOfObservation());
@@ -71,7 +71,7 @@ public class ObservationService {
            throw new IllegalStateException("An error occurred while saving "+e.getMessage());
        }
     }
-    
+
     private void appendAdditionalInfoAndSaveObservation(ObservationDto observationDto, Person person, Visit visit) {
         Observation observation = new Observation();
         BeanUtils.copyProperties(observationDto, observation);
@@ -82,8 +82,8 @@ public class ObservationService {
         Observation saveObservation = observationRepository.save(observation);
         observationDto.setId(saveObservation.getId());
     }
-    
-    
+
+
     private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Person person) {
         log.info ("Processing and updating IPT from pharmacy....");
         if(observationDto.getType().equals("Chronic Care")){
@@ -117,11 +117,11 @@ public class ObservationService {
                     pharmacyRepository.save(artPharmacy);
                     log.info ("update was successful  current pharmacy affected uuid {}", artPharmacy.getUuid());
                 }
-                
+
             }
         }
     }
-    
+
     private List<Observation> getAnExistingClinicalEvaluationType(String type, Person person, Long orgId) {
         return observationRepository
                 .getAllByTypeAndPersonAndFacilityIdAndArchived (type, person, orgId, 0);
@@ -185,7 +185,7 @@ public class ObservationService {
                 .orElseThrow (() -> new EntityNotFoundException (Person.class, "id", String.valueOf (personId)));
 
     }
-    
+
     public Map<String, Boolean> isEligibleForIpt(Long personId) {
         Person person = getPerson(personId);
         Optional<String> iptEligiblePatientUuid =
@@ -194,5 +194,5 @@ public class ObservationService {
           map.put("IPTEligibility", iptEligiblePatientUuid.isPresent());
         return map;
     }
-    
+
 }

@@ -35,7 +35,7 @@ const Import = (props) => {
     axios
       .post(`${url}linkages/import`, formData, config)
       .then((response) => {
-        console.log(response);
+        // console.log(response);
         toast.success("Data imported  and record updated successfully!");
         props.toggle();
       })

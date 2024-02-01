@@ -102,7 +102,7 @@ const PatientnHistory = (props) => {
         //console.log(error);
       });
   };
-  console.log("patient history ",props)
+  console.log("patient history ", props);
   const LoadViewPage = (row, action) => {
     if (row.path === "Mental-health") {
       props.setActiveContent({
@@ -123,7 +123,6 @@ const PatientnHistory = (props) => {
         ...props.activeContent,
         route: "otz-peadiatric-disclosure-checklist",
         id: row.id,
-        
         actionType: action,
       });
     } else if (row.path === "Service-OTZ") {
@@ -210,6 +209,14 @@ const PatientnHistory = (props) => {
         activeTab: "history",
         actionType: action,
       });
+      } else if (row.path === "client-verfication-form") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "client-verfication-form-update",
+        id: row.id,
+        activeTab: "history",
+        actionType: action,
+      });
     } else if (row.path === "client-tracker") {
       props.setActiveContent({
         ...props.activeContent,
@@ -219,7 +226,7 @@ const PatientnHistory = (props) => {
         actionType: action,
       });
     } else if (row.path === "eac-session") {
-      props.setActiveContent({
+      props.setActiveContent({ 
         ...props.activeContent,
         route: "eac-session-update",
         id: row.id,
@@ -238,6 +245,14 @@ const PatientnHistory = (props) => {
       props.setActiveContent({
         ...props.activeContent,
         route: "chronic-care",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
+    } else if (row.path === "ART-Transfer-Out") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "filled-transferForm",
         id: row.id,
         activeTab: "home",
         actionType: action,
@@ -536,6 +551,33 @@ const PatientnHistory = (props) => {
       //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
       axios
         .delete(`${baseUrl}patient-tracker/patient/delete/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          PatientHistory();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          toggle();
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+              error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
+    } else if (row.path === "ART-Transfer-Out") {
+      setSaving(true);
+      //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
+      axios
+        .delete(`${baseUrl}observation/${row.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {

@@ -87,7 +87,7 @@ const useStyles = makeStyles(theme => ({
     },
 
     root: {
-        '& > *': {
+        '& > *': {  
             margin: theme.spacing(1)
         }
     },
@@ -109,6 +109,7 @@ const Patients = (props) => {
     //const [patientList, setPatientList] = useState([])
     const [showPPI, setShowPPI] = useState(true)
     //const [loading, setLoading] = useState(true)
+    
     const handleCheckBox =e =>{
         if(e.target.checked){
             setShowPPI(false)
