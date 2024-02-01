@@ -23,6 +23,7 @@ import OutlinedInput from "@mui/material/OutlinedInput";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
+import { el } from "date-fns/locale";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -269,12 +270,11 @@ const ClientVerification = (props) => {
       ? ""
       : "This field is required";
 
- temp.optionalError =
-   clientVerificationObj.dateOfDiscontinuation ||
-   (clientVerificationObj.returnedToCare && clientVerificationObj.referredTo)
-     ? ""
-     : "This field is required";
-
+    temp.optionalError =
+      clientVerificationObj.dateOfDiscontinuation ||
+      (clientVerificationObj.returnedToCare && clientVerificationObj.referredTo)
+        ? ""
+        : "This field is required";
 
     temp.anyOfTheFollowing = clientVerificationObj.anyOfTheFollowing
       ? ""
@@ -302,7 +302,6 @@ const ClientVerification = (props) => {
         verificationStatus: "",
         outcome: "",
         comment: "",
-        dateOfDiscontinuation: "",
         verificationAttempts: "",
       });
       setSelectedOptions([]);
@@ -320,20 +319,12 @@ const ClientVerification = (props) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     clientVerificationObj.attempt = attemptList; // Assgining all the attempted list to the ClientVerifiction
-    console.log("I got here line 327", clientVerificationObj);
-    if (
-      clientVerificationObj.dateOfDiscontinuation === "" &&
-      clientVerificationObj.returnedToCare !== "" &&
-      clientVerificationObj.referredTo !== ""
-    );
-    {
-      clientVerificationObj.dateOfDiscontinuation = "";
-    }
+    
+
     // Object
     observation.data = clientVerificationObj;
     // console.log("Observation", observation);
     if (clientVerificationFormObj()) {
-     
       if (attemptList.length > 0) {
         observation.dateOfObservation =
           observation.dateOfObservation !== ""
@@ -342,7 +333,6 @@ const ClientVerification = (props) => {
         observation.personId = patientObj.id;
 
         // observation.data=attemptList
-       
 
         setSaving(true);
         if (
@@ -930,7 +920,6 @@ const ClientVerification = (props) => {
                 </span>
               )}
             </MatButton>
-
           </form>
         </CardBody>
       </Card>
