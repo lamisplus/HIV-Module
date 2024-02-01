@@ -189,7 +189,6 @@ const DashboardFilledTransferForm = (props) => {
       })
       .then((response) => {
         setTransferInfo(response.data);
-        // console.log("getTreatmentInfo", response.data);
         //   setPatientObj1(response.data);
       })
       .catch((error) => {});
@@ -203,7 +202,7 @@ const DashboardFilledTransferForm = (props) => {
       })
       .then((response) => {
         // setTransferInfo(response.data);
-        // console.log("getCurrentMedication", response.data);
+        console.log("getCurrentMedication", response.data);
         setCurrentMedication(response.data);
       })
       .catch((error) => {});
@@ -222,7 +221,6 @@ const DashboardFilledTransferForm = (props) => {
       )
       .then((response) => {
         // setTransferInfo(response.data);
-        // console.log("getLabResult", response.data);
         setLabResult(response.data);
       })
       .catch((error) => {});
@@ -237,7 +235,6 @@ const DashboardFilledTransferForm = (props) => {
       })
       .then((response) => {
         setBaselineCDCount(response.data);
-        // console.log("baselineCDCount", response.data);
         // setLabResult(response.data);
       })
       .catch((error) => {});
@@ -255,7 +252,7 @@ const DashboardFilledTransferForm = (props) => {
       )
       .then((response) => {
         setCurrentCD4(response.data);
-        // console.log("currentCD4", response.data);
+        console.log("currentCD4", response.data);
         // setLabResult(response.data);
       })
       .catch((error) => {});
@@ -335,12 +332,6 @@ const DashboardFilledTransferForm = (props) => {
   const calculateBMI = () => {
     let squareH = Number(transferInfo?.height) * Number(transferInfo?.height);
     let value = Number(transferInfo.weight) / squareH;
-    // console.log(
-    //   "calculating BMI",
-    //   Number(transferInfo?.height),
-    //   Number(transferInfo.weight),
-    //   value
-    // );
     setBMI(value);
   };
   // when component mounts
@@ -354,8 +345,6 @@ const DashboardFilledTransferForm = (props) => {
     getCurrentCD4Count();
     getTransferFormInfo();
   }, []);
-
-  // console.log("The Payload", payload);
 
   useEffect(() => {
     // setPayload({ ...transferInfo });
@@ -371,7 +360,6 @@ const DashboardFilledTransferForm = (props) => {
 
   // handle Facility Name to slect drop down
   const handleInputChangeObject = (e) => {
-    // console.log(e);
     setPayload({
       ...payload,
       facilityTransferTo: e.name,
@@ -527,7 +515,6 @@ const DashboardFilledTransferForm = (props) => {
         type: "Transfer",
         visitId: "",
       };
-      // console.log(updatePayload);
       postTransferForm(updatePayload);
     } else {
       window.scroll(0, 0);
