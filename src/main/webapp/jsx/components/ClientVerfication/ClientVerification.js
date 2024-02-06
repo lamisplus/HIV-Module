@@ -129,7 +129,7 @@ const ClientVerification = (props) => {
   const [attempt, setAttempt] = useState({
     dateOfAttempt: "",
     verificationStatus: "",
-    // outcome: "",
+    outcome: "",
     comment: "",
     verificationAttempts: "",
   });
@@ -261,7 +261,7 @@ const ClientVerification = (props) => {
     temp.verificationStatus = attempt.verificationStatus
       ? ""
       : "This field is required";
-    // temp.outcome = attempt.outcome ? "" : "This field is required";
+    temp.outcome = attempt.outcome ? "" : "This field is required";
     temp.verificationAttempts = attempt.verificationAttempts
       ? ""
       : "This field is required";
@@ -296,17 +296,17 @@ const ClientVerification = (props) => {
   };
   const addAttempt = (e) => {
     //attempt.anyOfTheFollowing=selected
-    // attempt.outcome =
-    //   attempt.verificationStatus !== "" &&
-    //    attempt.verificationStatus === "Verification Ongoing"
-    //     ? "Verification Ongoing"
-    //     : attempt.outcome;
+    attempt.outcome =
+      attempt.verificationStatus !== "" &&
+       attempt.verificationStatus === "Verification Ongoing"
+        ? "Verification Ongoing"
+        : attempt.outcome;
     attempt.verificationAttempts = selectedOptions.join(", ");
     if (validateAttempt()) {
       setAttemptList([...attemptList, attempt]);
       setAttempt({
         verificationStatus: "",
-        // outcome: "",
+        outcome: "",
         comment: "",
         verificationAttempts: "",
       });
@@ -653,7 +653,7 @@ const ClientVerification = (props) => {
                   )}
                 </FormGroup>
               </div>
-              {/* {attempt.verificationStatus === "Verification Ongoing" ? (
+              {attempt.verificationStatus === "Verification Ongoing" ? (
                   <>
                     <div className="form-group mb-3 col-md-3">
                       <FormGroup>
@@ -720,7 +720,7 @@ const ClientVerification = (props) => {
                       </FormGroup>
                     </div>
                   </>
-                )} */}
+                )}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label> Comment</Label>
@@ -761,7 +761,7 @@ const ClientVerification = (props) => {
                         <th>Date of Attempt</th>
                         <th>Verification Attempt</th>
                         <th>Verification Status</th>
-                        {/* <th>Outcome</th> */}
+                        <th>Outcome</th>
                         <th>comment</th>
                       </tr>
                     </thead>
@@ -954,7 +954,7 @@ function AttemptedLists({ attemptObj, index, removeAttempt }) {
       <th>{attemptObj.dateOfAttempt}</th>
       <th>{attemptObj.verificationAttempts}</th>
       <th>{attemptObj.verificationStatus}</th>
-      {/* <th>{attemptObj.outcome}</th> */}
+      <th>{attemptObj.outcome}</th>
       <th>{attemptObj.comment}</th>
 
       <th></th>
