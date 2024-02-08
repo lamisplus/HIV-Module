@@ -209,10 +209,10 @@ const PatientnHistory = (props) => {
         activeTab: "history",
         actionType: action,
       });
-      } else if (row.path === "client-verfication-form") {
+    } else if (row.path === "Client-Verification") {
       props.setActiveContent({
         ...props.activeContent,
-        route: "client-verfication-form-update",
+        route: "client-verfication-form",
         id: row.id,
         activeTab: "history",
         actionType: action,
@@ -226,7 +226,7 @@ const PatientnHistory = (props) => {
         actionType: action,
       });
     } else if (row.path === "eac-session") {
-      props.setActiveContent({ 
+      props.setActiveContent({
         ...props.activeContent,
         route: "eac-session-update",
         id: row.id,
@@ -266,6 +266,7 @@ const PatientnHistory = (props) => {
   };
   const LoadDeletePage = (row) => {
     console.log(row.path);
+
     if (row.path === "Mental-health") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
@@ -600,7 +601,36 @@ const PatientnHistory = (props) => {
             toast.error("Something went wrong. Please try again...");
           }
         });
-    } else {
+    } else if (row.path === "Client-Verification") {
+      setSaving(true);
+      //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
+    
+      axios
+        .delete(`${baseUrl}hiv/art/clinic-visit/${row.id}/${reason.reason}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          PatientHistory();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+              error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
+    
+    }
+    else {
     }
   };
   const LoadModal = (row) => {
