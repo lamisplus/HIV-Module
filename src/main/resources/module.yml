@@ -9,6 +9,7 @@ menus:
     state: hiv
     url: /across/resources/static/hiv/index.html
 umdLocation: /across/resources/static/hiv/index.html
+gitHubLink: https://api.github.com/repos/lamisplus/HIV-Module/releases/latest
 webModules:
   - breadcrumb: HIV
     name: HivModule
