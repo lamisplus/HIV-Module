@@ -109,6 +109,7 @@ const Tracking = (props) => {
         "Stigma",
         "PMTCT",
     ]);
+    const [isPatientTransferredOut, setIsPatientTransferredOut] = useState(false);
 
     const [currentMedication, setCurrentMedication] = useState([]);
     const [payload, setPayload] = useState({
@@ -165,6 +166,31 @@ const Tracking = (props) => {
     const [selectedState, setSelectedState] = useState({})
     const [selectedFacility, setSelectedFacility] = useState({});
     const [selectedLga, setSelectedLga] = useState({});
+
+    useEffect(() => {
+        getPatientActivities()
+    }, []);
+
+    const getPatientActivities = async () => {
+        try {
+            const response = await axios.get(
+                `${baseUrl}hiv/patients/${patientObj.id}/history/activities`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            const activities = response.data;
+            // check each activities in th response data if there is an activity.name that is equal to "ART Transfer Out", if yes set isPatientTransferredOut to true
+            const isPatientTransferredOut = activities.some(
+                (activity) => activity.name === "ART Transfer Out"
+            );
+            setIsPatientTransferredOut(isPatientTransferredOut);
+        } catch (error) {
+            toast.error("Fill DSD Form", {
+                position: toast.POSITION.TOP_RIGHT,
+            });
+        }
+    };
 
     const loadStates1 = () => {
         axios.get(`${baseUrl}organisation-units/parent-organisation-units/1`, {
@@ -433,14 +459,19 @@ const Tracking = (props) => {
 
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {
-        // let facId = localStorage.getItem("faciltyId");
-
         e.preventDefault();
 
         if (validate()) {
             payload.bmi = BMI;
             payload.currentMedication = currentMedication;
             payload.labResult = labResult;
+            if (isPatientTransferredOut) {
+                toast.error("A transfer-out form has already been filled for this patient", {
+                    position: toast.POSITION.BOTTOM_CENTER,
+                });
+                setSaving(false);
+                return;
+            }
             postTransferForm(payload);
         } else {
             window.scroll(0, 0);
@@ -1044,7 +1075,7 @@ const Tracking = (props) => {
                                         </thead>
                                         <tbody>
                                             {currentMedication &&
-                                                currentMedication.slice(0, 5).map((each, index) => {
+                                                currentMedication?.slice?.(0, 5)?.map?.((each, index) => {
                                                     return (
                                                         <tr key={index}>
                                                             <td scope="row">{each?.regimenName}</td>
@@ -1090,7 +1121,7 @@ const Tracking = (props) => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {labResult.slice(0, 5).map((each, index) => {
+                                            {labResult?.slice?.(0, 5)?.map?.((each, index) => {
                                                 return (
                                                     <tr>
                                                         <td scope="row">{new Date(each.dateReported).toISOString().split('T')[0]}</td>

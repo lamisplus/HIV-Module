@@ -33,6 +33,9 @@ public class PatientTracker extends HivAuditEntity implements Serializable, Pers
 	private String reasonForTracking;
 	private String careInFacilityDiscountinued;
 	private String reasonForDiscountinuation;
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	private LocalDate dateOfDeath;
 	private String biometricStatus;
 	private String causeOfDeath;
 	private String reasonForLossToFollowUp;

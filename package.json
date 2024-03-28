@@ -91,6 +91,7 @@
     "react-overlay-loading": "^1.0.3",
     "react-perfect-scrollbar": "^1.5.8",
     "react-phone-input-2": "^2.11.0",
+    "react-query": "^3.39.3",
     "react-redux": "^7.2.4",
     "react-resize-detector": "^5.2.0",
     "react-router-dom": "^5.2.0",

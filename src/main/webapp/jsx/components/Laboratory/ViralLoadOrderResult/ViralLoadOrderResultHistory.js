@@ -29,6 +29,7 @@ import 'semantic-ui-css/semantic.min.css';
 import "react-widgets/dist/css/react-widgets.css";
 import { toast} from "react-toastify";
 import { Dropdown,Button, Menu, Icon } from 'semantic-ui-react';
+import { queryClient } from '../../../../utils/queryClient';
 
 
 const tableIcons = {
@@ -73,6 +74,8 @@ const LabHistory = (props) => {
           )
           .then((response) => {
               toast.success("Record Deleted Successfully");
+               //Please do not remove
+               queryClient.invalidateQueries()
               props.LabOrders()
               toggle()
               setSaving(false)

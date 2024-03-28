@@ -15,6 +15,7 @@ import { toast} from "react-toastify";
 
 import { Button, } from 'semantic-ui-react'
 import {TiArrowBack} from 'react-icons/ti'
+import { queryClient } from '../../../../utils/queryClient';
 
 const useStyles = makeStyles(theme => ({ 
     button: {
@@ -275,6 +276,8 @@ const Laboratory = (props) => {
             axios.put(`${baseUrl}laboratory/vl-results/${props.activeContent.obj.id}`,tests,
             { headers: {"Authorization" : `Bearer ${token}`}},)
             .then(response => {
+                //Please do not remove
+                queryClient.invalidateQueries()
                 setSaving(false);
                 toast.success("Viral Load order & result updated successful!",  {position: toast.POSITION.BOTTOM_CENTER});
                 //props.LabOrders();

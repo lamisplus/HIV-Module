@@ -579,6 +579,12 @@ const Tracking = (props) => {
           ? ""
           : "This field is required");
     }
+    {
+      objValues.reasonForDiscountinuation === "Death" &&
+      (temp.dateOfDeath = objValues.dateOfDeath
+          ? ""
+          : "This field is required");
+    }
     // objValues.careInFacilityDiscountinued==='Yes' && (temp.dateReturnToCare = objValues.dateReturnToCare ? "" : "This field is required")
     objValues.careInFacilityDiscountinued === "No" &&
       objValues.dateReturnToCare !== "" &&
@@ -1504,6 +1510,32 @@ const Tracking = (props) => {
                         )}
                       </FormGroup>
                     </div>
+                    <div className="form-group mb-3 col-md-4">
+                      <FormGroup>
+                        <Label for=""> Date of Death</Label>
+                        <Input
+                            type="date"
+                            name="dateOfDeath"
+                            id="dateOfDeath"
+                            onChange={handleInputChange}
+                            value={objValues.dateOfDeath}
+                            min={enrollDate !== "" ? enrollDate : ""}
+                            max={moment(new Date()).format("YYYY-MM-DD")}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.25rem",
+                            }}
+                            disabled={disabledField}
+                        />
+                        {errors.dateOfDeath !== "" ? (
+                            <span className={classes.error}>
+                          {errors.dateOfDeath}
+                        </span>
+                        ) : (
+                            ""
+                        )}
+                      </FormGroup>
+                    </div>
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <Label for="">VA Cause of Death</Label>
@@ -1785,31 +1817,31 @@ const Tracking = (props) => {
                   </>
               )}
               {(objValues.causeOfDeath === "Natural Cause" ||
-                objValues.causeOfDeath === "Unknown cause") && (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label for="">
-                      Cause of Death - {objValues.causeOfDeath} (specify)
-                    </Label>
-                    <Input
-                      type="text"
-                      name="causeOfDeathOthers"
-                      id="causeOfDeathOthers"
-                      onChange={handleInputChange}
-                      value={objValues.causeOfDeathOthers}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={disabledField}
-                    />
-                    {errors.causeOfDeathOthers !== "" ? (
-                      <span className={classes.error}>
+                  objValues.causeOfDeath === "Unknown cause") && (
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label for="">
+                        Cause of Death - {objValues.causeOfDeath} (specify)
+                      </Label>
+                      <Input
+                          type="text"
+                          name="causeOfDeathOthers"
+                          id="causeOfDeathOthers"
+                          onChange={handleInputChange}
+                          value={objValues.causeOfDeathOthers}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
+                          disabled={disabledField}
+                      />
+                      {errors.causeOfDeathOthers !== "" ? (
+                          <span className={classes.error}>
                         {errors.causeOfDeathOthers}
                       </span>
-                    ) : (
-                      ""
-                    )}
+                      ) : (
+                          ""
+                      )}
                   </FormGroup>
                 </div>
               )}

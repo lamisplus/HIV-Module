@@ -32,6 +32,7 @@ import { Form, Input, Label } from "reactstrap";
 import "@reach/menu-button/styles.css";
 
 import { Dropdown, Button, Menu, Icon } from "semantic-ui-react";
+import { queryClient } from "../../../utils/queryClient";
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -252,6 +253,8 @@ const PatientnHistory = (props) => {
   const handleInputChangeBasic = (e) => {
     setReason({ [e.target.name]: e.target.value });
   };
+
+  
   const LoadDeletePage = (row) => {
     // setShowReason(true);
     if (row.path === "Mental-health") {
@@ -262,6 +265,7 @@ const PatientnHistory = (props) => {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then((response) => {
+            queryClient.invalidateQueries()
             toast.success("Record Deleted Successfully");
             PatientHistory();
             toggle();

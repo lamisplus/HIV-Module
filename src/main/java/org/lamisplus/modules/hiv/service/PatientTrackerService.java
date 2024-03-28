@@ -96,6 +96,7 @@ public class PatientTrackerService {
 		patentTrackingDto.setCareInFacilityDiscountinued(entity.getCareInFacilityDiscountinued());
 		patentTrackingDto.setReasonForDiscountinuation(entity.getReasonForDiscountinuation());
 		patentTrackingDto.setCauseOfDeath(entity.getCauseOfDeath());
+		patentTrackingDto.setDateOfDeath(entity.getDateOfDeath());
 		patentTrackingDto.setReasonForLossToFollowUp(entity.getReasonForLossToFollowUp());
 		patentTrackingDto.setReferredFor(entity.getReferredFor());
 		patentTrackingDto.setReferredForOthers(entity.getReferredForOthers());
@@ -134,6 +135,7 @@ public class PatientTrackerService {
 				.careInFacilityDiscountinued(dto.getCareInFacilityDiscountinued())
 				.reasonForDiscountinuation(dto.getReasonForDiscountinuation())
 				.causeOfDeath(dto.getCauseOfDeath())
+				.dateOfDeath(dto.getDateOfDeath())
 				.reasonForLossToFollowUp(dto.getReasonForLossToFollowUp())
 				.referredFor(dto.getReferredFor())
 				.referredForOthers(dto.getReferredForOthers())

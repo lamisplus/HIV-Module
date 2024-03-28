@@ -14,6 +14,7 @@ import { List, Label as LabelSui} from 'semantic-ui-react'
 // import IconButton from '@mui/material/IconButton';
 // import DeleteIcon from '@material-ui/icons/Delete';
 import { toast} from "react-toastify";
+import { queryClient } from '../../../../utils/queryClient';
 // import {Alert } from "react-bootstrap";
 // import { Icon,Button, } from 'semantic-ui-react'
 
@@ -363,6 +364,8 @@ const Laboratory = (props) => {
                 { headers: {"Authorization" : `Bearer ${token}`}},)
                 .then(response => {
                     setSaving(false);
+                    //Please do not remove
+                    queryClient.invalidateQueries()
                     props.LabOrders();
                     toast.success("Viral Load order & result created successful!",  {position: toast.POSITION.BOTTOM_CENTER});
                     setTests({

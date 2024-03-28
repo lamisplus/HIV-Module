@@ -16,6 +16,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { toast} from "react-toastify";
 import {Alert } from "react-bootstrap";
 import { Icon,Button, } from 'semantic-ui-react'
+import { queryClient } from '../../../utils/queryClient';
 
 
 const useStyles = makeStyles(theme => ({ 
@@ -152,30 +153,7 @@ const Laboratory = (props) => {
             });
         
     }
-    //Get Patiet Visit 
-    // const PatientVisit =()=>{
-    //     axios
-    //         .get(`${baseUrl}patient/visit/visit-detail/${props.patientObj.id}`,
-    //             { headers: {"Authorization" : `Bearer ${token}`} }
-    //         )
-    //         .then((response) => {
-    //             const lastVisit = response.data[response.data.length - 1]
-    //             if(lastVisit.status==="PENDING"){
-    //                 visitId= lastVisit.id
-    //                 //setCurrentVisit(true)
-    //                 setButtonHidden(false)
-    //             }else{
-    //                 toast.error("Patient do not have any active visit")
-    //                 setButtonHidden(true)
-    //                 //setCurrentVisit(false)
-    //             }
-
-    //         })
-    //         .catch((error) => {
-    //         
-    //         });        
-    // }
-    //Get list of Test Group
+    
     const ViraLoadIndication =()=>{
         axios
             .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`,
@@ -271,6 +249,8 @@ const Laboratory = (props) => {
         axios.post(`${baseUrl}laboratory/rde-orders`,testOrderList,
             { headers: {"Authorization" : `Bearer ${token}`}},)
             .then(response => {
+                 //Please do not remove
+                 queryClient.invalidateQueries()
                 setSaving(false);
                 toast.success("Laboratory test order created successful");
                 props.setActiveContent({...props.activeContent, route:'recent-history'})

@@ -86,13 +86,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const EnrollmentOtz = (props) => {
- 
   const [saving, setSavings] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
   const [otzOutcomesArray, setOtzOutcomes] = useState([]);
   const [otzPlusCapture, setOtzCapture] = useState("");
   const [labResult, setLabResult] = useState(null);
-
 
   const submitNewRecord = (values) => {
     const observation = {
@@ -139,25 +137,7 @@ const EnrollmentOtz = (props) => {
       });
   };
 
-  // const LabOrders = () => {
-  //   axios
-  //     .get(`${baseUrl}laboratory/vl-results/patients/${props.patientObj.id}`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       const dynamicArray = response?.data;
-  //       if (dynamicArray?.length > 0) {
-  //         let lastItem = dynamicArray[dynamicArray.length - 1];
-  //         setLabResult(lastItem);
-  //         console.log(labResult)
-  //       }
-  //     })
-  //     .catch((error) => {});
-  // };
-
-  
-
-  const handleSubmit = async() => {
+  const handleSubmit = async () => {
     const artStartDate = props?.activeContent?.artCommence?.visitDate;
     const baselineViralLoadAtEnrollment = Number(
       props?.activeContent?.currentLabResult?.result
@@ -192,62 +172,12 @@ const EnrollmentOtz = (props) => {
         otzPlus: otzPlusCapture !== "" ? otzPlusCapture : undefined,
       });
     }
-  
-   
-    
-  };
-
-  const handleSubmitAdherence = (values, param) => {
-    if (currentRecord?.id || props?.activeContent?.id) {
-      updateOldRecord(values, param);
-      return;
-    } else {
-      submitNewRecord(values, param);
-    }
   };
 
   const { formik } = useServiceFormValidationSchema(handleSubmit);
 
-  function calculateMonthsFromDate(dateString) {
-    // Parse the input date string
-    const inputDate = new Date(dateString);
-
-    // Get the current date
-    const currentDate = new Date();
-
-    // Calculate the difference in milliseconds
-    const timeDifference = currentDate - inputDate;
-
-    // Calculate the number of months (assuming 30 days per month)
-    const months = Math.floor(timeDifference / (30 * 24 * 60 * 60 * 1000));
-
-    return months;
-  }
-
-  const getOldRecordIfExists = () => {
-    axios
-      .get(`${baseUrl}observation/person/${props?.activeContent?.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        const patientDTO = response?.data;
-        const otzData =
-          patientDTO?.filter?.((item) => item?.type === "Service OTZ")?.[0] ||
-          {};
-        formik.setValues(otzData?.data);
-
-        setCurrentRecord(otzData);
-        return response.data;
-      })
-      .catch((error) => {
-        
-      });
-  };
-
   useEffect(() => {
-    console.log(props)
     getOtzOutomes();
-    // LabOrders();
 
     formik.setValues({
       ...formik?.values,

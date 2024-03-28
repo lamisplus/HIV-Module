@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet failOnError="true" author="Taiwo Gboyegun" id="20240326-002">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_patient_tracker" columnName="date_of_death" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE hiv_patient_tracker
+                ADD date_of_death DATE
+        </sql>
+    </changeSet>
+
+
+</databaseChangeLog>
+
