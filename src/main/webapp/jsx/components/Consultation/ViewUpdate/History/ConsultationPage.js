@@ -346,9 +346,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCryptococcal(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   // CERVICAL_CANCER_SCREENING_STATUS
   const CERVICAL_CANCER_SCREENING_STATUS = () => {
@@ -360,9 +358,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCervicalStatus(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   // CERVICAL_CANCER_TREATMENT
   const CERVICAL_CANCER_TREATMENT = () => {
@@ -373,9 +369,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCervicalTreatment(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   // HEPATITIS_SCREENING_RESULT
   const HEPATITIS_SCREENING_RESULT = () => {
@@ -386,9 +380,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setHepatitis(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   // HEPATITIS_SCREENING_RESULT
   const FAMILY_PLANNING_METHOD = () => {
@@ -399,9 +391,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setFamilyPlaining(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
@@ -414,9 +404,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.id === 1 || x.id === 2 || x.id === 14)
         );
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   //GET AdultRegimenLine
   const ChildRegimenLine = () => {
@@ -429,9 +417,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.id === 3 || x.id === 4)
         );
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   //GET LIST Drug Refill
   // async function ClinicVisitListHistory() {
@@ -464,9 +450,7 @@ const ClinicVisit = (props) => {
           setShowCurrentVitalSigns(true);
         }
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   //Get The updated patient objeect
   const GetPatientObj = () => {
@@ -478,9 +462,7 @@ const ClinicVisit = (props) => {
         setGetPatientObj(response.data);
         //patientObj=response.data
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
 
   //Get list of WhoStaging
@@ -490,12 +472,9 @@ const ClinicVisit = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        
         setClinicalStage(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
@@ -505,12 +484,9 @@ const ClinicVisit = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-      
         setTbStatus(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
 
   async function FunctionalStatus() {
@@ -531,7 +507,6 @@ const ClinicVisit = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-       
         setAdherenceLevel(response.data);
       })
       .catch((error) => {});
@@ -2000,7 +1975,9 @@ const ClinicVisit = (props) => {
                     {/* TB Screening Form */}
                     <TBScreening
                       tbObj={tbObj}
-                      setTbObj={setTbObj}
+                      setTbObj={(arg) => {
+                        setTbObj(arg);
+                      }}
                       errors={errors}
                       setErrors={setErrors}
                     />

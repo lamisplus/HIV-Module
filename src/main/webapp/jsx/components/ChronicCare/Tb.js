@@ -15,8 +15,6 @@ import { Card } from "@material-ui/core";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
-import { useHistory } from "react-router-dom";
-// import {TiArrowBack} from 'react-icons/ti'
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
 import "semantic-ui-css/semantic.min.css";
@@ -92,7 +90,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const TbScreening = (props) => {
-  let age = props.patientObj.age;
+  let { age } = props.patientObj;
   const classes = useStyles();
   const [contraindicationDisplay, setcontraindicationDisplay] = useState(false);
   const [tbTreatmentType, setTbTreatmentType] = useState([]);
@@ -101,432 +99,169 @@ const TbScreening = (props) => {
   const [tbScreeningType2, setTbScreeningType2] = useState([]);
   const [showAdditionalFields, setShowAdditionalFields] = useState(false);
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
-  // props.tbObj.historyWithAdults === "No" &&
-  //   props.tbObj.poorWeightGain === "No";
-  //Above 14 years Old
+  const [symptomScreeningKey, setSymptomScreeningKey] =
+    useState("Symptom screen");
+  const {
+    coughing,
+    fever,
+    nightSweats,
+    losingWeight,
+    historyWithAdults,
+    poorWeightGain,
+  } = props.tbObj;
+
+  const booleanInputs = {
+    coughing,
+    fever,
+    nightSweats,
+    losingWeight,
+    historyWithAdults,
+    poorWeightGain,
+  };
+  const [isAnyYesValue, setIsAnyYesValue] = useState(false);
+
+  const getIsAnyYesValue = () => {
+    for (let x in booleanInputs) {
+      if (booleanInputs[`${x}`] === "Yes") {
+        return setIsAnyYesValue(true);
+      } else {
+        setIsAnyYesValue(false);
+      }
+    }
+  };
+  const [isNoneSelected, setIsNoneSelected] = useState(true);
+
+  const getIsNoneSelected = () => {
+    for (let x in booleanInputs) {
+      if (booleanInputs[`${x}`]) {
+        return setIsNoneSelected(false);
+      } else {
+        setIsNoneSelected(true);
+      }
+    }
+  };
+  const [isAllNoValues, setIsAllNoValues] = useState(true);
+
+  const getIsAllNoValues = () => {
+    for (let x in booleanInputs) {
+      if (!booleanInputs[`${x}`] || booleanInputs[`${x}`] === "Yes") {
+        return setIsAllNoValues(false);
+      } else {
+        setIsAllNoValues(true);
+      }
+    }
+  };
+
   useEffect(() => {
-    //First Logic 1 Solved
+    getIsAnyYesValue();
+    getIsNoneSelected();
+    getIsAllNoValues();
+  });
 
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.tbScreeningType === "Symptom screen (alone)"
-    ) {
-      if (
-        props.tbObj.coughing === "No" &&
-        props.tbObj.fever === "No" &&
-        props.tbObj.nightSweats === "No" &&
-        props.tbObj.losingWeight === "No"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "No signs or symptoms of TB",
-          eligibleForTPT: "",
-        });
-      }
-    }
-
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.tbScreeningType === "Symptom screen (alone)" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.previouslyCompletedTPT === "No"
-    ) {
-      if (
-        props.tbObj.coughing === "No" &&
-        props.tbObj.fever === "No" &&
-        props.tbObj.nightSweats === "No" &&
-        props.tbObj.losingWeight === "No"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "No signs or symptoms of TB",
-          eligibleForTPT: "Yes",
-        });
-      }
-    }
-
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray not suggestive" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.previouslyCompletedTPT === "No"
-    ) {
-      props.setTbObj({
-        ...props.tbObj,
-        outcome: "Not Presumptive",
-        status: "No signs or symptoms of TB",
-        eligibleForTPT: "Yes",
-      });
-    }
-
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.tbScreeningType === "Symptom screen (alone)"
-    ) {
-      if (
-        props.tbObj.coughing === "Yes" ||
-        props.tbObj.fever === "Yes" ||
-        props.tbObj.nightSweats === "Yes" ||
-        props.tbObj.losingWeight === "Yes"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive TB",
-          status: "Presumptive TB and referred for evaluation",
-          eligibleForTPT: "",
-        });
-      }
-    }
-
-    //First Logic 2
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray suggestive"
-    ) {
-      props.setTbObj({
-        ...props.tbObj,
-        outcome: "",
-        status: "Presumptive TB",
-        eligibleForTPT: "",
-      });
-    }
-
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray not suggestive"
-    ) {
-      props.setTbObj({
-        ...props.tbObj,
-        outcome: "",
-        status: "No signs or symptoms of TB",
-        eligibleForTPT: "",
-      });
-    }
-
-    //Second Logic
+  useEffect(() => {
     if (props.tbObj.tbTreatment === "Yes") {
-      props.setTbObj({
-        ...props.tbObj,
-        outcome: "Not Presumptive",
+      alert("here1");
+
+      props.setTbObj((prev) => ({
+        ...prev,
         status: "Currently on TB treatment",
-        activeTb: true,
-      });
-    }
-
-    //Third Logic
-    if (
+      }));
+      props.setActiveContent((activeContent) => ({
+        ...activeContent,
+        showTbTptMonitoring: true,
+      }));
+    } else if (
       props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.previouslyCompletedTPT === "No" &&
-      props.tbObj.tbScreeningType === "Symptom screen (alone)"
+      props.tbObj.tbScreeningType === ""
     ) {
-      if (
-        props.tbObj.coughing === "Yes" ||
-        props.tbObj.fever === "Yes" ||
-        props.tbObj.nightSweats === "Yes" ||
-        props.tbObj.losingWeight === "Yes"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive",
-          status: "Presumptive TB and referred for evaluation",
-          eligibleForTPT: "No",
-        });
-      }
-    }
+      alert("here2");
 
-    if (
+      props.setTbObj((prev) => ({
+        ...prev,
+        outcome: "",
+        status: "",
+      }));
+    } else if (
       props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.previouslyCompletedTPT === "Yes" &&
-      props.tbObj.tbScreeningType === "Symptom screen (alone)"
-    ) {
-      if (
-        props.tbObj.coughing === "Yes" ||
-        props.tbObj.fever === "Yes" ||
-        props.tbObj.nightSweats === "Yes" ||
-        props.tbObj.losingWeight === "Yes"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive",
-          status: "Presumptive TB and referred for evaluation",
-          eligibleForTPT: "No",
-        });
-      }
-    }
-
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.previouslyCompletedTPT === "No" &&
       props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray not suggestive"
+      props.tbObj.chestXray === ""
     ) {
-      {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "No signs or symptoms of TB",
-          eligibleForTPT: "Yes",
-        });
-      }
-    }
+      alert("here3");
 
-    if (
+      props.setTbObj((prev) => ({
+        ...prev,
+        outcome: "",
+        status: "",
+      }));
+    } else if (
       props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.previouslyCompletedTPT === "No" &&
       props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray suggestive"
+      props.tbObj.chestXray === "X-ray suggestive of TB"
     ) {
-      {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive",
-          status: "Presumptive TB and referred for evaluation",
-          eligibleForTPT: "No",
-        });
-      }
-    }
+      alert("here4");
 
-    if (
+      props.setTbObj((prev) => ({
+        ...prev,
+        outcome: "Presumptive TB",
+        status: "Presumptive TB referred for evaluation",
+      }));
+    } else if (
       props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.previouslyCompletedTPT === "Yes" &&
-      props.tbObj.tbScreeningType === "Symptom screen (alone)"
-    ) {
-      if (
-        props.tbObj.coughing === "No" &&
-        props.tbObj.fever === "No" &&
-        props.tbObj.nightSweats === "No" &&
-        props.tbObj.losingWeight === "No"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "No signs or symptoms of TB",
-          eligibleForTPT: "No",
-        });
-      }
-    }
-
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.previouslyCompletedTPT === "Yes" &&
       props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray suggestive"
+      props.tbObj.chestXray === "X-ray not suggestive of TB"
     ) {
-      {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive",
-          status: "Presumptive TB and referred for evaluation",
-          eligibleForTPT: "No",
-        });
-      }
-    }
+      alert("here5");
 
-    if (
+      props.setTbObj((prev) => ({
+        ...prev,
+        outcome: "Not Presumptive TB",
+        status: "No signs and Symptoms of TB",
+      }));
+    } else if (
       props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.previouslyCompletedTPT === "Yes" &&
-      props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray not suggestive"
-    ) {
-      {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "No signs or symptoms of TB",
-          eligibleForTPT: "No",
-        });
-      }
-    }
-
-    //Fourth Logic
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "Yes" &&
-      props.tbObj.previouslyCompletedTPT === "No" &&
-      props.tbObj.tbScreeningType === "Symptom screen (alone)"
-    ) {
-      if (
-        props.tbObj.coughing === "No" &&
-        props.tbObj.fever === "No" &&
-        props.tbObj.nightSweats === "No" &&
-        props.tbObj.losingWeight === "No"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "Currently on TPT",
-          eligibleForTPT: "No",
-        });
-      }
-    }
-
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "Yes" &&
-      props.tbObj.previouslyCompletedTPT === "No" &&
-      props.tbObj.tbScreeningType === "Symptom screen (alone)"
-    ) {
-      if (
-        props.tbObj.coughing === "Yes" ||
-        props.tbObj.fever === "Yes" ||
-        props.tbObj.nightSweats === "Yes" ||
-        props.tbObj.losingWeight === "Yes"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive",
-          status: "Currently on TPT",
-          eligibleForTPT: "No",
-        });
-      }
-    }
-
-    //Fourth Logic
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "Yes" &&
-      props.tbObj.previouslyCompletedTPT === "Yes" &&
-      props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray not suggestive"
-    ) {
-      props.setTbObj({
-        ...props.tbObj,
-        outcome: "Not Presumptive",
-        status: "Currently on TPT",
-        eligibleForTPT: "No",
-      });
-    }
-
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "Yes" &&
-      props.tbObj.previouslyCompletedTPT === "No" &&
-      props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray not suggestive"
-    ) {
-      props.setTbObj({
-        ...props.tbObj,
-        outcome: "Not Presumptive",
-        status: "Currently on TPT",
-        eligibleForTPT: "No",
-      });
-    }
-
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "Yes" &&
-      props.tbObj.previouslyCompletedTPT === "No" &&
-      props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray suggestive"
-    ) {
-      props.setTbObj({
-        ...props.tbObj,
-        outcome: "Presumptive",
-        status: "Currently on TPT",
-        eligibleForTPT: "No",
-      });
-    }
-
-    //Fifth Logic
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "No" &&
-      props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.previouslyCompletedTPT === "Yes" &&
-      props.tbObj.chestXray === "X-ray not suggestive"
-    ) {
-      props.setTbObj({
-        ...props.tbObj,
-        outcome: "Not Presumptive",
-        status: "No signs or symptoms of TB",
-        eligibleForTPT: "No",
-      });
-    }
-
-    //Sixth Logic
-    if (
-      props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "Yes" &&
       props.tbObj.tbScreeningType === "Symptom screen (alone)" &&
-      props.tbObj.previouslyCompletedTPT === "No"
+      isAnyYesValue
     ) {
-      if (
-        props.tbObj.coughing === "Yes" ||
-        props.tbObj.fever === "Yes" ||
-        props.tbObj.nightSweats === "Yes" ||
-        props.tbObj.losingWeight === "Yes"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive",
-          status: "Currently on TPT",
-          eligibleForTPT: "No",
-        });
-      }
-    }
+      alert("here6");
 
-    //Seventh Logic
-    if (
+      props.setTbObj((prev) => ({
+        ...prev,
+        outcome: "Presumptive TB",
+        status: "Presumptive TB referred for evaluation",
+      }));
+    } else if (
       props.tbObj.tbTreatment === "No" &&
-      props.tbObj.currentlyOnTuberculosis === "Yes" &&
-      props.tbObj.tbScreeningType === "Chest X-ray" &&
-      props.tbObj.chestXray === "X-ray suggestive"
+      props.tbObj.tbScreeningType === "Symptom screen (alone)" &&
+      isAllNoValues
     ) {
-      props.setTbObj({
-        ...props.tbObj,
-        outcome: "Presumptive",
-        status: "Currently on TPT",
-        eligibleForTPT: "No",
-      });
-    }
+      alert("here7");
 
-    //Eighth Logic
-    if (
-      props.tbObj.coughing === "No" &&
-      props.tbObj.fever === "No" &&
-      props.tbObj.nightSweats === "No" &&
-      props.tbObj.losingWeight === "No"
+      props.setTbObj((prev) => ({
+        ...prev,
+        outcome: "Not Presumptive TB",
+        status: "No signs and Symptoms of TB",
+      }));
+    } else if (
+      props.tbObj.tbTreatment === "No" &&
+      props.tbObj.tbScreeningType === "Symptom screen (alone)" &&
+      isNoneSelected
     ) {
-      if (props.tbObj.isTbTestConfirmed === "Yes") {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "Confirmed TB",
-          eligibleForTPT: "",
-        });
-      }
-    }
+      alert("here8");
 
-    //Nineth Logic
-    if (
-      props.tbObj.coughing === "Yes" ||
-      props.tbObj.fever === "Yes" ||
-      props.tbObj.nightSweats === "Yes" ||
-      props.tbObj.losingWeight === "Yes"
-    ) {
-      if (props.tbObj.isTbTestConfirmed === "Yes") {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive",
-          status: "Confirmed TB",
-          eligibleForTPT: "No",
-        });
-      }
+      props.setTbObj((prev) => ({
+        ...prev,
+        outcome: "",
+        status: "",
+      }));
+    } else {
+      alert("here9");
+      props.setTbObj((prev) => ({
+        ...prev,
+        outcome: "",
+        status: "",
+      }));
     }
   }, [
-    patientAge,
     props.tbObj.tbTreatment,
     props.tbObj.coughing,
     props.tbObj.fever,
@@ -544,481 +279,13 @@ const TbScreening = (props) => {
     props.tbObj.treatmentCompletionResult,
     props.tbObj.isTbTestConfirmed,
   ]);
-
-  //Logic for Less than 14 years
-  if (age < 14) {
-    useEffect(() => {
-      //First Logic 1 Solved
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)"
-      ) {
-        if (
-          props.tbObj.coughing === "No" &&
-          props.tbObj.fever === "No" &&
-          props.tbObj.nightSweats === "No" &&
-          props.tbObj.losingWeight === "No" &&
-          props.tbObj.historyWithAdults === "No" &&
-          props.tbObj.poorWeightGain === "No"
-        ) {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Not Presumptive",
-            status: "No signs or symptoms of TB",
-            eligibleForTPT: "",
-          });
-        }
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.previouslyCompletedTPT === "No"
-      ) {
-        if (
-          props.tbObj.coughing === "No" &&
-          props.tbObj.fever === "No" &&
-          props.tbObj.nightSweats === "No" &&
-          props.tbObj.losingWeight === "No" &&
-          props.tbObj.historyWithAdults === "No" &&
-          props.tbObj.poorWeightGain === "No"
-        ) {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Not Presumptive",
-            status: "No signs or symptoms of TB",
-            eligibleForTPT: "Yes",
-          });
-        }
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray not suggestive" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.previouslyCompletedTPT === "No"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "No signs or symptoms of TB",
-          eligibleForTPT: "Yes",
-        });
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)"
-      ) {
-        if (
-          props.tbObj.coughing === "Yes" ||
-          props.tbObj.fever === "Yes" ||
-          props.tbObj.nightSweats === "Yes" ||
-          props.tbObj.losingWeight === "Yes" ||
-          props.tbObj.historyWithAdults === "Yes" ||
-          props.tbObj.poorWeightGain === "Yes"
-        ) {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Presumptive TB",
-            status: "Presumptive TB and referred for evaluation",
-            eligibleForTPT: "",
-          });
-        }
-      }
-
-      //First Logic 2
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray suggestive"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "",
-          status: "Presumptive TB",
-          eligibleForTPT: "",
-        });
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray not suggestive"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "",
-          status: "No signs or symptoms of TB",
-          eligibleForTPT: "",
-        });
-      }
-
-      //Second Logic
-      if (props.tbObj.tbTreatment === "Yes") {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "Currently on TB treatment",
-          activeTb: true,
-        });
-      }
-
-      //Third Logic
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.previouslyCompletedTPT === "No" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)"
-      ) {
-        if (
-          props.tbObj.coughing === "Yes" ||
-          props.tbObj.fever === "Yes" ||
-          props.tbObj.nightSweats === "Yes" ||
-          props.tbObj.losingWeight === "Yes" ||
-          props.tbObj.historyWithAdults === "Yes" ||
-          props.tbObj.poorWeightGain === "Yes"
-        ) {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Presumptive",
-            status: "Presumptive TB and referred for evaluation",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.previouslyCompletedTPT === "Yes" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)"
-      ) {
-        if (
-          props.tbObj.coughing === "Yes" ||
-          props.tbObj.fever === "Yes" ||
-          props.tbObj.nightSweats === "Yes" ||
-          props.tbObj.losingWeight === "Yes" ||
-          props.tbObj.historyWithAdults === "Yes" ||
-          props.tbObj.poorWeightGain === "Yes"
-        ) {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Presumptive",
-            status: "Presumptive TB and referred for evaluation",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.previouslyCompletedTPT === "No" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray not suggestive"
-      ) {
-        {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Not Presumptive",
-            status: "No signs or symptoms of TB",
-            eligibleForTPT: "Yes",
-          });
-        }
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.previouslyCompletedTPT === "No" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray suggestive"
-      ) {
-        {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Presumptive",
-            status: "Presumptive TB and referred for evaluation",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.previouslyCompletedTPT === "Yes" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)"
-      ) {
-        if (
-          props.tbObj.coughing === "No" &&
-          props.tbObj.fever === "No" &&
-          props.tbObj.nightSweats === "No" &&
-          props.tbObj.losingWeight === "No" &&
-          props.tbObj.historyWithAdults === "No" &&
-          props.tbObj.poorWeightGain === "No"
-        ) {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Not Presumptive",
-            status: "No signs or symptoms of TB",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.previouslyCompletedTPT === "Yes" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray suggestive"
-      ) {
-        {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Presumptive",
-            status: "Presumptive TB and referred for evaluation",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.previouslyCompletedTPT === "Yes" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray not suggestive"
-      ) {
-        {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Not Presumptive",
-            status: "No signs or symptoms of TB",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-
-      //Fourth Logic
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "Yes" &&
-        props.tbObj.previouslyCompletedTPT === "No" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)"
-      ) {
-        if (
-          props.tbObj.coughing === "No" &&
-          props.tbObj.fever === "No" &&
-          props.tbObj.nightSweats === "No" &&
-          props.tbObj.losingWeight === "No" &&
-          props.tbObj.historyWithAdults === "No" &&
-          props.tbObj.poorWeightGain === "No"
-        ) {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Not Presumptive",
-            status: "Currently on TPT",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "Yes" &&
-        props.tbObj.previouslyCompletedTPT === "No" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)"
-      ) {
-        if (
-          props.tbObj.coughing === "Yes" ||
-          props.tbObj.fever === "Yes" ||
-          props.tbObj.nightSweats === "Yes" ||
-          props.tbObj.losingWeight === "Yes" ||
-          props.tbObj.historyWithAdults === "Yes" ||
-          props.tbObj.poorWeightGain === "Yes"
-        ) {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Presumptive",
-            status: "Currently on TPT",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-
-      //Fourth Logic
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "Yes" &&
-        props.tbObj.previouslyCompletedTPT === "Yes" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray not suggestive"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "Currently on TPT",
-          eligibleForTPT: "No",
-        });
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "Yes" &&
-        props.tbObj.previouslyCompletedTPT === "No" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray not suggestive"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "Currently on TPT",
-          eligibleForTPT: "No",
-        });
-      }
-
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "Yes" &&
-        props.tbObj.previouslyCompletedTPT === "No" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray suggestive"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive",
-          status: "Currently on TPT",
-          eligibleForTPT: "No",
-        });
-      }
-
-      //Fifth Logic
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "No" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.previouslyCompletedTPT === "Yes" &&
-        props.tbObj.chestXray === "X-ray not suggestive"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Not Presumptive",
-          status: "No signs or symptoms of TB",
-          eligibleForTPT: "No",
-        });
-      }
-
-      //Sixth Logic
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "Yes" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)" &&
-        props.tbObj.previouslyCompletedTPT === "No"
-      ) {
-        if (
-          props.tbObj.coughing === "Yes" ||
-          props.tbObj.fever === "Yes" ||
-          props.tbObj.nightSweats === "Yes" ||
-          props.tbObj.losingWeight === "Yes" ||
-          props.tbObj.historyWithAdults === "Yes" ||
-          props.tbObj.poorWeightGain === "Yes"
-        ) {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Presumptive",
-            status: "Currently on TPT",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-
-      //Seventh Logic
-      if (
-        props.tbObj.tbTreatment === "No" &&
-        props.tbObj.currentlyOnTuberculosis === "Yes" &&
-        props.tbObj.tbScreeningType === "Chest X-ray" &&
-        props.tbObj.chestXray === "X-ray suggestive"
-      ) {
-        props.setTbObj({
-          ...props.tbObj,
-          outcome: "Presumptive",
-          status: "Currently on TPT",
-          eligibleForTPT: "No",
-        });
-      }
-
-      //Eighth Logic
-      if (
-        props.tbObj.coughing === "No" &&
-        props.tbObj.fever === "No" &&
-        props.tbObj.nightSweats === "No" &&
-        props.tbObj.losingWeight === "No" &&
-        props.tbObj.historyWithAdults === "No" &&
-        props.tbObj.poorWeightGain === "No"
-      ) {
-        if (props.tbObj.isTbTestConfirmed === "Yes") {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Not Presumptive",
-            status: "Confirmed TB",
-            eligibleForTPT: "",
-          });
-        }
-      }
-
-      //Nineth Logic
-      if (
-        props.tbObj.coughing === "Yes" ||
-        props.tbObj.fever === "Yes" ||
-        props.tbObj.nightSweats === "Yes" ||
-        props.tbObj.losingWeight === "Yes" ||
-        props.tbObj.historyWithAdults === "Yes" ||
-        props.tbObj.poorWeightGain === "Yes"
-      ) {
-        if (props.tbObj.isTbTestConfirmed === "Yes") {
-          props.setTbObj({
-            ...props.tbObj,
-            outcome: "Presumptive ",
-            status: "Confirmed TB",
-            eligibleForTPT: "No",
-          });
-        }
-      }
-    }, [
-      patientAge,
-      props.tbObj.tbTreatment,
-      props.tbObj.coughing,
-      props.tbObj.fever,
-      props.tbObj.nightSweats,
-      props.tbObj.tbScreeningType,
-      props.tbObj.eligibleForTPT,
-      props.tbObj.outcome,
-      props.tbObj.status,
-      props.tbObj.losingWeight,
-      props.tbObj.chestXray,
-      props.tbObj.completionDate,
-      props.tbObj.treatementType,
-      props.tbObj.tbTreatmentStartDate,
-      props.tbObj.treatmentOutcome,
-      props.tbObj.treatmentCompletionResult,
-      props.tbObj.isTbTestConfirmed,
-      props.tbObj.historyWithAdults,
-      props.tbObj.poorWeightGain,
-    ]);
-  }
-
   useEffect(() => {
+    console.log("is None selected: ", isNoneSelected);
     TB_TREATMENT_OUTCOME();
     TB_TREATMENT_TYPE();
     TB_SCREENING_TYPE();
-    // CXR_SCREENING_TYPE();
   }, []);
+
   const TB_TREATMENT_TYPE = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
@@ -1050,24 +317,6 @@ const TbScreening = (props) => {
       })
       .catch((error) => {});
   };
-  // const CXR_SCREENING_TYPE = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/LAB_ORDER_INDICATION`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setTbScreeningType2(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-
-  //   TB_SCREENING_TYPE	Care and Support form/TB/IPT Screening	Symptom screen (alone)
-  // TB_SCREENING_TYPE	Care and Support form/TB/IPT Screening	Chest X-ray
-  // CXR_SCREENING_TYPE	Care and Support form/TB/IPT Screening	X-ray suggestive
-  // CXR_SCREENING_TYPE	Care and Support form/TB/IPT Screening	X-ray not suggestive
-
-  // console.log("tbScreeningType", tbScreeningType);
-  console.log("tbScreeningType2", tbScreeningType2);
 
   const handleInputChange = (e) => {
     props.setTbObj({ ...props.tbObj, [e.target.name]: e.target.value });
@@ -1081,11 +330,27 @@ const TbScreening = (props) => {
     }
   };
 
+  useEffect(() => {
+    if (props.tbObj.chestXray === "Symptom screen (alone)" && isAnyYesValue) {
+      props.setTbObj({ ...props.tbObj, outcome: "Presumptive TB" });
+    }
+  });
+  // useEffect(() => {
+  //   if (props.tbObj.tbTreatment === "No") {
+  //     props.setTbObj((prev) => ({
+  //       ...props.tbObj,
+  //       tbScreeningType: "",
+  //       chestXray: "",
+  //     }));
+  //   }
+  // }, [props.tbObj.tbScreeningType, props.tbObj.chestXray]);
   return (
     <>
       <Card className={classes.root}>
         <CardBody>
-          <h2 style={{ color: "#000" }}>TB & IPT Screening </h2>
+          <h2 style={{ color: "#000", fontSize: ".9em" }}>
+            TB Treatment/TB Prevention
+          </h2>
           <br />
           <form>
             <div className="row">
@@ -1111,40 +376,9 @@ const TbScreening = (props) => {
                   </InputGroup>
                 </FormGroup>
               </div>
-              {props.tbObj.tbTreatment === "Yes" && (
-                <div className="form-group mb-3 col-md-6">
-                  <FormGroup>
-                    <Label>
-                      TB treatment start date{" "}
-                      <span style={{ color: "red" }}> *</span>
-                    </Label>
-                    <InputGroup>
-                      <Input
-                        type="date"
-                        name="tbTreatmentStartDate"
-                        id="tbTreatmentStartDate"
-                        onChange={handleInputChange}
-                        value={props.tbObj.tbTreatmentStartDate}
-                        // min={props.encounterDate}
-                        max={moment(new Date()).format("YYYY-MM-DD")}
-                        disabled={props.action === "view" ? true : false}
-                        required
-                      ></Input>
-                    </InputGroup>
-                  </FormGroup>
-                  {props.errors.tbTreatmentStartDate !== "" ? (
-                    <span className={classes.error}>
-                      {props.errors.tbTreatmentStartDate}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </div>
-              )}
-
               {props.tbObj.tbTreatment === "No" && (
                 <>
-                  <div className="form-group mb-3 col-md-6">
+                  {/* <div className="form-group mb-3 col-md-6">
                     <FormGroup>
                       <Label>
                         Are you currently on Tuberculosis Preventive Therapy (
@@ -1165,7 +399,7 @@ const TbScreening = (props) => {
                         </Input>
                       </InputGroup>
                     </FormGroup>
-                  </div>
+                  </div> */}
 
                   {/* SCREENING TYPE OPTIONS */}
                   <div className="form-group  mb-3 col-md-6">
@@ -1241,7 +475,9 @@ const TbScreening = (props) => {
                   </div>
 
                   {/* SCREENING QUESTIONS */}
-                  {props.tbObj.tbScreeningType === "Symptom screen (alone)" && (
+                  {props.tbObj.tbScreeningType?.includes(
+                    symptomScreeningKey
+                  ) && (
                     <>
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
@@ -1390,7 +626,7 @@ const TbScreening = (props) => {
                           </>
                         )}
 
-                      <div className="form-group mb-3 col-md-6">
+                      {/* <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                           <Label>
                             Is TB test confirmed positive?{" "}
@@ -1411,7 +647,7 @@ const TbScreening = (props) => {
                             </Input>
                           </InputGroup>
                         </FormGroup>
-                      </div>
+                      </div> */}
                     </>
                   )}
 
@@ -1421,7 +657,7 @@ const TbScreening = (props) => {
                     <>
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                          <Label>Chest X-ray</Label>
+                          <Label>Chest X-ray Result</Label>
                           <InputGroup>
                             <Input
                               type="select"
@@ -1432,35 +668,12 @@ const TbScreening = (props) => {
                               value={props.tbObj.chestXray}
                             >
                               <option value="">Select</option>
-                              <option value="X-ray suggestive">
-                                X-ray suggestive
+                              <option value="X-ray suggestive of TB">
+                                X-ray suggestive of TB
                               </option>
-                              <option value="X-ray not suggestive">
-                                X-ray not suggestive
+                              <option value="X-ray not suggestive of TB">
+                                X-ray not suggestive of TB
                               </option>
-                            </Input>
-                          </InputGroup>
-                        </FormGroup>
-                      </div>
-
-                      <div className="form-group mb-3 col-md-6">
-                        <FormGroup>
-                          <Label>
-                            Is TB test confirmed positive?{" "}
-                            {/* <span style={{ color: "red" }}> *</span> */}
-                          </Label>
-                          <InputGroup>
-                            <Input
-                              type="select"
-                              name="isTbTestConfirmed"
-                              id="isTbTestConfirmed"
-                              onChange={handleInputChange}
-                              value={props.tbObj.isTbTestConfirmed}
-                              disabled={props.action === "view" ? true : false}
-                            >
-                              <option value="">Select</option>
-                              <option value="Yes">Yes</option>
-                              <option value="No">No</option>
                             </Input>
                           </InputGroup>
                         </FormGroup>
@@ -1469,27 +682,38 @@ const TbScreening = (props) => {
                   )}
                 </>
               )}
-
-              <hr />
+              {/* <hr />
 
               <br />
               <p style={{ color: "black" }}>
                 Eligible for IPT:<b>{" " + props.tbObj.eligibleForTPT}</b>
-              </p>
-
+              </p> */}
               <br />
               <hr />
 
-              <p style={{ color: "black" }}>
-                TB Screening Outcome:<b>{" " + props.tbObj.outcome}</b>
-              </p>
-              <p style={{ color: "black" }}>
-                TB Screening Status:
-                <b>
-                  {" " + props.tbObj.status === "undefined"
-                    ? ""
-                    : props.tbObj.status}
-                </b>
+              {props.tbObj.tbTreatment === "No" &&
+                props.tbObj.tbScreeningType && (
+                  <p className="smooth-transition" style={{ color: "black" }}>
+                    TB Screening Outcome:
+                    <b> {props.tbObj.outcome}</b>
+                  </p>
+                )}
+              <p className="smooth-transition">
+                <span key={1} style={{ display: "inline", color: "black" }}>
+                  {" "}
+                  TB Status:{" "}
+                </span>
+                {
+                  <span>
+                    <b
+                      style={{
+                        color: props.tbObj.status ? "green" : "red",
+                      }}
+                    >
+                      {props.tbObj.status}
+                    </b>{" "}
+                  </span>
+                }
               </p>
             </div>
           </form>
@@ -1498,5 +722,4 @@ const TbScreening = (props) => {
     </>
   );
 };
-
 export default TbScreening;

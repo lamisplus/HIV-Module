@@ -94,28 +94,28 @@ const TPT = (props) => {
   //const [errors, setErrors] = useState({});
   const [adherence, setAdherence] = useState([]);
   const [tbTreatmentType, setTbTreatmentType] = useState([]);
-    const [tbTreatmentOutCome, setTbTreatmentOutCome] = useState([]);
-  
-    const TB_TREATMENT_TYPE = () => {
-      axios
-        .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-          setTbTreatmentType(response.data);
-        })
-        .catch((error) => {});
-    };
-    const TB_TREATMENT_OUTCOME = () => {
-      axios
-        .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-          setTbTreatmentOutCome(response.data);
-        })
-        .catch((error) => {});
-    };
+  const [tbTreatmentOutCome, setTbTreatmentOutCome] = useState([]);
+
+  const TB_TREATMENT_TYPE = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setTbTreatmentType(response.data);
+      })
+      .catch((error) => {});
+  };
+  const TB_TREATMENT_OUTCOME = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setTbTreatmentOutCome(response.data);
+      })
+      .catch((error) => {});
+  };
   useEffect(() => {
     TB_TREATMENT_TYPE();
     TB_TREATMENT_OUTCOME();

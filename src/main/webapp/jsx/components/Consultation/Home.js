@@ -394,22 +394,22 @@ const ClinicVisit = (props) => {
   //     })
   //     .catch((error) => {});
   // };
-   const PREGNANCY_STATUS = () => {
-     axios
-       .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-         headers: { Authorization: `Bearer ${token}` },
-       })
-       .then((response) => {
-         // Filter out "Post Partum" from the response.data array
-         const filteredData = response.data.filter(
-           (status) => status.display !== "Post Partum"
-         );
-         setPregnancyStatus(filteredData);
-       })
-       .catch((error) => {
-         console.log(error);
-       });
-   };
+  const PREGNANCY_STATUS = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        // Filter out "Post Partum" from the response.data array
+        const filteredData = response.data.filter(
+          (status) => status.display !== "Post Partum"
+        );
+        setPregnancyStatus(filteredData);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
   //GET VIRAL LOAD INDICATION
   const ViraLoadIndication = () => {
     axios
@@ -442,7 +442,7 @@ const ClinicVisit = (props) => {
       })
       .then((response) => {
         setChildRegimenLine(
-          response.data.filter((x) => x.id === 3 || x.id === 4 ) 
+          response.data.filter((x) => x.id === 3 || x.id === 4)
         );
       })
       .catch((error) => {});
@@ -969,7 +969,6 @@ const ClinicVisit = (props) => {
     setCareSupportTb(null);
     setTbStatus(null);
   };
-
 
   const resetForm = () => {
     setObjValues({
@@ -1944,7 +1943,6 @@ const ClinicVisit = (props) => {
             </Label>
             <br />
             <br />
-
             <div className=" mb-3">
               <FormLabelName>Clinical Notes</FormLabelName>
               <textarea
@@ -2297,7 +2295,6 @@ const ClinicVisit = (props) => {
               artStartDate={enrollDate}
               encounterDate={vital.encounterDate}
             />
-
             <Label
               as="a"
               color="pink"
@@ -2306,7 +2303,6 @@ const ClinicVisit = (props) => {
             >
               <h4 style={{ color: "#fff" }}>ADR </h4>
             </Label>
-
             <ADR
               setAdrObj={setAdrObj}
               adrObj={adrObj}
@@ -2325,14 +2321,6 @@ const ClinicVisit = (props) => {
               TB Screening
             </Label>
             {/* TB Screening Form */}
-            <TBScreeningForm
-              tbStatus={tbStatus}
-              tbObj={tbObj}
-              setTbObj={setTbObj}
-              errors={errors}
-              careSupportTb={careSupportTb}
-              setErrors={setErrors}
-            />
             <Label
               as="a"
               color="teal"
@@ -2341,7 +2329,6 @@ const ClinicVisit = (props) => {
             >
               <h4 style={{ color: "#fff" }}>ARV DRUGS Regimen</h4>
             </Label>
-
             <br />
             <br />
             {/* ARV DRUGS Regimen */}
@@ -2651,7 +2638,6 @@ const ClinicVisit = (props) => {
               )}
             </div>
             {/* END Viral Load  Form */}
-
             <Label
               as="a"
               color="blue"

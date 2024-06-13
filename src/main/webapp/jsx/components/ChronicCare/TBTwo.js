@@ -773,7 +773,7 @@ const TbScreening = (props) => {
     <>
       <Card className={classes.root}>
         <CardBody>
-          <h2 style={{ color: "#000" }}>TB & IPT Screening </h2>
+          <h2 style={{ color: "#000" }}>TB & IPT Screening</h2>
           <br />
           <form>
             <div className="row">
@@ -827,7 +827,7 @@ const TbScreening = (props) => {
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                           <Label>
-                            TB treatment start date{" "}
+                            TB treatment start date
                             <span style={{ color: "red" }}> *</span>
                           </Label>
                           <InputGroup>

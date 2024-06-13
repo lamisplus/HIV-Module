@@ -357,7 +357,6 @@ const ChronicCare = (props) => {
   };
   //Validations of the forms
   const validate = () => {
-  
     tpt.outComeOfIpt !== "" &&
       (temp.outcomeDate = tpt.date ? "" : "This field is required");
 
@@ -370,19 +369,19 @@ const ChronicCare = (props) => {
     if (tpt.tbTreatment === "") {
       temp.tbTreatment = tpt.tbTreatment ? "" : "This field is required";
     }
-    
 
     if (tpt.tbTreatment === "Yes") {
       temp.treatmentType = tpt.treatmentType ? "" : "This field is required";
-   
 
       temp.treatmentOutcome = tpt.treatmentOutcome
         ? ""
         : "This field is required";
-    
+
       if (tpt.treatmentOutcome === "Treatment completed") {
-        temp.completionDate = tpt.completionDate ? "" : "This field is required";
-   
+        temp.completionDate = tpt.completionDate
+          ? ""
+          : "This field is required";
+
         temp.treatmentCompletionStatus = tpt.treatmentCompletionStatus
           ? ""
           : "This field is required";
@@ -394,9 +393,9 @@ const ChronicCare = (props) => {
       temp.treatmentCompletionStatus = "";
     }
 
-      temp.dateOfObservation = observation.dateOfObservation
-        ? ""
-        : "This field is required";
+    temp.dateOfObservation = observation.dateOfObservation
+      ? ""
+      : "This field is required";
 
     setErrors({
       ...temp,
@@ -411,8 +410,6 @@ const ChronicCare = (props) => {
   const showSuccessMessage = (message) => {
     toast.success(message, { position: toast.POSITION.BOTTOM_CENTER });
   };
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -490,7 +487,6 @@ const ChronicCare = (props) => {
     }
   };
 
-
   const onClickEligibility = () => {
     setShowEligibility(!showEligibility);
   };
@@ -519,9 +515,10 @@ const ChronicCare = (props) => {
     setShowTpt(!showTpt);
   };
 
-  const handleCancel = () => {
-    //history.push({ pathname: '/' });
-  };
+  useEffect(() => {
+    console.log("monitoring props: ", props);
+    console.log("active content BBB: ", props.activeContent);
+  });
 
   return (
     <>
@@ -629,7 +626,7 @@ const ChronicCare = (props) => {
                   }}
                 >
                   <h5 className="card-title" style={{ color: "#fff" }}>
-                    TB & IPT Screening{" "}
+                    TB Treatment/TB Prevention{" "}
                   </h5>
                   {showTb === false ? (
                     <>
@@ -661,57 +658,62 @@ const ChronicCare = (props) => {
                     errors={errors}
                     encounterDate={observation.dateOfObservation}
                     patientObj={patientObj}
+                    setActiveContent={(arg) => {
+                      props.setActiveContent(arg);
+                    }}
                   />
                 )}
               </div>
               {/* End TB & IPT  Screening  */}
               {/* TPT MONITORING */}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    TB/TPT Monitoring
-                  </h5>
-                  {showTpt === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickTpt}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickTpt}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
+              {props.activeContent.showTbTptMonitoring && (
+                <div className="card">
+                  <div
+                    className="card-header"
+                    style={{
+                      backgroundColor: "#014d88",
+                      color: "#fff",
+                      fontWeight: "bolder",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <h5 className="card-title" style={{ color: "#fff" }}>
+                      TB/TPT Monitoring
+                    </h5>
+                    {showTpt === false ? (
+                      <>
+                        <span
+                          className="float-end"
+                          style={{ cursor: "pointer" }}
+                          onClick={onClickTpt}
+                        >
+                          <FaPlus />
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span
+                          className="float-end"
+                          style={{ cursor: "pointer" }}
+                          onClick={onClickTpt}
+                        >
+                          <FaAngleDown />
+                        </span>{" "}
+                      </>
+                    )}
+                  </div>
+                  {showTpt && (
+                    <Tpt
+                      setTpt={setTpt}
+                      tpt={tpt}
+                      setErrors={setErrors}
+                      errors={errors}
+                      encounterDate={observation.dateOfObservation}
+                      patientObj={patientObj}
+                    />
                   )}
                 </div>
-                {showTpt && (
-                  <Tpt
-                    setTpt={setTpt}
-                    tpt={tpt}
-                    setErrors={setErrors}
-                    errors={errors}
-                    encounterDate={observation.dateOfObservation}
-                    patientObj={patientObj}
-                  />
-                )}
-              </div>
+              )}
               {/* End TPT MONITORING */}
               {/* End Nutritional Status Assessment */}
               <div className="card">
