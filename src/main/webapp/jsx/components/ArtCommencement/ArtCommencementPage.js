@@ -228,7 +228,7 @@ const ArtCommencement = (props) => {
       })
       .then((response) => {
         const artRegimenChildren = response.data.filter(
-          (x) => x.id === 3 || x.id === 4 
+          (x) => x.id === 3 || x.id === 4
         );
         setChildRegimenLine(artRegimenChildren);
       })
@@ -605,7 +605,7 @@ const ArtCommencement = (props) => {
                         id="visitDate"
                         onChange={handleInputChange}
                         value={objValues.visitDate}
-                        min={enrollDate}
+                        // min={enrollDate}
                         max={moment(new Date()).format("YYYY-MM-DD")}
                         style={{
                           border: "1px solid #014D88",
