@@ -574,7 +574,7 @@ const ArtCommencement = (props) => {
                         id="visitDate"
                         onChange={handleInputChange}
                         value={objValues.visitDate}
-                        // min="01-01-1980"
+                        min="01-01-1980"
                         max={moment(new Date()).format("YYYY-MM-DD")}
                         style={{
                           border: "1px solid #014D88",
@@ -605,6 +605,7 @@ const ArtCommencement = (props) => {
                         id="visitDate"
                         onChange={handleInputChange}
                         value={objValues.visitDate}
+                        // min={enrollDate}
                         max={moment(new Date()).format("YYYY-MM-DD")}
                         style={{
                           border: "1px solid #014D88",
