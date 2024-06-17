@@ -274,9 +274,7 @@ const ClinicVisit = (props) => {
   const handleWho = (e) => {
     setWho({ ...who, [e.target.name]: e.target.value });
   };
-  {
-    /**major duallist imported starts here */
-  }
+
   const [selectedOptions1, setSelectedOptions1] = useState([]);
   const [selectedOptions2, setSelectedOptions2] = useState([]);
   const [selectedOptions3, setSelectedOptions3] = useState([]);
@@ -753,6 +751,9 @@ const ClinicVisit = (props) => {
     }
     getCharacters();
   }
+  useEffect(() => {
+    console.log("vital useEffect: ", vital);
+  }, vital);
   const handleInputChangeVitalSignDto = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
     setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
@@ -981,20 +982,17 @@ const ClinicVisit = (props) => {
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
-    temp.whoStagingId = objValues.whoStagingId ? "" : "This field is required";
-    temp.pregnancyStatus =
-      objValues.pregnancyStatus === "select" ? "This field is required" : "";
     temp.stage = who.stage ? "" : "This field is required";
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
-    {
-      patientAge >= 10 &&
-        patientObj.sex === "Female" &&
-        (temp.pregnancyStatus = objValues.pregnancyStatus
-          ? ""
-          : "This field is required");
-    }
+    // {
+    //   patientAge >= 10 &&
+    //     patientObj.sex === "Female" &&
+    //     (temp.pregnancyStatus = objValues.pregnancyStatus
+    //       ? ""
+    //       : "This field is required");
+    // }
     //temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
     //temp.diastolic = vital.diastolic ? "" : "This field is required"
     //temp.systolic = vital.systolic ? "" : "This field is required"
@@ -1026,6 +1024,8 @@ const ClinicVisit = (props) => {
     setErrors({
       ...temp,
     });
+    alert(vital.encounterDate);
+
     return Object.values(temp).every((x) => x === "");
   };
   const handleSelectedTestGroup = (e) => {
@@ -1050,6 +1050,7 @@ const ClinicVisit = (props) => {
     e.preventDefault();
     if (validate()) {
       setSaving(true);
+      objValues.whoStagingId = who.stage;
       objValues.visitDate = vital.encounterDate;
       vital["captureDate"] = vital.encounterDate;
       objValues.adverseDrugReactions = adrList;
@@ -1114,6 +1115,7 @@ const ClinicVisit = (props) => {
           }
         });
     } else {
+      // alert("is not validated");
       toast.error("All field are required", {
         position: toast.POSITION.BOTTOM_CENTER,
       });
@@ -1125,6 +1127,17 @@ const ClinicVisit = (props) => {
   };
 
   const resetForm = () => {
+    setWho({
+      stage: "",
+      stage1Value: "",
+      stage2Value: "",
+      stage3Value: "",
+      stage4Value: "",
+      stage1ValueOption: "",
+      stage2ValueOption: "",
+      stage3ValueOption: "",
+      stage4ValueOption: "",
+    });
     setObjValues({
       adherenceLevel: "",
       adheres: {},
