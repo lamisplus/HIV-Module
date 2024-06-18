@@ -1051,6 +1051,7 @@ const ClinicVisit = (props) => {
     if (validate()) {
       setSaving(true);
       objValues.whoStagingId = who.stage;
+      objValues.who = who;
       objValues.visitDate = vital.encounterDate;
       vital["captureDate"] = vital.encounterDate;
       objValues.adverseDrugReactions = adrList;
