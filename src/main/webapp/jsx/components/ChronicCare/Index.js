@@ -320,8 +320,6 @@ const ChronicCare = (props) => {
       );
 
       if (response.data) {
-        console.log("Got here" + response.data["isHypertensive"]);
-
         //To get the latest Chronic Hypertensive response
         setHypertensive(response.data["isHypertensive"]);
       }
@@ -357,7 +355,6 @@ const ChronicCare = (props) => {
   };
   //Validations of the forms
   const validate = () => {
-  
     tpt.outComeOfIpt !== "" &&
       (temp.outcomeDate = tpt.date ? "" : "This field is required");
 
@@ -370,19 +367,19 @@ const ChronicCare = (props) => {
     if (tpt.tbTreatment === "") {
       temp.tbTreatment = tpt.tbTreatment ? "" : "This field is required";
     }
-    
 
     if (tpt.tbTreatment === "Yes") {
       temp.treatmentType = tpt.treatmentType ? "" : "This field is required";
-   
 
       temp.treatmentOutcome = tpt.treatmentOutcome
         ? ""
         : "This field is required";
-    
+
       if (tpt.treatmentOutcome === "Treatment completed") {
-        temp.completionDate = tpt.completionDate ? "" : "This field is required";
-   
+        temp.completionDate = tpt.completionDate
+          ? ""
+          : "This field is required";
+
         temp.treatmentCompletionStatus = tpt.treatmentCompletionStatus
           ? ""
           : "This field is required";
@@ -394,9 +391,9 @@ const ChronicCare = (props) => {
       temp.treatmentCompletionStatus = "";
     }
 
-      temp.dateOfObservation = observation.dateOfObservation
-        ? ""
-        : "This field is required";
+    temp.dateOfObservation = observation.dateOfObservation
+      ? ""
+      : "This field is required";
 
     setErrors({
       ...temp,
@@ -411,8 +408,6 @@ const ChronicCare = (props) => {
   const showSuccessMessage = (message) => {
     toast.success(message, { position: toast.POSITION.BOTTOM_CENTER });
   };
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -489,7 +484,6 @@ const ChronicCare = (props) => {
       }
     }
   };
-
 
   const onClickEligibility = () => {
     setShowEligibility(!showEligibility);

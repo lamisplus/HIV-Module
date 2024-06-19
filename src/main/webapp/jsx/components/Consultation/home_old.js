@@ -1,57 +1,69 @@
 import React, { useState, useEffect } from "react";
-import { Grid, Segment, Label, Icon, List, Button, Card, } from 'semantic-ui-react'
+import {
+  Grid,
+  Segment,
+  Label,
+  Icon,
+  List,
+  Button,
+  Card,
+} from "semantic-ui-react";
 // Page titie
-import { FormGroup, Input, Label as FormLabelName, InputGroup, InputGroupText } from "reactstrap";
-import ADR from './ADR/Index'
-import OpportunisticInfection from './OpportunisticInfection/Index'
-import TBScreening from './TBScreening/Index'
+import {
+  FormGroup,
+  Input,
+  Label as FormLabelName,
+  InputGroup,
+  InputGroupText,
+} from "reactstrap";
+import ADR from "./ADR/Index";
+import OpportunisticInfection from "./OpportunisticInfection/Index";
+import TBScreening from "./TBScreening/Index";
 import { url as baseUrl, token } from "../../../api";
-import MatButton from '@material-ui/core/Button'
-import { makeStyles } from '@material-ui/core/styles'
-import SaveIcon from '@material-ui/icons/Save'
+import MatButton from "@material-ui/core/Button";
+import { makeStyles } from "@material-ui/core/styles";
+import SaveIcon from "@material-ui/icons/Save";
 import axios from "axios";
 //import AddVitals from './Vitals/AddVitals'
-import AddAllergy from './Allergies/AddAllergy'
-import AddCondition from './Conditions/AddCondition'
-import PostPatient from './PostPatient/Index'
+import AddAllergy from "./Allergies/AddAllergy";
+import AddCondition from "./Conditions/AddCondition";
+import PostPatient from "./PostPatient/Index";
 import moment from "moment";
 import { toast } from "react-toastify";
 
-
-
-let adherenceLevelObj = []
-const useStyles = makeStyles(theme => ({
+let adherenceLevelObj = [];
+const useStyles = makeStyles((theme) => ({
   card: {
     margin: theme.spacing(20),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center'
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
   },
   form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(3)
+    width: "100%", // Fix IE 11 issue.
+    marginTop: theme.spacing(3),
   },
   submit: {
-    margin: theme.spacing(3, 0, 2)
+    margin: theme.spacing(3, 0, 2),
   },
   cardBottom: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   Select: {
     height: 45,
-    width: 350
+    width: 350,
   },
   button: {
-    margin: theme.spacing(1)
+    margin: theme.spacing(1),
   },
 
   root: {
-    '& > *': {
-      margin: theme.spacing(1)
-    }
+    "& > *": {
+      margin: theme.spacing(1),
+    },
   },
   input: {
-    display: 'none'
+    display: "none",
   },
   error: {
     color: "#f85032",
@@ -61,49 +73,52 @@ const useStyles = makeStyles(theme => ({
     color: "#4BB543 ",
     fontSize: "11px",
   },
-}))
+}));
 
 const ClinicVisit = (props) => {
-  const patientObj = props.patientObj ? props.patientObj : {}
+  const patientObj = props.patientObj ? props.patientObj : {};
   const [errors, setErrors] = useState({});
-  let temp = { ...errors }
-  const classes = useStyles()
+  let temp = { ...errors };
+  const classes = useStyles();
   const [getPatientObj, setGetPatientObj] = useState({});
   const [saving, setSaving] = useState(false);
   const [clinicalStage, setClinicalStage] = useState([]);
   const [functionalStatus, setFunctionalStatus] = useState([]);
   const [adherenceLevel, setAdherenceLevel] = useState([]);
   const [tbStatus, setTbStatus] = useState([]);
-  const [TBForms, setTBForms] = useState(false)
+  const [TBForms, setTBForms] = useState(false);
   // const [addVitalModal, setAddVitalModal] = useState(false);
   // const AddVitalToggle = () => setAddVitalModal(!addVitalModal)
   const [addConditionModal, setAddConditionModal] = useState(false);
-  const AddConditionToggle = () => setAddConditionModal(!addConditionModal)
+  const AddConditionToggle = () => setAddConditionModal(!addConditionModal);
   const [addAllergyModal, setAddAllergyModal] = useState(false);
-  const AddAllergyToggle = () => setAddAllergyModal(!addAllergyModal)
+  const AddAllergyToggle = () => setAddAllergyModal(!addAllergyModal);
   const [postPatientModal, setPostPatientModal] = useState(false);
-  const PostPatientToggle = () => setPostPatientModal(!postPatientModal)
-  const [currentVitalSigns, setcurrentVitalSigns] = useState({})
-  const [showCurrentVitalSigns, setShowCurrentVitalSigns] = useState(false)
+  const PostPatientToggle = () => setPostPatientModal(!postPatientModal);
+  const [currentVitalSigns, setcurrentVitalSigns] = useState({});
+  const [showCurrentVitalSigns, setShowCurrentVitalSigns] = useState(false);
   //opportunistic infection Object
-  const [infection, setInfection] = useState({ illnessInfection: "", ondateInfection: "" });
+  const [infection, setInfection] = useState({
+    illnessInfection: "",
+    ondateInfection: "",
+  });
   const [infectionList, setInfectionList] = useState([]);
-  //ADR array Object 
+  //ADR array Object
   const [adrObj, setAdrObj] = useState({ adr: "", adrOnsetDate: "" });
   const [adrList, setAdrList] = useState([]);
-  //Vital signs clinical decision support 
+  //Vital signs clinical decision support
   const [vitalClinicalSupport, setVitalClinicalSupport] = useState({
-                                                                    bodyWeight: "",
-                                                                    diastolic: "",
-                                                                    height: "",
-                                                                    systolic: ""
-                                                                  })
+    bodyWeight: "",
+    diastolic: "",
+    height: "",
+    systolic: "",
+  });
   const [objValues, setObjValues] = useState({
     adherenceLevel: "",
     adheres: {},
     adrScreened: "",
     adverseDrugReactions: {},
-    artStatusId: "" ,
+    artStatusId: "",
     cd4: "",
     cd4Percentage: 0,
     clinicalNote: "",
@@ -121,7 +136,7 @@ const ClinicVisit = (props) => {
     stiTreated: "",
     uuid: "",
     visitDate: "",
-    whoStagingId: 0
+    whoStagingId: 0,
   });
   const [vital, setVitalSignDto] = useState({
     bodyWeight: "",
@@ -131,8 +146,8 @@ const ClinicVisit = (props) => {
     height: "",
     personId: props.patientObj.id,
     serviceTypeId: 1,
-    systolic: ""
-  })
+    systolic: "",
+  });
   const [tbObj, setTbObj] = useState({
     currentOnIpt: "",
     coughing: "",
@@ -141,7 +156,7 @@ const ClinicVisit = (props) => {
     fever: "",
     contactWithTBCase: "",
     lethergy: "",
-    tbStatusId: ""
+    tbStatusId: "",
   });
 
   useEffect(() => {
@@ -149,131 +164,120 @@ const ClinicVisit = (props) => {
     WhoStaging();
     AdherenceLevel();
     TBStatus();
-    VitalSigns()
-    GetPatientObj()
+    VitalSigns();
+    GetPatientObj();
   }, []);
   //Check for the last Vital Signs
   const VitalSigns = () => {
     axios
-      .get(`${baseUrl}patient/vital-sign/person/${props.patientObj.id}`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
+      .get(`${baseUrl}patient/vital-sign/person/${props.patientObj.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((response) => {
-
-        const lastVitalSigns = response.data[response.data.length - 1]
-        if (lastVitalSigns.encounterDate === moment(new Date()).format("YYYY-MM-DD") === true) {
-          setcurrentVitalSigns(lastVitalSigns)
-          setShowCurrentVitalSigns(true)
+        const lastVitalSigns = response.data[response.data.length - 1];
+        if (
+          (lastVitalSigns.encounterDate ===
+            moment(new Date()).format("YYYY-MM-DD")) ===
+          true
+        ) {
+          setcurrentVitalSigns(lastVitalSigns);
+          setShowCurrentVitalSigns(true);
         }
       })
-      .catch((error) => {
-        
-      });
-  }
-    //Get The updated patient objeect
-    const GetPatientObj = () => {
-      axios
-        .get(`${baseUrl}hiv/patients`,
-          { headers: { "Authorization": `Bearer ${token}` } }
-        )
-        .then((response) => {
-          const patObJ= response.data.filter((x)=> x.id===props.patientObj.id)
+      .catch((error) => {});
+  };
+  //Get The updated patient objeect
+  const GetPatientObj = () => {
+    axios
+      .get(`${baseUrl}hiv/patients`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        const patObJ = response.data.filter(
+          (x) => x.id === props.patientObj.id
+        );
 
-          setGetPatientObj(patObJ[0])
-        })
-        .catch((error) => {
-          
-        });
-    }
+        setGetPatientObj(patObJ[0]);
+      })
+      .catch((error) => {});
+  };
 
   //Get list of WhoStaging
   const WhoStaging = () => {
     axios
-      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
+      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((response) => {
-        
         setClinicalStage(response.data);
       })
-      .catch((error) => {
-        
-      });
-
-  }
+      .catch((error) => {});
+  };
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
   const TBStatus = () => {
     axios
-      .get(`${baseUrl}application-codesets/v2/TB_STATUS`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
+      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((response) => {
         setTbStatus(response.data);
       })
-      .catch((error) => {
-        
-      });
-
-  }
+      .catch((error) => {});
+  };
 
   async function FunctionalStatus() {
     axios
-      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
+      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((response) => {
-
         setFunctionalStatus(response.data);
         //setValues(response.data)
       })
-      .catch((error) => {
-      });
+      .catch((error) => {});
   }
   ///Level of Adherence
   async function AdherenceLevel() {
     axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`,
-        { headers: { "Authorization": `Bearer ${token}` } }
-      )
+      .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((response) => {
         setAdherenceLevel(response.data);
-
       })
-      .catch((error) => {
-      });
+      .catch((error) => {});
   }
-  const handleInputChange = e => {
+  const handleInputChange = (e) => {
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
     if (e.target.name === "whoStagingId") {
       if (e.target.value === "NO") {
-        setTBForms(true)
+        setTBForms(true);
       } else {
-        setTBForms(false)
+        setTBForms(false);
       }
     }
-  }
-  const handleInputChangeVitalSignDto = e => {
+  };
+  const handleInputChangeVitalSignDto = (e) => {
     setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
-  }
+  };
 
   const addConditionsModal = () => {
     //setpatientObj({...patientObj, ...row});
-    setAddConditionModal(!addConditionModal)
-  }
+    setAddConditionModal(!addConditionModal);
+  };
   const addAllergiesModal = () => {
     //setpatientObj({...patientObj, ...row});
-    setAddAllergyModal(!addAllergyModal)
-  }
+    setAddAllergyModal(!addAllergyModal);
+  };
   const PostPatientService = (row) => {
     //setpatientObj({...patientObj, ...row});
-    setPostPatientModal(!postPatientModal)
-  }
-  //Handle CheckBox 
-  const handleCheckBox = e => {
+    setPostPatientModal(!postPatientModal);
+  };
+  //Handle CheckBox
+  const handleCheckBox = (e) => {
     if (e.target.checked) {
-      
-      setVitalSignDto({ ...currentVitalSigns })
+      setVitalSignDto({ ...currentVitalSigns });
     } else {
       setVitalSignDto({
         bodyWeight: "",
@@ -283,90 +287,107 @@ const ClinicVisit = (props) => {
         height: "",
         personId: props.patientObj.id,
         serviceTypeId: 1,
-        systolic: ""
-      })
+        systolic: "",
+      });
     }
-  }
-  //to check the input value for clinical decision 
-  const handleInputValueCheckHeight =(e)=>{
-    if(e.target.name==="height" && (e.target.value < 48.26 || e.target.value>216.408)){
-      const message ="Height cannot be greater than 216.408 and less than 48.26"
-      setVitalClinicalSupport({...vitalClinicalSupport, height:message})
-    }else{
-      setVitalClinicalSupport({...vitalClinicalSupport, height:""})
+  };
+  //to check the input value for clinical decision
+  const handleInputValueCheckHeight = (e) => {
+    if (
+      e.target.name === "height" &&
+      (e.target.value < 48.26 || e.target.value > 216.408)
+    ) {
+      const message =
+        "Height cannot be greater than 216.408 and less than 48.26";
+      setVitalClinicalSupport({ ...vitalClinicalSupport, height: message });
+    } else {
+      setVitalClinicalSupport({ ...vitalClinicalSupport, height: "" });
     }
-  }
-  const handleInputValueCheckBodyWeight =(e)=>{
-    if(e.target.name==="bodyWeight" && (e.target.value < 3 || e.target.value>150)){      
-      const message ="Body weight must not be greater than 150 and less than 3"
-      setVitalClinicalSupport({...vitalClinicalSupport, bodyWeight:message})
-    }else{
-      setVitalClinicalSupport({...vitalClinicalSupport, bodyWeight:""})
+  };
+  const handleInputValueCheckBodyWeight = (e) => {
+    if (
+      e.target.name === "bodyWeight" &&
+      (e.target.value < 3 || e.target.value > 150)
+    ) {
+      const message =
+        "Body weight must not be greater than 150 and less than 3";
+      setVitalClinicalSupport({ ...vitalClinicalSupport, bodyWeight: message });
+    } else {
+      setVitalClinicalSupport({ ...vitalClinicalSupport, bodyWeight: "" });
     }
-  }
-  const handleInputValueCheckSystolic =(e)=>{
-    if(e.target.name==="systolic" && (e.target.value < 90 || e.target.value>240)){      
-      const message ="Blood Pressure systolic must not be greater than 240 and less than 90"
-      setVitalClinicalSupport({...vitalClinicalSupport, systolic:message})
-    }else{
-      setVitalClinicalSupport({...vitalClinicalSupport, systolic:""})
+  };
+  const handleInputValueCheckSystolic = (e) => {
+    if (
+      e.target.name === "systolic" &&
+      (e.target.value < 90 || e.target.value > 240)
+    ) {
+      const message =
+        "Blood Pressure systolic must not be greater than 240 and less than 90";
+      setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: message });
+    } else {
+      setVitalClinicalSupport({ ...vitalClinicalSupport, systolic: "" });
     }
-  }
-  const handleInputValueCheckDiastolic =(e)=>{
-    if(e.target.name==="diastolic" && (e.target.value < 60 || e.target.value>140)){      
-      const message ="Blood Pressure diastolic must not be greater than 140 and less than 60"
-      setVitalClinicalSupport({...vitalClinicalSupport, diastolic:message})
-    }else{
-      setVitalClinicalSupport({...vitalClinicalSupport, diastolic:""})
+  };
+  const handleInputValueCheckDiastolic = (e) => {
+    if (
+      e.target.name === "diastolic" &&
+      (e.target.value < 60 || e.target.value > 140)
+    ) {
+      const message =
+        "Blood Pressure diastolic must not be greater than 140 and less than 60";
+      setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: message });
+    } else {
+      setVitalClinicalSupport({ ...vitalClinicalSupport, diastolic: "" });
     }
-  }
+  };
   //Validations of the forms
-  const validate = () => {        
-    temp.encounterDate = vital.encounterDate ? "" : "This field is required"
-    temp.labTestGroupId = vital.diastolic ? "" : "This field is required"
-    temp.systolic = vital.systolic ? "" : "This field is required"
-    temp.height = vital.height ? "" : "This field is required"
-    temp.bodyWeight = vital.bodyWeight ? "" : "This field is required"
+  const validate = () => {
+    temp.encounterDate = vital.encounterDate ? "" : "This field is required";
+    temp.labTestGroupId = vital.diastolic ? "" : "This field is required";
+    temp.systolic = vital.systolic ? "" : "This field is required";
+    temp.height = vital.height ? "" : "This field is required";
+    temp.bodyWeight = vital.bodyWeight ? "" : "This field is required";
     setErrors({
-        ...temp
-    })
-    return Object.values(temp).every(x => x == "")
-  }
+      ...temp,
+    });
+    return Object.values(temp).every((x) => x == "");
+  };
   /**** Submit Button Processing  */
   const handleSubmit = (e) => {
     e.preventDefault();
-    if(validate()){
-    setSaving(true)
-    objValues.visitDate = vital.encounterDate
-    objValues.adverseDrugReactions = adrList
-    objValues.artStatusId = getPatientObj.artCommence.id
-    objValues.hivEnrollmentId = getPatientObj.enrollment.id
-    objValues.opportunisticInfections = infectionList
-    objValues.tbScreen = tbObj
-    objValues['vitalSignDto'] = vital
-    axios.post(`${baseUrl}hiv/art/clinic-visit/`, objValues,
-      { headers: { "Authorization": `Bearer ${token}` } },
-
-    )
-      .then(response => {
-        setSaving(false);
-        toast.success("Clinic Visit save successful");
-        props.setActiveContent('recent-history')
-      })
-      .catch(error => {
-        setSaving(false);
-        let errorMessage = error.response.data && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-        toast.error(errorMessage);
-       
-      });
+    if (validate()) {
+      setSaving(true);
+      objValues.visitDate = vital.encounterDate;
+      objValues.adverseDrugReactions = adrList;
+      objValues.artStatusId = getPatientObj.artCommence.id;
+      objValues.hivEnrollmentId = getPatientObj.enrollment.id;
+      objValues.opportunisticInfections = infectionList;
+      objValues.tbScreen = tbObj;
+      objValues["vitalSignDto"] = vital;
+      axios
+        .post(`${baseUrl}hiv/art/clinic-visit/`, objValues, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          setSaving(false);
+          toast.success("Clinic Visit save successful");
+          props.setActiveContent("recent-history");
+        })
+        .catch((error) => {
+          setSaving(false);
+          let errorMessage =
+            error.response.data && error.response.data.apierror.message !== ""
+              ? error.response.data.apierror.message
+              : "Something went wrong, please try again";
+          toast.error(errorMessage);
+        });
     }
-  }
-
+  };
 
   return (
     <div>
-      <h2>Clinic Follow-up Visit</h2>
-      <Grid columns='equal'>
+      <h2>Clinic Follow-up Visit 22222222</h2>
+      <Grid columns="equal">
         {/* <Grid.Column>
           {showCurrentVitalSigns && (
             <Segment>
@@ -422,14 +443,15 @@ const ClinicVisit = (props) => {
         </Grid.Column> */}
         <Grid.Column width={12}>
           <Segment>
-            <Label as='a' color='blue' ribbon>
+            <Label as="a" color="blue" ribbon>
               <b>Vital Signs</b>
             </Label>
-            <br /><br />
+            <br />
+            <br />
             <div className="row">
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Date of Visit </FormLabelName>
+                  <FormLabelName>Date of Visit 55555555555</FormLabelName>
                   <Input
                     type="date"
                     name="encounterDate"
@@ -439,10 +461,13 @@ const ClinicVisit = (props) => {
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     required
                   />
-                 {errors.encounterDate !=="" ? (
-                      <span className={classes.error}>{errors.encounterDate}</span>
-                  ) : "" }
-
+                  {errors.encounterDate !== "" ? (
+                    <span className={classes.error}>
+                      {errors.encounterDate}
+                    </span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
               <div className="form-group mb-3 col-md-6">
@@ -466,12 +491,10 @@ const ClinicVisit = (props) => {
               </div>
               <div className="mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Body Weight</FormLabelName>
+                  <FormLabelName>Body Weight</FormLabelName>
 
                   <InputGroup>
-                    <InputGroupText>
-                      kg
-                    </InputGroupText>
+                    <InputGroupText>kg</InputGroupText>
                     <Input
                       type="number"
                       name="bodyWeight"
@@ -483,22 +506,26 @@ const ClinicVisit = (props) => {
                       onKeyUp={handleInputValueCheckBodyWeight}
                     />
                   </InputGroup>
-                  {vitalClinicalSupport.bodyWeight !=="" ? (
-                    <span className={classes.error}>{vitalClinicalSupport.bodyWeight}</span>
-                  ) : ""}
-                  {errors.bodyWeight !=="" ? (
-                      <span className={classes.error}>{errors.bodyWeight}</span>
-                  ) : "" }
+                  {vitalClinicalSupport.bodyWeight !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.bodyWeight}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.bodyWeight !== "" ? (
+                    <span className={classes.error}>{errors.bodyWeight}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
 
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Height</FormLabelName>
+                  <FormLabelName>Height</FormLabelName>
                   <InputGroup>
-                    <InputGroupText>
-                      cm
-                    </InputGroupText>
+                    <InputGroupText>cm</InputGroupText>
                     <Input
                       type="number"
                       name="height"
@@ -509,23 +536,26 @@ const ClinicVisit = (props) => {
                       max="216.408"
                       onKeyUp={handleInputValueCheckHeight}
                     />
-
                   </InputGroup>
-                  {vitalClinicalSupport.height !=="" ? (
-                    <span className={classes.error}>{vitalClinicalSupport.height}</span>
-                  ) : ""}
-                  {errors.height !=="" ? (
-                      <span className={classes.error}>{errors.height}</span>
-                  ) : "" }
+                  {vitalClinicalSupport.height !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.height}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.height !== "" ? (
+                    <span className={classes.error}>{errors.height}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Blood Pressure</FormLabelName>
+                  <FormLabelName>Blood Pressure</FormLabelName>
                   <InputGroup>
-                    <InputGroupText>
-                      systolic(mmHg)
-                    </InputGroupText>
+                    <InputGroupText>systolic(mmHg)</InputGroupText>
                     <Input
                       type="number"
                       name="systolic"
@@ -536,24 +566,27 @@ const ClinicVisit = (props) => {
                       value={vital.systolic}
                       onKeyUp={handleInputValueCheckSystolic}
                     />
-
                   </InputGroup>
-                  {vitalClinicalSupport.systolic !=="" ? (
-                    <span className={classes.error}>{vitalClinicalSupport.systolic}</span>
-                  ) : ""}
-                  {errors.systolic !=="" ? (
-                      <span className={classes.error}>{errors.systolic}</span>
-                  ) : "" }
+                  {vitalClinicalSupport.systolic !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.systolic}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.systolic !== "" ? (
+                    <span className={classes.error}>{errors.systolic}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Blood Pressure</FormLabelName>
+                  <FormLabelName>Blood Pressure</FormLabelName>
 
                   <InputGroup>
-                    <InputGroupText>
-                      diastolic(mmHg)
-                    </InputGroupText>
+                    <InputGroupText>diastolic(mmHg)</InputGroupText>
                     <Input
                       type="text"
                       name="diastolic"
@@ -562,24 +595,30 @@ const ClinicVisit = (props) => {
                       value={vital.diastolic}
                       onKeyUp={handleInputValueCheckDiastolic}
                     />
-
                   </InputGroup>
-                  {vitalClinicalSupport.diastolic !=="" ? (
-                    <span className={classes.error}>{vitalClinicalSupport.diastolic}</span>
-                  ) : ""}
-                  {errors.diastolic !=="" ? (
-                      <span className={classes.error}>{errors.diastolic}</span>
-                  ) : "" }
+                  {vitalClinicalSupport.diastolic !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.diastolic}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.diastolic !== "" ? (
+                    <span className={classes.error}>{errors.diastolic}</span>
+                  ) : (
+                    ""
+                  )}
                 </FormGroup>
               </div>
             </div>
-            <Label as='a' color='black' ribbon>
+            <Label as="a" color="black" ribbon>
               <b>Consultation</b>
             </Label>
-            <br /><br />
+            <br />
+            <br />
 
             <div className=" mb-3">
-              <FormLabelName >Clinical Notes</FormLabelName>
+              <FormLabelName>Clinical Notes</FormLabelName>
               <textarea
                 name="clinicalNote"
                 className="form-control"
@@ -588,10 +627,9 @@ const ClinicVisit = (props) => {
               ></textarea>
             </div>
             <div className="row">
-
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >WHO Staging</FormLabelName>
+                  <FormLabelName>WHO Staging</FormLabelName>
                   <Input
                     type="select"
                     name="whoStagingId"
@@ -608,12 +646,11 @@ const ClinicVisit = (props) => {
                       </option>
                     ))}
                   </Input>
-
                 </FormGroup>
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Functional Status</FormLabelName>
+                  <FormLabelName>Functional Status</FormLabelName>
                   <Input
                     type="select"
                     name="functionalStatusId"
@@ -634,7 +671,7 @@ const ClinicVisit = (props) => {
               </div>
               <div className=" mb-3 col-md-6">
                 <FormGroup>
-                  <FormLabelName >Level of Adherence</FormLabelName>
+                  <FormLabelName>Level of Adherence</FormLabelName>
                   <Input
                     type="select"
                     name="adherenceLevel"
@@ -653,42 +690,55 @@ const ClinicVisit = (props) => {
                   </Input>
                 </FormGroup>
               </div>
-
             </div>
             <br />
-            <Label as='a' color='red' ribbon>
+            <Label as="a" color="red" ribbon>
               Opportunistic Infection
             </Label>
-            <br /><br />
-            <OpportunisticInfection setInfection={setInfection} infection={infection} setInfectionList={setInfectionList} infectionList={infectionList} />
             <br />
-            <Label as='a' color='pink' ribbon>
+            <br />
+            <OpportunisticInfection
+              setInfection={setInfection}
+              infection={infection}
+              setInfectionList={setInfectionList}
+              infectionList={infectionList}
+            />
+            <br />
+            <Label as="a" color="pink" ribbon>
               ADR
             </Label>
-            <br /><br />
-            <ADR setAdrObj={setAdrObj} adrObj={adrObj} setAdrList={setAdrList} adrList={adrList} />
             <br />
-            <Label as='a' color='teal' ribbon>
+            <br />
+            <ADR
+              setAdrObj={setAdrObj}
+              adrObj={adrObj}
+              setAdrList={setAdrList}
+              adrList={adrList}
+            />
+            <br />
+            <Label as="a" color="teal" ribbon>
               TB Screening
             </Label>
-            <br /><br />
+            <br />
+            <br />
             {/* TB Screening Form */}
             <TBScreening tbObj={tbObj} setTbObj={setTbObj} />
             <br />
-            <Label as='a' color='blue' ribbon>
+            <Label as="a" color="blue" ribbon>
               Next Clinical Appointment Date
             </Label>
-            <br /><br />
+            <br />
+            <br />
             {/* TB Screening Form */}
             <Input
-                    type="date"
-                    name="nextAppointment"
-                    id="nextAppointment"
-                    value={vital.nextAppointment}
-                    onChange={handleInputChange}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    required
-                  />
+              type="date"
+              name="nextAppointment"
+              id="nextAppointment"
+              value={vital.nextAppointment}
+              onChange={handleInputChange}
+              max={moment(new Date()).format("YYYY-MM-DD")}
+              required
+            />
             <br />
             <MatButton
               type="submit"
@@ -755,10 +805,9 @@ const ClinicVisit = (props) => {
               </Feed> */}
               </Card.Content>
             </Card>
-
           </Segment>
         </Grid.Column>
-        </Grid>
+      </Grid>
       {/* <AddVitals toggle={AddVitalToggle} showModal={addVitalModal} /> */}
       <AddAllergy toggle={AddAllergyToggle} showModal={addAllergyModal} />
       <AddCondition toggle={AddConditionToggle} showModal={addConditionModal} />

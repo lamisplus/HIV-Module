@@ -333,7 +333,7 @@ const TBScreeningForm = (props) => {
             <Label>Patient TB Status</Label>
             <Input
               type="select"
-              name="tbStatusId"
+              name="tbStatusId"                                                                                                                                                                                                                                                         
               id="tbStatusId"
               value={props.tbObj.tbStatusId}
               onChange={handleInputChange}

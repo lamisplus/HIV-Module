@@ -10,6 +10,7 @@ import org.springframework.core.annotation.Order;
         version = 1)
 public class UpdateDSDFacility  extends AcrossLiquibaseInstaller {
     public UpdateDSDFacility() {
+
         super("classpath:installers/hiv/schema/update_dsd_facility.xml");
     }
 }
