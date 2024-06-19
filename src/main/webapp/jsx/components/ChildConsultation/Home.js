@@ -127,6 +127,7 @@ const Widget = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
+        console.log("whostaging: ", reponse.data);
         setClinicalStage(response.data);
       })
       .catch((error) => {});

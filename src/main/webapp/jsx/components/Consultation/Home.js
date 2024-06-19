@@ -751,9 +751,7 @@ const ClinicVisit = (props) => {
     }
     getCharacters();
   }
-  useEffect(() => {
-    console.log("vital useEffect: ", vital);
-  }, vital);
+
   const handleInputChangeVitalSignDto = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
     setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
@@ -1024,8 +1022,6 @@ const ClinicVisit = (props) => {
     setErrors({
       ...temp,
     });
-    alert(vital.encounterDate);
-
     return Object.values(temp).every((x) => x === "");
   };
   const handleSelectedTestGroup = (e) => {
@@ -1593,7 +1589,8 @@ const ClinicVisit = (props) => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <FormLabelName>
-                    Date of Visit <span style={{ color: "red" }}> *</span>
+                    Date of Visit
+                    <span style={{ color: "red" }}> *</span>
                   </FormLabelName>
                   <Input
                     type="date"
