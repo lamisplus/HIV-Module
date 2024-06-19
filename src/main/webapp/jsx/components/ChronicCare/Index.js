@@ -189,33 +189,23 @@ const ChronicCare = (props) => {
     referredForServices: "",
     adherence: "",
     rash: "",
-    // neurologicSymptoms: "",g
+    neurologicSymptoms: "",
     hepatitisSymptoms: "",
     tbSymptoms: "",
     resonForStoppingIpt: "",
     outComeOfIpt: "",
+    tbTreatment: "",
     // tbTreatmentStartDate: "",
- 
-    //TPT prevention
-    everCompletedTpt:"",
-    eligibilityTpt:"",
-    tptPreventionOutcome:"",
-    currentlyOnTpt:"",
-    contractionForTpt:"",
-    liverSymptoms:"",
-    chronicAlcohol:"",
-    neurologicSymptoms:"",
-    dateTptStarted:"",
-    tptRegimen:"",
-    endedTpt:"",
-    dateOfTptCompleted:"",
-    dateTptEnded:""
+    treatmentType: "",
+    treatmentOutcome: "",
+    completionDate: "",
+    treatmentCompletionStatus: "",
   });
   const [tbObj, setTbObj] = useState({
     //TB and IPT Screening Object
     currentlyOnTuberculosis: "",
     tbTreatment: "",
-    // tbTreatmentStartDate: "",
+    tbTreatmentStartDate: "",
     coughing: "",
     fever: "",
     losingWeight: "",
@@ -232,30 +222,9 @@ const ChronicCare = (props) => {
     activeTb: false,
     contraindications: "",
     eligibleForTPT: "",
-    chestXrayResult:"",
     // treatementOutcome: "",
-    //This is section for TB Treament Variable
-    specimentCollectedStatus: "",
-    specimenType: "",
-    dateSpecimenSent: "",
-    diagnosticTestDone: "",
-    diagnosticTestType: "",
-    tbTestResult: "",
-    specimentSent: "",
-    clinicallyEvaulated: "",
-    chestXrayDone: "",
-    tbEvaulationOutcome: "",
-    tbType: "",
-    tbTreatmentStarted: "",
-    tbTreatmentStartDate: "",
-    dateOfDiagnosticTest:"",
-    chestXrayResultTest:"",
-    treatmentType: "",
-    treatmentOutcome: "",
-    completionDate: "",
-    treatmentCompletionStatus: "",
-    completedTbTreatment: "",
-    dateOfChestXrayResultTestDone:""
+    // treatementType: "",
+    // completionDate: "",
   });
   const [observationObj, setObservationObj] = useState({
     //Predefine object for chronic care DTO
@@ -291,7 +260,7 @@ const ChronicCare = (props) => {
     setIsUpdate(
       props.activeContent && props.activeContent.actionType === "update"
     );
-  }, [props.activeContent.id,props.tbObj]);
+  }, [props.activeContent.id]);
   //GET  Patients
   async function PatientCurrentObject() {
     axios
@@ -351,14 +320,12 @@ const ChronicCare = (props) => {
       );
 
       if (response.data) {
-        //console.log("Got here" + response.data["isHypertensive"]);
-
         //To get the latest Chronic Hypertensive response
         setHypertensive(response.data["isHypertensive"]);
       }
     } catch (error) {
       // Handle error here
-      //console.error(error);
+      console.error(error);
     }
   };
 
@@ -388,13 +355,45 @@ const ChronicCare = (props) => {
   };
   //Validations of the forms
   const validate = () => {
-  
-    // tpt.outComeOfIpt !== "" &&
-    //   (temp.outcomeDate = tpt.date ? "" : "This field is required");
+    tpt.outComeOfIpt !== "" &&
+      (temp.outcomeDate = tpt.date ? "" : "This field is required");
 
-      temp.dateOfObservation = observation.dateOfObservation
+    if (tbObj.tbTreatment === "Yes") {
+      temp.tbTreatmentStartDate = tbObj.tbTreatmentStartDate
         ? ""
         : "This field is required";
+    }
+
+    if (tpt.tbTreatment === "") {
+      temp.tbTreatment = tpt.tbTreatment ? "" : "This field is required";
+    }
+
+    if (tpt.tbTreatment === "Yes") {
+      temp.treatmentType = tpt.treatmentType ? "" : "This field is required";
+
+      temp.treatmentOutcome = tpt.treatmentOutcome
+        ? ""
+        : "This field is required";
+
+      if (tpt.treatmentOutcome === "Treatment completed") {
+        temp.completionDate = tpt.completionDate
+          ? ""
+          : "This field is required";
+
+        temp.treatmentCompletionStatus = tpt.treatmentCompletionStatus
+          ? ""
+          : "This field is required";
+      }
+    } else {
+      temp.treatmentType = "";
+      temp.treatmentOutcome = "";
+      temp.completionDate = "";
+      temp.treatmentCompletionStatus = "";
+    }
+
+    temp.dateOfObservation = observation.dateOfObservation
+      ? ""
+      : "This field is required";
 
     setErrors({
       ...temp,
@@ -409,8 +408,6 @@ const ChronicCare = (props) => {
   const showSuccessMessage = (message) => {
     toast.success(message, { position: toast.POSITION.BOTTOM_CENTER });
   };
-
-console.log(errors)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -487,7 +484,6 @@ console.log(errors)
       }
     }
   };
-
 
   const onClickEligibility = () => {
     setShowEligibility(!showEligibility);
@@ -627,7 +623,7 @@ console.log(errors)
                   }}
                 >
                   <h5 className="card-title" style={{ color: "#fff" }}>
-                  TB Screening/Monitoring{" "}
+                    TB & IPT Screening{" "}
                   </h5>
                   {showTb === false ? (
                     <>
@@ -664,8 +660,7 @@ console.log(errors)
               </div>
               {/* End TB & IPT  Screening  */}
               {/* TPT MONITORING */}
-              {tbObj.outcome!=='' && (<>
-                <div className="card">
+              <div className="card">
                 <div
                   className="card-header"
                   style={{
@@ -676,7 +671,7 @@ console.log(errors)
                   }}
                 >
                   <h5 className="card-title" style={{ color: "#fff" }}>
-                  TB Prevention/Monitoring 
+                    TB/TPT Monitoring
                   </h5>
                   {showTpt === false ? (
                     <>
@@ -711,8 +706,6 @@ console.log(errors)
                   />
                 )}
               </div>
-              </>)}
-              
               {/* End TPT MONITORING */}
               {/* End Nutritional Status Assessment */}
               <div className="card">

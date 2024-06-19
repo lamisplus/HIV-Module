@@ -134,11 +134,6 @@ const ClinicVisit = (props) => {
   const [adultRegimenLine, setAdultRegimenLine] = useState([]);
   const [childRegimenLine, setChildRegimenLine] = useState([]);
   const [regimenTypeObj, setRegimenTypeObj] = useState([]);
-  //opportunistic infection Object
-  const [infection, setInfection] = useState({
-    illnessInfection: "",
-    ondateInfection: "",
-  });
   const [infectionList, setInfectionList] = useState([]);
   const [testGroup, setTestGroup] = useState([]);
   const [test, setTest] = useState([]);
@@ -346,9 +341,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCryptococcal(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   // CERVICAL_CANCER_SCREENING_STATUS
   const CERVICAL_CANCER_SCREENING_STATUS = () => {
@@ -360,9 +353,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCervicalStatus(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   // CERVICAL_CANCER_TREATMENT
   const CERVICAL_CANCER_TREATMENT = () => {
@@ -373,9 +364,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCervicalTreatment(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   // HEPATITIS_SCREENING_RESULT
   const HEPATITIS_SCREENING_RESULT = () => {
@@ -386,9 +375,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setHepatitis(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   // HEPATITIS_SCREENING_RESULT
   const FAMILY_PLANNING_METHOD = () => {
@@ -399,9 +386,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setFamilyPlaining(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
@@ -414,9 +399,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.id === 1 || x.id === 2 || x.id === 14)
         );
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   //GET AdultRegimenLine
   const ChildRegimenLine = () => {
@@ -429,9 +412,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.id === 3 || x.id === 4)
         );
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   //GET LIST Drug Refill
   // async function ClinicVisitListHistory() {
@@ -464,9 +445,7 @@ const ClinicVisit = (props) => {
           setShowCurrentVitalSigns(true);
         }
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   //Get The updated patient objeect
   const GetPatientObj = () => {
@@ -478,9 +457,7 @@ const ClinicVisit = (props) => {
         setGetPatientObj(response.data);
         //patientObj=response.data
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
 
   //Get list of WhoStaging
@@ -490,12 +467,9 @@ const ClinicVisit = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        
         setClinicalStage(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
@@ -505,12 +479,9 @@ const ClinicVisit = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-      
         setTbStatus(response.data);
       })
-      .catch((error) => {
-        
-      });
+      .catch((error) => {});
   };
 
   async function FunctionalStatus() {
@@ -531,7 +502,6 @@ const ClinicVisit = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-       
         setAdherenceLevel(response.data);
       })
       .catch((error) => {});
@@ -953,9 +923,9 @@ const ClinicVisit = (props) => {
               ? e.opportunisticInfections
               : infectionList;
           setInfectionList([...inffectionObj]);
-          const viralObj =
-            e.viralLoadOrder !== null ? e.viralLoadOrder : testOrderList;
-          setTestOrderList(viralObj);
+          // const viralObj =
+          //   e.viralLoadOrder !== null ? e.viralLoadOrder : testOrderList;
+          // setTestOrderList(viralObj);
           const arvObj =
             e.arvdrugsRegimen !== null ? e.arvdrugsRegimen : arvDrugOrderList;
           setarvDrugOrderList([...arvObj]);
@@ -976,7 +946,441 @@ const ClinicVisit = (props) => {
       <Message size="mini" color="blue" content="Overweight/Obese" />;
     }
   }
+  //start of additions for update
+  const [activeAccordionHeaderShadow, setActiveAccordionHeaderShadow] =
+    useState(0);
+  let testsOptions = [];
+  //opportunistic infection Object
+  const [infection, setInfection] = useState({
+    illnessInfection: "",
+    ondateInfection: "",
+  });
+  const [enrollDate, setEnrollDate] = useState("");
 
+  const [careSupportObj, setCareSupportObj] = useState(null);
+  const [careSupportTb, setCareSupportTb] = useState(null);
+  const [who, setWho] = useState({
+    stage: "",
+    stage1Value: "",
+    stage2Value: "",
+    stage3Value: "",
+    stage4Value: "",
+    stage1ValueOption: "",
+    stage2ValueOption: "",
+    stage3ValueOption: "",
+    stage4ValueOption: "",
+  });
+
+  const handleWho = (e) => {
+    setWho({ ...who, [e.target.name]: e.target.value });
+  };
+
+  const [selectedOptions1, setSelectedOptions1] = useState([]);
+  const [selectedOptions2, setSelectedOptions2] = useState([]);
+  const [selectedOptions3, setSelectedOptions3] = useState([]);
+  const [selectedOptions4, setSelectedOptions4] = useState([]);
+  const onSelectedOption1 = (selectedValues) => {
+    setWho({ ...who, stage1ValueOption: selectedValues });
+    setSelectedOptions1(selectedValues);
+  };
+  const onSelectedOption2 = (selectedValues) => {
+    setWho({ ...who, stage2ValueOption: selectedValues });
+    setSelectedOptions2(selectedValues);
+  };
+  const onSelectedOption3 = (selectedValues) => {
+    setSelectedOptions3(selectedValues);
+    setWho({ ...who, stage3ValueOption: selectedValues });
+  };
+  const onSelectedOption4 = (selectedValues) => {
+    setWho({ ...who, stage4ValueOption: selectedValues });
+    setSelectedOptions4(selectedValues);
+  };
+  const options1 = [
+    { value: "Asymptomatic", label: "Asymptomatic" },
+    {
+      value: "Persistent generalized lymphadenopathy",
+      label: "Persistent generalized lymphadenopathy",
+    },
+    {
+      value: "Herpes Zoster (within last 5 years)",
+      label: "Performance scale: 1 asymptomatic, normal activity",
+    },
+  ];
+  const options2 = [
+    {
+      value: "Weight loss less than 10% of body weight",
+      label: "Weight loss less than 10% of body weight",
+    },
+    {
+      value: "Minor Mucocutaneous Manifestations",
+      label: "Minor Mucocutaneous Manifestations",
+    },
+    {
+      value: "Herpes Zoster (within last 5 years)",
+      label: "Herpes Zoster (within last 5 years)",
+    },
+    {
+      value: "Recurrent Upper Respiratory Tract Infections",
+      label: "Recurrent Upper Respiratory Tract Infections",
+    },
+    {
+      value: "Performance scale: 2 symptomatic, normal activity",
+      label: "Performance scale: 2 symptomatic, normal activity",
+    },
+  ];
+  const options3 = [
+    {
+      value: "Weight loss greater than 10% of body weight",
+      label: "Weight loss greater than 10% of body weight",
+    },
+    {
+      value: "Unexplained Chronic Diarrhea less than 1 month",
+      label: "Unexplained Chronic Diarrhea less than 1 month",
+    },
+    {
+      value: "Unexplained Prolonged Fever",
+      label: "Unexplained Prolonged Fever",
+    },
+    { value: "Oral Candidiasis", label: "Oral Candidiasis" },
+    { value: "Oral Hairy Leukoplakia", label: "Oral Hairy Leukoplakia" },
+
+    {
+      value: "TB, Pulmonary (within previous year)",
+      label: "TB, Pulmonary (within previous year)",
+    },
+    {
+      value: "Severe Bacterial Infections",
+      label: "Severe Bacterial Infections",
+    },
+    {
+      value:
+        "Performance scale: 3 bedridden  less than 50% of day in last month",
+      label:
+        "Performance scale: 3 bedridden  less than 50% of day in last month",
+    },
+  ];
+  const options4 = [
+    { value: "HIV Wasting syndrome", label: "HIV Wasting syndrome" },
+    { value: "PCP", label: "PCP" },
+    { value: "Toxoplasmosis, CNS", label: "Toxoplasmosis, CNS" },
+
+    {
+      value: "Cryptosporidiosis with Diarrhea greater than 1 month",
+      label: "Cryptosporidiosis with Diarrhea greater than 1 month",
+    },
+    {
+      value: "Cryptococcosis, Extrapulmonary",
+      label: "Cryptococcosis, Extrapulmonary",
+    },
+    { value: "Cytomegalovirus disease", label: "Cytomegalovirus disease" },
+    {
+      value: "Herpes Simplex (mucotaneous greater than 1 month)",
+      label: "Herpes Simplex (mucotaneous greater than 1 month)",
+    },
+    {
+      value: "Progressive Multifocal Leukoencephalopathy",
+      label: "Progressive Multifocal Leukoencephalopathy",
+    },
+    { value: "Mycosis, disseminated", label: "Mycosis, disseminated" },
+    { value: "Oesophageal Candidiasis", label: "Oesophageal Candidiasis" },
+    {
+      value: "Atypical Mycobacteriosis, disseminated",
+      label: "Atypical Mycobacteriosis, disseminated",
+    },
+    {
+      value: "Salmonella Septicemia, Non-typhoid",
+      label: "Salmonella Septicemia, Non-typhoid",
+    },
+
+    { value: "TB, Extrapulmonary", label: "TB, Extrapulmonary" },
+    { value: "Lymphoma", label: "Lymphoma" },
+    { value: "Kaposi's Sarcoma", label: "Kaposi's Sarcoma" },
+    { value: "HIV encephalopathy", label: "HIV encephalopathy" },
+    {
+      value:
+        "Performance scale: 4 bedridden greater than 50% of the day in last month",
+      label:
+        "Performance scale: 4 bedridden greater than 50% of the day in last month",
+    },
+  ];
+
+  {
+    /**major duallist imported end here */
+  }
+  useEffect(() => {
+    FunctionalStatus();
+    WhoStaging();
+    AdherenceLevel();
+    TBStatus();
+    VitalSigns();
+    PatientDetailId();
+    ViraLoadIndication();
+    TestGroup();
+    AdultRegimenLine();
+    ChildRegimenLine();
+    CRYPTOCOCCAL_SCREENING_STATUS();
+    CERVICAL_CANCER_SCREENING_STATUS();
+    CERVICAL_CANCER_TREATMENT();
+    HEPATITIS_SCREENING_RESULT();
+    // PREGANACY_STATUS();
+    PREGNANCY_STATUS();
+    FAMILY_PLANNING_METHOD();
+    GetPatientDTOObj();
+    PatientCurrentRegimen();
+    GetCareSupport();
+    if (props.patientObj.id) {
+      ClinicVisitList();
+    }
+    //hiv/patient/3
+  }, [props.patientObj]);
+  const GetPatientDTOObj = () => {
+    axios
+      .get(`${baseUrl}hiv/patient/${props.patientObj.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        const patientDTO = response.data.enrollment;
+        setEnrollDate(
+          patientDTO && patientDTO.dateOfRegistration
+            ? patientDTO.dateOfRegistration
+            : ""
+        );
+      })
+      .catch((error) => {});
+  };
+  const GetCareSupport = () => {
+    axios
+      .get(`${baseUrl}observation/person/${props.patientObj.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setCareSupportObj(
+          response.data.filter((x) => x.type === "Chronic Care")
+        );
+      })
+      .catch((error) => {});
+  };
+  //Get the patient current regimen
+  const PatientCurrentRegimen = () => {
+    axios
+      .get(
+        `${baseUrl}hiv/art/pharmacy/patient/current-regimen/${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((response) => {
+        const currentRegimenObj = response.data;
+        arvDrugObj.regimenLine = currentRegimenObj.regimenType.id;
+        RegimenType(currentRegimenObj.regimenType.id);
+        arvDrugObj.regimenDrug = currentRegimenObj.id;
+      })
+      .catch((error) => {});
+  };
+
+  // PREGANACY_STATUS
+  // const PREGANACY_STATUS = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS	`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setPregnancyStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
+
+  //GET VIRAL LOAD INDICATION
+  const ViraLoadIndication = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setVLIndication(response.data);
+      })
+      .catch((error) => {});
+  };
+  //GET LIST Drug Refill
+  async function ClinicVisitList() {
+    setLoading(true);
+    axios
+      .get(
+        `${baseUrl}hiv/art/clinic-visit/person?pageNo=0&pageSize=10&personId=${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((response) => {
+        setLoading(false);
+        setLoadClinicHistory(false);
+        setClinicVisitList(response.data);
+      })
+      .catch((error) => {
+        setLoadClinicHistory(false);
+        setLoading(false);
+      });
+  }
+  const PatientDetailId = () => {
+    axios
+      .get(`${baseUrl}hiv/patient/${props.patientObj.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setGetPatientObj(response.data);
+        patientObj = response.data;
+      })
+      .catch((error) => {});
+  };
+
+  async function FunctionalStatus() {
+    axios
+      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setFunctionalStatus(response.data);
+        //setValues(response.data)
+      })
+      .catch((error) => {});
+  }
+  ///Level of Adherence
+  async function AdherenceLevel() {
+    axios
+      .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setAdherenceLevel(response.data);
+      })
+      .catch((error) => {});
+  }
+
+  function RegimenType(id) {
+    async function getCharacters() {
+      try {
+        const response = await axios.get(`${baseUrl}hiv/regimen/types/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.data) {
+          setRegimenTypeObj(response.data);
+        }
+      } catch (e) {}
+    }
+    getCharacters();
+    return Object.values(temp).every((x) => x === "");
+  }
+
+  const resetForm = () => {
+    setWho({
+      stage: "",
+      stage1Value: "",
+      stage2Value: "",
+      stage3Value: "",
+      stage4Value: "",
+      stage1ValueOption: "",
+      stage2ValueOption: "",
+      stage3ValueOption: "",
+      stage4ValueOption: "",
+    });
+    setObjValues({
+      adherenceLevel: "",
+      adheres: {},
+      adrScreened: "",
+      adverseDrugReactions: {},
+      artStatusId: "",
+      cd4: "",
+      cd4Percentage: "",
+      clinicalNote: "",
+      clinicalStageId: "",
+      facilityId: 0,
+      functionalStatusId: "",
+      hivEnrollmentId: "",
+      nextAppointment: "",
+      lmpDate: "",
+      oiScreened: "",
+      opportunisticInfections: {},
+      personId: patientObj.id,
+      tbScreen: {
+        currentOnIpt: "",
+        coughing: "",
+        antiTBDrug: "",
+        nightSweat: "",
+        fever: "",
+        contactWithTBCase: "",
+        lethergy: "",
+        tbStatusId: null,
+      },
+      stiIds: "",
+      stiTreated: "",
+      uuid: "",
+      visitDate: "",
+      whoStagingId: "",
+      cryptococcalScreeningStatus: "",
+      cervicalCancerScreeningStatus: "",
+      cervicalCancerTreatmentProvided: "",
+      hepatitisScreeningResult: "",
+      familyPlaning: "",
+      onFamilyPlaning: "",
+      levelOfAdherence: "",
+      tbStatus: "",
+      tbPrevention: "",
+      arvdrugsRegimen: {},
+      viralLoadOrder: {},
+      pregnancyStatus: "",
+    });
+    setVitalSignDto({
+      bodyWeight: "",
+      diastolic: "",
+      encounterDate: "",
+      facilityId: 1,
+      height: "",
+      personId: props.patientObj.id,
+      serviceTypeId: 1,
+      systolic: "",
+      pulse: "",
+      temperature: "",
+      respiratoryRate: "",
+      headCircumference: "",
+      surfaceArea: "",
+      nextAppointment: "",
+      muac: "",
+    });
+    setTbObj({
+      currentOnIpt: "",
+      coughing: "",
+      antiTBDrug: "",
+      nightSweat: "",
+      fever: "",
+      contactWithTBCase: "",
+      lethergy: "",
+      tbStatusId: null,
+    });
+
+    setTests({
+      comments: "",
+      dateAssayed: "",
+      labNumber: "",
+      labTestGroupId: "",
+      labTestId: "",
+      dateResultReceived: "",
+      patientId: props.patientObj ? props.patientObj.id : "",
+      result: "",
+      sampleCollectionDate: null,
+      viralLoadIndication: "",
+      visitId: "",
+    });
+  };
+  function BmiCal(bmi) {
+    if (bmi < 18.5) {
+      return <Message size="mini" color="brown" content="Underweight" />;
+    } else if (bmi >= 18.5 && bmi <= 24.9) {
+      <Message size="mini" color="olive" content="Well nourished" />;
+    } else if (bmi > 25) {
+      <Message size="mini" color="blue" content="Overweight/Obese" />;
+    }
+  }
+
+  useEffect(() => {
+    console.log("who id: ", objValues.whoStagingId || objValues.who);
+  }, [objValues]);
+  //end of update fix
   return (
     <div className={classes.root}>
       <div className="row">
@@ -1064,7 +1468,7 @@ const ClinicVisit = (props) => {
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>
-                            Date of Visit{" "}
+                            Date of Visit 3333333333{" "}
                             <span style={{ color: "red" }}> *</span>
                           </FormLabelName>
                           <Input
@@ -1647,6 +2051,65 @@ const ClinicVisit = (props) => {
                           )}
                         </FormGroup>
                       </div>
+                      {(who.stage === "119" ||
+                        objValues.whoStagingId === "119") && (
+                        <div className="form-group mb-3 col-md-12">
+                          <FormGroup>
+                            <Label>Stage 1 options</Label>
+                            <DualListBox
+                              //canFilter
+                              options={options1}
+                              onChange={onSelectedOption1}
+                              selected={selectedOptions1}
+                            />
+                          </FormGroup>
+                        </div>
+                      )}
+                      {(who.stage === "120" ||
+                        objValues.whoStagingId === "120") && (
+                        <div className="form-group mb-3 col-md-12">
+                          <FormGroup>
+                            <Label>Stage 2 options</Label>
+                            <DualListBox
+                              //canFilter
+                              options={options2}
+                              onChange={onSelectedOption2}
+                              selected={selectedOptions2}
+                            />
+                          </FormGroup>
+                        </div>
+                      )}
+                      {(who.stage === "119" ||
+                        objValues.whoStagingId === "119") &&
+                        objValues.whoStagingId === "121" && (
+                          <>
+                            <div className="form-group mb-3 col-md-12">
+                              <FormGroup>
+                                <Label>Stage 3 options</Label>
+                                <DualListBox
+                                  //canFilter
+                                  options={options3}
+                                  onChange={onSelectedOption3}
+                                  selected={selectedOptions3}
+                                />
+                              </FormGroup>
+                            </div>
+                          </>
+                        )}
+                      {who.stage ||
+                        (objValues.whoStagingId === "122" && (
+                          <div className="form-group mb-3 col-md-12">
+                            <FormGroup>
+                              <Label>Stage 4 options</Label>
+                              <DualListBox
+                                //canFilter
+                                options={options4}
+                                onChange={onSelectedOption4}
+                                selected={selectedOptions4}
+                              />
+                            </FormGroup>
+                          </div>
+                        ))}
                       <div className=" mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>
@@ -2429,7 +2892,7 @@ function TestOrdersList({
     <tr>
       <th>
         {testGroupName &&
-        testGroupName.groupName == "Others" &&
+        testGroupName?.groupName == "Others" &&
         testName.labTestName === "Viral Load"
           ? testName.labTestName
           : testGroupName.groupName}
