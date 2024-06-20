@@ -981,46 +981,19 @@ const ClinicVisit = (props) => {
       ? ""
       : "This field is required";
     temp.pregnancyStatus =
-      objValues.pregnancyStatus === "select" ? "This field is required" : "";
+      objValues.pregnancyStatus === "select" ||
+      !objValues.pregnancyStatus
+        ? "This field is required"
+        : "";
     temp.stage = who.stage ? "" : "This field is required";
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
-    // {
-    //   patientAge >= 10 &&
-    //     patientObj.sex === "Female" &&
-    //     (temp.pregnancyStatus = objValues.pregnancyStatus
-    //       ? ""
-    //       : "This field is required");
-    // }
-    //temp.adherenceLevel = objValues.adherenceLevel ? "" : "This field is required"
-    //temp.diastolic = vital.diastolic ? "" : "This field is required"
-    //temp.systolic = vital.systolic ? "" : "This field is required"
     temp.height = vital.height ? "" : "This field is required";
     temp.bodyWeight = vital.bodyWeight ? "" : "This field is required";
     //TB VALIDATION
     temp.tbStatusId = tbObj.tbStatusId ? "" : "This field is required";
-    //temp.antiTBDrug = tbObj.antiTBDrug ? "" : "This field is required";
-    // tbObj.antiTBDrug &&
-    //   tbObj.antiTBDrug === "NO" &&
-    //   (temp.currentOnIpt = tbObj.currentOnIpt ? "" : "This field is required");
-    // tbObj.currentOnIpt &&
-    //   tbObj.currentOnIpt === "NO" &&
-    //   (temp.fever = tbObj.fever ? "" : "This field is required");
-    // tbObj.currentOnIpt &&
-    //   tbObj.currentOnIpt === "NO" &&
-    //   (temp.nightSweat = tbObj.nightSweat ? "" : "This field is required");
-    // tbObj.currentOnIpt &&
-    //   tbObj.currentOnIpt === "NO" &&
-    //   (temp.lethergy = tbObj.lethergy ? "" : "This field is required");
-    // tbObj.currentOnIpt &&
-    //   tbObj.currentOnIpt === "NO" &&
-    //   (temp.coughing = tbObj.coughing ? "" : "This field is required");
-    // tbObj.currentOnIpt &&
-    //   tbObj.currentOnIpt === "NO" &&
-    //   (temp.contactWithTBCase = tbObj.contactWithTBCase
-    //     ? ""
-    //     : "This field is required");
+
     setErrors({
       ...temp,
     });
