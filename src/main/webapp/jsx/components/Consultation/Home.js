@@ -831,6 +831,9 @@ const ClinicVisit = (props) => {
       ? ""
       : "This field is required";
     temp.whoStagingId = objValues.whoStagingId ? "" : "This field is required";
+    temp.pregnancyStatus =
+      objValues.pregnancyStatus === "select" ? "This field is required" : "";
+    temp.stage = who.stage ? "" : "This field is required";
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
