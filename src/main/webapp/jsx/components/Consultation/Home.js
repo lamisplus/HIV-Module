@@ -981,10 +981,13 @@ const ClinicVisit = (props) => {
       ? ""
       : "This field is required";
     temp.pregnancyStatus =
-      objValues.pregnancyStatus === "select" ||
-      !objValues.pregnancyStatus
+      objValues.pregnancyStatus === "select" || !objValues.pregnancyStatus
         ? "This field is required"
         : "";
+
+    if (patientObj.sex.toLocaleLowerCase() === "male")
+      temp.pregnancyStatus = "";
+
     temp.stage = who.stage ? "" : "This field is required";
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
