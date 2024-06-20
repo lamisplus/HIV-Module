@@ -980,6 +980,8 @@ const ClinicVisit = (props) => {
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
+    temp.pregnancyStatus =
+      objValues.pregnancyStatus === "select" ? "" : "This field is required";
     temp.stage = who.stage ? "" : "This field is required";
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
