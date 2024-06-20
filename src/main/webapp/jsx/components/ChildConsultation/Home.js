@@ -448,12 +448,6 @@ const Widget = (props) => {
                   Post Patient
                 </Button>
               </List.Item>
-              {/* <List.Item>
-                  <Button icon labelPosition='right' color='green' fluid>
-                      <Icon name='eye' />
-                        View History
-                    </Button>
-                  </List.Item> */}
               <List.Item>
                 <Button icon labelPosition="right" color="blue" fluid>
                   <Icon name="calendar alternate" />
@@ -465,27 +459,7 @@ const Widget = (props) => {
               <Card.Content>
                 <b>Previous Clinical Notes</b>
               </Card.Content>
-              <Card.Content>
-                {/* <Feed>
-                <Feed.Event>
-                  <Feed.Content>
-                    <Feed.Date content='20-03-2022' />
-                    <Feed.Summary>
-                      The malaria is plus 3 and and need more attention
-                    </Feed.Summary>
-                  </Feed.Content>
-                </Feed.Event>
-                <hr/>
-                <Feed.Event>
-                  <Feed.Content>
-                    <Feed.Date content='20-05-2022' />
-                    <Feed.Summary>
-                      Blood presure is too high
-                    </Feed.Summary>
-                  </Feed.Content>
-                </Feed.Event>
-              </Feed> */}
-              </Card.Content>
+              <Card.Content></Card.Content>
             </Card>
           </Segment>
         </Grid.Column>
