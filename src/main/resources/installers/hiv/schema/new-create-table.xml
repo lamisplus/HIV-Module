@@ -7,7 +7,7 @@
     <property name="autoIncrement" value="true"/>
 
 
-<changeSet id="202307016100-01" author="amos">
+<changeSet id="202406016100-01" author="amos">
     <preConditions onFail="MARK_RAN">
         <sqlCheck expectedResult="0">
             SELECT COUNT(table_name) FROM information_schema.tables WHERE table_name = 'hiv_ovc_linkage';
@@ -52,7 +52,7 @@
     </sql>
 </changeSet>
 
-<changeSet id="202402296100-01" author="Sunday">
+<changeSet id="202406296100-01" author="Sunday">
     <preConditions onFail="MARK_RAN">
         <sqlCheck expectedResult="0">
             SELECT COUNT(table_name) FROM information_schema.tables WHERE table_name = 'dsd_devolvement';
@@ -87,7 +87,7 @@
 	</sql>
 </changeSet>
 
-    <changeSet  id="20240301-018"  author="Sunday">
+    <changeSet  id="20240601-018"  author="Sunday">
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="6">
                 SELECT COUNT(*) FROM hiv_regimen WHERE active = true AND id IN (102,103,104,105,118,109);
@@ -110,7 +110,7 @@
         </sql>
     </changeSet>
 
-    <changeSet failOnError="true" author="Taiwo Gboyegun" id="20240308-002">
+    <changeSet failOnError="true" author="Taiwo Gboyegun" id="20240608-002">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="dsd_devolvement" columnName="client_return_to_site" />
