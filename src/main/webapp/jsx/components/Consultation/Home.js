@@ -394,22 +394,22 @@ const ClinicVisit = (props) => {
   //     })
   //     .catch((error) => {});
   // };
-   const PREGNANCY_STATUS = () => {
-     axios
-       .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-         headers: { Authorization: `Bearer ${token}` },
-       })
-       .then((response) => {
-         // Filter out "Post Partum" from the response.data array
-         const filteredData = response.data.filter(
-           (status) => status.display !== "Post Partum"
-         );
-         setPregnancyStatus(filteredData);
-       })
-       .catch((error) => {
-         console.log(error);
-       });
-   };
+  const PREGNANCY_STATUS = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        // Filter out "Post Partum" from the response.data array
+        const filteredData = response.data.filter(
+          (status) => status.display !== "Post Partum"
+        );
+        setPregnancyStatus(filteredData);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
   //GET VIRAL LOAD INDICATION
   const ViraLoadIndication = () => {
     axios
@@ -442,7 +442,7 @@ const ClinicVisit = (props) => {
       })
       .then((response) => {
         setChildRegimenLine(
-          response.data.filter((x) => x.id === 3 || x.id === 4 ) 
+          response.data.filter((x) => x.id === 3 || x.id === 4)
         );
       })
       .catch((error) => {});
@@ -972,7 +972,6 @@ const ClinicVisit = (props) => {
     setCareSupportTb(null);
     setTbStatus(null);
   };
-
 
   const resetForm = () => {
     setObjValues({
