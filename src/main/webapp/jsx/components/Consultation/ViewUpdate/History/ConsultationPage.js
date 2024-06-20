@@ -8,7 +8,6 @@ import {
   Message,
 } from "semantic-ui-react";
 import { Table } from "react-bootstrap";
-// Page titie
 import {
   FormGroup,
   Label as FormLabelName,
@@ -26,18 +25,14 @@ import SaveIcon from "@material-ui/icons/Save";
 import axios from "axios";
 import moment from "moment";
 import { toast } from "react-toastify";
-//import { Row, Col,   } from "react-bootstrap";
 import PerfectScrollbar from "react-perfect-scrollbar";
-//import Button from '@material-ui/core/Button';
-//import ButtonGroup from '@material-ui/core/ButtonGroup';
 import { Button as ButtonSMUI, Icon } from "semantic-ui-react";
-//import {Link} from 'react-router-dom';
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import Select from "react-select";
-import { Dropdown } from "react-bootstrap";
 import { calculate_age_to_number } from "../../../../../utils";
-let adherenceLevelObj = [];
+import DualListBox from "react-dual-listbox";
+
 const useStyles = makeStyles((theme) => ({
   card: {
     margin: theme.spacing(20),
@@ -110,18 +105,14 @@ const ClinicVisit = (props) => {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [splitButtonOpen, setSplitButtonOpen] = React.useState(false);
   const toggleDropDown = () => setDropdownOpen(!dropdownOpen);
-  const toggleSplit = () => setSplitButtonOpen(!splitButtonOpen);
   const [visitId, setVisitId] = useState();
   const [enableUpdateButton, setEnableUpdateButton] = useState(false);
-  const [heightValue, setHeightValue] = useState("cm");
   const [enableUpdate, setEnableUpdate] = useState(false); //Enable update for all input field if the user have permission
   const [errors, setErrors] = useState({});
   const [clinicVisitList, setClinicVisitList] = useState([]);
   const [loading, setLoading] = useState(true);
   let temp = { ...errors };
   const classes = useStyles();
-  // the visit date history
-  //end of the visit date history
   const [getPatientObj, setGetPatientObj] = useState({});
   const [saving, setSaving] = useState(false);
   const [clinicalStage, setClinicalStage] = useState([]);
@@ -303,19 +294,6 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-  // PREGANACY_STATUS
-  // const PREGANACY_STATUS = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS	`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setPregnancyStatus(response.data);
-  //     })
-  //     .catch((error) => {
-
-  //     });
-  // };
   const PREGNANCY_STATUS = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
@@ -343,7 +321,7 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-  // CERVICAL_CANCER_SCREENING_STATUS
+
   const CERVICAL_CANCER_SCREENING_STATUS = () => {
     axios
       .get(
@@ -355,7 +333,7 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-  // CERVICAL_CANCER_TREATMENT
+
   const CERVICAL_CANCER_TREATMENT = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/CERVICAL_CANCER_TREATMENT	`, {
@@ -366,7 +344,7 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-  // HEPATITIS_SCREENING_RESULT
+
   const HEPATITIS_SCREENING_RESULT = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/HEPATITIS_SCREENING_RESULT	`, {
@@ -388,7 +366,7 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-  //GET AdultRegimenLine
+
   const AdultRegimenLine = () => {
     axios
       .get(`${baseUrl}hiv/regimen/arv/adult`, {
@@ -401,7 +379,7 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-  //GET AdultRegimenLine
+
   const ChildRegimenLine = () => {
     axios
       .get(`${baseUrl}hiv/regimen/arv/adult`, {
@@ -414,22 +392,7 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-  //GET LIST Drug Refill
-  // async function ClinicVisitListHistory() {
-  //   setLoading(true)
-  //   axios
-  //       .get(`${baseUrl}hiv/art/clinic-visit/person?pageNo=0&pageSize=1000&personId=${props.patientObj.id}`,
-  //       { headers: {"Authorization" : `Bearer ${token}`} }
-  //       )
-  //       .then((response) => {
-  //           setLoading(false)
-  //           setClinicVisitList(response.data.filter((x)=> x.isCommencement!==true));
-  //       })
-  //       .catch((error) => {
-  //           setLoading(false)
-  //       });
-  // }
-  //Check for the last Vital Signs
+
   const VitalSigns = () => {
     axios
       .get(`${baseUrl}patient/vital-sign/person/${props.patientObj.id}`, {
@@ -447,7 +410,7 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-  //Get The updated patient objeect
+
   const GetPatientObj = () => {
     axios
       .get(`${baseUrl}hiv/patient/${props.patientObj.id}`, {
@@ -455,7 +418,6 @@ const ClinicVisit = (props) => {
       })
       .then((response) => {
         setGetPatientObj(response.data);
-        //patientObj=response.data
       })
       .catch((error) => {});
   };
@@ -471,8 +433,7 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-  ///GET LIST OF FUNCTIONAL%20_STATUS
-  // TB STATUS
+
   const TBStatus = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
@@ -491,11 +452,10 @@ const ClinicVisit = (props) => {
       })
       .then((response) => {
         setFunctionalStatus(response.data);
-        //setValues(response.data)
       })
       .catch((error) => {});
   }
-  ///Level of Adherence
+
   async function AdherenceLevel() {
     axios
       .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
@@ -519,11 +479,6 @@ const ClinicVisit = (props) => {
   const handleInputChangeVitalSignDto = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
     setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
-    // if(e.target.name!=='encounterDate' && e.target.name!=='muac'){
-    //   setVitalSignDto({ ...vital, [e.target.name]: e.target.value.replace(/\D/g, '') });
-    // }else{
-    //   setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
-    // }
   };
 
   //Handle CheckBox
@@ -667,12 +622,14 @@ const ClinicVisit = (props) => {
     objValues.visitDate === "" &&
       (temp.encounterDate = vital.encounterDate
         ? ""
-        : "This field is required"); //objValues.visitDate
+        : "This field is required");
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
+    temp.pregnancyStatus = objValues.pregnancyStatus
+      ? ""
+      : "This field is required";
     temp.whoStagingId = objValues.whoStagingId ? "" : "This field is required";
-    //patientAge>=10  && (temp.pregnancyStatus = objValues.pregnancyStatus ? "" : "This field is required")
     {
       patientAge >= 10 &&
         patientObj.sex === "Female" &&
@@ -683,20 +640,10 @@ const ClinicVisit = (props) => {
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
-    //temp.levelOfAdherence = objValues.levelOfAdherence ? "" : "This field is required"
-    //temp.labTestGroupId = vital.diastolic ? "" : "This field is required"
-    //temp.systolic = vital.systolic ? "" : "This field is required"
     temp.height = vital.height ? "" : "This field is required";
     temp.bodyWeight = vital.bodyWeight ? "" : "This field is required";
     //TB VALIDATION
     temp.tbStatusId = tbObj.tbStatusId ? "" : "This field is required";
-    // temp.antiTBDrug = tbObj.antiTBDrug ? "" : "This field is required"
-    // tbObj.antiTBDrug && tbObj.antiTBDrug==='NO' && (temp.currentOnIpt = tbObj.currentOnIpt ? "" : "This field is required")
-    // tbObj.currentOnIpt && tbObj.currentOnIpt==='NO' && (temp.fever = tbObj.fever ? "" : "This field is required")
-    // tbObj.currentOnIpt && tbObj.currentOnIpt==='NO' && (temp.nightSweat = tbObj.nightSweat ? "" : "This field is required")
-    // tbObj.currentOnIpt && tbObj.currentOnIpt==='NO' && (temp.lethergy = tbObj.lethergy ? "" : "This field is required")
-    // tbObj.currentOnIpt && tbObj.currentOnIpt==='NO' && (temp.coughing = tbObj.coughing ? "" : "This field is required")
-    // tbObj.currentOnIpt && tbObj.currentOnIpt==='NO' && (temp.contactWithTBCase = tbObj.contactWithTBCase ? "" : "This field is required")
     setErrors({
       ...temp,
     });
@@ -791,11 +738,6 @@ const ClinicVisit = (props) => {
       (x) => x.id === parseInt(e.target.value)
     );
     setTest(getTestList[0].labTests);
-    // if(e.target.value==='4'){
-    //     setVlRequired(true)
-    // }else{
-    //     setVlRequired(false)
-    // }
   };
   const handleInputChangeTest = (e) => {
     setErrors({ ...temp, [e.target.name]: "" }); //reset the error message to empty once the field as value
@@ -904,11 +846,13 @@ const ClinicVisit = (props) => {
         })
         .then((response) => {
           const e = response.data;
+          setWho(e.who);
           setObjValues(e);
           setVitalSignDto({ ...vital, ...e.vitalSignDto });
           objValues.clinicalNote = e.clinicalNote;
           objValues.functionalStatusId = e.functionalStatusId;
           objValues.whoStagingId = e.whoStagingId;
+          objValues.who = e.who;
           objValues.nextAppointment = e.nextAppointment;
           vital.captureDate = e.visitDate;
           objValues.visitDate = e.visitDate;
@@ -923,9 +867,6 @@ const ClinicVisit = (props) => {
               ? e.opportunisticInfections
               : infectionList;
           setInfectionList([...inffectionObj]);
-          // const viralObj =
-          //   e.viralLoadOrder !== null ? e.viralLoadOrder : testOrderList;
-          // setTestOrderList(viralObj);
           const arvObj =
             e.arvdrugsRegimen !== null ? e.arvdrugsRegimen : arvDrugOrderList;
           setarvDrugOrderList([...arvObj]);
@@ -946,19 +887,13 @@ const ClinicVisit = (props) => {
       <Message size="mini" color="blue" content="Overweight/Obese" />;
     }
   }
-  //start of additions for update
-  const [activeAccordionHeaderShadow, setActiveAccordionHeaderShadow] =
-    useState(0);
+
   let testsOptions = [];
   //opportunistic infection Object
   const [infection, setInfection] = useState({
     illnessInfection: "",
     ondateInfection: "",
   });
-  const [enrollDate, setEnrollDate] = useState("");
-
-  const [careSupportObj, setCareSupportObj] = useState(null);
-  const [careSupportTb, setCareSupportTb] = useState(null);
   const [who, setWho] = useState({
     stage: "",
     stage1Value: "",
@@ -970,10 +905,6 @@ const ClinicVisit = (props) => {
     stage3ValueOption: "",
     stage4ValueOption: "",
   });
-
-  const handleWho = (e) => {
-    setWho({ ...who, [e.target.name]: e.target.value });
-  };
 
   const [selectedOptions1, setSelectedOptions1] = useState([]);
   const [selectedOptions2, setSelectedOptions2] = useState([]);
@@ -1132,7 +1063,7 @@ const ClinicVisit = (props) => {
       ClinicVisitList();
     }
     //hiv/patient/3
-  }, [props.patientObj]);
+  }, [props.patientObj, who]);
   const GetPatientDTOObj = () => {
     axios
       .get(`${baseUrl}hiv/patient/${props.patientObj.id}`, {
@@ -1175,18 +1106,6 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   };
-
-  // PREGANACY_STATUS
-  // const PREGANACY_STATUS = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS	`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setPregnancyStatus(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
 
   //GET VIRAL LOAD INDICATION
   const ViraLoadIndication = () => {
@@ -1376,10 +1295,14 @@ const ClinicVisit = (props) => {
       <Message size="mini" color="blue" content="Overweight/Obese" />;
     }
   }
-
   useEffect(() => {
-    console.log("who id: ", objValues.whoStagingId || objValues.who);
-  }, [objValues]);
+    console.log(
+      "pregStatus Id: ",
+      temp.pregnancyStatus,
+      " ",
+      errors.pregnancyStatus
+    );
+  }, [temp]);
   //end of update fix
   return (
     <div className={classes.root}>
@@ -1468,7 +1391,7 @@ const ClinicVisit = (props) => {
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>
-                            Date of Visit 3333333333{" "}
+                            Date of Visit{" "}
                             <span style={{ color: "red" }}> *</span>
                           </FormLabelName>
                           <Input
@@ -2060,7 +1983,12 @@ const ClinicVisit = (props) => {
                               //canFilter
                               options={options1}
                               onChange={onSelectedOption1}
-                              selected={selectedOptions1}
+                              selected={
+                                who.stage1ValueOption.length
+                                  ? who.stage1ValueOption
+                                  : selectedOptions1
+                              }
+                              disabled={!enableUpdate}
                             />
                           </FormGroup>
                         </div>
@@ -2074,29 +2002,38 @@ const ClinicVisit = (props) => {
                               //canFilter
                               options={options2}
                               onChange={onSelectedOption2}
-                              selected={selectedOptions2}
+                              selected={
+                                who.stage2ValueOption.length
+                                  ? who.stage2ValueOption
+                                  : selectedOptions2
+                              }
+                              disabled={!enableUpdate}
                             />
                           </FormGroup>
                         </div>
                       )}
-                      {(who.stage === "119" ||
-                        objValues.whoStagingId === "119") &&
-                        objValues.whoStagingId === "121" && (
-                          <>
-                            <div className="form-group mb-3 col-md-12">
-                              <FormGroup>
-                                <Label>Stage 3 options</Label>
-                                <DualListBox
-                                  //canFilter
-                                  options={options3}
-                                  onChange={onSelectedOption3}
-                                  selected={selectedOptions3}
-                                />
-                              </FormGroup>
-                            </div>
-                          </>
-                        )}
-                      {who.stage ||
+                      {(who.stage === "121" ||
+                        objValues.whoStagingId === "121") && (
+                        <>
+                          <div className="form-group mb-3 col-md-12">
+                            <FormGroup>
+                              <Label>Stage 3 options</Label>
+                              <DualListBox
+                                //canFilter
+                                options={options3}
+                                onChange={onSelectedOption3}
+                                selected={
+                                  who.stage3ValueOption.length
+                                    ? who.stage3ValueOption
+                                    : selectedOptions3
+                                }
+                                disabled={!enableUpdate}
+                              />
+                            </FormGroup>
+                          </div>
+                        </>
+                      )}
+                      {who.stage === "122" ||
                         (objValues.whoStagingId === "122" && (
                           <div className="form-group mb-3 col-md-12">
                             <FormGroup>
@@ -2105,7 +2042,12 @@ const ClinicVisit = (props) => {
                                 //canFilter
                                 options={options4}
                                 onChange={onSelectedOption4}
-                                selected={selectedOptions4}
+                                selected={
+                                  who.stage4ValueOption.length
+                                    ? who.stage4ValueOption
+                                    : selectedOptions4
+                                }
+                                disabled={!enableUpdate}
                               />
                             </FormGroup>
                           </div>
@@ -2205,31 +2147,6 @@ const ClinicVisit = (props) => {
                           </Input>
                         </FormGroup>
                       </div>
-                      {/* <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                    <FormLabelName >TB Status </FormLabelName>
-                    <Input
-                        type="select"
-                        name="tbStatus"
-                        id="tbStatus"
-                        value={objValues.tbStatus}
-                        onChange={handleInputChange}
-                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                        disabled={!enableUpdate}
-                        >
-                        <option value=""> Select</option>
-                            {tbStatus.map((value) => (
-                                <option key={value.id} value={value.id}>
-                                    {value.display}
-                                </option>
-                            ))}
-
-                    </Input>
-                    {errors.tbStatus !=="" ? (
-                        <span className={classes.error}>{errors.tbStatus}</span>
-                        ) : "" }
-                    </FormGroup>
-                </div> */}
                       {patientAge >= 10 &&
                         (patientObj.sex === "Female" ||
                           patientObj.sex === "FEMALE" ||
@@ -2672,31 +2589,6 @@ const ClinicVisit = (props) => {
                     <br />
                     {/* Viral Load  Form */}
                     <div className="row">
-                      {/* <div  className=" col-md-4">
-                            <FormGroup>
-                                  <FormLabelName for="testGroup">Select Test Group</FormLabelName>
-
-                                    <Input
-                                        type="select"
-                                        name="labTestGroupId"
-                                        id="labTestGroupId"
-                                        value={tests.labTestGroupId}
-                                        onChange={handleSelectedTestGroup} 
-                                        style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}                  
-                                        >
-                                        <option value="">Select </option>
-                                                        
-                                            {testGroup.map((value) => (
-                                                <option key={value.id} value={value.id}>
-                                                    {value.groupName}
-                                                </option>
-                                            ))}
-                                    </Input>
-                                    {errors.labTestGroupId !=="" ? (
-                                            <span className={classes.error}>{errors.labTestGroupId}</span>
-                                        ) : "" }      
-                              </FormGroup>
-                          </div> */}
                       <div className="form-group mb-3 col-md-5">
                         <FormGroup>
                           <FormLabelName for="testGroup">
