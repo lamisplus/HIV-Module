@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.domain.dto.PageDTO;
 import org.lamisplus.modules.hiv.domain.dto.*;
+import org.lamisplus.modules.hiv.service.AHDService;
 import org.lamisplus.modules.hiv.service.HivEnrollmentService;
 import org.lamisplus.modules.hiv.service.HivPatientService;
 import org.lamisplus.modules.hiv.service.PatientActivityService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +30,7 @@ public class HivEnrollmentController {
     private final HivPatientService patientService;
 
     private final PatientActivityService patientActivityService;
+    private final AHDService ahdService;
 
 
     @PostMapping(value = "enrollment", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -130,6 +133,11 @@ public class HivEnrollmentController {
                 personUuid,
                 uniqueId).isPresent()
                 ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("ahd-flag")
+    public ResponseEntity<Page<AHDInterface>> getAHDFlagByArchivedAndFacilityId(@RequestParam Long facilityId, @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return ResponseEntity.ok(ahdService.getAHDFlagByArchivedAndFacilityId(facilityId, page, size));
     }
 
 }
