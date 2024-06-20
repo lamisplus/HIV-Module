@@ -27,7 +27,6 @@ const Home = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        console.log("result AAA:: ", response.data);
         const organisationUnitId = response.data.currentOrganisationUnitId;
         localStorage.setItem("facId", organisationUnitId);
       })

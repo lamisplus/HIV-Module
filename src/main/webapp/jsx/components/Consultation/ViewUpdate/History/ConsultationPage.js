@@ -1295,14 +1295,6 @@ const ClinicVisit = (props) => {
       <Message size="mini" color="blue" content="Overweight/Obese" />;
     }
   }
-  useEffect(() => {
-    console.log(
-      "pregStatus Id: ",
-      temp.pregnancyStatus,
-      " ",
-      errors.pregnancyStatus
-    );
-  }, [temp]);
   //end of update fix
   return (
     <div className={classes.root}>

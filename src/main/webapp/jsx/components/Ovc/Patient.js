@@ -140,13 +140,13 @@ const Patient = (props) => {
     } catch (e) {}
   };
 
-    const formattedDate = (inputDate) => {
-      const dateObject = new Date(inputDate);
-      const year = dateObject.getFullYear();
-      const month = String(dateObject.getMonth() + 1).padStart(2, "0");
-      const day = String(dateObject.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    };
+  const formattedDate = (inputDate) => {
+    const dateObject = new Date(inputDate);
+    const year = dateObject.getFullYear();
+    const month = String(dateObject.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObject.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   return (
     <>
@@ -211,7 +211,6 @@ const Patient = (props) => {
                 })
                 .then((response) => response)
                 .then((result) => {
-                  console.log(result)
                   resolve({
                     data: result.data.map((row) => ({
                       name: row.lastName,
