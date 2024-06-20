@@ -386,7 +386,7 @@ const ClinicVisit = (props) => {
 
   return (
     <div>
-      <h2>Clinic Follow-up Visit 22222222</h2>
+      <h2>Clinic Follow-up Visit</h2>
       <Grid columns="equal">
         {/* <Grid.Column>
           {showCurrentVitalSigns && (
