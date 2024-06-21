@@ -108,10 +108,10 @@ const BasicInfo = (props) => {
     if (props.observation.data) {
       setAssesment(props.observation.data.assesment);
       setWho(props.observation.data.who);
-      setSelectedOptions1(props.observation.data.who.stage1ValueOption);
-      setSelectedOptions2(props.observation.data.who.stage2ValueOption);
-      setSelectedOptions3(props.observation.data.who.stage3ValueOption);
-      setSelectedOptions4(props.observation.data.who.stage4ValueOption);
+      setSelectedOptions1(props.observation.data.who?.stage1ValueOption);
+      setSelectedOptions2(props.observation.data.who?.stage2ValueOption);
+      setSelectedOptions3(props.observation.data.who?.stage3ValueOption);
+      setSelectedOptions4(props.observation.data.who?.stage4ValueOption);
     }
   }, [props.observation.data]);
   const WhoStaging = () => {
@@ -151,7 +151,7 @@ const BasicInfo = (props) => {
     }
   };
   const validate = () => {
-    temp.stage = who.stage ? "" : "This field is required";
+    temp.stage = who?.stage ? "" : "This field is required";
     temp.assessment = assesment.assessment ? "" : "This field is required";
 
     setErrors({
@@ -343,7 +343,7 @@ const BasicInfo = (props) => {
                       type="select"
                       name="stage"
                       id="stage"
-                      value={who.stage}
+                      value={who?.stage}
                       onChange={handleWho}
                     >
                       <option value=""> Select</option>
@@ -361,7 +361,7 @@ const BasicInfo = (props) => {
                   )}
                 </FormGroup>
               </div>
-              {who.stage === "119" && (
+              {who?.stage === "119" && (
                 <div className="form-group mb-3 col-md-12">
                   <FormGroup>
                     <Label>Stage 1 options</Label>
@@ -374,7 +374,7 @@ const BasicInfo = (props) => {
                   </FormGroup>
                 </div>
               )}
-              {who.stage === "120" && (
+              {who?.stage === "120" && (
                 <div className="form-group mb-3 col-md-12">
                   <FormGroup>
                     <Label>Stage 2 options</Label>
@@ -387,7 +387,7 @@ const BasicInfo = (props) => {
                   </FormGroup>
                 </div>
               )}
-              {who.stage === "121" && (
+              {who?.stage === "121" && (
                 <>
                   <div className="form-group mb-3 col-md-12">
                     <FormGroup>
@@ -402,7 +402,7 @@ const BasicInfo = (props) => {
                   </div>
                 </>
               )}
-              {who.stage === "122" && (
+              {who?.stage === "122" && (
                 <div className="form-group mb-3 col-md-12">
                   <FormGroup>
                     <Label>Stage 4 options</Label>

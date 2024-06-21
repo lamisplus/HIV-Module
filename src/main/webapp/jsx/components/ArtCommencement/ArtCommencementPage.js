@@ -257,7 +257,7 @@ const ArtCommencement = (props) => {
 
         objValues.cd4Type = obj1.data.plan.cd4Type;
         objValues.cd4Count = obj1.data.plan.cd4Count;
-        objValues.whoStagingId = obj1.data.who.stage;
+        objValues.whoStagingId = obj1.data.who?.stage;
         objValues.regimenTypeId = obj1.data.regimen.regimenLine;
         RegimenType(obj1.data.regimen.regimenLine);
         objValues.regimenId = obj1.data.regimen.regimen;

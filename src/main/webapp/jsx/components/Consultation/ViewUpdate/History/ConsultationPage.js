@@ -1966,7 +1966,7 @@ const ClinicVisit = (props) => {
                           )}
                         </FormGroup>
                       </div>
-                      {(who.stage === "119" ||
+                      {(who?.stage === "119" ||
                         objValues.whoStagingId === "119") && (
                         <div className="form-group mb-3 col-md-12">
                           <FormGroup>
@@ -1976,8 +1976,8 @@ const ClinicVisit = (props) => {
                               options={options1}
                               onChange={onSelectedOption1}
                               selected={
-                                who.stage1ValueOption.length
-                                  ? who.stage1ValueOption
+                                who?.stage1ValueOption.length
+                                  ? who?.stage1ValueOption
                                   : selectedOptions1
                               }
                               disabled={!enableUpdate}
@@ -1985,7 +1985,7 @@ const ClinicVisit = (props) => {
                           </FormGroup>
                         </div>
                       )}
-                      {(who.stage === "120" ||
+                      {(who?.stage === "120" ||
                         objValues.whoStagingId === "120") && (
                         <div className="form-group mb-3 col-md-12">
                           <FormGroup>
@@ -1995,8 +1995,8 @@ const ClinicVisit = (props) => {
                               options={options2}
                               onChange={onSelectedOption2}
                               selected={
-                                who.stage2ValueOption.length
-                                  ? who.stage2ValueOption
+                                who?.stage2ValueOption.length
+                                  ? who?.stage2ValueOption
                                   : selectedOptions2
                               }
                               disabled={!enableUpdate}
@@ -2004,7 +2004,7 @@ const ClinicVisit = (props) => {
                           </FormGroup>
                         </div>
                       )}
-                      {(who.stage === "121" ||
+                      {(who?.stage === "121" ||
                         objValues.whoStagingId === "121") && (
                         <>
                           <div className="form-group mb-3 col-md-12">
@@ -2015,8 +2015,8 @@ const ClinicVisit = (props) => {
                                 options={options3}
                                 onChange={onSelectedOption3}
                                 selected={
-                                  who.stage3ValueOption.length
-                                    ? who.stage3ValueOption
+                                  who?.stage3ValueOption.length
+                                    ? who?.stage3ValueOption
                                     : selectedOptions3
                                 }
                                 disabled={!enableUpdate}
@@ -2025,7 +2025,7 @@ const ClinicVisit = (props) => {
                           </div>
                         </>
                       )}
-                      {who.stage === "122" ||
+                      {who?.stage === "122" ||
                         (objValues.whoStagingId === "122" && (
                           <div className="form-group mb-3 col-md-12">
                             <FormGroup>
@@ -2035,8 +2035,8 @@ const ClinicVisit = (props) => {
                                 options={options4}
                                 onChange={onSelectedOption4}
                                 selected={
-                                  who.stage4ValueOption.length
-                                    ? who.stage4ValueOption
+                                  who?.stage4ValueOption.length
+                                    ? who?.stage4ValueOption
                                     : selectedOptions4
                                 }
                                 disabled={!enableUpdate}

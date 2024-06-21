@@ -988,7 +988,7 @@ const ClinicVisit = (props) => {
     if (patientObj.sex.toLocaleLowerCase() === "male")
       temp.pregnancyStatus = "";
 
-    temp.stage = who.stage ? "" : "This field is required";
+    temp.stage = who?.stage ? "" : "This field is required";
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
@@ -1024,7 +1024,7 @@ const ClinicVisit = (props) => {
     e.preventDefault();
     if (validate()) {
       setSaving(true);
-      objValues.whoStagingId = who.stage;
+      objValues.whoStagingId = who?.stage;
       objValues.who = who;
       objValues.visitDate = vital.encounterDate;
       vital["captureDate"] = vital.encounterDate;
@@ -2114,7 +2114,7 @@ const ClinicVisit = (props) => {
                       type="select"
                       name="stage"
                       id="stage"
-                      value={who.stage}
+                      value={who?.stage}
                       onChange={handleWho}
                     >
                       <option value=""> Select</option>
@@ -2132,7 +2132,7 @@ const ClinicVisit = (props) => {
                   )}
                 </FormGroup>
               </div>
-              {who.stage === "119" && (
+              {who?.stage === "119" && (
                 <div className="form-group mb-3 col-md-12">
                   <FormGroup>
                     <Label>Stage 1 options</Label>
@@ -2145,7 +2145,7 @@ const ClinicVisit = (props) => {
                   </FormGroup>
                 </div>
               )}
-              {who.stage === "120" && (
+              {who?.stage === "120" && (
                 <div className="form-group mb-3 col-md-12">
                   <FormGroup>
                     <Label>Stage 2 options</Label>
@@ -2158,7 +2158,7 @@ const ClinicVisit = (props) => {
                   </FormGroup>
                 </div>
               )}
-              {who.stage === "121" && (
+              {who?.stage === "121" && (
                 <>
                   <div className="form-group mb-3 col-md-12">
                     <FormGroup>
@@ -2173,7 +2173,7 @@ const ClinicVisit = (props) => {
                   </div>
                 </>
               )}
-              {who.stage === "122" && (
+              {who?.stage === "122" && (
                 <div className="form-group mb-3 col-md-12">
                   <FormGroup>
                     <Label>Stage 4 options</Label>
