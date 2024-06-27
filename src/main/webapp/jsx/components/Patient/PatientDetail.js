@@ -156,48 +156,46 @@ function PatientCard(props) {
   //       .catch((error) => {});
   // };
 
-      useEffect(() => {
-        const getCurrentPatientRecord = async (id) => {
-          try {
-            const response = await axios.get(`${baseUrl}hiv/patient/${id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            setPatientObj1(response.data);
-          } catch (error) {
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ""
-                  ? error.response.data.apierror.message
-                  : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          }
-        };
-
-        if (patientObj?.id) {
-          getCurrentPatientRecord(patientObj.id);
+  useEffect(() => {
+    const getCurrentPatientRecord = async (id) => {
+      try {
+        const response = await axios.get(`${baseUrl}hiv/patient/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPatientObj1(response.data);
+      } catch (error) {
+        if (error.response && error.response.data) {
+          let errorMessage =
+            error.response.data.apierror &&
+            error.response.data.apierror.message !== ""
+              ? error.response.data.apierror.message
+              : "Something went wrong, please try again";
+          toast.error(errorMessage);
+        } else {
+          toast.error("Something went wrong. Please try again...");
         }
-      }, [patientObj?.id]);
+      }
+    };
 
-      const PatientCurrentObject = () => {
-        useEffect(() => {
-          axios
-            .get(`${baseUrl}hiv/patient/${patientObj.id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-            .then((response) => {
-              setPatientObj1(response.data);
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        }, []);
-      };
+    if (patientObj?.id) {
+      getCurrentPatientRecord(patientObj.id);
+    }
+  }, [patientObj?.id]);
 
-
+  const PatientCurrentObject = () => {
+    useEffect(() => {
+      axios
+        .get(`${baseUrl}hiv/patient/${patientObj.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          setPatientObj1(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }, []);
+  };
   return (
     <div className={classes.root}>
       <div
@@ -228,7 +226,6 @@ function PatientCard(props) {
               expandedPatientObj={patientObj1}
               art={art}
               activeContent={activeContent}
-              
             />
           </Sticky>
           <br />
@@ -325,7 +322,6 @@ function PatientCard(props) {
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
-              
             />
           )}
           {activeContent.route === "art-commencement" && (

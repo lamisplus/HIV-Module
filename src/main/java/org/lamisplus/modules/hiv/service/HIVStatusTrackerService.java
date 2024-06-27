@@ -68,7 +68,7 @@ public class HIVStatusTrackerService {
         log.info("Creating ART Status Starts here");
         HIVStatusTracker statusTracker = hivStatusTrackerRepository.save(hivStatusTracker);
         log.info("This is Status Tracker " + statusTracker);
-        return  null;
+        return convertEntityToDto(statusTracker);
     }
 
 
