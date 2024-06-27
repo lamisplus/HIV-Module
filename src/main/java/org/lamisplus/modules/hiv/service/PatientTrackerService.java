@@ -30,11 +30,8 @@ public class PatientTrackerService {
 	
 	
 	public PatientTrackingDto createPatientTracker(PatientTrackingDto dto) {
-		System.out.println("patient tracker service is hit!");
 		PatientTracker patientTracker = mapDtoEntity(dto);
 		HIVStatusTrackerDto statusTracker = dto.getStatusTracker();
-		System.out.println("statusTracker tObj: "+patientTracker);
-		System.out.println("patientTracker tObj: "+patientTracker);
 		if (statusTracker != null){
 			HIVStatusTrackerDto statusDto = statusTrackerService.registerHIVStatusTracker(statusTracker);
 			HIVStatusTracker status = hivStatusTrackerRepository.findById(statusDto.getId()).orElseThrow(
@@ -43,7 +40,6 @@ public class PatientTrackerService {
 		}
 		PatientTracker en = patientTrackerRepository.save(patientTracker);
 		Log.info("Emmanuel data patient tracker: {}", en);
-		System.out.println("Final tObj: "+mapEntityDto(en));
 		return mapEntityDto(en);
 	}
 	
