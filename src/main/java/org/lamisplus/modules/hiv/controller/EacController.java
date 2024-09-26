@@ -3,15 +3,19 @@ package org.lamisplus.modules.hiv.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.hiv.domain.dto.*;
+import org.lamisplus.modules.hiv.repositories.EacOutComeRepository;
 import org.lamisplus.modules.hiv.service.EACOutComeService;
 import org.lamisplus.modules.hiv.service.HIVEacService;
 import org.lamisplus.modules.hiv.service.HIVEacSessionService;
+import org.lamisplus.modules.patient.domain.entity.Person;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -24,6 +28,7 @@ public class EacController {
 	private final HIVEacSessionService hIVEacSessionService;
 	
 	private final EACOutComeService eacOutComeService;
+	private final EacOutComeRepository eacOutComeRepository;
 	
 	
 	@GetMapping(value = "/patient/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -64,7 +69,7 @@ public class EacController {
 	public ResponseEntity<HIVEacSessionDto> updateEacSession(
 			@PathVariable("id") Long id,
 			@RequestBody HIVEacSessionDto data) {
-		log.info("EAC SESSION DATA ***** {}", data);
+//		log.info("EAC SESSION DATA ***** {}", data);
 		return ResponseEntity.ok(hIVEacSessionService.updateEacSession(id, data));
 	}
 	
@@ -79,6 +84,21 @@ public class EacController {
 		hIVEacSessionService.deleteEacSessionById(id);
 		return ResponseEntity.ok("success");
 	}
-	
-	
+
+	@GetMapping(value = "/eac-outcome", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<EacOutComeDto>> getAllEacOutComeByPerson(@RequestParam("personUuid") String personUuid) {
+		return ResponseEntity.ok(eacOutComeService.getAllEacOutComeByPerson(personUuid));
+	}
+
+
+	@PutMapping(value = "/eac-outcome/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<EacOutComeDto> updateEacOutcome(@PathVariable("id") Long id, @RequestBody EacOutComeDto eacOutCome) {
+		return ResponseEntity.ok(eacOutComeService.updateEacOutCome(id, eacOutCome));
+	}
+
+	@DeleteMapping(value = "/eac-outcome/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<String> deleteEacOutcome(@PathVariable("id") Long id) {
+		return ResponseEntity.ok(eacOutComeService.deleteEacOutcome(id));
+	}
+
 }

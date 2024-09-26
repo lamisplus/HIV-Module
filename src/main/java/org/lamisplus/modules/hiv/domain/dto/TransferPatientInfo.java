@@ -5,9 +5,9 @@ public interface TransferPatientInfo {
     Long getPatientId();
     String getPersonUuid();
     Long getFacilityId();
-    String getFacilityName();
-    String getLga();
-    String getState();
+//    String getFacilityName();
+//    String getLga();
+//    String getState();
     Double getWeight();
     Double getHeight();
     String getPregnancyStatus();
@@ -16,7 +16,8 @@ public interface TransferPatientInfo {
     LocalDate getDateEnrolledInTreatment();
     String getAdherenceLevel();
     String getCurrentWhoClinical();
-    Integer getCurrentCD4Count();
+//    Integer getCurrentCD4Count();
+    String getCurrentCD4Count();
     Integer getBaselineCD4();
     Double getViralLoad();
     String getCurrentRegimenLine();

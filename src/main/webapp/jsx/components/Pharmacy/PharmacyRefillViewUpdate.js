@@ -109,6 +109,9 @@ const Pharmacy = (props) => {
   const [regimenTypeOther, setRegimenTypeOther] = useState([]);
   const [iptEligibilty, setIptEligibilty] = useState("");
   const [dsdDevolvement, setDsdDevolvement] = useState(null);
+  const [clientDsdStatus, setClientDsdStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const [objValues, setObjValues] = useState({
     adherence: "",
     adrScreened: "",
@@ -209,29 +212,48 @@ const Pharmacy = (props) => {
       //.catch((error) => {});
     }
   };
-
+//  check if patient is on dsd
   useEffect(() => {
-    getDsd();
-  }, []);
-  const getDsd = async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}hiv/patients/${props.patientObj.id}/history/activities`,
-        {
+    setIsLoading(true);
+    axios
+        .get(`${baseUrl}hiv/art/pharmacy/devolve/patient/${patientObj.personUuid}`, {
           headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const dsdActivities = response.data;
-      const firstDsdService = dsdActivities.find(
-        (activity) => activity.name === "DSD Service"
-      );
-      setDsdDevolvement(firstDsdService.date); //Get first Occurence
-    } catch (error) {
-      toast.error("Fill DSD Form", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-    }
-  };
+        })
+        .then((response) => {
+          const isOnDsd = response.data === true;
+          setClientDsdStatus(isOnDsd ? "Yes" : "No");
+        })
+        .catch((error) => {
+          console.error(error);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+  }, []);
+
+  // useEffect(() => {
+  //   getDsd();
+  // }, []);
+
+  // const getDsd = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${baseUrl}hiv/patients/${props.patientObj.id}/history/activities`,
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       }
+  //     );
+  //     const dsdActivities = response.data;
+  //     const firstDsdService = dsdActivities.find(
+  //       (activity) => activity.name === "DSD Service"
+  //     );
+  //     setDsdDevolvement(firstDsdService.date); //Get first Occurence
+  //   } catch (error) {
+  //     toast.error("Fill DSD Form", {
+  //       position: toast.POSITION.TOP_RIGHT,
+  //     });
+  //   }
+  // };
 
   const patientAge = calculate_age_to_number(patientObj.dateOfBirth);
   //GET ChildRegimenLine
@@ -744,13 +766,27 @@ const Pharmacy = (props) => {
       setObjValues({ ...objValues, [e.target.name]: true });
     }
   };
+  // const handleFormChange = (index, event) => {
+  //   let data = [...regimenDrug];
+  //   data[index][event.target.name] = event.target.value;
+  //   data[index]["prescribed"] =
+  //     data[index]["frequency"] * data[index]["duration"];
+  //   setRegimenDrug(data);
+  // };
+
   const handleFormChange = (index, event) => {
     let data = [...regimenDrug];
-    data[index][event.target.name] = event.target.value;
-    data[index]["prescribed"] =
-      data[index]["frequency"] * data[index]["duration"];
+    const prescribedQuantity = data[index]["frequency"] * data[index]["duration"];
+    if (event.target.name === "dispense" && event.target.value > prescribedQuantity) {
+      event.target.value = prescribedQuantity;
+      data[index][event.target.name] = prescribedQuantity;
+    } else {
+      data[index][event.target.name] = event.target.value;
+    }
+    data[index]["prescribed"] = prescribedQuantity;
     setRegimenDrug(data);
   };
+
   const addDrug = (e) => {
     setRegimenDrugList([...regimenDrugList, ...regimenDrug]);
   };
@@ -763,13 +799,13 @@ const Pharmacy = (props) => {
     e.preventDefault();
     setSaving(true);
 
-    if (dsdDevolvement === null) {
-      toast.error("No recent DSD, unable to proceed", {
-        position: toast.POSITION.BOTTOM_CENTER,
-      });
-      setSaving(false);
-      return;
-    }
+    // if (dsdDevolvement === null) {
+    //   toast.error("No recent DSD, unable to proceed", {
+    //     position: toast.POSITION.BOTTOM_CENTER,
+    //   });
+    //   setSaving(false);
+    //   return;
+    // }
     objValues.adverseDrugReactions = selectedOptionAdr;
     objValues.personId = props.patientObj.id;
     objValues.extra["regimens"] = regimenDrugList;
@@ -897,6 +933,7 @@ const Pharmacy = (props) => {
                           borderRadius: "0.25rem",
                         }}
                         disabled={disabledField}
+                        onKeyPress={(e) => e.preventDefault()}
                       />
                     </FormGroup>
                   </div>
@@ -1074,6 +1111,7 @@ const Pharmacy = (props) => {
                           borderRadius: "0.25rem",
                         }}
                         disabled={disabledField}
+                        onKeyPress={(e) => e.preventDefault()}
                       />
                     </FormGroup>
                   </div>
@@ -1146,28 +1184,28 @@ const Pharmacy = (props) => {
                     <FormGroup>
                       <Label>
                         Refill Period(days){" "}
-                        <span style={{ color: "red" }}> *</span>
+                        <span style={{color: "red"}}> *</span>
                       </Label>
                       <Input
-                        type="select"
-                        name="refillPeriod"
-                        id="refillPeriod"
-                        value={objValues.refillPeriod}
-                        disabled={objValues.visitDate !== null ? false : true}
-                        onChange={handlRefillPeriod}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
+                          type="select"
+                          name="refillPeriod"
+                          id="refillPeriod"
+                          value={objValues.refillPeriod}
+                          disabled={objValues.visitDate !== null ? false : true}
+                          onChange={handlRefillPeriod}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
                       >
-                        <option value="">Select </option>
+                        <option value="">Select</option>
                         <option value="15">15</option>
-                        <option value="30">30 </option>
-                        <option value="60">60 </option>
-                        <option value="90">90 </option>
-                        <option value="120">120 </option>
-                        <option value="150">150 </option>
-                        <option value="180">180 </option>
+                        <option value="30">30</option>
+                        <option value="60">60</option>
+                        <option value="90">90</option>
+                        <option value="120">120</option>
+                        <option value="150">150</option>
+                        <option value="180">180</option>
                       </Input>
                     </FormGroup>
                   </div>
@@ -1177,44 +1215,61 @@ const Pharmacy = (props) => {
                       <Label for="artDate">
                         {" "}
                         Date of Next Appointment{" "}
-                        <span style={{ color: "red" }}> *</span>{" "}
+                        <span style={{color: "red"}}> *</span>{" "}
                       </Label>
                       <Input
-                        type="date"
-                        name="nextAppointment"
-                        id="nextAppointment"
-                        min={enrollDate}
-                        disabled={
-                          objValues.refillPeriod !== null ? false : true
-                        }
-                        onChange={handleInputChange}
-                        value={objValues.nextAppointment}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        required
-                      />
-                    </FormGroup>
-                  </div>
-                  {showmmdType && (
-                    <div className="form-group mb-3 col-md-4">
-                      <FormGroup>
-                        <Label>MMD Type</Label>
-                        <Input
-                          type="text"
-                          name="mmdType"
-                          id="mmdType"
-                          disabled="true"
-                          value={mmdType}
+                          type="date"
+                          name="nextAppointment"
+                          id="nextAppointment"
+                          min={enrollDate}
+                          disabled={
+                            objValues.refillPeriod !== null ? false : true
+                          }
                           onChange={handleInputChange}
+                          value={objValues.nextAppointment}
                           style={{
                             border: "1px solid #014D88",
                             borderRadius: "0.25rem",
                           }}
-                        />
-                      </FormGroup>
-                    </div>
+                          required
+                          onKeyPress={(e) => e.preventDefault()}
+                      />
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-4">
+                    <FormGroup>
+                      <Label for="">Client on DSD?</Label>
+                      <Input
+                          type="select"
+                          name="clientDsdStatus"
+                          id="clientDsdStatus"
+                          disabled={true}
+                          value={clientDsdStatus}
+                      >
+                        <option value="Yes">Yes</option>
+                        // Add options for Yes and No
+                        <option value="No">No</option>
+                      </Input>
+                    </FormGroup>
+                  </div>
+                  {showmmdType && (
+                      <div className="form-group mb-3 col-md-4">
+                        <FormGroup>
+                          <Label>MMD Type</Label>
+                          <Input
+                              type="text"
+                              name="mmdType"
+                              id="mmdType"
+                              disabled="true"
+                              value={mmdType}
+                              onChange={handleInputChange}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.25rem",
+                              }}
+                          />
+                        </FormGroup>
+                      </div>
                   )}
                 </div>
                 {/*<div className="form-group mb-3 col-md-6">*/}
@@ -1288,6 +1343,7 @@ const Pharmacy = (props) => {
                               name="deliveryPoint"
                               id="deliveryPoint"
                               disabled
+                              onKeyPress={(e) => e.preventDefault()}
                             />
                           </FormGroup>
                         </div>
@@ -1306,6 +1362,7 @@ const Pharmacy = (props) => {
                               name="deliveryPoint"
                               id="deliveryPoint"
                               disabled
+                              onKeyPress={(e) => e.preventDefault()}
                             />
                           </FormGroup>
                         </div>

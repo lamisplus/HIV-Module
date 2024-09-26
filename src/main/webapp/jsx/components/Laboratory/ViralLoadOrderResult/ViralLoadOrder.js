@@ -357,6 +357,7 @@ const Laboratory = (props) => {
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.sampleCollectionDate !=="" ? (
                                     <span className={classes.error}>{errors.sampleCollectionDate}</span>

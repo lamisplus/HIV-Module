@@ -613,6 +613,7 @@ const ClientVerification = (props) => {
                           borderRadius: "0.25rem",
                         }}
                         max={moment(new Date()).format("YYYY-MM-DD")}
+                        onKeyPress={(e) => e.preventDefault()}
                       />
                       {errors.dateOfAttempt !== "" ? (
                         <span className={classes.error}>
@@ -883,6 +884,7 @@ const ClientVerification = (props) => {
                         borderRadius: "0.25rem",
                       }}
                       max={moment(new Date()).format("YYYY-MM-DD")}
+                      onKeyPress={(e) => e.preventDefault()}
                     />
                     {clientVerificationObj.discontinuation === "Yes" &&
                       errors.optionalError && (
@@ -913,6 +915,7 @@ const ClientVerification = (props) => {
                           borderRadius: "0.25rem",
                         }}
                         max={moment(new Date()).format("YYYY-MM-DD")}
+                        onKeyPress={(e) => e.preventDefault()}
                       />
                       {clientVerificationObj.discontinuation === "No" &&
                         errors.optionalError && (

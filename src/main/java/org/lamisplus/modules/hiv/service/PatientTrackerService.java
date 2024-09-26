@@ -39,7 +39,7 @@ public class PatientTrackerService {
 			patientTracker.setStatusTracker(status);
 		}
 		PatientTracker en = patientTrackerRepository.save(patientTracker);
-		Log.info("Emmanuel data patient tracker: {}", en);
+//		Log.info("Emmanuel data patient tracker: {}", en);
 		return mapEntityDto(en);
 	}
 	
@@ -86,8 +86,7 @@ public class PatientTrackerService {
 		return patientTracker;
 		
 	}
-	
-	
+
 	private PatientTrackingDto mapEntityDto(PatientTracker entity) {
 		PatientTrackingDto patentTrackingDto = new PatientTrackingDto();
 		patentTrackingDto.setDsdStatus(entity.getDsdStatus());
@@ -112,19 +111,17 @@ public class PatientTrackerService {
 		patentTrackingDto.setFacilityId(entity.getFacilityId());
 		patentTrackingDto.setPatientId(entity.getPerson().getId());
 		patentTrackingDto.setDateOfObservation(entity.getDateOfObservation());
-//		HIVStatusTrackerDto statusTracker =
-//				statusTrackerService.convertEntityToDto(entity.getStatusTracker());
-//		patentTrackingDto.setStatusTracker(statusTracker);
+
 		if(entity.getStatusTracker() != null) {
 			HIVStatusTrackerDto statusTracker =
 					statusTrackerService.convertEntityToDto(entity.getStatusTracker());
 			patentTrackingDto.setStatusTracker(statusTracker);
+		} else {
+			patentTrackingDto.setStatusTracker(null);
 		}
 		entity.getPerson().getId();
 		patentTrackingDto.setId(entity.getId());
 		return patentTrackingDto;
-		
-		
 	}
 	
 	private PatientTracker getPatientTrackerFromDto(PatientTrackingDto dto) {

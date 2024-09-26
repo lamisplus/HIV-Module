@@ -230,32 +230,37 @@ const LabHistory = (props) => {
 
               ]}
               isLoading={loading}
-              data={ sessionList.map((row) => ({
-                  //Id: manager.id,
-                  
-                  followupDate: row.followUpDate,
-                  barriers: Object.keys(row.barriers).length > 0 ? Object.keys(row.barriers).length + "  Barriers" : "No Barriers",
-                  intervention: Object.keys(row.intervention).length > 0 ? Object.keys(row.intervention).length + "  Interventions" : "No Interventions",
-                  comment:row.comment,   
-                  status: row.status,
-                  action:<div>
-                  <Menu.Menu position='right'  >
-                  <Menu.Item >
-                      <Button style={{backgroundColor:'rgb(153,46,98)'}} primary>
-                      <Dropdown item text='Action'>
-
-                      <Dropdown.Menu style={{ marginTop:"10px", }}>
-                       <Dropdown.Item onClick={()=>LoadViewPage(row, 'view')}> <Icon name='eye' />View  </Dropdown.Item>
-                          <Dropdown.Item  onClick={()=>LoadViewPage(row, 'update')}><Icon name='edit' />Edit</Dropdown.Item>
-                          {/*<Dropdown.Item  onClick={()=>LoadDeletePage(row, 'delete')}> <Icon name='trash' /> Delete</Dropdown.Item>*/}
-                      </Dropdown.Menu>
-                  </Dropdown>
-                      </Button>
-                  </Menu.Item>
-                  </Menu.Menu>
-              </div>
-                 
-                  }))}
+            data={sessionList.map((row) => ({
+                followupDate: row.followUpDate,
+                barriers: row.barriers && typeof row.barriers === 'object' && Object.keys(row.barriers).length > 0
+                    ? Object.keys(row.barriers).length + " Barriers"
+                    : "No Barriers",
+                intervention: row.intervention && typeof row.intervention === 'object' && Object.keys(row.intervention).length > 0
+                    ? Object.keys(row.intervention).length + " Interventions"
+                    : "No Interventions",
+                comment: row.comment,
+                status: row.status,
+                action: (
+                    <div>
+                        <Menu.Menu position='right'>
+                            <Menu.Item>
+                                <Button style={{backgroundColor:'rgb(153,46,98)'}} primary>
+                                    <Dropdown item text='Action'>
+                                        <Dropdown.Menu style={{ marginTop: "10px" }}>
+                                            <Dropdown.Item onClick={() => LoadViewPage(row, 'view')}>
+                                                <Icon name='eye' /> View
+                                            </Dropdown.Item>
+                                            <Dropdown.Item onClick={() => LoadViewPage(row, 'update')}>
+                                                <Icon name='edit' /> Edit
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                </Button>
+                            </Menu.Item>
+                        </Menu.Menu>
+                    </div>
+                )
+            }))}
             
                         options={{
                           headerStyle: {

@@ -33,28 +33,28 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class ArtClinicVisitService {
-	
+
 	private final HivEnrollmentRepository hivEnrollmentRepository;
+
 	private final ARTClinicalRepository artClinicalRepository;
-	
+
 	private final VitalSignService vitalSignService;
-	
+
 	private final CurrentUserOrganizationService organizationUtil;
-	
 	
 	private final VitalSignRepository vitalSignRepository;
 	
 	private final PersonRepository personRepository;
+
 	private final HIVStatusTrackerService hivStatusTrackerService;
 	
 	private final ApplicationCodesetService applicationCodesetService;
 	
 	private final HandleHIVVisitEncounter hivVisitEncounter;
 	
-	
 	public ARTClinicVisitDto createArtClinicVisit(ARTClinicVisitDto artClinicVisitDto) {
-		log.info("payload to create card visit: " + artClinicVisitDto);
-		log.info("visit date: " + artClinicVisitDto.getVisitDate());
+//		log.info("payload to create card visit: " + artClinicVisitDto);
+//		log.info("visit date: " + artClinicVisitDto.getVisitDate());
 		Long hivEnrollmentId = artClinicVisitDto.getHivEnrollmentId();
 		HivEnrollment hivEnrollment = hivEnrollmentRepository
 				.findById(hivEnrollmentId)
@@ -179,18 +179,15 @@ public class ArtClinicVisitService {
 	
 	
 	private Person getPerson(Long personId) {
-		return personRepository.findById(personId)
-				.orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
+		return personRepository.findById(personId).orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
 	}
-	
-	
+
 	private ARTClinical getExistClinicVisit(Long id) {
 		return artClinicalRepository
 				.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException(ARTClinical.class, "id", "" + id));
 	}
-	
-	
+
 	@NotNull
 	public ARTClinicVisitDto convertToClinicVisitDto(ARTClinical artClinical) {
 		VitalSignDto vitalSignDto = vitalSignService.getVitalSignById(artClinical.getVitalSign().getId());
@@ -199,12 +196,9 @@ public class ArtClinicVisitService {
 		ARTClinicVisitDto artClinicVisitDto = new ARTClinicVisitDto();
 		BeanUtils.copyProperties(artClinical, artClinicVisitDto);
 		artClinicVisitDto.setVitalSignDto(requestDto);
-		log.info("converted artClinicVisitDto {}", artClinicVisitDto);
+//		log.info("converted artClinicVisitDto {}", artClinicVisitDto);
 		return artClinicVisitDto;
-		
 	}
-	
-	
 	@NotNull
 	public ARTClinical convertDtoToART(ARTClinicVisitDto artClinicVisitDto, Long vitalSignId) {
 		ARTClinical artClinical = new ARTClinical();
@@ -217,7 +211,6 @@ public class ArtClinicVisitService {
 		//log.info("converted entity 1 {}", artClinical);
 		return artClinical;
 	}
-	
 	
 	private VitalSign getVitalSign(Long vitalSignId) {
 		return vitalSignRepository.findById(vitalSignId).orElseThrow(() -> new EntityNotFoundException(VitalSign.class, "id", String.valueOf(vitalSignId)));

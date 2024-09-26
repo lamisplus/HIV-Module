@@ -177,7 +177,7 @@ const Tracking = (props) => {
     //Get list of PrepSideEffect
     const PrepSideEffect =()=>{
         axios
-            .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
+            .get(`${baseUrl}application-codesets/v2/DO_YOU_HAVE_THE_FOLLOWING`,
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
@@ -300,7 +300,7 @@ const Tracking = (props) => {
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
-                                    
+                                    onKeyPress={(e) => e.preventDefault()}
                                     > 
                                 </Input>
                                 {errors.dateOfObservation !=="" ? (
@@ -324,7 +324,7 @@ const Tracking = (props) => {
                                     onChange={handleInputChangeAttempt}
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
-                                    
+                                    onKeyPress={(e) => e.preventDefault()}
                                     > 
                                 </Input>
                                 {errors.callDate !=="" ? (

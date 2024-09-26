@@ -119,6 +119,7 @@ const ADR = (props) => {
                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                 max= {props.encounterDate}
                 required
+                onKeyPress={(e) => e.preventDefault()}
                 > 
             </Input>
             {errors.adrOnsetDate !=="" ? (

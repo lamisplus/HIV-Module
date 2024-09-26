@@ -99,7 +99,7 @@ public class OvcLinkageController {
     @ApiOperation(value = "export ovc linkage clients records")
     public ResponseEntity<String> exportOvcJson() {
         String message = linkageService.exportRecordsToJson();
-        log.info("file exported successfully.");
+//        log.info("file exported successfully.");
         // Return NO_CONTENT if there are no records, otherwise return OK
         HttpStatus status = message.equals("None") ? HttpStatus.NO_CONTENT : HttpStatus.OK;
         return new ResponseEntity<>(message, status);
@@ -111,7 +111,7 @@ public class OvcLinkageController {
     public ResponseEntity<List<LinkageResponseInterface>> getEnrolledOvcClients(Pageable pageable) {
         final Page<LinkageResponseInterface> page = linkageService.getPagedEnrolledOvcClients(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        log.info("List of enrolled ovc patients generated");
+//        log.info("List of enrolled ovc patients generated");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
 }

@@ -327,7 +327,7 @@ const CervicalCancer = (props) => {
                                 <FormGroup>
                                 <Label for="artDate">Date of Screening <span style={{ color:"red"}}> *</span> </Label>
                                 <Input
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     name="dateOfScreening"
                                     id="dateOfScreening"
                                     onChange={handleInputChange}
@@ -554,7 +554,7 @@ const CervicalCancer = (props) => {
                             <FormGroup>
                             <Label >Screening Treatment Method Date</Label>
                             <Input
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     name="screenTreatmentMethodDate"
                                     id="screenTreatmentMethodDate"
                                     value={objValues.screenTreatmentMethodDate}

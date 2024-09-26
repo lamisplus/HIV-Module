@@ -114,7 +114,10 @@ const Tracking = (props) => {
   const [vaCauseOfDeathTypeChildInjuries, setvaCauseOfDeathTypeChildInjuries] =
     useState([]);
   const [currentBiometricStatus, setCurrentBiometricStatus] = useState([]);
-
+ // const [clientTrackingDetails, setClientTrackingDetails] = useState(null);
+  const [clientTrackingDetails, setClientTrackingDetails] = useState({
+    dsdStatus: "",
+  });
   let history = useHistory();
   const [observation, setObservation] = useState({
     data: {},
@@ -185,6 +188,11 @@ const Tracking = (props) => {
     VA_CHILD_CAUSES_INJURIES();
     VA_NEONATE_CAUSES();
   }, []);
+
+  useEffect(() => {
+    getClientTrackingDetails();
+  }, [dsdStatus]);
+
   const GetPatientDTOObj = () => {
     axios
       .get(`${baseUrl}hiv/patient/${props.patientObj.id}`, {
@@ -204,6 +212,45 @@ const Tracking = (props) => {
         
       });
   };
+  // CALULATE ART DURATION IN MONTHS
+  const calculateDuration = (durationOnArt) => {
+    if (durationOnArt === null || durationOnArt === undefined) return "";
+    const durationInMonths = durationOnArt / 30;
+    return durationInMonths < 3 ? "<3months" : ">=3months";
+  };
+
+  const getClientTrackingDetails = () => {
+    axios
+        .get(`${baseUrl}hiv/art/pharmacy/devolve/client-tracking-details?personUuid=${props.patientObj.personUuid}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          if (response.data) {
+            const durationOnArtValue = calculateDuration(response.data.durationOnArt);
+            let dsdStatusValue = "";
+            if (response.data.dsdStatus !== null && response.data.dsdStatus !== "") {
+              dsdStatusValue = response.data.dsdStatus === "Yes" ? dsdStatus[0].display : dsdStatus[1].display;
+            }
+            let dsdModelValue = "";
+            if (response.data.dsdModel !== null && response.data.dsdModel !== "") {
+              dsdModelValue = response.data.dsdModel === "Facility" ? "FBM" : response.data.dsdModel === "Community" ? "CBM" : "";
+            }
+            setClientTrackingDetails({ ...response.data, durationOnART: durationOnArtValue, dsdStatus: dsdStatusValue });
+            setObjValues({
+              ...objValues,
+              dsdStatus: response.data.dsdStatus === "Yes" ? dsdStatus[0].code : dsdStatus[1].code,
+              durationOnART: durationOnArtValue,
+              dsdModel: dsdModelValue,
+              dateLastAppointment: response.data.dateOfLastRefill ? response.data.dateOfLastRefill : "",
+              dateMissedAppointment: response.data.dateOfMissedScheduleAppointment ? response.data.dateOfMissedScheduleAppointment : ""
+            });
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+  };
+
   const ReasonForTracking = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/REASON_TRACKING`, {
@@ -656,7 +703,8 @@ const Tracking = (props) => {
     setAttemptList([...attemptList]);
   };
 
-  console.log("objValues", objValues);
+  // console.log("objValues", objValues);
+
   /**** Submit Button Processing  */
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -792,6 +840,7 @@ const Tracking = (props) => {
                         borderRadius: "0.25rem",
                       }}
                       max={moment(new Date()).format("YYYY-MM-DD")}
+                      onKeyPress={(e) => e.preventDefault()}
                     ></Input>
                     {errors.dateOfObservation !== "" ? (
                       <span className={classes.error}>
@@ -807,7 +856,7 @@ const Tracking = (props) => {
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                     <Label for="">
-                      Duration on ART <span style={{ color: "red" }}> *</span>
+                      Duration on ART <span style={{color: "red"}}> *</span>
                     </Label>
 
                     <Input
@@ -816,6 +865,7 @@ const Tracking = (props) => {
                       id="durationOnART"
                       onChange={handleInputChange}
                       value={objValues.durationOnART}
+                      disabled
                     >
                       <option value=""></option>
                       <option value="<3months">{"<"} 3 months</option>
@@ -841,6 +891,7 @@ const Tracking = (props) => {
                       id="dsdStatus"
                       onChange={handleInputChange}
                       value={objValues.dsdStatus}
+                      disabled
                     >
                       <option value="">Select</option>
                       {dsdStatus.map((value) => (
@@ -850,55 +901,56 @@ const Tracking = (props) => {
                       ))}
                     </Input>
                     {errors.dsdStatus !== "" ? (
-                      <span className={classes.error}>{errors.dsdStatus}</span>
+                        <span className={classes.error}>{errors.dsdStatus}</span>
                     ) : (
-                      ""
+                        ""
                     )}
                   </FormGroup>
                 </div>
                 {objValues.dsdStatus === "TRACKING_DSD_STATUS_DEVOLVED" && (
-                  <div className="form-group mb-3 col-md-4">
-                    <FormGroup>
-                      <Label for="">
-                        DSD Model <span style={{ color: "red" }}> *</span>
-                      </Label>
+                    <div className="form-group mb-3 col-md-4">
+                      <FormGroup>
+                        <Label for="">
+                          DSD Model <span style={{color: "red"}}> *</span>
+                        </Label>
 
-                      <Input
-                        type="select"
-                        name="dsdModel"
-                        id="dsdModel"
-                        onChange={handleInputChange}
-                        value={objValues.dsdModel}
-                      >
-                        <option value=""></option>
-                        <option value="FBM">FBM</option>
-                        <option value="CBM">CBM</option>
-                      </Input>
-                      {errors.dsdModel !== "" ? (
-                        <span className={classes.error}>{errors.dsdModel}</span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
+                        <Input
+                            type="select"
+                            name="dsdModel"
+                            id="dsdModel"
+                            onChange={handleInputChange}
+                            value={objValues.dsdModel}
+                            disabled
+                        >
+                          <option value=""></option>
+                          <option value="FBM">FBM</option>
+                          <option value="CBM">CBM</option>
+                        </Input>
+                        {errors.dsdModel !== "" ? (
+                            <span className={classes.error}>{errors.dsdModel}</span>
+                        ) : (
+                            ""
+                        )}
+                      </FormGroup>
+                    </div>
                 )}
               </div>
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label for="">
-                    Reason for Tracking <span style={{ color: "red" }}> *</span>
+                    Reason for Tracking <span style={{color: "red"}}> *</span>
                   </Label>
 
                   <Input
-                    type="select"
-                    name="reasonForTracking"
-                    id="reasonForTracking"
-                    onChange={handleInputChange}
-                    value={objValues.reasonForTracking}
+                      type="select"
+                      name="reasonForTracking"
+                      id="reasonForTracking"
+                      onChange={handleInputChange}
+                      value={objValues.reasonForTracking}
                   >
                     <option value="">Select</option>
                     {reasonTracking.map((value) => (
-                      <option key={value.code} value={value.code}>
+                        <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
                     ))}
@@ -953,6 +1005,8 @@ const Tracking = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
+                    onKeyPress={(e) => e.preventDefault()}
+                    disabled
                   />
                   {errors.dateLastAppointment !== "" ? (
                     <span className={classes.error}>
@@ -978,6 +1032,8 @@ const Tracking = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
+                    disabled
+                    onKeyPress={(e) => e.preventDefault()}
                   />
                   {errors.dateMissedAppointment !== "" ? (
                     <span className={classes.error}>
@@ -1006,6 +1062,7 @@ const Tracking = (props) => {
                       }}
                       min={enrollDate !== "" ? enrollDate : ""}
                       max={moment(new Date()).format("YYYY-MM-DD")}
+                      onKeyPress={(e) => e.preventDefault()}
                     ></Input>
                     {errors.attemptDate !== "" ? (
                       <span className={classes.error}>
@@ -1241,6 +1298,7 @@ const Tracking = (props) => {
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
                         }}
+                        onKeyPress={(e) => e.preventDefault()}
                       />
                       {errors.dateReturnToCare !== "" ? (
                         <span className={classes.error}>
@@ -1313,25 +1371,27 @@ const Tracking = (props) => {
                   <div className="form-group mb-3 col-md-4">
                     <FormGroup>
                       <Label for=""> Date of Discontinuation</Label>
+                      <span style={{color: "red"}}> *</span>
                       <Input
-                        type="date"
-                        name="dateOfDiscontinuation"
-                        id="dateOfDiscontinuation"
-                        onChange={handleInputChange}
-                        value={objValues.dateOfDiscontinuation}
-                        min={enrollDate !== "" ? enrollDate : ""}
-                        max={moment(new Date()).format("YYYY-MM-DD")}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
+                          type="date"
+                          name="dateOfDiscontinuation"
+                          id="dateOfDiscontinuation"
+                          onChange={handleInputChange}
+                          value={objValues.dateOfDiscontinuation}
+                          min={enrollDate !== "" ? enrollDate : ""}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
+                          onKeyPress={(e) => e.preventDefault()}
                       />
                       {errors.dateOfDiscontinuation !== "" ? (
-                        <span className={classes.error}>
+                          <span className={classes.error}>
                           {errors.dateOfDiscontinuation}
                         </span>
                       ) : (
-                        ""
+                          ""
                       )}
                     </FormGroup>
                   </div>
@@ -1448,6 +1508,7 @@ const Tracking = (props) => {
                               border: "1px solid #014D88",
                               borderRadius: "0.25rem",
                             }}
+                            onKeyPress={(e) => e.preventDefault()}
                         />
                         {errors.dateOfDeath !== "" ? (
                             <span className={classes.error}>
@@ -1738,7 +1799,8 @@ const Tracking = (props) => {
                     {/* End of VA Cause of Death  base on selection  */}
                   </>
               )}
-              {(objValues.causeOfDeath === "Natural Cause" ||
+              {(objValues.causeOfDeath === "Natural Cause" || objValues.causeOfDeath === "Suspected Opportunistic Infection (specify)"
+               || objValues.causeOfDeath === "Suspected ARV Side effect (Speciify)" ||
                   objValues.causeOfDeath === "Unknown cause") && (
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>

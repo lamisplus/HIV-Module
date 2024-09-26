@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 @Order(8)
 @Installer(name = "update-regimen-table",
         description = "update regimen table",
-        version = 2)
+        version = 10)
 public class UpdateRegimen extends AcrossLiquibaseInstaller{
     public UpdateRegimen() {
         super("classpath:installers/hiv/schema/update_regimen.xml");

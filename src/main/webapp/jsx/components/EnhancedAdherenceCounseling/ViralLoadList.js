@@ -125,6 +125,12 @@ const LabHistory = (props) => {
          props.setActiveContent({...props.activeContent, route:'eac-session', id:row.id, activeTab:"history", actionType:actionType, obj:row})
      }
 
+    const LoadEacOutCome = (row, actionType) =>{
+        // const row= props.activeContent.obj
+        // const actionType ="history"
+        props.setActiveContent({...props.activeContent, route:'eac-outcome', id:row.id, activeTab:"history", actionType:actionType, obj:row})
+    }
+
      const LoadDeletePage = (row) =>{  
       axios.delete(`${baseUrl}laboratory/rde-orders/tests/${row.id}`,
               { headers: {"Authorization" : `Bearer ${token}`} }
@@ -153,13 +159,8 @@ const LabHistory = (props) => {
         
             <MaterialTable
             icons={tableIcons}
-              title="Laboratory Order"
+              title="EAC LIST"
               columns={[
-              // { title: " ID", field: "Id" },
-                // {
-                //   title: "Test Group",
-                //   field: "testGroup",
-                // },
                 { title: "Test Name", field: "testName", filtering: false },
                 { title: "Lab Number", field: "labNumber", filtering: false },
                 { title: "Viral Load", field: "lastViralLoad", filtering: false },
@@ -182,39 +183,48 @@ const LabHistory = (props) => {
                   (
                     <ButtonGroup variant="contained" 
                         aria-label="split button"
-                        style={{backgroundColor:'rgb(153, 46, 98)', height:'30px'}}
-                        size="large"
-                        onClick={()=>onClickHome(row, 'view')}
+                                 style={{
+                                     backgroundColor:'rgb(153, 46, 98)',
+                                     height:'30px',
+                                     whiteSpace: 'nowrap',
+                                     overflow: 'hidden',
+                                     textOverflow: 'ellipsis'
+                                 }}
+                                 size="large"
+                        // onClick={()=>onClickHome(row, 'view')}
                     >
                     <Button
                     color="primary"
                     size="small"
                     aria-label="select merge strategy"
                     aria-haspopup="menu"
-                    style={{backgroundColor:'rgb(153, 46, 98)'}}
+                    style={{
+                        backgroundColor:'rgb(153, 46, 98)',
+                        height:'30px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                    }}
+
+                    onClick={()=>onClickHome(row, 'view')}
                     >
                        Eac Session
                     </Button>
+                        { row?.status === "COMPLETED" && <Button
+                            color="primary"
+                            size="small"
+                            aria-label="select merge strategy"
+                            aria-haspopup="menu"
+                            style={{backgroundColor:'rgb(153, 46, 98)'}}
+                            onClick={()=>LoadEacOutCome(row, 'view')}
+                        >
+                            Outcome
+                        </Button>
+                        }
                     </ButtonGroup>
-                  ), 
-                  // <div>
-                  //           <Menu.Menu position='right'  >
-                  //           <Menu.Item >
-                  //               <Button style={{backgroundColor:'rgb(153,46,98)'}} primary>
-                  //               <Dropdown item text='Action'>
-
-                  //               <Dropdown.Menu style={{ marginTop:"10px", }}>
-                  //                  <Dropdown.Item  onClick={()=>onClickHome(row, 'view')}> EAC SESSIONS</Dropdown.Item>
-                  //                  {/* <Dropdown.Item  onClick={()=>onClickHome(row, 'update')}><Icon name='edit' />Update</Dropdown.Item>
-                  //                   <Dropdown.Item  onClick={()=>LoadDeletePage(row)}> <Icon name='trash' /> Delete</Dropdown.Item> */}
-                  //               </Dropdown.Menu>
-                  //           </Dropdown>
-                  //               </Button>
-                  //           </Menu.Item>
-                  //           </Menu.Menu>
-                  //        </div>
+                  ),
                   }))}
-            
+
                         options={{
                           headerStyle: {
                               backgroundColor: "#014d88",

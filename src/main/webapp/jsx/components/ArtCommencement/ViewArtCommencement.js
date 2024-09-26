@@ -576,7 +576,7 @@ const ArtCommencement = (props) => {
                     ART Start Date <span style={{ color: "red" }}> *</span>
                   </Label>
                   <Input
-                    type="date"
+                     type="date" onKeyPress={(e) => e.preventDefault()}
                     name="visitDate"
                     id="visitDate"
                     onChange={handleInputChange}
@@ -649,7 +649,7 @@ const ArtCommencement = (props) => {
                       <option value="Semi-Quantitative">
                         Semi-Quantitative
                       </option>
-                      <option value="Flow Cyteometry">Flow Cyteometry</option>
+                      <option value="Flow Cyteometry">Flow Cytometry</option>
                     </select>
                   </FormGroup>
                 </div>
@@ -679,7 +679,7 @@ const ArtCommencement = (props) => {
                 {objValues.cd4Type === "Flow Cyteometry" && (
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label for="">CD4 Count Value (Flow Cyteometry)</Label>
+                      <Label for="">CD4 Count Value (Flow Cytometry)</Label>
                       <Input
                         type="number"
                         min={1}
@@ -823,7 +823,7 @@ const ArtCommencement = (props) => {
                     <FormGroup>
                       <Label>Date of Viral Load at Start of ART</Label>
                       <Input
-                        type="date"
+                         type="date" onKeyPress={(e) => e.preventDefault()}
                         name="dateOfViralLoadAtStartOfArt"
                         id="dateOfViralLoadAtStartOfArt"
                         max={moment(new Date()).format("YYYY-MM-DD")}
@@ -968,7 +968,7 @@ const ArtCommencement = (props) => {
                         <FormGroup>
                           <Label>LMP</Label>
                           <Input
-                            type="date"
+                             type="date" onKeyPress={(e) => e.preventDefault()}
                             name="dateOfLpm"
                             id="dateOfLpm"
                             onChange={handleInputChange}
@@ -1490,7 +1490,7 @@ const ArtCommencement = (props) => {
                       <FormGroup>
                         <Label>LMP</Label>
                         <Input
-                          type="date"
+                           type="date" onKeyPress={(e) => e.preventDefault()}
                           name="LMPDate"
                           id="LMPDate"
                           onChange={handleInputChange}
@@ -1510,7 +1510,7 @@ const ArtCommencement = (props) => {
               )}
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
-                  <Label>Clinical Notes</Label>
+                  <Label>Comment</Label>
                   <Input
                     type="textarea"
                     name="clinicalNote"

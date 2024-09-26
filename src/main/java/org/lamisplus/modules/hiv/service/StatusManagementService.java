@@ -76,7 +76,7 @@ public class StatusManagementService {
 	private Quarter getQuarter(int startMonth, int year, String quarterName) {
 		LocalDate start = LocalDate.of(year, startMonth, 1);
 		LocalDate end = start.plusMonths(3).minusDays(1);
-		log.info("endDate:{}", end);
+//		log.info("endDate:{}", end);
 		return new Quarter(start, end, quarterName);
 		
 	}

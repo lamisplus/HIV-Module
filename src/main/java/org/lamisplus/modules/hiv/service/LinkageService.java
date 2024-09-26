@@ -127,10 +127,10 @@ public class LinkageService {
     public boolean importJsonFromFile(MultipartFile file) throws IOException {
         boolean result = false;
         String jsonObjectFilePath = LINKAGE_IMPORT + File.separator + file.getOriginalFilename();
-        log.info("file path: " + jsonObjectFilePath);
+//        log.info("file path: " + jsonObjectFilePath);
         file.transferTo(new File(jsonObjectFilePath));
         List<OvcLinkage> linkageList = jsonFileToObjectList(jsonObjectFilePath);
-        log.info("linked list: " + linkageList);
+//        log.info("linked list: " + linkageList);
         linkageList = save(linkageList);
         if (!linkageList.isEmpty()) {
             result = true;
@@ -239,9 +239,9 @@ public class LinkageService {
         File directory = new File(directoryPath);
         if (!directory.exists()) {
             if (directory.mkdirs()) {
-                log.info("Directory created: " + directory.getAbsolutePath());
+//                log.info("Directory created: " + directory.getAbsolutePath());
             } else {
-                log.error("Failed to create the directory: " + directory.getAbsolutePath());
+//                log.error("Failed to create the directory: " + directory.getAbsolutePath());
             }
         }
     }

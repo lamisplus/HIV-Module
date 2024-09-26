@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 
 @Setter
 @Getter
-public class ApiError {
+public class
+ApiError {
 
     private HttpStatus status;
     private String message;

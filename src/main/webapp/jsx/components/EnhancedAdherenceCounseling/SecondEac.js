@@ -144,6 +144,7 @@ const EAC = (props) => {
                                 //max= {moment(new Date()).format("YYYY-MM-DD") }
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 required
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                             {errors.dateOfEac2 !=="" ? (
                                 <span className={classes.error}>{errors.dateOfEac2}</span>
@@ -163,6 +164,7 @@ const EAC = (props) => {
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 required
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                             {errors.dateOfEac1 !=="" ? (
                                 <span className={classes.error}>{errors.dateOfEac1}</span>
@@ -298,6 +300,7 @@ const EAC = (props) => {
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 required
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                             {errors.dateOfEac1 !=="" ? (
                                 <span className={classes.error}>{errors.dateOfEac1}</span>

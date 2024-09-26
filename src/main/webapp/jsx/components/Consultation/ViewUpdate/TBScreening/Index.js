@@ -80,32 +80,35 @@ const useStyles = makeStyles((theme) => ({
 const TBScreeningForm = (props) => {
   const classes = useStyles();
   const [tbStatus, setTbStatus] = useState([]);
+  // useEffect(() => {
+  //   TBStatus();
+  //   if (
+  //     (props.tbObj.currentOnIpt !== "" && props.tbObj.coughing === "YES") ||
+  //     props.tbObj.nightSweat === "YES" ||
+  //     props.tbObj.fever === "YES" ||
+  //     props.tbObj.contactWithTBCase === "YES" ||
+  //     props.tbObj.lethergy === "YES"
+  //   ) {
+  //     props.tbObj.tbStatusId = 68; //for any option with YES
+  //   } else if (
+  //     props.tbObj.currentOnIpt !== "" &&
+  //     props.tbObj.coughing === "NO" &&
+  //     props.tbObj.nightSweat === "NO" &&
+  //     props.tbObj.fever === "NO" &&
+  //     props.tbObj.contactWithTBCase === "NO" &&
+  //     props.tbObj.lethergy === "NO"
+  //   ) {
+  //     props.tbObj.tbStatusId = 67;
+  //   } else if (
+  //     props.tbObj.tbStatusId === "" ||
+  //     props.tbObj.tbStatusId === null
+  //   ) {
+  //     props.tbObj.tbStatusId = "";
+  //   }
+  // }, [props.tbObj]);
   useEffect(() => {
-    TBStatus();
-    if (
-      (props.tbObj.currentOnIpt !== "" && props.tbObj.coughing === "YES") ||
-      props.tbObj.nightSweat === "YES" ||
-      props.tbObj.fever === "YES" ||
-      props.tbObj.contactWithTBCase === "YES" ||
-      props.tbObj.lethergy === "YES"
-    ) {
-      props.tbObj.tbStatusId = 68; //for any option with YES
-    } else if (
-      props.tbObj.currentOnIpt !== "" &&
-      props.tbObj.coughing === "NO" &&
-      props.tbObj.nightSweat === "NO" &&
-      props.tbObj.fever === "NO" &&
-      props.tbObj.contactWithTBCase === "NO" &&
-      props.tbObj.lethergy === "NO"
-    ) {
-      props.tbObj.tbStatusId = 67;
-    } else if (
-      props.tbObj.tbStatusId === "" ||
-      props.tbObj.tbStatusId === null
-    ) {
-      props.tbObj.tbStatusId = "";
-    }
-  }, [props.tbObj]);
+    TBStatus()
+  }, []);
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
   const TBStatus = () => {
@@ -122,7 +125,6 @@ const TBScreeningForm = (props) => {
         
       });
   };
-
   const handleInputChange = (e) => {
     
     props.setTbObj({ ...props.tbObj, [e.target.name]: e.target.value });
@@ -333,11 +335,15 @@ const TBScreeningForm = (props) => {
             <Label>Patient TB Status</Label>
             <Input
               type="select"
+              // name="tcareCardPatientTbStatus"
+              // id="careCardPatientTbStatus"
               name="tbStatusId"
               id="tbStatusId"
               value={props.tbObj.tbStatusId}
+              // value={props.tbObj.careCardPatientTbStatus}
               onChange={handleInputChange}
               style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+              disabled={!props.enableUpdate}
             >
               <option value="">Select </option>
               {tbStatus &&
@@ -348,11 +354,11 @@ const TBScreeningForm = (props) => {
                 ))}
             </Input>
           </FormGroup>
-          {props.errors.tbStatusId !== "" ? (
-            <span className={classes.error}>{props.errors.tbStatusId}</span>
-          ) : (
-            ""
-          )}
+          {/*{props.errors.careCardPatientTbStatus !== "" ? (*/}
+          {/*  <span className={classes.error}>{props.errors.careCardPatientTbStatus}</span>*/}
+          {/*) : (*/}
+          {/*  ""*/}
+          {/*)}*/}
         </div>
       </div>
     </div>

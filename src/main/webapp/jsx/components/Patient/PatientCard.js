@@ -9,6 +9,7 @@ import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 import { Link } from "react-router-dom";
 import ButtonMui from "@material-ui/core/Button";
 import { TiArrowBack } from "react-icons/ti";
+import Badge from 'react-bootstrap/Badge';
 
 import { Label, Sticky } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
@@ -64,6 +65,10 @@ function PatientCard(props) {
   //const patientCurrentStatus=props.patientObj && props.patientObj.currentStatus==="Died (Confirmed)" ? true : false ;
   const patientObject = props.patientObj1;
 
+  const id = props.patientObj.id;
+
+  const [patientFlag, setPatientFlag] = useState({});
+
   const getHospitalNumber = (identifier) => {
     const identifiers = identifier;
     const hospitalNumber = identifiers.identifier.find(
@@ -87,6 +92,20 @@ function PatientCard(props) {
       address && address.city && address.city !== null ? address.city : "";
     return address ? houseAddress + " " + landMark : "";
   };
+
+  const fetchPatientFlags = () => {
+    axios.get(`${baseUrl}hiv/patient-flag/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((response) => {
+      setPatientFlag(response.data);
+      console.log(setPatientFlag)
+    }
+    )
+  }
+  
+  useEffect(() => {
+    fetchPatientFlags(id);
+  }, [])
 
   return (
     <Sticky>
@@ -188,6 +207,63 @@ function PatientCard(props) {
                             {getAddress(patientObject.address)}{" "}
                           </b>
                         </span>
+                      </Col>
+                      <Col md={4} style={{ marginBottom: '6px' }}>
+                        <span>
+                          {" "}
+                          Next Appointment Date :{" "}
+                          <b style={{ color: "#0B72AA" }}>
+                            {patientFlag.nextAppointmentDate && patientFlag.nextAppointmentDate !== null
+                              ? patientFlag.nextAppointmentDate
+                              : ""}
+                              {patientFlag.dateDiff !== null
+                              ? <span style={{ fontStyle: 'italic', color: 'rgb(153, 46, 98)' }}> {"   "} due in <Badge style={{backgroundColor: 'red', fontSize:'14px'}}> {patientFlag.dateDiff}</Badge> days </span>
+                              : null
+                            }
+                          </b>
+                        </span>
+                      </Col>
+                      <Col md={4} className={classes.root2} style={{ marginBottom: '6px' }}>
+                        <Typography variant="caption">
+                          <Label
+                            size={"medium"}
+                            style={{ width: '210px', height: '50', justifyContent: 'space-between', alignItems: 'center' }}
+                          >
+                            <Label.Detail style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', text: 'center' }}>
+                              {
+
+                                patientFlag.missedAppointment === 'Missed Appointment'
+                                  ? "MISSED APPOINTMENT"
+                                  : 'PATIENT STILL IN CARE'
+                              }
+                              
+                              {patientFlag.missedAppointment === 'Missed Appointment' ?
+                              <Badge style={{backgroundColor: 'red', fontSize:'14px'}}> {patientFlag.daysMissedAppointment}</Badge>
+                                // <div style={{ width: '25px', height: '25px', borderRadius: '50%', backgroundColor: 'red', padding: '3px', display: 'flex', justifyContent: 'center', alignItems: 'center' }} >{patientFlag.daysMissedAppointment}</div>
+                                : null
+                              }
+
+                            </Label.Detail>
+                          </Label>
+                        </Typography>
+                      </Col>
+                      <Col md={4} className={classes.root2} style={{ marginBottom: '6px' }}>
+                        <Typography variant="caption">
+                          <Label
+                            size={"medium"}
+                            style={{ width: '300px', height: '90', justifyContent: 'space-between', alignItems: 'left' }}
+                          >
+
+                            {/* <Label.Detail style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', text: 'center'}}> */}
+                              {
+                                patientFlag.vlSurpression === 'LOW SURPRESSION RATE' 
+                                  ? <span>VIRAL LOAD RESULT <Badge style={{backgroundColor: 'blue', fontSize:'14px'}}> {patientFlag.currentViralLoadResult}</Badge> </span>
+                                  : patientFlag.vlSurpression === 'HIGH SURPRESSION RATE'
+                                    ? <span>VIRAL LOAD RESULT <Badge style={{backgroundColor: 'red', fontSize:'14px'}}> {patientFlag.currentViralLoadResult}</Badge> </span>
+                                    : <span>NO VIRAL LOAD RESULT </span>
+                              }
+                          </Label>
+                        </Typography>
                       </Col>
                       <Col md={12}>
                         <div>

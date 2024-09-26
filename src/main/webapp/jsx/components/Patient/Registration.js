@@ -729,7 +729,7 @@ const UserRegistration = (props) => {
                                                     <Label for="dateOfRegistration">Date of Registration* </Label>
                                                     <Input
                                                         className="form-control"
-                                                        type="date"
+                                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                                         name="dateOfRegistration"
                                                         id="dateOfRegistration"
                                                         max={today}
@@ -862,7 +862,7 @@ const UserRegistration = (props) => {
                                                     <Label>Date</Label>
                                                     <input
                                                         className="form-control"
-                                                        type="date"
+                                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                                         name="dob"
                                                         id="dob"
                                                         max={today}
@@ -1373,7 +1373,7 @@ const UserRegistration = (props) => {
                                     <FormGroup>
                                     <Label for="dateOfRegistration">Date of Enrollment * </Label>
                                     <Input
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         name="dateOfRegistration"
                                         id="dateOfRegistration"
                                         max={today}
@@ -1451,7 +1451,7 @@ const UserRegistration = (props) => {
                                     <FormGroup>
                                     <Label >Date of Confirmed HIV Test *</Label>
                                     <Input
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         name="dateConfirmedHiv"
                                         id="dateConfirmedHiv"
                                         max={today}
@@ -1535,7 +1535,7 @@ const UserRegistration = (props) => {
                                     <FormGroup>
                                     <Label >Date of LMP </Label>                                    
                                     <Input
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         name="dateOfLpm"
                                         id="dateOfLpm"
                                         max={today}
@@ -1590,7 +1590,7 @@ const UserRegistration = (props) => {
                                         className="form-check-label"
                                         htmlFor="basic_checkbox_1"
                                         >
-                                        Enrolled into OVC?
+                                        Enrolled into OVC?###
                                         </label>
                                     </div>
                                 </div>

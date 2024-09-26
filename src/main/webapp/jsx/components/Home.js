@@ -1,4 +1,4 @@
-import React, { useState, Fragment,useEffect } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 import { Row, Col, Card, Tab, Tabs } from "react-bootstrap";
 import Dashboard from "./Patient/PatientList";
 import VisualisationHome from "./Visualisation/Index";
@@ -7,10 +7,10 @@ import ArtPatients from "./Patient/ArtPatients";
 import Ovc from "./Ovc/Index";
 import { Link } from "react-router-dom";
 import Button from "@material-ui/core/Button";
-import { url  as baseUrl} from "../../api";
+import { url as baseUrl } from "../../api";
 import { FaUserPlus } from "react-icons/fa";
-import { token} from '../../api'
-import axios from 'axios';
+import { token } from "../../api";
+import axios from "axios";
 //import PageTitle from "./../layouts/PageTitle";
 const divStyle = {
   borderRadius: "2px",
@@ -21,24 +21,21 @@ const Home = () => {
   const [key, setKey] = useState("home");
   // tab
 
-const fetchFacilityId = () => {
-    
+  const fetchFacilityId = () => {
     axios
-        .get(`${baseUrl}account`, {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-           
-            const organisationUnitId = response.data.currentOrganisationUnitId;
-    localStorage.setItem('facId', organisationUnitId)
-        })
-        .catch((error) => {});
-};
+      .get(`${baseUrl}account`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        const organisationUnitId = response.data.currentOrganisationUnitId;
+        localStorage.setItem("facId", organisationUnitId);
+      })
+      .catch((error) => {});
+  };
 
   useEffect(() => {
     fetchFacilityId();
-}, []);
-
+  }, []);
 
   return (
     <Fragment>
@@ -83,10 +80,10 @@ const fetchFacilityId = () => {
                   <Tab eventKey="art-patients" title="ART Patients">
                     <ArtPatients />
                   </Tab>
-                   <Tab eventKey="list" title="OVC Linkage">
+                  <Tab eventKey="list" title="OVC Linkage">
                     <Ovc />
                   </Tab>
-                   {/* <Tab eventKey="visualization" title="Data Visualisation">
+                  {/* <Tab eventKey="visualization" title="Data Visualisation">
                     <VisualisationHome />
                   </Tab> */}
                 </Tabs>

@@ -121,6 +121,7 @@ public interface PatientLineDto {
 	String getViralLoadType();
 	String getUniqueId();
 	String getAdherenceLevel();
+	String getCmName();
 	
 }
 			

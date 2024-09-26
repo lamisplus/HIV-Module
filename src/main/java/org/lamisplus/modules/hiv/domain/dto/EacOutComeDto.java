@@ -30,4 +30,5 @@ public class EacOutComeDto implements Serializable {
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
 	private JsonNode planAction;
+	private final String substituteRegimen;
 }

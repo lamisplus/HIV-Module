@@ -259,6 +259,18 @@
         </sql>
     </changeSet>
 
+    <changeSet failOnError="true"  id="20241905-291" author="gamaliel">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_art_clinical" columnName="who" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE hiv_art_clinical
+            ADD who JSONB
+        </sql>
+    </changeSet>
+
 
 
 

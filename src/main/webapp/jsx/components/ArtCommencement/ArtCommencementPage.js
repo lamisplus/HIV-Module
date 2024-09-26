@@ -228,7 +228,7 @@ const ArtCommencement = (props) => {
       })
       .then((response) => {
         const artRegimenChildren = response.data.filter(
-          (x) => x.id === 3 || x.id === 4 
+          (x) => x.id === 3 || x.id === 4
         );
         setChildRegimenLine(artRegimenChildren);
       })
@@ -569,12 +569,12 @@ const ArtCommencement = (props) => {
                         ART Start Date <span style={{ color: "red" }}> *</span>{" "}
                       </Label>
                       <Input
-                        type="date"
+                         type="date" onKeyPress={(e) => e.preventDefault()}
                         name="visitDate"
                         id="visitDate"
                         onChange={handleInputChange}
                         value={objValues.visitDate}
-                        min="01-01-1980"
+                        // min="01-01-1980"
                         max={moment(new Date()).format("YYYY-MM-DD")}
                         style={{
                           border: "1px solid #014D88",
@@ -600,12 +600,11 @@ const ArtCommencement = (props) => {
                         ART Start Date <span style={{ color: "red" }}> *</span>{" "}
                       </Label>
                       <Input
-                        type="date"
+                         type="date" onKeyPress={(e) => e.preventDefault()}
                         name="visitDate"
                         id="visitDate"
                         onChange={handleInputChange}
                         value={objValues.visitDate}
-                        min={enrollDate}
                         max={moment(new Date()).format("YYYY-MM-DD")}
                         style={{
                           border: "1px solid #014D88",
@@ -678,7 +677,7 @@ const ArtCommencement = (props) => {
                       <option value="Semi-Quantitative">
                         Semi-Quantitative
                       </option>
-                      <option value="Flow Cyteometry">Flow Cyteometry</option>
+                      <option value="Flow Cyteometry">Flow Cytometry</option>
                     </select>
                   </FormGroup>
                 </div>
@@ -707,7 +706,7 @@ const ArtCommencement = (props) => {
                 {objValues.cd4Type === "Flow Cyteometry" && (
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label for="">CD4 Count Value (Flow Cyteometry)</Label>
+                      <Label for="">CD4 Count Value (Flow Cytometry)</Label>
                       <Input
                         type="number"
                         min={1}
@@ -850,7 +849,7 @@ const ArtCommencement = (props) => {
                     <FormGroup>
                       <Label>Date of Viral Load at Start of ART</Label>
                       <Input
-                        type="date"
+                         type="date" onKeyPress={(e) => e.preventDefault()}
                         name="dateOfViralLoadAtStartOfArt"
                         id="dateOfViralLoadAtStartOfArt"
                         max={moment(new Date()).format("YYYY-MM-DD")}
@@ -978,7 +977,7 @@ const ArtCommencement = (props) => {
                       <FormGroup>
                         <Label>LMP</Label>
                         <Input
-                          type="date"
+                           type="date" onKeyPress={(e) => e.preventDefault()}
                           name="dateOfLpm"
                           id="dateOfLpm"
                           onChange={handleInputChange}
@@ -1482,7 +1481,7 @@ const ArtCommencement = (props) => {
               )}
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
-                  <Label>Clinical Notes</Label>
+                  <Label>Comment</Label>
                   <Input
                     type="textarea"
                     name="clinicalNote"

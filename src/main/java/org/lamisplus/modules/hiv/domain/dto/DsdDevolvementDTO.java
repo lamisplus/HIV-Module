@@ -2,6 +2,7 @@ package org.lamisplus.modules.hiv.domain.dto;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import javax.persistence.Basic;
 import javax.persistence.Convert;
 import javax.validation.constraints.PastOrPresent;
 import org.lamisplus.modules.hiv.utility.LocalDateConverter;
@@ -33,9 +34,7 @@ public class DsdDevolvementDTO implements Serializable {
     private LocalDate dateReturnToSite;
     private JsonNode serviceProvided;
     private String dsdType;
-    private int dsdOutletState;
-    private int dsdOutletLga;
-    private Long dsdOutlet;
+    private String outletName;
     private String comment;
     private String completedBy;
     private String designation;
@@ -44,4 +43,10 @@ public class DsdDevolvementDTO implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateDevolved;
     private JsonNode dsdEligibilityAssessment;
+    @Basic
+    private String source;
+    @Basic
+    private String longitude;
+    @Basic
+    private  String latitude;
 }
