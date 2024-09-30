@@ -37,6 +37,12 @@ public class DsdDevolvementController {
 //
 //    }
 
+    @GetMapping(value = "/patient/{personId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Boolean> checkIfPatientHasBeenDevolved(@PathVariable("personId") String personId) {
+        boolean result = devolvementService.checkIfPatientHasBeenDevolved(personId);
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> saveDsdDevolvement(@RequestBody DsdDevolvementDTO dto) {
         try {
@@ -59,9 +65,9 @@ public class DsdDevolvementController {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        
-    }  
-    
+
+    }
+
     @GetMapping(value="/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<DsdDevolvementDTO> getDevolvementById(@PathVariable("id") Long id){
         try {
@@ -96,7 +102,7 @@ public class DsdDevolvementController {
     @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<String> deleteDevolvementById(@PathVariable("id") Long id){
         try {
-            return ResponseEntity.ok(devolvementService.deleteById(id));  
+            return ResponseEntity.ok(devolvementService.deleteById(id));
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -117,6 +123,11 @@ public class DsdDevolvementController {
             e.printStackTrace();
             return new ResponseEntity<>("An error occurred while retrieving patient's current viral load", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping(value = "/client-tracking-details", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Optional<ClientDetailDTOForTracking>> getClientTrackingdetails(@RequestParam String personUuid) {
+        return ResponseEntity.ok(devolvementService.getClientDetailDTOForTracking(personUuid));
     }
 
 }

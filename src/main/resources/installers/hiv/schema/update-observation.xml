@@ -23,15 +23,29 @@
         </sql>
     </changeSet>
 
-    <changeSet failOnError="true" author="Ajor Victor" id="20231130-001">
+    <changeSet failOnError="false" author="Taiwo Gboyegun" id="addSourceMobileQuery-004">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="hiv_art_clinical" columnName="Reason" />
+                <columnExists tableName="hiv_observation" columnName="latitude" />
+                <columnExists tableName="hiv_observation" columnName="longitude" />
+                <columnExists tableName="hiv_observation" columnName="source" />
             </not>
         </preConditions>
         <sql>
-            ALTER TABLE hiv_art_clinical ADD Reason VARCHAR(255);
+            ALTER TABLE hiv_observation ADD COLUMN latitude varchar(255);
+            ALTER TABLE hiv_observation ADD COLUMN longitude varchar(255);
+            ALTER TABLE hiv_observation ADD COLUMN source varchar(255);
         </sql>
     </changeSet>
+<!--    <changeSet failOnError="true" author="Ajor Victor" id="20231130-0011">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <columnExists tableName="hiv_art_clinical" columnName="Reason" />-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <sql>-->
+<!--            ALTER TABLE hiv_art_clinical ADD Reason VARCHAR(255);-->
+<!--        </sql>-->
+<!--    </changeSet>-->
 
 </databaseChangeLog>

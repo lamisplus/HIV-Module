@@ -123,6 +123,9 @@ const Tracking = (props) => {
     setvaCauseOfDeathTypeChildNonCommunicableDiseases,
   ] = useState([]);
   const [vaCauseOfDeathTypeAdult, setvaCauseOfDeathTypeAdult] = useState([]);
+  const [clientTrackingDetails, setClientTrackingDetails] = useState({
+    dsdStatus: "",
+  });
   const [objValues, setObjValues] = useState({
     durationOnART: "",
     dsdStatus: "",
@@ -191,6 +194,11 @@ const Tracking = (props) => {
       setDisabledField(true);
     }
   }, [props.activeContent, props.activeContent.id]);
+
+  useEffect(() => {
+    getClientTrackingDetails();
+  }, [dsdStatus]);
+
   //Get Tracking Form Object
   // const GetFormDetail =()=>{
   //     axios
@@ -341,6 +349,45 @@ const Tracking = (props) => {
         
       });
   };
+  // CALULATE ART DURATION IN MONTHS
+  const calculateDuration = (durationOnArt) => {
+    if (durationOnArt === null || durationOnArt === undefined) return "";
+    const durationInMonths = durationOnArt / 30;
+    return durationInMonths < 3 ? "<3months" : ">=3months";
+  };
+
+  const getClientTrackingDetails = () => {
+    axios
+        .get(`${baseUrl}hiv/art/pharmacy/devolve/client-tracking-details?personUuid=${props.patientObj.personUuid}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          if (response.data) {
+            const durationOnArtValue = calculateDuration(response.data.durationOnArt);
+            let dsdStatusValue = "";
+            if (response.data.dsdStatus !== null && response.data.dsdStatus !== "") {
+              dsdStatusValue = response.data.dsdStatus === "Yes" ? dsdStatus[0].display : dsdStatus[1].display;
+            }
+            let dsdModelValue = "";
+            if (response.data.dsdModel !== null && response.data.dsdModel !== "") {
+              dsdModelValue = response.data.dsdModel === "Facility" ? "FBM" : response.data.dsdModel === "Community" ? "CBM" : "";
+            }
+            setClientTrackingDetails({ ...response.data, durationOnART: durationOnArtValue, dsdStatus: dsdStatusValue });
+            setObjValues({
+              ...objValues,
+              dsdStatus: response.data.dsdStatus === "Yes" ? dsdStatus[0].code : dsdStatus[1].code,
+              durationOnART: durationOnArtValue,
+              dsdModel: dsdModelValue,
+              dateLastAppointment: response.data.dateOfLastRefill ? response.data.dateOfLastRefill : "",
+              dateMissedAppointment: response.data.dateOfMissedScheduleAppointment ? response.data.dateOfMissedScheduleAppointment : ""
+            });
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+  };
+
   const ReasonForTracking = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/REASON_TRACKING`, {
@@ -844,6 +891,7 @@ const Tracking = (props) => {
                       }}
                       max={moment(new Date()).format("YYYY-MM-DD")}
                       disabled={disabledField}
+                      onKeyPress={(e) => e.preventDefault()}
                     ></Input>
                     {errors.dateOfObservation !== "" ? (
                       <span className={classes.error}>
@@ -868,7 +916,8 @@ const Tracking = (props) => {
                       id="durationOnART"
                       onChange={handleInputChange}
                       value={objValues.durationOnART}
-                      disabled={disabledField}
+                      // disabled={disabledField}
+                        disabled
                     >
                       <option value=""></option>
                       <option value="<3months">{"<"} 3 months</option>
@@ -894,7 +943,8 @@ const Tracking = (props) => {
                       id="dsdStatus"
                       onChange={handleInputChange}
                       value={objValues.dsdStatus}
-                      disabled={disabledField}
+                      // disabled={disabledField}
+                      disabled
                     >
                       <option value="">Select</option>
                       {dsdStatus.map((value) => (
@@ -923,7 +973,8 @@ const Tracking = (props) => {
                         id="dsdModel"
                         onChange={handleInputChange}
                         value={objValues.dsdModel}
-                        disabled={disabledField}
+                        // disabled={disabledField}
+                        disabled
                       >
                         <option value=""></option>
                         <option value="FBM">FBM</option>
@@ -1010,7 +1061,9 @@ const Tracking = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
-                    disabled={disabledField}
+                    // disabled={disabledField}
+                    disabled
+                    onKeyPress={(e) => e.preventDefault()}
                   />
                   {errors.dateLastAppointment !== "" ? (
                     <span className={classes.error}>
@@ -1036,7 +1089,9 @@ const Tracking = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                     }}
-                    disabled={disabledField}
+                    // disabled={disabledField}
+                    disabled
+                    onKeyPress={(e) => e.preventDefault()}
                   />
                   {errors.dateMissedAppointment !== "" ? (
                     <span className={classes.error}>
@@ -1066,6 +1121,7 @@ const Tracking = (props) => {
                       min={enrollDate !== "" ? enrollDate : ""}
                       max={moment(new Date()).format("YYYY-MM-DD")}
                       disabled={disabledField}
+                      onKeyPress={(e) => e.preventDefault()}
                     ></Input>
                     {errors.attemptDate !== "" ? (
                       <span className={classes.error}>
@@ -1308,6 +1364,7 @@ const Tracking = (props) => {
                           borderRadius: "0.25rem",
                         }}
                         disabled={disabledField}
+                        onKeyPress={(e) => e.preventDefault()}
                       />
                       {errors.dateReturnToCare !== "" ? (
                         <span className={classes.error}>
@@ -1381,26 +1438,28 @@ const Tracking = (props) => {
                   <div className="form-group mb-3 col-md-4">
                     <FormGroup>
                       <Label for=""> Date of Discontinuation</Label>
+                      <span style={{color: "red"}}> *</span>x
                       <Input
-                        type="date"
-                        name="dateOfDiscontinuation"
-                        id="dateOfDiscontinuation"
-                        onChange={handleInputChange}
-                        value={objValues.dateOfDiscontinuation}
-                        min={enrollDate !== "" ? enrollDate : ""}
-                        max={moment(new Date()).format("YYYY-MM-DD")}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        disabled={disabledField}
+                          type="date"
+                          name="dateOfDiscontinuation"
+                          id="dateOfDiscontinuation"
+                          onChange={handleInputChange}
+                          value={objValues.dateOfDiscontinuation}
+                          min={enrollDate !== "" ? enrollDate : ""}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
+                          disabled={disabledField}
+                          onKeyPress={(e) => e.preventDefault()}
                       />
                       {errors.dateOfDiscontinuation !== "" ? (
-                        <span className={classes.error}>
+                          <span className={classes.error}>
                           {errors.dateOfDiscontinuation}
                         </span>
                       ) : (
-                        ""
+                          ""
                       )}
                     </FormGroup>
                   </div>
@@ -1558,6 +1617,7 @@ const Tracking = (props) => {
                               borderRadius: "0.25rem",
                             }}
                             disabled={disabledField}
+                            onKeyPress={(e) => e.preventDefault()}
                         />
                         {errors.dateOfDeath !== "" ? (
                             <span className={classes.error}>
@@ -1849,7 +1909,8 @@ const Tracking = (props) => {
                     {/* End of VA Cause of Death  base on selection  */}
                   </>
               )}
-              {(objValues.causeOfDeath === "Natural Cause" ||
+              {(objValues.causeOfDeath === "Natural Cause" || objValues.causeOfDeath === "Suspected Opportunistic Infection (specify)"
+                  || objValues.causeOfDeath === "Suspected ARV Side effect (Speciify)" ||
                   objValues.causeOfDeath === "Unknown cause") && (
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>

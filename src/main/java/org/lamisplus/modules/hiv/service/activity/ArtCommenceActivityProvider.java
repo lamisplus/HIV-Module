@@ -21,7 +21,7 @@ public class ArtCommenceActivityProvider implements PatientActivityProvider {
 
     @Override
     public List<PatientActivity> getActivitiesFor(Person person) {
-        Optional<ARTClinical> artCommencement = artClinicalRepository.findByPersonAndIsCommencementIsTrueAndArchived (person, 0);
+        Optional<ARTClinical> artCommencement = artClinicalRepository.findTopByPersonAndIsCommencementIsTrueAndArchived (person, 0);
         StringBuilder name = new StringBuilder("ART Commencement");
         PatientActivity patientActivity = artCommencement
                 .map (artPharmacy -> {

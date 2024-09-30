@@ -106,7 +106,7 @@
                 </Label>
                 <input
                   className="form-control"
-                  type="date"
+                   type="date" onKeyPress={(e) => e.preventDefault()}
                   name="sixMonthsDate"
                   id="sixMonthsDate"
                   value={formik.values.sixMonthsDate}
@@ -212,7 +212,7 @@
                 </Label>
                 <input
                   className="form-control"
-                  type="date"
+                   type="date" onKeyPress={(e) => e.preventDefault()}
                   name="twelveMonthsDate"
                   id="twelveMonthsDate"
                   value={formik.values.twelveMonthsDate}
@@ -321,7 +321,7 @@
                 </Label>
                 <Input
                   className="form-control"
-                  type="date"
+                   type="date" onKeyPress={(e) => e.preventDefault()}
                   name="eighteenMonthsDate"
                   id="eighteenMonthsDate"
                   value={formik.values.eighteenMonthsDate}
@@ -432,7 +432,7 @@
                 </Label>
                 <Input
                   className="form-control"
-                  type="date"
+                   type="date" onKeyPress={(e) => e.preventDefault()}
                   name="twentyFourMonthsDate"
                   id="twentyFourMonthsDate"
                   value={formik.values.twentyFourMonthsDate}
@@ -543,7 +543,7 @@
                 </Label>
                 <Input
                   className="form-control"
-                  type="date"
+                   type="date" onKeyPress={(e) => e.preventDefault()}
                   name="thirtyMonthsDate"
                   id="thirtyMonthsDate"
                   value={formik.values.thirtyMonthsDate}

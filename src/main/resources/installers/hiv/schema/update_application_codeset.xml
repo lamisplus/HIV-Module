@@ -9,4 +9,33 @@
         <sql>DELETE FROM  base_application_codeset WHERE  code = 'DSD_MODEL_COMMUNITY_COMMUNITY_ART_REFILL_GROUP:_HEALTHCARE_WORKER_–_LED';</sql>
         <sql>DELETE FROM  base_application_codeset WHERE  code = 'DSD_MODEL_COMMUNITY_COMMUNITY_ART_REFILL_GROUP:_PLHIV_–_LED_';</sql>
     </changeSet>
+
+    <changeSet failOnError="true" author="Taiwo Gboyegun" id="20240709-001">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT count(*)
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'base_application_codeset'
+                  AND column_name = 'archived';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            DELETE FROM databasechangelog
+            WHERE id = 'update-base_application_codeset'
+              AND EXISTS (
+                SELECT 1
+                FROM databasechangelog
+                WHERE id = 'update-base_application_codeset'
+            );
+        </sql>
+        <sql>
+            UPDATE base_application_codeset
+            SET archived = 1
+            WHERE code = 'DSD_MODEL_FACILITY_FACILITY'
+              AND display = 'Facility';
+        </sql>
+    </changeSet>
+
+
 </databaseChangeLog>

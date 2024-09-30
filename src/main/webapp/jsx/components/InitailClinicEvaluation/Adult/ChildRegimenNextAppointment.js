@@ -214,108 +214,131 @@ return (
                 <CardBody>   
                 <h2 style={{color:'#000'}}>Regimen & Next Appointment</h2>
                 <br/>
-                    <form >
-                    {/* Medical History form inputs */}
-                    <div className="row">
-                    <h3>Regimen</h3>
-                    <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                    <Label >Original Regimen Line </Label>
-                    <Input
-                            type="select"
-                            name="regimenLine"
-                            id="regimenLine"
-                            value={regimenObj.regimenLine}
-                            onChange={handleSelecteRegimen}
-                            
-                            style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                            >
-                                <option value=""> Select</option>
-                                    {adultRegimenLine.map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                        {value.description}
-                                    </option>
-                                    ))}
-                                
-                        </Input>
-                        {errors.regimenLine !=="" ? (
-                            <span className={classes.error}>{errors.regimenLine}</span>
-                            ) : "" }
-                    </FormGroup>
-                    </div>                    
-                    <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                    <Label >Original Regimen </Label>
-                    <Input
-                            type="select"
-                            name="regimen"
-                            id="regimen"
-                            value={regimenObj.regimen}
-                            onChange={handleRegimen}
-                            style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                            required
-                            >
-                                <option value=""> Select</option>    
-                                {regimenType.map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                        {value.description}
-                                    </option>
-                                ))}
-                        </Input>
-                        {errors.regimen !=="" ? (
-                            <span className={classes.error}>{errors.regimen}</span>
-                            ) : "" }
-                    </FormGroup>
-                    </div>
-                   
-                    <br/>
-                    </div>
-                    <div className="row">
-                    <div className="form-group mb-3 col-md-6">
-                            <FormGroup>
-                            <Label >Next appointment <span style={{ color:"red"}}> *</span></Label>
-                            <InputGroup> 
-                                <Input 
-                                    type="date"
-                                    name="nextAppointment"
-                                    id="nextAppointment"
-                                    min={props.observation.dateOfObservation}
-                                    onChange={handleInputChangeobjValues} 
-                                    value={objValues.nextAppointment}  
-                                />
-                            </InputGroup>
-                            {errors.nextAppointment !=="" ? (
-                                    <span className={classes.error}>{errors.nextAppointment}</span>
-                                ) : "" }                                           
-                            </FormGroup>
-                    </div>
-                    <div className="form-group mb-3 col-md-6">
-                            <FormGroup>
-                            <Label >ART Clinician Name</Label>
-                            <InputGroup> 
-                                <Input 
-                                    type="text"
-                                    name="clinicianName"
-                                    id="clinicianName"
-                                    onChange={handleInputChangeobjValues} 
-                                    value={objValues.clinicianName}  
-                                />
-                            </InputGroup>
-                                                                  
-                            </FormGroup>
-                    </div>
-                    </div> 
-                    <br/>
-                    <Button content='Back' icon='left arrow' labelPosition='left' style={{backgroundColor:"#992E62", color:'#fff'}} onClick={()=>handleItemClick('plan', 'plan')}/>
-                    <Button content='Save Record' type="submit" disabled={!saving?false:true} icon='right arrow' labelPosition='right' style={{backgroundColor:"#014d88", color:'#fff'}} onClick={handleSubmit}/>
-                    
+                    <form>
+                        {/* Medical History form inputs */}
+                        <div className="row">
+                            <h3>Regimen</h3>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <Label>Original Regimen Line </Label>
+                                    <Input
+                                        type="select"
+                                        name="regimenLine"
+                                        id="regimenLine"
+                                        value={regimenObj.regimenLine}
+                                        onChange={handleSelecteRegimen}
+
+                                        style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                                    >
+                                        <option value=""> Select</option>
+                                        {adultRegimenLine.map((value) => (
+                                            <option key={value.id} value={value.id}>
+                                                {value.description}
+                                            </option>
+                                        ))}
+
+                                    </Input>
+                                    {errors.regimenLine !== "" ? (
+                                        <span className={classes.error}>{errors.regimenLine}</span>
+                                    ) : ""}
+                                </FormGroup>
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <Label>Original Regimen </Label>
+                                    <Input
+                                        type="select"
+                                        name="regimen"
+                                        id="regimen"
+                                        value={regimenObj.regimen}
+                                        onChange={handleRegimen}
+                                        style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                                        required
+                                    >
+                                        <option value=""> Select</option>
+                                        {regimenType.map((value) => (
+                                            <option key={value.id} value={value.id}>
+                                                {value.description}
+                                            </option>
+                                        ))}
+                                    </Input>
+                                    {errors.regimen !== "" ? (
+                                        <span className={classes.error}>{errors.regimen}</span>
+                                    ) : ""}
+                                </FormGroup>
+                            </div>
+
+                            <br/>
+                        </div>
+                        <div className="row">
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <Label>Next appointment <span style={{color: "red"}}> *</span></Label>
+                                    <InputGroup>
+                                        <Input
+                                            type="date"
+                                            name="nextAppointment"
+                                            id="nextAppointment"
+                                            min={props.observation.dateOfObservation}
+                                            onChange={handleInputChangeobjValues}
+                                            value={objValues.nextAppointment}
+                                        />
+                                    </InputGroup>
+                                    {errors.nextAppointment !== "" ? (
+                                        <span className={classes.error}>{errors.nextAppointment}</span>
+                                    ) : ""}
+                                </FormGroup>
+                            </div>
+                            <div className="form-group mb-3 col-md-6">
+                                <FormGroup>
+                                    <Label>ART Clinician Name</Label>
+                                    <InputGroup>
+                                        <Input
+                                            type="text"
+                                            name="clinicianName"
+                                            id="clinicianName"
+                                            onChange={handleInputChangeobjValues}
+                                            value={objValues.clinicianName}
+                                        />
+                                    </InputGroup>
+
+                                </FormGroup>
+                            </div>
+                        </div>
+                        <div className="row">
+
+                            <div className="form-group mb-3 col-md-8">
+                                <FormGroup>
+                                    <Label for="clinicalNotes">Comment</Label>
+                                    <InputGroup>
+                    <textarea
+                        name="clinicalNotes"
+                        id="clinicalNotes"
+                        onChange={handleInputChangeobjValues}
+                        value={objValues.clinicalNotes}
+                        className="form-control" // Ensure it looks good with form styling
+                        rows="5" // You can specify the number of rows as needed
+                    ></textarea>
+                                    </InputGroup>
+                                </FormGroup>
+
+                            </div>
+                        </div>
+                        <br/>
+                        <Button content='Back' icon='left arrow' labelPosition='left'
+                                style={{backgroundColor: "#992E62", color: '#fff'}}
+                                onClick={() => handleItemClick('plan', 'plan')}/>
+                        <Button content='Save Record' type="submit" disabled={!saving ? false : true} icon='right arrow'
+                                labelPosition='right' style={{backgroundColor: "#014d88", color: '#fff'}}
+                                onClick={handleSubmit}/>
+
                     </form>
-                    
+
                 </CardBody>
-            </Card> 
-                                     
+            </Card>
+
         </>
-    );
+);
 };
 
 export default ChildRegimenNextAppointment

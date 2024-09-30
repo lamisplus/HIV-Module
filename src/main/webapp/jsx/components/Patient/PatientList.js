@@ -155,33 +155,34 @@ const Patients = (props) => {
                 resolve({
                   data: result.data.records.map((row) => ({
                     name:
-                      row.currentStatus !== "Not Enrolled" ? (
-                        <>
-                          <Link
-                            to={{
-                              pathname: "/patient-history",
-                              state: { patientObj: row },
-                            }}
-                            title={"Click to view patient dashboard"}
-                          >
-                            {" "}
-                            {row.firstName + " " + row.surname}
-                          </Link>
-                        </>
-                      ) : (
-                        <>
-                          <Link
-                            to={{
-                              pathname: "/enroll-patient",
-                              state: { patientId: row.id, patientObj: row },
-                            }}
-                            title={"Enroll Patient"}
-                          >
-                            {" "}
-                            {row.firstName + " " + row.surname}
-                          </Link>
-                        </>
-                      ),
+                      // row.currentStatus !== "Not Enrolled" ? (
+                      //   <>
+                      //     <Link
+                      //       to={{
+                      //         pathname: "/patient-history",
+                      //         state: { patientObj: row },
+                      //       }}
+                      //       title={"Click to view patient dashboard"}
+                      //     >
+                      //       {" "}
+                      //       {row.firstName + " " + row.surname}
+                      //     </Link>
+                      //   </>
+                      // ) : (
+                      //   <>
+                      //     <Link
+                      //       to={{
+                      //         pathname: "/enroll-patient",
+                      //         state: { patientId: row.id, patientObj: row },
+                      //       }}
+                      //       title={"Enroll Patient"}
+                      //     >
+                      //       {" "}
+                      //       {row.firstName + " " + row.surname}
+                      //     </Link>
+                      //   </>
+                      // ),
+                     row.firstName + " " + row.surname,
                     hospital_number: row.hospitalNumber,
                     sex: row.sex,
                     age: calculate_age(row.dateOfBirth),

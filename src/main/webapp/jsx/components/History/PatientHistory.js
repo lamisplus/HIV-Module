@@ -245,6 +245,14 @@ const PatientnHistory = (props) => {
         activeTab: "home",
         actionType: action,
       });
+    } else if (row.path === "ART-Transfer-In") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "filled-transferForm",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
     } else {
 
     }

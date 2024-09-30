@@ -77,4 +77,10 @@ public class HivEnrollmentDTO implements Serializable {
     //new Lagos
     @Type(type = "jsonb")
     private JsonNode ovcServiceProvided;
+    @Basic
+    private String source;
+    @Basic
+    private String longitude;
+    @Basic
+    private  String latitude;
 }

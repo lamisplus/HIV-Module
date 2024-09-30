@@ -62,7 +62,7 @@ public class HivEnrollmentController {
             @RequestParam(defaultValue = "10") Integer pageSize) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         PageDTO hivPatients = patientService.getHivPatients(searchValue, PageRequest.of(pageNo, pageSize));
-        log.info("total time taken to load 10 records :{}", stopwatch.elapsed().toMillis());
+//        log.info("total time taken to load 10 records :{}", stopwatch.elapsed().toMillis());
         return ResponseEntity.ok (hivPatients);
     }
     
@@ -130,6 +130,11 @@ public class HivEnrollmentController {
                 personUuid,
                 uniqueId).isPresent()
                 ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping(value = "patient-flag/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<FlagPatientDto> getHivPatientFlagById(@PathVariable("id") Long id) {
+        return ResponseEntity.ok (patientService.getPatientMeta (id));
     }
 
 }

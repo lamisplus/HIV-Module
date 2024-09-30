@@ -5061,13 +5061,6 @@
   "resolved" "https://registry.npmjs.org/binary-extensions/-/binary-extensions-2.2.0.tgz"
   "version" "2.2.0"
 
-"bindings@^1.5.0":
-  "integrity" "sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ=="
-  "resolved" "https://registry.npmjs.org/bindings/-/bindings-1.5.0.tgz"
-  "version" "1.5.0"
-  dependencies:
-    "file-uri-to-path" "1.0.0"
-
 "bluebird@^3.5.5", "bluebird@^3.7.2":
   "integrity" "sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg=="
   "resolved" "https://registry.npmjs.org/bluebird/-/bluebird-3.7.2.tgz"
@@ -6210,6 +6203,11 @@
   "integrity" "sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw=="
   "resolved" "https://registry.npmjs.org/cookie/-/cookie-0.5.0.tgz"
   "version" "0.5.0"
+
+"cookiejar@":
+  "integrity" "sha512-LDx6oHrK+PhzLKJU9j5S7/Y3jM/mUHvD/DeI1WQmJn652iPC5Y4TBzC9l+5OMOXlyTTA+SmVUPm0HQUwpD5Jqw=="
+  "resolved" "https://registry.npmjs.org/cookiejar/-/cookiejar-2.1.4.tgz"
+  "version" "2.1.4"
 
 "copy-concurrently@^1.0.0":
   "integrity" "sha512-f2domd9fsVDFtaFcbaRZuYXwtdmnzqbADSwhSWYxYB/Q8zsdUUFMXVRwXGDMWmbEzAn1kdRrtI1T/KTFOL4X2A=="
@@ -8610,7 +8608,7 @@
   dependencies:
     "reusify" "^1.0.4"
 
-"faye-websocket@^0.10.0":
+"faye-websocket@^0.10.0", "faye-websocket@>=0.4.0":
   "integrity" "sha512-Xhj93RXbMSq8urNCUq4p9l0P6hnySJ/7YNRhYNug0bLOuii7pKO7xQFb5mx9xZXWCar88pLPb805PvUkwrLZpQ=="
   "resolved" "https://registry.npmjs.org/faye-websocket/-/faye-websocket-0.10.0.tgz"
   "version" "0.10.0"
@@ -8630,6 +8628,14 @@
   "version" "0.11.4"
   dependencies:
     "websocket-driver" ">=0.5.1"
+
+"faye@~0.8.3":
+  "integrity" "sha512-d2SXlWy+wR8D2AgYjCnJrA8v4RvwKeRQeTB2aLUetyhrNKTU28mAvSMezSZDNyOONVrsF0IY1s4625QgggM2XA=="
+  "resolved" "https://registry.npmjs.org/faye/-/faye-0.8.11.tgz"
+  "version" "0.8.11"
+  dependencies:
+    "cookiejar" ""
+    "faye-websocket" ">=0.4.0"
 
 "fb-watchman@^2.0.0":
   "integrity" "sha512-p5161BqbuCaSnB8jIbzQHOlpgsPmK5rJVDfDKO91Axs5NC1uu3HRQm6wt9cd9/+GtQQIO53JdGXXoyDpTAsgYA=="
@@ -8954,6 +8960,15 @@
   dependencies:
     "for-in" "^1.0.1"
 
+"force@^0.0.3":
+  "integrity" "sha512-B/4gl3/7o8Q4jYfXNKSvTHlAPxB1ruYCkxVkiVUUuHziYbDa2NsURljSgpm+Q+d4cGmN1EaAD5QXhLodGN44zA=="
+  "resolved" "https://registry.npmjs.org/force/-/force-0.0.3.tgz"
+  "version" "0.0.3"
+  dependencies:
+    "faye" "~0.8.3"
+    "mime" "~1.2.9"
+    "request" "*"
+
 "forever-agent@~0.6.1":
   "integrity" "sha512-j0KLYPhm6zeac4lz3oJ3o65qvgQCcPubiyotZrXqEaG4hNagNYO8qdlUrX5vwqv9ohqeT/Z3j6+yW067yWWdUw=="
   "resolved" "https://registry.npmjs.org/forever-agent/-/forever-agent-0.6.1.tgz"
@@ -9121,24 +9136,6 @@
   "integrity" "sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw=="
   "resolved" "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
   "version" "1.0.0"
-
-"fsevents@^1.2.7":
-  "integrity" "sha512-oWb1Z6mkHIskLzEJ/XWX0srkpkTQ7vaopMQkyaEIoq0fmtFVxOthb8cCxeT+p3ynTdkk/RZwbgG4brR5BeWECw=="
-  "resolved" "https://registry.npmjs.org/fsevents/-/fsevents-1.2.13.tgz"
-  "version" "1.2.13"
-  dependencies:
-    "bindings" "^1.5.0"
-    "nan" "^2.12.1"
-
-"fsevents@^2.1.2", "fsevents@^2.1.3", "fsevents@~2.3.2":
-  "integrity" "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw=="
-  "resolved" "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz"
-  "version" "2.3.3"
-
-"fsevents@2.0.7":
-  "integrity" "sha512-a7YT0SV3RB+DjYcppwVDLtn13UQnmg0SWZS7ezZD0UjnLwXmy8Zm21GMVGLaFGimIqcvyMQaOJBrop8MyOp1kQ=="
-  "resolved" "https://registry.npmjs.org/fsevents/-/fsevents-2.0.7.tgz"
-  "version" "2.0.7"
 
 "function-bind@^1.1.1", "function-bind@^1.1.2":
   "integrity" "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="
@@ -12824,6 +12821,11 @@
   "resolved" "https://registry.npmjs.org/mime/-/mime-2.6.0.tgz"
   "version" "2.6.0"
 
+"mime@~1.2.9":
+  "integrity" "sha512-Ysa2F/nqTNGHhhm9MV8ure4+Hc+Y8AWiqUdHxsO7xu8zc92ND9f3kpALHjaP026Ft17UfxrMt95c50PLUeynBw=="
+  "resolved" "https://registry.npmjs.org/mime/-/mime-1.2.11.tgz"
+  "version" "1.2.11"
+
 "mimic-fn@^1.0.0":
   "integrity" "sha512-jf84uxzwiuiIVKiOLpfYk7N46TSy8ubTonmneY9vrpHNAnp0QBt2BxWV9dO3/j+BoVAb+a5G6YDPW3M5HOdMWQ=="
   "resolved" "https://registry.npmjs.org/mimic-fn/-/mimic-fn-1.2.0.tgz"
@@ -13044,11 +13046,6 @@
   "integrity" "sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA=="
   "resolved" "https://registry.npmjs.org/mute-stream/-/mute-stream-0.0.8.tgz"
   "version" "0.0.8"
-
-"nan@^2.12.1":
-  "integrity" "sha512-W7tfG7vMOGtD30sHoZSSc/JVYiyDPEyQVso/Zz+/uQd0B0L46gtC+pHha5FFMRpil6fm/AoEcRWyOVi4+E/f8w=="
-  "resolved" "https://registry.npmjs.org/nan/-/nan-2.18.0.tgz"
-  "version" "2.18.0"
 
 "nano-css@^5.3.1":
   "integrity" "sha512-vSB9X12bbNu4ALBu7nigJgRViZ6ja3OU7CeuiV1zMIbXOdmkLahgtPmh3GBOlDxbKY0CitqlPdOReGlBLSp+yg=="
@@ -16691,7 +16688,7 @@
     "stealthy-require" "^1.1.1"
     "tough-cookie" "^2.3.3"
 
-"request@^2.34", "request@^2.87.0", "request@^2.88.0":
+"request@*", "request@^2.34", "request@^2.87.0", "request@^2.88.0":
   "integrity" "sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw=="
   "resolved" "https://registry.npmjs.org/request/-/request-2.88.2.tgz"
   "version" "2.88.2"
@@ -17237,17 +17234,17 @@
   dependencies:
     "node-forge" "^0.10.0"
 
-"semantic-ui-css@^2.4.1":
+"semantic-ui-css@^2.5.0":
   "integrity" "sha512-jIWn3WXXE2uSaWCcB+gVJVRG3masIKtTMNEP2X8Aw909H2rHpXGneYOxzO3hT8TpyvB5/dEEo9mBFCitGwoj1A=="
   "resolved" "https://registry.npmjs.org/semantic-ui-css/-/semantic-ui-css-2.5.0.tgz"
   "version" "2.5.0"
   dependencies:
     "jquery" "x.*"
 
-"semantic-ui-react@^2.1.2":
-  "integrity" "sha512-7CxjBoFUfH7fUvtn+SPkkIocthUD9kV3niF1mUMa9TbeyPAf2brtRCZBlT2OpHaXmkscFzGjEfhbJo9gKfotzQ=="
-  "resolved" "https://registry.npmjs.org/semantic-ui-react/-/semantic-ui-react-2.1.4.tgz"
-  "version" "2.1.4"
+"semantic-ui-react@^2.1.5":
+  "integrity" "sha512-nIqmmUNpFHfovEb+RI2w3E2/maZQutd8UIWyRjf1SLse+XF51hI559xbz/sLN3O6RpLjr/echLOOXwKCirPy3Q=="
+  "resolved" "https://registry.npmjs.org/semantic-ui-react/-/semantic-ui-react-2.1.5.tgz"
+  "version" "2.1.5"
   dependencies:
     "@babel/runtime" "^7.10.5"
     "@fluentui/react-component-event-listener" "~0.63.0"

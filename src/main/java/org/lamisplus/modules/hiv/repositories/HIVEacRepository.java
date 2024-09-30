@@ -92,7 +92,7 @@ public interface HIVEacRepository extends JpaRepository<HIVEac, Long> {
 			"from laboratory_test a\n" +
 			"inner join laboratory_result b on a.id=b.test_id\n" +
 			"inner join laboratory_labtest c on a.lab_test_id=c.id\n" +
-			"INNER JOIN base_organisation_unit_identifier oi ON oi.organisation_unit_id=a.facility_id\n" +
+			"INNER JOIN base_organisation_unit_identifier oi ON oi.organisation_unit_id=a.facility_id AND oi.name = 'DATIM_ID'\n" +
 			"inner join laboratory_sample d on a.id=d.test_id\n" +
 			"where c.lab_test_name = 'Viral Load' and b.result_reported != '' and a.facility_id =?1",
 			nativeQuery = true)

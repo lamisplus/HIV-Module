@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
+import javax.persistence.Basic;
 import javax.validation.constraints.PastOrPresent;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -27,4 +28,11 @@ public class ObservationDto implements Serializable {
     private Long personId;
     private String type;
     private Long visitId;
+    @Basic
+    private String source;
+    @Basic
+    private String longitude;
+    @Basic
+    private  String latitude;
+
 }

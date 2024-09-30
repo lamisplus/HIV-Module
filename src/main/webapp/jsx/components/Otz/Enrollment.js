@@ -263,7 +263,7 @@ const EnrollmentOtz = (props) => {
                     <Input
                       name="artStartDate"
                       id="artStartDate"
-                      type="date"
+                       type="date" onKeyPress={(e) => e.preventDefault()}
                       value={formik?.values?.artStartDate}
                       disabled
                       style={{
@@ -286,7 +286,7 @@ const EnrollmentOtz = (props) => {
                     <Input
                       name="dateEnrolledIntoOtz"
                       id="dateEnrolledIntoOtz"
-                      type="date"
+                       type="date" onKeyPress={(e) => e.preventDefault()}
                       value={formik?.values?.dateEnrolledIntoOtz}
                       onChange={setCustomDate}
                       onBlur={formik.handleBlur}
@@ -387,7 +387,7 @@ const EnrollmentOtz = (props) => {
                     <Input
                       name="dateDone"
                       id="dateDone"
-                      type="date"
+                       type="date" onKeyPress={(e) => e.preventDefault()}
                       {...{
                         min: moment(
                           new Date(props?.activeContent?.artCommence?.visitDate)

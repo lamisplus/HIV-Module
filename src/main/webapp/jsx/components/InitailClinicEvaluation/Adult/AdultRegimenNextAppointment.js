@@ -96,6 +96,7 @@ const BasicInfo = (props) => {
   const [objValues, setobjValues] = useState({
     nextAppointment: "",
     clinicianName: "",
+    clinicalNotes:"",
   });
   const [regimenObj, setRegimen] = useState({ regimenLine: "", regimen: "" });
   const [adultRegimenLine, setAdultRegimenLine] = useState([]);
@@ -131,7 +132,7 @@ const BasicInfo = (props) => {
         setAdultRegimenLine(artRegimen);
       })
       .catch((error) => {
-        
+
       });
   };
   //Get list of RegimenLine
@@ -141,11 +142,11 @@ const BasicInfo = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        
+
         setRegimenType(response.data);
       })
       .catch((error) => {
-        
+
       });
   };
   const handleRegimen = (e) => {
@@ -172,6 +173,7 @@ const BasicInfo = (props) => {
     props.observation.personId = props.patientObj.id;
     props.observation.data.nextAppointment = objValues.nextAppointment;
     props.observation.data.clinicianName = objValues.clinicianName;
+    props.observation.data.clinicalNotes = objValues.clinicalNotes;
     if (validate()) {
       setSaving(true);
       axios
@@ -192,7 +194,7 @@ const BasicInfo = (props) => {
         })
         .catch((error) => {
           setSaving(false);
-          
+
           if (error.response && error.response.data) {
             let errorMessage =
               error.response.data && error.response.data.apierror.message !== ""
@@ -317,6 +319,25 @@ const BasicInfo = (props) => {
                     />
                   </InputGroup>
                 </FormGroup>
+              </div>
+            </div>
+            <div className="row">
+
+              <div className="form-group mb-3 col-md-8">
+                <FormGroup>
+                  <Label for="clinicalNotes">Comment</Label>
+                  <InputGroup>
+                    <textarea
+                        name="clinicalNotes"
+                        id="clinicalNotes"
+                        onChange={handleInputChangeobjValues}
+                        value={objValues.clinicalNotes}
+                        className="form-control" // Ensure it looks good with form styling
+                        rows="5" // You can specify the number of rows as needed
+                    ></textarea>
+                  </InputGroup>
+                </FormGroup>
+
               </div>
             </div>
             <br />

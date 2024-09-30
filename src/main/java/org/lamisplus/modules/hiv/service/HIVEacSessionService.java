@@ -1,5 +1,7 @@
 package org.lamisplus.modules.hiv.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import lombok.RequiredArgsConstructor;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.hiv.domain.dto.HIVEacSessionDto;
@@ -13,7 +15,9 @@ import org.springframework.stereotype.Service;
 import reactor.util.UUIDUtils;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,13 +79,6 @@ public class HIVEacSessionService {
 		eacSession.setArchived(1);
 		List<HIVEacSession> eacSessionList = hiveacSessionRepository.getAllSessionInEac(eacSession.getEac().getUuid());
 		hiveacSessionRepository.save(eacSession);
-
-		// Checking if any other Eac session exist
-		/*if (eacSessionList.isEmpty()){
-			HIVEac hivEac = getEac(eacSession.getEac().getId());
-			hivEac.setStatus("NOT COMMENCED");
-			hiveacRepository.save(hivEac);
-		}*/
 	}
 	
 	private HIVEacSession getEacSession(Long id) {
@@ -125,18 +122,20 @@ public class HIVEacSessionService {
 				throw new IllegalStateException("You are not allowed to have more than one extended EAC sessions: " + hivEacSesByEac.size());
 		}
 	}
-	
+
 	private HIVEacSessionDto mapEntityToDto(HIVEacSession entity) {
 		HIVEac eac = entity.getEac();
 		Person person = entity.getPerson();
 		Visit visit = entity.getVisit();
+		// Initialize barriers with an empty map if it's null
+		JsonNode barriers = entity.getBarriers() != null ? entity.getBarriers() : JsonNodeFactory.instance.objectNode();
 		return HIVEacSessionDto.builder()
 				.facilityId(entity.getFacilityId())
 				.id(entity.getId())
 				.eacId(eac.getId())
 				.personId(person.getId())
 				.visitId(visit.getId())
-				.barriers(entity.getBarriers())
+				.barriers(barriers) // Use the initialized barriers map
 				.intervention(entity.getIntervention())
 				.barriersOthers(entity.getBarriersOthers())
 				.interventionOthers(entity.getInterventionOthers())
@@ -146,9 +145,9 @@ public class HIVEacSessionService {
 				.adherence(entity.getAdherence())
 				.status(entity.getStatus())
 				.uuid(entity.getUuid())
-				.referral(entity.getReferral()).build();
+				.referral(entity.getReferral())
+				.build();
 	}
-	
 	
 	private HIVEacSession mapDtoEntity(HIVEacSessionDto dto) {
 		HIVEacSession hIVEacSession = new HIVEacSession();

@@ -133,17 +133,44 @@ const NEWEACSESSION = (props) => {
             { value: 'Others', label: 'Others' },
         ];
 
+    // useEffect(() => {
+    //     GetPatientDTOObj();
+    //     CheckEACStatus();
+    //     //GetFormDetail();
+    //     if(props.activeContent && props.activeContent.obj){
+    //         setObjValues({...props.activeContent.obj})
+    //         setSelectedBarriers(Object.values(props.activeContent.obj.barriers))
+    //         setSelectedInterventions(Object.values(props.activeContent.obj.intervention))
+    //     }
+    //     minDate()
+    // }, [props.activeContent, props.patientObj.id]);
+
     useEffect(() => {
         GetPatientDTOObj();
         CheckEACStatus();
-        //GetFormDetail();
-        if(props.activeContent && props.activeContent.obj){
-            setObjValues({...props.activeContent.obj})
-            setSelectedBarriers(Object.values(props.activeContent.obj.barriers))
-            setSelectedInterventions(Object.values(props.activeContent.obj.intervention))
+        // GetFormDetail();
+
+        if (props.activeContent && props.activeContent.obj) {
+            setObjValues({ ...props.activeContent.obj });
+            // Check if barriers is an object before using Object.values
+            const barriers = props.activeContent.obj.barriers;
+            if (barriers && typeof barriers === 'object') {
+                setSelectedBarriers(Object.values(barriers));
+            } else {
+                setSelectedBarriers([]);
+            }
+            // Check if intervention is an object before using Object.values
+            const interventions = props.activeContent.obj.intervention;
+            if (interventions && typeof interventions === 'object') {
+                setSelectedInterventions(Object.values(interventions));
+            } else {
+                setSelectedInterventions([]); // Or handle the default case
+            }
         }
-        minDate()
+        minDate();
     }, [props.activeContent, props.patientObj.id]);
+
+
     // //Get EAC Object
     // const GetFormDetail =()=>{
     //     axios
@@ -295,7 +322,7 @@ const NEWEACSESSION = (props) => {
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                    
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                  
                                  
@@ -493,6 +520,7 @@ const NEWEACSESSION = (props) => {
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 required
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                            
                             </FormGroup>

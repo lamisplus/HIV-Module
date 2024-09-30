@@ -111,6 +111,8 @@ public class HivEnrollmentService {
 	private HivEnrollment convertToEntity(HivEnrollmentDTO dto) {
 		HivEnrollment hivEnrollment = new HivEnrollment();
 		BeanUtils.copyProperties(dto, hivEnrollment);
+		String sourceSupport = dto.getSource() == null || dto.getSource().isEmpty() ? Constants.WEB_SOURCE : Constants.MOBILE_SOURCE;
+		hivEnrollment.setSource(sourceSupport);
 		//log.info("entity converted {} ", hivEnrollment);
 		hivEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
 		return hivEnrollment;

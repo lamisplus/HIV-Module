@@ -354,7 +354,7 @@ const CreateServiceForm = (props) => {
                                   </Label>
                                   <Input
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -404,7 +404,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -450,7 +450,7 @@ const CreateServiceForm = (props) => {
                                       EAC 3 date
                                     </Label>
                                     <Input
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -505,7 +505,7 @@ const CreateServiceForm = (props) => {
                                       </Label>
                                       <Input
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -704,7 +704,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -814,7 +814,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -927,7 +927,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1040,7 +1040,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1147,7 +1147,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1248,7 +1248,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1356,7 +1356,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1541,7 +1541,7 @@ const CreateServiceForm = (props) => {
                                           </Label>
                                           <Input
                                             className="form-control"
-                                            type="date"
+                                             type="date" onKeyPress={(e) => e.preventDefault()}
                                             {...{
                                               min: moment(
                                                 new Date(
@@ -1596,7 +1596,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -1652,7 +1652,7 @@ const CreateServiceForm = (props) => {
                                               EAC 3 date
                                             </Label>
                                             <Input
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -1712,7 +1712,7 @@ const CreateServiceForm = (props) => {
                                               </Label>
                                               <Input
                                                 className="form-control"
-                                                type="date"
+                                                 type="date" onKeyPress={(e) => e.preventDefault()}
                                                 {...{
                                                   min: moment(
                                                     new Date(
@@ -1949,7 +1949,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2064,7 +2064,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2179,7 +2179,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2294,7 +2294,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2408,7 +2408,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2521,7 +2521,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2635,7 +2635,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2824,7 +2824,7 @@ const CreateServiceForm = (props) => {
                                           </Label>
                                           <Input
                                             className="form-control"
-                                            type="date"
+                                             type="date" onKeyPress={(e) => e.preventDefault()}
                                             {...{
                                               min: moment(
                                                 new Date(
@@ -2880,7 +2880,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2936,7 +2936,7 @@ const CreateServiceForm = (props) => {
                                               EAC 3 date
                                             </Label>
                                             <Input
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2996,7 +2996,7 @@ const CreateServiceForm = (props) => {
                                               </Label>
                                               <Input
                                                 className="form-control"
-                                                type="date"
+                                                 type="date" onKeyPress={(e) => e.preventDefault()}
                                                 {...{
                                                   min: moment(
                                                     new Date(
@@ -3231,7 +3231,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3346,7 +3346,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3461,7 +3461,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3576,7 +3576,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3689,7 +3689,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3801,7 +3801,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3915,7 +3915,7 @@ const CreateServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -4141,7 +4141,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4251,7 +4251,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4364,7 +4364,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4476,7 +4476,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4582,7 +4582,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4683,7 +4683,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4791,7 +4791,7 @@ const CreateServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4973,7 +4973,7 @@ const CreateServiceForm = (props) => {
                                       </Label>
                                       <Input
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5086,7 +5086,7 @@ const CreateServiceForm = (props) => {
                                       </Label>
                                       <Input
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5200,7 +5200,7 @@ const CreateServiceForm = (props) => {
                                       </Label>
                                       <Input
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5314,7 +5314,7 @@ const CreateServiceForm = (props) => {
                                       </Label>
                                       <Input
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5422,7 +5422,7 @@ const CreateServiceForm = (props) => {
                                       </Label>
                                       <Input
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5524,7 +5524,7 @@ const CreateServiceForm = (props) => {
                                       </Label>
                                       <Input
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5632,7 +5632,7 @@ const CreateServiceForm = (props) => {
                                       </Label>
                                       <Input
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5815,7 +5815,7 @@ const CreateServiceForm = (props) => {
                                         </Label>
                                         <Input
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -5928,7 +5928,7 @@ const CreateServiceForm = (props) => {
                                         </Label>
                                         <Input
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6042,7 +6042,7 @@ const CreateServiceForm = (props) => {
                                         </Label>
                                         <Input
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6156,7 +6156,7 @@ const CreateServiceForm = (props) => {
                                         </Label>
                                         <Input
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6265,7 +6265,7 @@ const CreateServiceForm = (props) => {
                                         </Label>
                                         <Input
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6374,7 +6374,7 @@ const CreateServiceForm = (props) => {
                                         </Label>
                                         <Input
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6486,7 +6486,7 @@ const CreateServiceForm = (props) => {
                                         </Label>
                                         <Input
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6661,7 +6661,7 @@ const CreateServiceForm = (props) => {
                                   </Label>
                                   <Input
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -6802,7 +6802,7 @@ const CreateServiceForm = (props) => {
                                   </Label>
                                   <Input
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -6944,7 +6944,7 @@ const CreateServiceForm = (props) => {
                                   </Label>
                                   <Input
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -7087,7 +7087,7 @@ const CreateServiceForm = (props) => {
                                   </Label>
                                   <Input
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -7228,7 +7228,7 @@ const CreateServiceForm = (props) => {
                                   </Label>
                                   <Input
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -7370,7 +7370,7 @@ const CreateServiceForm = (props) => {
                                   </Label>
                                   <Input
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -7625,7 +7625,7 @@ const CreateServiceForm = (props) => {
                             </Label>
                             <Input
                               className="form-control"
-                              type="date"
+                               type="date" onKeyPress={(e) => e.preventDefault()}
                               {...{
                                 min: moment(
                                   new Date(
@@ -7708,7 +7708,7 @@ const CreateServiceForm = (props) => {
                             </Label>
                             <Input
                               className="form-control"
-                              type="date"
+                               type="date" onKeyPress={(e) => e.preventDefault()}
                               {...{
                                 min: moment(
                                   new Date(
@@ -7755,7 +7755,7 @@ const CreateServiceForm = (props) => {
                           </Label>
                           <Input
                             className="form-control"
-                            type="date"
+                             type="date" onKeyPress={(e) => e.preventDefault()}
                             {...{
                               min: moment(
                                 new Date(
