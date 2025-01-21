@@ -30,6 +30,7 @@ const SubMenu = (props) => {
   const { hasPermission, hasAnyPermission, loading } = usePermissions();
   const [activeItem, setActiveItem] = useState("recent-history");
   const patientObj = props.patientObj;
+
   const [isOtzEnrollementDone, setIsOtzEnrollementDone] = useState(null);
   const [labResult, setLabResult] = useState(null);
   const patientCurrentStatus = patientObj?.currentStatus === "Died (Confirmed)";
@@ -43,6 +44,10 @@ const SubMenu = (props) => {
     return !savedStatus?.toLowerCase()?.includes("stopped");
   });
 
+  const [artCommencement, setArtCommencement] = useState(() => {
+    return localStorage.getItem("artCommencement") || null;
+  });
+
   const getCurrentStatus = async () => {
     if (!patientObj?.id) return;
     setStatusLoading(true);
@@ -53,7 +58,8 @@ const SubMenu = (props) => {
       );
 
       const status = response.data || "";
-  
+     
+
       localStorage.setItem("currentStatus", status);
       setCurrentStatus(status);
       setIsPatientActive(!status?.toLowerCase()?.includes("stopped"));
@@ -64,11 +70,43 @@ const SubMenu = (props) => {
     }
   };
 
+  // Effect to check art commencement and status
   useEffect(() => {
-    if (patientObj?.id) {
+    const savedArt = localStorage.getItem("artCommencement");
+    if (savedArt) {
+      setArtCommencement(savedArt);
       getCurrentStatus();
     }
-  }, [patientObj?.id]);
+  }, []); // Initial check
+
+  // Effect to watch for art commencement changes
+  useEffect(() => {
+    if (artCommencement) {
+      getCurrentStatus();
+    }
+  }, [artCommencement]); // Run when art commencement changes
+
+  // Effect to watch for patient changes
+  useEffect(() => {
+    if (patientObj?.id && patientObj?.commenced !== undefined) {
+      getCurrentStatus();
+    }
+  }, [patientObj?.id, patientObj?.commenced]);
+
+  useEffect(() => {
+    // getartCommencement from local storage
+    const savedArt = localStorage.getItem("artCommencement");
+    if (savedArt) {
+      getCurrentStatus();
+    }
+  }, []);
+
+
+
+    if (patientObj.commenced === true) {
+  
+      localStorage.removeItem("artCommencement");
+    }
 
   const permissions = useMemo(
     () => ({
