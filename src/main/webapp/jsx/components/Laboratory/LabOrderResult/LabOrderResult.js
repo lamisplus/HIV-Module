@@ -256,7 +256,9 @@ const Laboratory = (props) => {
           labTestId: matchedOption.value,
           result: tptMonitorng.tbTestResult,
           sampleCollectionDate: moment((tptMonitorng.dateSpecimenSent)).format("YYYY-MM-DDTHH:mm"),
-          dateResultReceived : moment(tptMonitorng.DateDiagnosticTestResultReceived).format("YYYY-MM-DDTHH:mm")
+          dateResultReceived: tptMonitorng?.DateDiagnosticTestResultReceived
+              ? moment(tptMonitoring.DateDiagnosticTestResultReceived).format("YYYY-MM-DDTHH:mm")
+              : ""
         }));
       }
     }
@@ -418,15 +420,15 @@ const Laboratory = (props) => {
       (temp.viralLoadIndication = tests.viralLoadIndication
         ? ""
         : "This field is required");
-    {
-      tests.dateResultReceived !== "" &&
-        (temp.result = tests.result ? "" : "This field is required");
+    // Only check result if dateResultReceived is not empty or undefined
+    if (tests.dateResultReceived !== "" && tests.dateResultReceived !== undefined) {
+      temp.result = tests.result && tests.result !== undefined ? "" : "This field is required";
     }
-    {
-      tests.result !== "" &&
-        (temp.dateResultReceived = tests.dateResultReceived
+    // Only check dateResultReceived if result is not empty or undefined
+    if (tests.result !== "" && tests.result !== undefined) {
+      temp.dateResultReceived = tests.dateResultReceived
           ? ""
-          : "This field is required");
+          : "This field is required";
     }
 
     setErrors({
@@ -1855,7 +1857,7 @@ const Laboratory = (props) => {
                        size="small"
                        style={{ marginTop: 20, marginBottom: 20 }}
                      >
-                       <Icon name="plus" /> Add Test
+                       <Icon name="plus" /> Add Test1
                      </LabelSui>
                    </Col>
                    <hr />
