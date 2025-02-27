@@ -859,57 +859,58 @@ const ChronicCare = (props) => {
                 )}
               </div>
               {/* End Nutritional Status Assessment */}
+              {/*SWO-FEATURE*/}
               {/* Gender Based Violence Screening */}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    Gender Based Violence Screening{" "}
-                  </h5>
-                  {showGenderBase === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickGenderBase}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickGenderBase}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
-                  )}
-                </div>
-                {showGenderBase && (
-                  <div className="card-body">
-                    <div className="row">
-                      <GenderBase
-                        setGenderBase={setGenderBase}
-                        genderBase={genderBase}
-                        setErrors={setErrors}
-                        errors={errors}
-                        encounterDate={observation.dateOfObservation}
-                        patientObj={patientObj}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/*<div className="card">*/}
+              {/*  <div*/}
+              {/*    className="card-header"*/}
+              {/*    style={{*/}
+              {/*      backgroundColor: "#014d88",*/}
+              {/*      color: "#fff",*/}
+              {/*      fontWeight: "bolder",*/}
+              {/*      borderRadius: "0.2rem",*/}
+              {/*    }}*/}
+              {/*  >*/}
+              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
+              {/*      Gender Based Violence Screening{" "}*/}
+              {/*    </h5>*/}
+              {/*    {showGenderBase === false ? (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickGenderBase}*/}
+              {/*        >*/}
+              {/*          <FaPlus />*/}
+              {/*        </span>*/}
+              {/*      </>*/}
+              {/*    ) : (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickGenderBase}*/}
+              {/*        >*/}
+              {/*          <FaAngleDown />*/}
+              {/*        </span>{" "}*/}
+              {/*      </>*/}
+              {/*    )}*/}
+              {/*  </div>*/}
+              {/*  {showGenderBase && (*/}
+              {/*    <div className="card-body">*/}
+              {/*      <div className="row">*/}
+              {/*        <GenderBase*/}
+              {/*          setGenderBase={setGenderBase}*/}
+              {/*          genderBase={genderBase}*/}
+              {/*          setErrors={setErrors}*/}
+              {/*          errors={errors}*/}
+              {/*          encounterDate={observation.dateOfObservation}*/}
+              {/*          patientObj={patientObj}*/}
+              {/*        />*/}
+              {/*      </div>*/}
+              {/*    </div>*/}
+              {/*  )}*/}
+              {/*</div>*/}
               {/* End Gender Based Violence Screening */}
               {/* End Screening for Chronic Conditions */}
               <div className="card">
