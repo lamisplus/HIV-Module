@@ -1069,57 +1069,58 @@ const ChronicCare = (props) => {
                 )}
               </div>
               {/* End Positive Health Dignity and Prevention */}
+              {/*SWO-FEATURE */}
               {/* Reproductive Intentions */}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    Reproductive Intentions{" "}
-                  </h5>
-                  {showReproductive === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickReproductive}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickReproductive}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
-                  )}
-                </div>
-                {showReproductive && (
-                  <div className="card-body">
-                    <div className="row">
-                      <ReproductiveIntentions
-                        setReproductive={setReproductive}
-                        reproductive={reproductive}
-                        setErrors={setErrors}
-                        errors={errors}
-                        encounterDate={observation.dateOfObservation}
-                        patientObj={patientObj}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/*<div className="card">*/}
+              {/*  <div*/}
+              {/*    className="card-header"*/}
+              {/*    style={{*/}
+              {/*      backgroundColor: "#014d88",*/}
+              {/*      color: "#fff",*/}
+              {/*      fontWeight: "bolder",*/}
+              {/*      borderRadius: "0.2rem",*/}
+              {/*    }}*/}
+              {/*  >*/}
+              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
+              {/*      Reproductive Intentions{" "}*/}
+              {/*    </h5>*/}
+              {/*    {showReproductive === false ? (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickReproductive}*/}
+              {/*        >*/}
+              {/*          <FaPlus />*/}
+              {/*        </span>*/}
+              {/*      </>*/}
+              {/*    ) : (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickReproductive}*/}
+              {/*        >*/}
+              {/*          <FaAngleDown />*/}
+              {/*        </span>{" "}*/}
+              {/*      </>*/}
+              {/*    )}*/}
+              {/*  </div>*/}
+              {/*  {showReproductive && (*/}
+              {/*    <div className="card-body">*/}
+              {/*      <div className="row">*/}
+              {/*        <ReproductiveIntentions*/}
+              {/*          setReproductive={setReproductive}*/}
+              {/*          reproductive={reproductive}*/}
+              {/*          setErrors={setErrors}*/}
+              {/*          errors={errors}*/}
+              {/*          encounterDate={observation.dateOfObservation}*/}
+              {/*          patientObj={patientObj}*/}
+              {/*        />*/}
+              {/*      </div>*/}
+              {/*    </div>*/}
+              {/*  )}*/}
+              {/*</div> */}
               {/* End Reproductive Intentions */}
               {saving ? <Spinner /> : ""}
 
