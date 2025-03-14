@@ -334,6 +334,24 @@ const Laboratory = (props) => {
     }
   },[cd4CountObj])
 
+
+  // Function to validate the sample number
+  const validateSampleNumber = async (sampleNumber) => {
+    try {
+      const response = await fetch(`${baseUrl}laboratory/check-sample-number/${sampleNumber}`);
+      const result = await response.json();
+
+      if (!result) { // If the sample number exists
+        setErrors({ ...errors, sampleNumber: "Sample number already exists." });
+      } else {
+        setErrors({ ...errors, sampleNumber: "" }); // Clear error if valid
+      }
+    } catch (error) {
+      console.error("Error checking sample number:", error);
+      setErrors({ ...errors, sampleNumber: "Failed to check sample number." });
+    }
+  };
+
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
     if (e.target.name === "labNumber") {
