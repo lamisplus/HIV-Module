@@ -85,6 +85,7 @@ The **LAMISPlus HIV Module** is a specialized component of the **LAMISPlus** sof
 - Yakubu Ganiyat https://github.com/tech-teni
 - Chukwuemeka Ilozue https://github.com/drjavanew
 - Gabriel Joshua https://github.com/JOSH2019GABRIEL
+- Victor Ajor https://github.com/AJ-DataFI
 
 ### Special contributors
 - Aniwange Tertese Amos https://github.com/aniwange33
