@@ -1,4 +1,4 @@
-#  HIV_Module
+#  HIV Module
 ## Description
 The **LAMISPlus HIV Module** is a specialized component of the **LAMISPlus** software suite, tailored to meet the needs of healthcare providers managing HIV/AIDS patients. It provides a centralized platform for tracking patient enrollment, antiretroviral therapy (ART) adherence, laboratory results, and program performance metrics. By integrating clinical workflows with robust monitoring and evaluation tools, this module empowers healthcare systems to deliver high-quality, data-driven care while supporting compliance with global health standards such as PEPFAR and UNAIDS targets.
 
@@ -10,7 +10,7 @@ The **LAMISPlus HIV Module** is a specialized component of the **LAMISPlus** sof
 - **Pharmacy & Drug Management**: Handle ART drug inventory, prescriptions, and dispensing.
 - **Monitoring & Evaluation (M&E)**: Generate real-time reports and dashboards for program performance tracking.
 - **Data Privacy & Security**: Ensure secure, role-based access to sensitive patient information.
-- **Interoperability**: Seamlessly integrate with other modules (e.g., TB, Malaria) and external health systems like DHIS2 and OpenMRS.
+- **Interoperability**: Seamlessly integrate with other modules and external health systems
   
 ## System Requirements
 
@@ -78,5 +78,24 @@ The **LAMISPlus HIV Module** is a specialized component of the **LAMISPlus** sof
 
 ## Authors & Acknowledgments
 ### Main contributors
-- Victor Ajor   https://github.com/AJ-DataFI
-- Mathew Adegbite https://github.com/mathewade 
+- Adegbite Mathew https://github.com/Mathew77
+- Emmanuel Nnajiofor https://github.com/Emiklad24
+- Gboyegun Taiwo https://github.com/mechack2022
+- Ugo Basi https://github.com/Ugo-Basil
+- Yakubu Gnaiyat https://github.com/tech-teni
+- Chukwuemeka Ilozue Ilohttps://github.com/drjavanew
+- Gabriel Joshua https://github.com/JOSH2019GABRIEL
+
+### Special contributors
+- Aniwange Tertese Amos https://github.com/aniwange33
+- Emmanuel Nnajiofor https://github.com/Emiklad24
+- Niyi Ogungbemi https://github.com/niyiment
+- lamis-cop https://github.com/lamis-cop
+- John gichanji https://github.com/gichangi
+- Anana Aristotle https://github.com/legendaryA3
+- Dikum https://github.com/dikumheartland
+- Adeyemo Sunday https://github.com/speneto
+- Stomzy https://github.com/stomzy
+
+  
+
