@@ -567,6 +567,7 @@ public class IITMlService {
 
     static {
         new Thread(() -> {
+            // model initialization
             try (InputStream in = new ClassPathResource("installers/hiv/ml/IIT.pmml.xz").getInputStream();
                  BufferedInputStream inputBuffer = new BufferedInputStream(in);
                  CompressorInputStream decompressor = new CompressorStreamFactory()

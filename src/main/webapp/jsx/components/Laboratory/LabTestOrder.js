@@ -179,7 +179,7 @@ const Laboratory = (props) => {
     }
     const addOrder = e => { 
         
-        if(validate()){
+        if(validate() ){
             setTestOrderList([...testOrderList, tests])
         }
       }

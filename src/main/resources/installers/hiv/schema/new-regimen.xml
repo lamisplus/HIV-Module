@@ -15,23 +15,23 @@
         <sql>
             INSERT INTO hiv_regimen_type (id, description) VALUES (16, 'Paediatric 3rd Line');
         </sql>
-        <sql>
-            UPDATE ndr_code_set
-            SET code = '3a'
-            WHERE code = '6c' AND code_description = 'DRV/r-DTG + 1-2 NRTIs';
+<!--        <sql>-->
+<!--            UPDATE ndr_code_set-->
+<!--            SET code = '3a'-->
+<!--            WHERE code = '6c' AND code_description = 'DRV/r-DTG + 1-2 NRTIs';-->
 
-            UPDATE ndr_code_set
-            SET code_description = 'DRV/r +DTG ± 1-2 NRTIs'
-            WHERE code = '3a' AND code_description = 'AZT-TDF-3TC-LPV/r';
+<!--            UPDATE ndr_code_set-->
+<!--            SET code_description = 'DRV/r +DTG ± 1-2 NRTIs'-->
+<!--            WHERE code = '3a' AND code_description = 'AZT-TDF-3TC-LPV/r';-->
 
-            UPDATE ndr_code_set
-            SET code_description = 'DRV/r +2NRTIs ± ETV'
-            WHERE code = '3b' AND code_description = 'AZT-TDF-FTC-LPV/r';
+<!--            UPDATE ndr_code_set-->
+<!--            SET code_description = 'DRV/r +2NRTIs ± ETV'-->
+<!--            WHERE code = '3b' AND code_description = 'AZT-TDF-FTC-LPV/r';-->
 
-            UPDATE ndr_code_set
-            SET code_description = 'DRV/r +DTG or (RAL) ± 1-2 NRTIs'
-            WHERE code = '6a' AND code_description = 'DRV/r + 2 NRTIs + 2 NNRTI';
-        </sql>
+<!--            UPDATE ndr_code_set-->
+<!--            SET code_description = 'DRV/r +DTG or (RAL) ± 1-2 NRTIs'-->
+<!--            WHERE code = '6a' AND code_description = 'DRV/r + 2 NRTIs + 2 NNRTI';-->
+<!--        </sql>-->
         <sql>
             INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
             VALUES (1000, 'RAL(25mg)+DRV/r(75mg/100mg)+ABC/3TC(120mg/60mg)', 'Raltegravir+Darunavir+Abacavir+Lamivudine', 16, true, 1);
@@ -203,10 +203,10 @@
             INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
             VALUES (1031, 1009, 122);
         </sql>
-        <sql>
-            INSERT INTO ndr_code_set(code_set_nm, code, code_description, alt_description, sys_description)
-            VALUES ('ARV_REGIMEN','4b', 'ABC+3TC(or FTC)+DTG', '', '')
-        </sql>
+<!--        <sql>-->
+<!--            INSERT INTO ndr_code_set(code_set_nm, code, code_description, alt_description, sys_description)-->
+<!--            VALUES ('ARV_REGIMEN','4b', 'ABC+3TC(or FTC)+DTG', '', '')-->
+<!--        </sql>-->
 
     </changeSet>
 
