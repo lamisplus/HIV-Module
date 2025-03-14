@@ -163,10 +163,10 @@ const ThemeContextProvider = (props) => {
   
   const setDemoTheme = (theme,direction) => {
 
-	var setAttr = {};	
+	let setAttr = {};
 	
 	
-	var themeSettings = dezThemeSet[theme];	
+	let themeSettings = dezThemeSet[theme];
 		
 	body.setAttribute("data-typography", themeSettings.typography);
  

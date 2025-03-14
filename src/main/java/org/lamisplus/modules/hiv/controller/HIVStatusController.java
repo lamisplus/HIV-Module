@@ -19,21 +19,24 @@ import java.util.List;
 public class HIVStatusController {
 	
 	private final HIVStatusTrackerService hivStatusTrackerService;
-	
 	private final StatusManagementService statusManagementService;
-	
 	
 	@PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HIVStatusTrackerDto> registerHIVStatusTracke(@RequestBody HIVStatusTrackerDto hivStatusTrackerDto) {
 		return ResponseEntity.ok(hivStatusTrackerService.registerHIVStatusTracker(hivStatusTrackerDto));
 	}
-	
+
+	@PostMapping(value = "/activate-stop_status/{personId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Void> activateTreatmentForPreviousTransferOut(@PathVariable("personId") String  personId) {
+		hivStatusTrackerService.activateTransferOutStatus(personId);
+		return  ResponseEntity.noContent().build();
+	}
+
 	@GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<HIVStatusTrackerDto>> getAllHIVStatusTracker() {
 		return ResponseEntity.ok(hivStatusTrackerService.getAllHIVStatusTracker());
 	}
-	
-	
+
 	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HIVStatusTrackerDto> getHIVStatusTrackerById(@PathVariable("id") Long id) {
 		return ResponseEntity.ok(hivStatusTrackerService.getHIVStatusTrackerById(id));

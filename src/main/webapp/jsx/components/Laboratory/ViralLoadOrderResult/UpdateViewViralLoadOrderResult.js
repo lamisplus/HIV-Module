@@ -153,6 +153,37 @@ const Laboratory = (props) => {
             });
         
     }
+
+    useEffect(() => {
+        const fetchTestResult = (sampleNumber) => {
+            if (!sampleNumber) return;
+            const modifiedSampleNumber = sampleNumber.replace(/\//g, "_");
+            axios.get(`${baseUrl}lims/sample/result/${modifiedSampleNumber}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+      .then((response) => {
+          const data = response.data
+          const formattedResultDate = data?.resultDate ? moment(data.resultDate).format('YYYY-MM-DDTHH:mm'): '';
+            setTests((prevTests) => ({
+                ...prevTests,
+                result: data?.testResult || props.activeContent.obj? props.activeContent.obj?.result : "",
+                dateAssayedBy: data?.assayDate || props.activeContent.obj? props.activeContent.obj?.dateAssayed : "",
+                dateResultReceived: formattedResultDate || props.activeContent.obj? props.activeContent.obj?.dateResultReceived : "",
+                assayedBy: data?.testedBy || props.activeContent.obj? props.activeContent.obj?.assayedBy : ""
+            }));
+        })
+            .catch((error) => {
+                console.error("Error fetching test result:", error);
+            });
+    };
+    if (props.activeContent?.obj?.sampleNumber) {
+        setShowResult(true)
+        fetchTestResult(props.activeContent.obj.sampleNumber);
+    }
+    // console.log("Active Content Object:", props.activeContent?.obj);
+}, [props.activeContent]);
+
+
     //Get list of LabNumbers
     const PCRLabList =()=>{
         axios
@@ -163,7 +194,6 @@ const Laboratory = (props) => {
                 setPcrs(response.data);
             })
             .catch((error) => {
-            
             });
         
     }
@@ -315,11 +345,11 @@ const Laboratory = (props) => {
         }
     }
 
-    const Back = (row, actionType) =>{  
-        // props.setActiveContent({...props.activeContent, route:'pharmacy', activeTab:"hsitory"})
-        
+    const Back = (row, actionType) =>{
         props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', id:row.id, activeTab:"history", actionType:"", obj:{}})
      }
+
+     console.log(" active content in view viral load", tests)
   
   return (      
       <div >
@@ -475,6 +505,7 @@ const Laboratory = (props) => {
                                         max= {moment(new Date()).format("YYYY-MM-DD") }
                                         style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                         disabled={disabledField}
+                                        onKeyPress={(e) => e.preventDefault()}
                                     />
                                     {errors.dateOrderBy !=="" ? (
                                         <span className={classes.error}>{errors.dateOrderBy}</span>
@@ -514,6 +545,7 @@ const Laboratory = (props) => {
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 disabled={disabledField}
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                             {errors.sampleCollectionDate !=="" ? (
                                 <span className={classes.error}>{errors.sampleCollectionDate}</span>
@@ -577,6 +609,7 @@ const Laboratory = (props) => {
                                         max= {moment(new Date()).format("YYYY-MM-DD") }
                                         style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                         disabled={disabledField}
+                                        onKeyPress={(e) => e.preventDefault()}
                                     />
                                     {errors.dateAssayedBy !=="" ? (
                                         <span className={classes.error}>{errors.dateAssayedBy}</span>
@@ -597,6 +630,7 @@ const Laboratory = (props) => {
                                         max= {moment(new Date()).format("YYYY-MM-DD HH:MM:SS")}
                                         style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                         disabled={disabledField}
+                                        onKeyPress={(e) => e.preventDefault()}
                                     />
                                     {errors.dateResultReceived !=="" ? (
                                         <span className={classes.error}>{errors.dateResultReceived}</span>
@@ -608,7 +642,7 @@ const Laboratory = (props) => {
                                     <Label for="priority">Result <span style={{ color:"red"}}> *</span></Label>
                                     <InputGroup>
                                     <Input
-                                        type="number"
+                                        type="text"
                                         name="result"
                                         id="result"
                                         value={tests.result}
@@ -716,27 +750,6 @@ const Laboratory = (props) => {
                         </FormGroup>
                     )}
                     </Col>
-                    
-                    {/* <Col md={6} className="form-group mb-3">
-                                <FormGroup>
-                                    <Label for="encounterDate">Date Collected *</Label>
-                                    <Input
-                                        type="date"
-                                        name="dateCollectedBy"
-                                        id="dateCollectedBy"
-                                        value={tests.dateCollectedBy}
-                                        min={tests.sampleCollectionDate!==''? tests.sampleCollectionDate :moment(new Date()).format("YYYY-MM-DD")}
-                                        onChange={handleInputChange}
-                                        //min={tests.sampleCollectionDate}
-                                        max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
-                                        style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                        required
-                                    />
-                                    {errors.dateCollectedBy !=="" ? (
-                                        <span className={classes.error}>{errors.dateCollectedBy}</span>
-                                    ) : "" }
-                                </FormGroup>
-                    </Col> */}
                     <Col md={6} className="form-group mb-3">
                         <FormGroup>
                             <Label for="encounterDate">Sample logged remotely </Label>
@@ -769,6 +782,7 @@ const Laboratory = (props) => {
                                 onChange={handleInputChange}
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 disabled={disabledField}
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                             {errors.dateSampleLoggedRemotely !=="" ? (
                                 <span className={classes.error}>{errors.dateSampleLoggedRemotely}</span>
@@ -790,6 +804,7 @@ const Laboratory = (props) => {
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 disabled={disabledField}
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                             {errors.dateReceivedAtPcrLab !=="" ? (
                                 <span className={classes.error}>{errors.dateReceivedAtPcrLab}</span>
@@ -830,6 +845,7 @@ const Laboratory = (props) => {
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 disabled={disabledField}
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                             {errors.dateCheckedBy !=="" ? (
                                 <span className={classes.error}>{errors.dateCheckedBy}</span>
@@ -869,6 +885,7 @@ const Laboratory = (props) => {
                                 max= {moment(new Date()).format("YYYY-MM-DD") }
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 disabled={disabledField}
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                             {errors.dateApproved !=="" ? (
                                 <span className={classes.error}>{errors.dateApproved}</span>

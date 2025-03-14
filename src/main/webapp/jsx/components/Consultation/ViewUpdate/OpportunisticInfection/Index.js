@@ -93,6 +93,7 @@ const ADR = (props) => {
                   max={props.encounterDate}
                   style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                   required
+                  onKeyPress={(e) => e.preventDefault()}
                   > 
               </Input>
               {errors.ondateInfection !=="" ? (

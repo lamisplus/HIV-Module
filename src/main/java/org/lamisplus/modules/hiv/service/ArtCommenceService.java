@@ -38,16 +38,10 @@ public class ArtCommenceService {
 	
 	private final ARTClinicalRepository artClinicalRepository;
 	private final HivEnrollmentRepository hivEnrollmentRepository;
-	
 	private final HIVStatusTrackerService hivStatusTrackerService;
-	
-	
 	private final VitalSignService vitalSignService;
-	
 	private final ApplicationCodesetRepository applicationCodesetRepository;
 	private final CurrentUserOrganizationService organizationUtil;
-	
-	
 	private final VitalSignRepository vitalSignRepository;
 	
 	
@@ -110,7 +104,6 @@ public class ArtCommenceService {
 		return vitalSignId;
 	}
 	
-	
 	public Long processAndSaveVitalSign(ARTClinicalCommenceDto artClinicalCommenceDto) {
 		VitalSignRequestDto vitalSignDto = artClinicalCommenceDto.getVitalSignDto();
 		vitalSignDto.setVisitId(artClinicalCommenceDto.getVisitId());
@@ -121,8 +114,7 @@ public class ArtCommenceService {
 		return saveVitalSignDto.getId();
 		
 	}
-	
-	
+
 	public ARTClinicalCommenceDto updateArtCommence(Long id, ARTClinicalCommenceDto artClinicalCommenceDto) {
 		ARTClinical existArtClinical = getExistArt(id);
 		VitalSignRequestDto vitalSignDto = artClinicalCommenceDto.getVitalSignDto ();
@@ -141,13 +133,11 @@ public class ArtCommenceService {
 		artClinical.setArchived(0);
 		String cd4Count = artClinicalCommenceDto.getCd4();
 		if(cd4Count != null){
-			System.out.println(" cd4:  "+ cd4Count);
 			artClinical.setCd4(Long.parseLong(cd4Count));
 		}
 		return convertArtToResponseDto(artClinicalRepository.save(artClinical));
 	}
-	
-	
+
 	public void archivedArtCommenceClinical(Long id) {
 		ARTClinical artClinical = getExistArt(id);
 		HIVStatusTracker hivStatusTracker = hivStatusTrackerService
@@ -194,8 +184,6 @@ public class ArtCommenceService {
 				vitalSignService.getVitalSignById(artClinical.getVitalSign().getId());
 		VitalSignRequestDto requestDto = new VitalSignRequestDto();
 		BeanUtils.copyProperties(vitalSignDto, requestDto);
-		
-		
 		ARTClinicalCommenceDto artClinicalCommenceDto = new ARTClinicalCommenceDto();
 		BeanUtils.copyProperties(artClinical, artClinicalCommenceDto);
 		artClinicalCommenceDto.setVitalSignId(vitalSignDto.getId());
@@ -236,8 +224,7 @@ public class ArtCommenceService {
 		}
 		return artClinical;
 	}
-	
-	
+
 	private VitalSign getVitalSign(Long vitalSignId) {
 		return vitalSignRepository.findById(vitalSignId).orElseThrow(() -> new EntityNotFoundException(VitalSign.class, "id", String.valueOf(vitalSignId)));
 		

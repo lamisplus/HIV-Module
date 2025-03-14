@@ -34,25 +34,25 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class HivEnrollmentService {
-	
+
 	private final PersonService personService;
 	private final HivEnrollmentRepository hivEnrollmentRepository;
-	
+
 	private final ApplicationCodesetRepository applicationCodesetRepository;
-	
+
 	private final PersonRepository personRepository;
-	
+
 	private final CurrentUserOrganizationService currentUserOrganizationService;
-	
+
 	private final HandleHIVVisitEncounter hivVisitEncounter;
-	
+
 	private final ArtCommenceService commenceService;
-	
+
 	private final HIVStatusTrackerService statusTrackerService;
-	
+
 	private final ARTClinicalRepository artClinicalRepository;
-	
-	
+
+
 	public HivEnrollmentDTO createHivEnrollment(HivEnrollmentDTO hivEnrollmentDto) {
 		final Long personId = hivEnrollmentDto.getPersonId();
 		Person person = getPerson(personId);
@@ -67,8 +67,8 @@ public class HivEnrollmentService {
 		hivEnrollment.setUuid(UUID.randomUUID().toString());
 		return convertToDto(hivEnrollmentRepository.save(hivEnrollment));
 	}
-	
-	
+
+
 	public HivEnrollmentDTO updateHivEnrollment(Long id, HivEnrollmentDTO hivEnrollmentDto) {
 		HivEnrollment existHivEnrollment = getExistEnrollmentById(id);
 		HivEnrollment hivEnrollment = convertToEntity(hivEnrollmentDto);
@@ -78,8 +78,8 @@ public class HivEnrollmentService {
 		hivEnrollment.setArchived(0);
 		return convertToDto(hivEnrollmentRepository.save(hivEnrollment));
 	}
-	
-	
+
+
 	public List<HivPatientDto> getAll() {
 		return hivEnrollmentRepository.getHivEnrollmentByFacilityIdAndArchived(currentUserOrganizationService.getCurrentUserOrganization(), 0)
 				.stream()
@@ -87,35 +87,37 @@ public class HivEnrollmentService {
 				.filter(hivEnrollment -> hivEnrollment.getFacilityId().equals(currentUserOrganizationService.getCurrentUserOrganization()))
 				.map(this::convertHivEnrollmentToHivPatientDto)
 				.collect(Collectors.toList());
-		
+
 	}
-	
+
 	public HivEnrollmentDTO getHivEnrollmentById(Long id) {
 		return convertToDto(getExistEnrollmentById(id));
 	}
-	
-	
+
+
 	public void deleteHivEnrollment(Long id) {
 		HivEnrollment hivEnrollment = getExistEnrollmentById(id);
 		hivEnrollment.setArchived(1);
 		hivEnrollmentRepository.save(hivEnrollment);
 	}
-	
-	
+
+
 	private HivEnrollment getExistEnrollmentById(Long id) {
 		return hivEnrollmentRepository
 				.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException(HivEnrollment.class, "id", "" + id));
 	}
-	
+
 	private HivEnrollment convertToEntity(HivEnrollmentDTO dto) {
 		HivEnrollment hivEnrollment = new HivEnrollment();
 		BeanUtils.copyProperties(dto, hivEnrollment);
+		String sourceSupport = dto.getSource() == null || dto.getSource().isEmpty() ? Constants.WEB_SOURCE : Constants.MOBILE_SOURCE;
+		hivEnrollment.setSource(sourceSupport);
 		//log.info("entity converted {} ", hivEnrollment);
 		hivEnrollment.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
 		return hivEnrollment;
 	}
-	
+
 	private HivEnrollmentDTO convertToDto(HivEnrollment entity) {
 		HivEnrollmentDTO hivEnrollmentDto = new HivEnrollmentDTO();
 		BeanUtils.copyProperties(entity, hivEnrollmentDto);
@@ -124,8 +126,8 @@ public class HivEnrollmentService {
 		hivEnrollmentDto.setVisitId(entity.getVisit().getId());
 		return hivEnrollmentDto;
 	}
-	
-	
+
+
 	private HivPatientDto convertHivEnrollmentToHivPatientDto(HivEnrollment entity) {
 		Person person = entity.getPerson();
 		PersonResponseDto bioData = personService.getPersonById(person.getId());
@@ -143,8 +145,8 @@ public class HivEnrollmentService {
 		addArtCommencementInfo(person.getId(), artCommencement, hivPatientDto);
 		return hivPatientDto;
 	}
-	
-	
+
+
 	private void addArtCommencementInfo(Long personId, Optional<ARTClinical> artCommencement, HivPatientDto hivPatientDto) {
 		//Log.info("art commencement : {}", artCommencement.isPresent());
 		if (artCommencement.isPresent ()) {
@@ -155,22 +157,22 @@ public class HivEnrollmentService {
 			hivPatientDto.setCurrentStatus (statusTrackerService.getPersonCurrentHIVStatusByPersonId (personId).getStatus());
 		}
 	}
-	
+
 	public Optional<HivEnrollmentDTO> getHivEnrollmentByPersonIdAndArchived(Long personId) {
 		Person person = getPerson(personId);
 		Optional<HivEnrollment> hivEnrollment = hivEnrollmentRepository.getHivEnrollmentByPersonAndArchived(person, 0);
 		return hivEnrollment.map(this::convertToDto);
 	}
-	
+
 	public Person getPerson(Long personId) {
 		return personRepository.findById(personId)
 				.orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
 	}
-	
+
 	public List<OVCDomainDTO> getOvcDomainDTOList() {
 		return hivEnrollmentRepository.getOVCDomains();
     }
-	
+
 	public List<String> getOVCServicesByDomainId(Long domainId) {
 		return hivEnrollmentRepository.getOVCServiceByDomainId(domainId);
 	}
@@ -181,9 +183,7 @@ public class HivEnrollmentService {
 		}
 		return hivEnrollmentRepository.findByUniqueIdAndArchived(uniqueId, Constants.UNARCHIVED);
 	}
-	
-	
-	
+
 }
 
 

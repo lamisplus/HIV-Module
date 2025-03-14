@@ -343,6 +343,7 @@ const Laboratory = (props) => {
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.sampleCollectionDate !=="" ? (
                                     <span className={classes.error}>{errors.sampleCollectionDate}</span>
@@ -415,6 +416,7 @@ const Laboratory = (props) => {
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.labNumber !=="" ? (
                                     <span className={classes.error}>{errors.labNumber}</span>
@@ -435,6 +437,7 @@ const Laboratory = (props) => {
                                     max= {moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateResultReceived !=="" ? (
                                     <span className={classes.error}>{errors.dateResultReceived}</span>
@@ -455,6 +458,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -475,6 +479,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -495,6 +500,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -515,6 +521,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -535,6 +542,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -555,6 +563,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -575,6 +584,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -595,6 +605,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -615,6 +626,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -635,6 +647,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -655,6 +668,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>
@@ -675,6 +689,7 @@ const Laboratory = (props) => {
                                     max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
+                                    onKeyPress={(e) => e.preventDefault()}
                                 />
                                 {errors.dateAssayed !=="" ? (
                                     <span className={classes.error}>{errors.dateAssayed}</span>

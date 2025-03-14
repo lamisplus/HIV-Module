@@ -20,11 +20,8 @@ import java.util.List;
 public class EacController {
 	
 	private final HIVEacService hIVEacService;
-	
 	private final HIVEacSessionService hIVEacSessionService;
-	
 	private final EACOutComeService eacOutComeService;
-	
 	
 	@GetMapping(value = "/patient/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<HIVEacDto>> getPatientEacs(@PathVariable("id") Long id) {
@@ -41,8 +38,7 @@ public class EacController {
 	                                         @RequestBody EACStopDto data) {
 		return ResponseEntity.ok(hIVEacService.stopEac(id, data));
 	}
-	
-	
+
 	@PostMapping(value = "/session", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HIVEacSessionDto> registerEacSession(@RequestBody HIVEacSessionDto data) {
 		return ResponseEntity.ok(hIVEacSessionService.createEacSession(data));
@@ -64,7 +60,6 @@ public class EacController {
 	public ResponseEntity<HIVEacSessionDto> updateEacSession(
 			@PathVariable("id") Long id,
 			@RequestBody HIVEacSessionDto data) {
-		log.info("EAC SESSION DATA ***** {}", data);
 		return ResponseEntity.ok(hIVEacSessionService.updateEacSession(id, data));
 	}
 	
@@ -79,6 +74,20 @@ public class EacController {
 		hIVEacSessionService.deleteEacSessionById(id);
 		return ResponseEntity.ok("success");
 	}
-	
-	
+
+	@GetMapping(value = "/eac-outcome", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<EacOutComeDto>> getAllEacOutComeByPerson(@RequestParam("personUuid") String personUuid) {
+		return ResponseEntity.ok(eacOutComeService.getAllEacOutComeByPerson(personUuid));
+	}
+
+	@PutMapping(value = "/eac-outcome/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<EacOutComeDto> updateEacOutcome(@PathVariable("id") Long id, @RequestBody EacOutComeDto eacOutCome) {
+		return ResponseEntity.ok(eacOutComeService.updateEacOutCome(id, eacOutCome));
+	}
+
+	@DeleteMapping(value = "/eac-outcome/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<String> deleteEacOutcome(@PathVariable("id") Long id) {
+		return ResponseEntity.ok(eacOutComeService.deleteEacOutcome(id));
+	}
+
 }

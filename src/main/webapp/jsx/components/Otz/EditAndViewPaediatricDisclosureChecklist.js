@@ -293,7 +293,7 @@ const EditAndViewPeadiatricDisclosureChecklist = (props) => {
                           readOnly={isViewActionType}
                           name="encounterDate"
                           id="encounterDate"
-                          type="date"
+                           type="date" onKeyPress={(e) => e.preventDefault()}
                           value={formik.values.encounterDate}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
@@ -428,7 +428,7 @@ const EditAndViewPeadiatricDisclosureChecklist = (props) => {
 
                         <Input
                           readOnly={isViewActionType}
-                          type="date"
+                           type="date" onKeyPress={(e) => e.preventDefault()}
                           name="dateTask1Executed"
                           id="dateTask1Executed"
                           value={formik.values.dateTask1Executed}
@@ -667,7 +667,7 @@ const EditAndViewPeadiatricDisclosureChecklist = (props) => {
 
                         <Input
                           readOnly={isViewActionType}
-                          type="date"
+                           type="date" onKeyPress={(e) => e.preventDefault()}
                           name="dateTask2Executed"
                           id="dateTask2Executed"
                           value={formik.values.dateTask2Executed}
@@ -1070,7 +1070,7 @@ const EditAndViewPeadiatricDisclosureChecklist = (props) => {
 
                         <Input
                           readOnly={isViewActionType}
-                          type="date"
+                           type="date" onKeyPress={(e) => e.preventDefault()}
                           name="dateTask3Executed"
                           id="dateTask3Executed"
                           value={formik.values.dateTask3Executed}
@@ -1568,7 +1568,7 @@ const EditAndViewPeadiatricDisclosureChecklist = (props) => {
 
                       <Input
                         readOnly={isViewActionType}
-                        type="date"
+                         type="date" onKeyPress={(e) => e.preventDefault()}
                         name="dateTask4Executed"
                         id="dateTask4Executed"
                         value={formik.values.dateTask4Executed}

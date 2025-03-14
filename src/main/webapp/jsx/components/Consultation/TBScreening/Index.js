@@ -80,325 +80,67 @@ const useStyles = makeStyles((theme) => ({
 const TBScreeningForm = (props) => {
   const classes = useStyles();
   const [tbStatus, setTbStatus] = useState([]);
+
   useEffect(() => {
-    TBStatus();
-    if (
-      props.tbObj.currentOnIpt !== "" &&
-      (props.tbObj.coughing === "YES" &&
-        props.tbObj.nightSweat === "YES" &&
-        props.tbObj.fever === "YES" &&
-        props.tbObj.contactWithTBCase === "YES" &&
-        props.tbObj.lethergy === "YES")
-    ) {
-      props.tbObj.tbStatusId = 68; //for any option with YES
-    } else if (
-      props.tbObj.currentOnIpt !== "" &&
-      props.tbObj.coughing === "NO" &&
-      props.tbObj.nightSweat === "NO" &&
-      props.tbObj.fever === "NO" &&
-      props.tbObj.contactWithTBCase === "NO" &&
-      props.tbObj.lethergy === "NO"
-    ) {
-      props.tbObj.tbStatusId = 67; //for any option with NO
-    } else if (
-      props.tbObj.tbStatusId === "" ||
-      props.tbObj.tbStatusId === null
-    ) {
-      props.tbObj.tbStatusId = "";
-    }
-  
-    if(props.careSupportTb!==""){
-       //The value of the TB status id
-       const tbStatusId=tbStatus.find((x)=> x.display===props.careSupportTb)
-        
-      props.tbObj.tbStatusId=tbStatusId && tbStatusId.id!==""? tbStatusId.id :""
-    }
-  }, [props.tbObj,props.careSupportTb]);
+    TBStatus()
+  }, []);
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
   const TBStatus = () => {
     axios
-      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-       
-        setTbStatus(response.data);
-        
-      })
-      .catch((error) => {
-        
-      });
+        .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+
+          setTbStatus(response.data);
+
+        })
+        .catch((error) => {
+
+        });
   };
 
   const handleInputChange = (e) => {
-    
-
     props.setTbObj({ ...props.tbObj, [e.target.name]: e.target.value });
+    // console.log(e.target.value)
   };
 
-
-
+// console.log("props.careSupportTb", props.careSupportTb)
+//  console.log("obj in tbscreen", props.tbObj)
   return (
-    <div>
-      <div className="row">
-        <div className="form-group mb-3 col-md-6">
-          <FormGroup>
-            <Label>Patient TB Status</Label>
-            <Input
-              type="select"
-              name="tbStatusId"
-              id="tbStatusId"
-              value={props.tbObj.tbStatusId}
-              onChange={handleInputChange}
-              style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
-              required
-            >
-              <option value="">Select </option>
-              {tbStatus &&
-                tbStatus.map((tb) => (
-                  <option key={tb.id} value={tb.id}>
-                    {tb.display}
-                  </option>
-                ))}
-            </Input>
-          </FormGroup>
-          {props.errors.tbStatusId !== "" ? (
-            <span className={classes.error}>{props.errors.tbStatusId}</span>
-          ) : (
-            ""
-          )}
-        </div>
-        {/* <div className="form-group mb-3 col-md-6">
-          <FormGroup>
-            <Label>Patient on Anti TB Drugs?</Label>
-            <Input
-              type="select"
-              name="antiTBDrug"
-              id="antiTBDrug"
-              value={props.tbObj.antiTBDrug}
-              onChange={handleInputChange}
-              style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
-              required
-            >
-              <option value="">Select </option>
-              <option value="YES"> YES</option>
-              <option value="NO">NO </option>
-            </Input>
-          </FormGroup>
-          {props.errors.antiTBDrug !== "" ? (
-            <span className={classes.error}>{props.errors.antiTBDrug}</span>
-          ) : (
-            ""
-          )}
-        </div>
-        {props.tbObj.antiTBDrug === "NO" && (
-          <>
-            <div className="form-group mb-3 col-md-6">
-              <FormGroup>
-                <Label>Patient Currently on IPT?</Label>
-                <Input
+      <div>
+        <div className="row">
+          <div className="form-group mb-3 col-md-6">
+            <FormGroup>
+              <Label>Patient TB Status</Label>
+              <span style={{color: "red"}}> *</span>
+              <Input
                   type="select"
-                  name="currentOnIpt"
-                  id="currentOnIpt"
-                  value={props.tbObj.currentOnIpt}
+                  name="tbStatusId"
+                  id="tbStatusId"
+                  // value={props.tbObj.tbStatusId}
                   onChange={handleInputChange}
-                  style={{
-                    border: "1px solid #014D88",
-                    borderRadius: "0.25rem",
-                  }}
-                  required
-                >
-                  <option value=""> Select</option>
-                  <option value="YES"> YES</option>
-                  <option value="NO">NO </option>
-                </Input>
-              </FormGroup>
-              {props.errors.currentOnIpt !== "" ? (
-                <span className={classes.error}>
-                  {props.errors.currentOnIpt}
-                </span>
-              ) : (
-                ""
-              )}
-            </div>
-            <div className="form-group mb-3 col-md-4">
-              <FormGroup>
-                <Label>coughing?</Label>
-                <Input
-                  type="select"
-                  name="coughing"
-                  id="coughing"
-                  value={props.tbObj.coughing}
-                  onChange={handleInputChange}
-                  style={{
-                    border: "1px solid #014D88",
-                    borderRadius: "0.25rem",
-                  }}
-                  required
-                >
-                  <option value=""> Select</option>
-                  <option value="YES"> YES</option>
-                  <option value="NO">NO </option>
-                </Input>
-              </FormGroup>
-              {props.errors.coughing !== "" ? (
-                <span className={classes.error}>{props.errors.coughing}</span>
-              ) : (
-                ""
-              )}
-            </div>
-            <div className="form-group mb-3 col-md-4">
-              <FormGroup>
-                <Label>Night Sweat?</Label>
-                <Input
-                  type="select"
-                  name="nightSweat"
-                  id="nightSweat"
-                  value={props.tbObj.nightSweat}
-                  onChange={handleInputChange}
-                  style={{
-                    border: "1px solid #014D88",
-                    borderRadius: "0.25rem",
-                  }}
-                  required
-                >
-                  <option value=""> Select</option>
-                  <option value="YES"> YES</option>
-                  <option value="NO">NO </option>
-                </Input>
-              </FormGroup>
-              {props.errors.nightSweat !== "" ? (
-                <span className={classes.error}>{props.errors.nightSweat}</span>
-              ) : (
-                ""
-              )}
-            </div>
-            <div className="form-group mb-3 col-md-4">
-              <FormGroup>
-                <Label>Fever</Label>
-                <Input
-                  type="select"
-                  name="fever"
-                  id="fever"
-                  value={props.tbObj.fever}
-                  onChange={handleInputChange}
-                  style={{
-                    border: "1px solid #014D88",
-                    borderRadius: "0.25rem",
-                  }}
-                  required
-                >
-                  <option value="">Select </option>
-                  <option value="YES"> YES</option>
-                  <option value="NO">NO </option>
-                </Input>
-              </FormGroup>
-              {props.errors.fever !== "" ? (
-                <span className={classes.error}>{props.errors.fever}</span>
-              ) : (
-                ""
-              )}
-            </div>
-            <div className="form-group mb-3 col-md-4">
-              <FormGroup>
-                <Label>Contact with TB Case?</Label>
-                <Input
-                  type="select"
-                  name="contactWithTBCase"
-                  id="contactWithTBCase"
-                  value={props.tbObj.contactWithTBCase}
-                  onChange={handleInputChange}
-                  style={{
-                    border: "1px solid #014D88",
-                    borderRadius: "0.25rem",
-                  }}
-                  required
-                >
-                  <option value=""> Select</option>
-                  <option value="YES"> YES</option>
-                  <option value="NO">NO </option>
-                </Input>
-              </FormGroup>
-              {props.errors.contactWithTBCase !== "" ? (
-                <span className={classes.error}>
-                  {props.errors.contactWithTBCase}
-                </span>
-              ) : (
-                ""
-              )}
-            </div>
-            <div className="form-group mb-3 col-md-4">
-              <FormGroup>
-                <Label>Lethergy</Label>
-                <Input
-                  type="select"
-                  name="lethergy"
-                  id="lethergy"
-                  value={props.tbObj.lethergy}
-                  onChange={handleInputChange}
-                  style={{
-                    border: "1px solid #014D88",
-                    borderRadius: "0.25rem",
-                  }}
-                  required
-                >
-                  <option value="">Select </option>
-                  <option value="YES"> YES</option>
-                  <option value="NO">NO </option>
-                </Input>
-              </FormGroup>
-              {props.errors.lethergy !== "" ? (
-                <span className={classes.error}>{props.errors.lethergy}</span>
-              ) : (
-                ""
-              )}
-            </div>
-          </>
-        )}
-        <div className="form-group mb-3 col-md-6">
-          <FormGroup>
-            <Label>TB Status</Label>
-            <Input
-              type="select"
-              name="tbStatusId"
-              id="tbStatusId"
-              value={props.tbObj.tbStatusId}
-              onChange={handleInputChange}
-              style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
-              disabled={props.tbObj.tbStatusId === 67 ? false : true}
-            >
-              <option value=""></option>
-              {props.tbObj.tbStatusId === 67 ? (
-                <>
-                  {tbStatus
-                    .filter((x) => x.id === 67 || x.id === 633)
-                    .map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.display}
-                      </option>
+                  style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                  // required
+              >
+                <option value="">Select</option>
+                {tbStatus &&
+                    tbStatus.map((tb) => (
+                        <option key={tb.id} value={tb.id}>
+                          {tb.display}
+                        </option>
                     ))}
-                </>
-              ) : (
-                <>
-                  <option value=""></option>
-                  {tbStatus.map((value) => (
-                    <option key={value.id} value={value.id}>
-                      {value.display}
-                    </option>
-                  ))}
-                </>
-              )}
-            </Input>
-          </FormGroup>
-          {props.errors.tbStatusId !== "" ? (
-            <span className={classes.error}>{props.errors.tbStatusId}</span>
-          ) : (
-            ""
-          )}
-        </div> */}
+              </Input>
+            </FormGroup>
+            {props.errors.tbStatusId !== "" ? (
+                <span className={classes.error}>{props.errors.tbStatusId}</span>
+            ) : (
+                ""
+            )}
+          </div>
+        </div>
       </div>
-    </div>
   );
 };
 

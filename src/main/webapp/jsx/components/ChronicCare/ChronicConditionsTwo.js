@@ -131,6 +131,7 @@ const ChronicConditionsTwo = (props) => {
                         borderRadius: "0.25rem",
                       }}
                       required
+                      onKeyPress={(e) => e.preventDefault()}
                     />
                   </FormGroup>
                 </div>

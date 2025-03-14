@@ -81,7 +81,7 @@ public interface ArtPharmacyRepository extends JpaRepository<ArtPharmacy, Long> 
 	@Query(value = "SELECT * FROM hiv_art_pharmacy p " +
 			"inner join hiv_art_pharmacy_regimens pr On p.id = pr.art_pharmacy_id " +
 			"INNER JOIN hiv_regimen r ON r.id = pr.regimens_id WHERE visit_date <=  ?2  " +
-			"AND r.regimen_type_id IN (1,2,3,4,14) AND person_uuid = ?1 " +
+			"AND r.regimen_type_id IN (1,2,3,4,14, 16) AND person_uuid = ?1 " +
 			"AND archived = 0 ORDER BY visit_date DESC LIMIT 1" ,
 			nativeQuery = true)
 	Optional<ArtPharmacy> getCurrentPharmacyRefillWithDateRange(String personUuid, LocalDate endDate);

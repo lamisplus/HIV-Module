@@ -10,11 +10,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TransferPatientDto {
-
     private String Id;
     private Long patientId;
     private String personUuid;
     private Long facilityId;
+    private String currentStatus;
     private String facilityName;
     private String lga;
     private String state;
@@ -29,7 +29,7 @@ public class TransferPatientDto {
     private String dateEnrolledInTreatment;
     private String adherenceLevel;
     private String currentWhoClinical;
-    private Integer currentCD4Count;
+    private String currentCD4Count;
     private Integer baselineCD4;
     private Integer viralLoad;
     private String currentRegimenLine;
@@ -59,4 +59,5 @@ public class TransferPatientDto {
     private String clinicianTelephoneNumber;
     private String patientCameWithTransferForm;
     private String patientAttendedHerFirstVisit;
+    private String encounterDate;
 }

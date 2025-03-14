@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @Setter
 @Getter
-public class ApiError {
+public class ApiError extends RuntimeException {
 
     private HttpStatus status;
     private String message;
@@ -15,6 +15,14 @@ public class ApiError {
         super();
         this.status = status;
         this.message = message;
+    }
+
+    public ApiError(String message) {
+        super(message);
+    }
+
+    public ApiError(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

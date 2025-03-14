@@ -5,7 +5,8 @@ import { url as baseUrl, token } from "./../../../api";
 import { withStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 import "semantic-ui-css/semantic.min.css";
-import { Sticky } from "semantic-ui-react";
+import { Sticky, Button } from "semantic-ui-react";
+import { Modal } from "react-bootstrap";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import PatientCardDetail from "./PatientCard";
@@ -20,18 +21,15 @@ import EnhancedAdherenceCounseling from "../EnhancedAdherenceCounseling/Index";
 import CervicalCancer from "./../CervicalCancer/Index";
 import CervicalCancerUpdate from "./../CervicalCancer/ViewPage";
 import ClientStatusUpdate from "./../ClientStatusUpdate/ClientStatusUpdate";
-//import AdultClinicEvaluationFrom from '../InitailClinicEvaluation/index__'
 import AdultClinicEvaluationForm from "../InitailClinicEvaluation/Adult/Index";
 import ViewAdultClinicEvaluationForm from "../InitailClinicEvaluation/ViewAdultHistory/Index";
-//import ChildClinicEvaluationForm from '../InitailClinicEvaluation/ChildClinicEvaluationForm'
 import MentalHealthScreening from "../MentalHealthScreening/index";
 import LabHistory from "./../Laboratory/LabHistory";
 import PatientHistory from "./../History/PatientHistory";
 import ArtCommencement from "./../ArtCommencement/ArtCommencement";
 import ArtCommencementPage from "./../ArtCommencement/ArtCommencementPage";
-//History of patient
+
 import ViewMentalHealthScreening from "./../MentalHealthScreening/ViewMhs";
-//import ViewAdultClinicEvaluationFrom from './../InitailClinicEvaluation/ViewAdultClinicEvaluationFrom'
 import ViewArtCommencement from "./../ArtCommencement/ViewArtCommencement";
 import FirstEac from "./../EnhancedAdherenceCounseling/ViewEAC/FirstEac";
 import SecondEac from "./../EnhancedAdherenceCounseling/ViewEAC/SecondEac";
@@ -64,9 +62,9 @@ import EnrollmentOtz from "../Otz/Enrollment";
 import ViewChronicCare from "../ChronicCare/viewChronicCare";
 import DsdServiceForm from "../DSD/DsdServiceForm";
 import DsdServiceFormView from "../DSD/DsdServiceFormView";
-import { getCurrentPatientRecord } from "../../services/getCurrentPatientRecord";
-import { useQuery } from "react-query";
-import { GET_CURRENT_PATIENT_RECORD } from "../../../utils/queryKeys";
+// import EACOutcome from "../EnhancedAdherenceCounseling/EacOutCome";
+import EACOutcome from "../EnhancedAdherenceCounseling/EACOutcome/index";
+import ViewUpdateEACOutcome from "../EnhancedAdherenceCounseling/EACOutcome/ViewUpdateEACOutcome";
 
 const styles = (theme) => ({
   root: {
@@ -118,85 +116,135 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.patientObj
       : {};
+  //   console.log("start ", patientObj);
   const [patientObj1, setPatientObj1] = useState(null);
+  const [showModal, setShowModal] = useState({ show: false, message: "" });
 
-  // useQuery(
-  //   [GET_CURRENT_PATIENT_RECORD, patientObj?.id],
-  //   () => getCurrentPatientRecord(patientObj?.id),
-  //   {
-  //     onSuccess: (data) => {
-  //       setPatientObj1(data);
-  //     },
-  //     refetchOnMount: "always",
-  //     staleTime: 100,
-  //     cacheTime: 100,
-  //     onError: (error) => {
-  //       if (error.response && error.response.data) {
-  //         let errorMessage =
-  //           error.response.data.apierror &&
-  //           error.response.data.apierror.message !== ""
-  //             ? error.response.data.apierror.message
-  //             : "Something went wrong, please try again";
-  //         toast.error(errorMessage);
-  //       } else {
-  //         toast.error("Something went wrong. Please try again...");
-  //       }
-  //     },
-  //   }
-  // );
-
-  // const PatientCurrentObject = () => {
-  //   axios
-  //       .get(`${baseUrl}hiv/patient/${patientObj.id}`, {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       })
-  //       .then((response) => {
-  //         setPatientObj1(response.data);
-  //       })
-  //       .catch((error) => {});
-  // };
-
-      useEffect(() => {
-        const getCurrentPatientRecord = async (id) => {
-          try {
-            const response = await axios.get(`${baseUrl}hiv/patient/${id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            setPatientObj1(response.data);
-          } catch (error) {
-            if (error.response && error.response.data) {
-              let errorMessage =
-                error.response.data.apierror &&
-                error.response.data.apierror.message !== ""
-                  ? error.response.data.apierror.message
-                  : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          }
-        };
-
-        if (patientObj?.id) {
-          getCurrentPatientRecord(patientObj.id);
+  useEffect(() => {
+    const getCurrentPatientRecord = async (id) => {
+      try {
+        const response = await axios.get(`${baseUrl}hiv/patient/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPatientObj1(response.data);
+      } catch (error) {
+        if (error.response && error.response.data) {
+          let errorMessage =
+            error.response.data.apierror &&
+            error.response.data.apierror.message !== ""
+              ? error.response.data.apierror.message
+              : "Something went wrong, please try again";
+          toast.error(errorMessage);
+        } else {
+          toast.error("Something went wrong. Please try again...");
         }
-      }, [patientObj?.id]);
+      }
+    };
 
-      const PatientCurrentObject = () => {
-        useEffect(() => {
-          axios
-            .get(`${baseUrl}hiv/patient/${patientObj.id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-            .then((response) => {
-              setPatientObj1(response.data);
-            })
-            .catch((error) => {
-              console.log(error);
+    if (patientObj?.id) {
+      getCurrentPatientRecord(patientObj.id);
+    }
+  }, [patientObj?.id]);
+
+  const PatientCurrentObject = () => {
+    useEffect(() => {
+      axios
+        .get(`${baseUrl}hiv/patient/${patientObj.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          setPatientObj1(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }, []);
+  };
+
+  const hideModal = () => {
+    setShowModal({ show: false, message: "" });
+  };
+
+  useEffect(() => {
+    axios
+      .get(
+        `${baseUrl}observation/tpt-completion-status-info?personUuid=${patientObj.personUuid}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then((response) => {
+        const drugsOfInterest = [
+          "Isoniazid-(INH) 100mg",
+          "Isoniazid-(INH) 300mg",
+          "Isoniazid 100mg",
+          "Isoniazid 300mg",
+          "Isoniazid(300mg)/Pyridoxine(25mg)/Cotrimoxazole(960mg)",
+          "Isoniazid and Rifapentine-(3HP)",
+          "Isoniazid and Rifampicin-(3HR)",
+        ];
+
+        const matchingObject = response?.data?.find((item) =>
+          item.pharmacyData.regimens.some((regimen) =>
+            drugsOfInterest.includes(regimen.name)
+          )
+        );
+
+        if (matchingObject) {
+          const { observationData, pharmacyData, visitDate } = matchingObject;
+          if (observationData.tptMonitoring.outComeOfIpt !== "") {
+            setShowModal({ show: false, message: "" });
+            return;
+          }
+          const regimenNames = pharmacyData.regimens.map(
+            (regimen) => regimen.regimenName
+          );
+          const visitDateObj = new Date(visitDate);
+          const today = new Date();
+          const differenceInDays = Math.floor(
+            (today - visitDateObj) / (1000 * 3600 * 24)
+          );
+
+          if (
+            differenceInDays >= 180 &&
+            regimenNames.some((name) =>
+              [
+                "Isoniazid-(INH) 300mg",
+                "Isoniazid-(INH) 100mg",
+                "Isoniazid 100mg",
+                "Isoniazid 300mg",
+                "Isoniazid(300mg)/Pyridoxine(25mg)/Cotrimoxazole(960mg)",
+              ].includes(name)
+            )
+          ) {
+            setShowModal({
+              show: true,
+              message: `Patient ID: ${patientObj.hospitalNumber} was initiated on TPT 180 days ago: Please update Outcome of TPT`,
             });
-        }, []);
-      };
-
+          } else if (
+            differenceInDays >= 90 &&
+            regimenNames.some((name) =>
+              [
+                "Isoniazid and Rifapentine-(3HP)",
+                "Isoniazid and Rifampicin-(3HR)",
+              ].includes(name)
+            )
+          ) {
+            setShowModal({
+              show: true,
+              message: ` Patient ID: ${patientObj.hospitalNumber} was initiated on TPT 90 days ago: Please update Outcome of TPT`,
+            });
+          } else {
+            setShowModal({ show: false, message: "" });
+          }
+        } else {
+          setShowModal({ show: false, message: "" });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [patientObj.personUuid]);
 
   return (
     <div className={classes.root}>
@@ -219,7 +267,7 @@ function PatientCard(props) {
             patientObj={patientObj}
             setArt={setArt}
             setActiveContent={setActiveContent}
-            patientObj1={patientObj1}
+            patientObj1={patientObj1 !== null ? patientObj1 : patientObj}
           />
           <Sticky>
             <SubMenu
@@ -228,7 +276,6 @@ function PatientCard(props) {
               expandedPatientObj={patientObj1}
               art={art}
               activeContent={activeContent}
-              
             />
           </Sticky>
           <br />
@@ -325,7 +372,6 @@ function PatientCard(props) {
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
-              
             />
           )}
           {activeContent.route === "art-commencement" && (
@@ -424,8 +470,22 @@ function PatientCard(props) {
               activeContent={activeContent}
             />
           )}
+          {/*{activeContent.route === "eac-outcome" && (*/}
+          {/*    <EACOUTCOME*/}
+          {/*        patientObj={patientObj}*/}
+          {/*        setActiveContent={setActiveContent}*/}
+          {/*        activeContent={activeContent}*/}
+          {/*    />*/}
+          {/*)}*/}
           {activeContent.route === "eac-outcome" && (
-            <EACOUTCOME
+            <EACOutcome
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "view-outcome" && (
+            <ViewUpdateEACOutcome
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
@@ -584,6 +644,33 @@ function PatientCard(props) {
           )}
         </CardContent>
       </Card>
+
+      {showModal.show && (
+        <Modal
+          show={showModal.show}
+          className="fade"
+          size="sm"
+          aria-labelledby="contained-modal-title-vcenter"
+          centered
+        >
+          <Modal.Header>
+            <Modal.Title id="contained-modal-title-vcenter">
+              Update TPT Completion Status
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <h4>{showModal.message}</h4>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              style={{ backgroundColor: "#014d88", color: "#fff" }}
+              onClick={hideModal}
+            >
+              Cancel
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </div>
   );
 }

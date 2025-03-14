@@ -37,6 +37,7 @@ public class ARTClinicVisitDto implements Serializable {
 	private Long hivEnrollmentId;
 	private Long artStatusId;
 	private Long whoStagingId;
+	private JsonNode who;
 	@NotNull
 	private VitalSignRequestDto vitalSignDto;
 	@NotNull

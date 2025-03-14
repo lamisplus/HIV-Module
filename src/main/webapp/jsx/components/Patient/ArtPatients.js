@@ -31,11 +31,8 @@ import "@reach/menu-button/styles.css";
 import { Label } from "semantic-ui-react";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
-import moment from "moment";
-//import { FaUserPlus } from "react-icons/fa";
 import { TiArrowForward } from "react-icons/ti";
 import { calculate_age } from "../../../utils";
-//Dtate Picker package
 Moment.locale("en");
 momentLocalizer();
 
@@ -107,9 +104,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Patients = (props) => {
-  //const [patientList, setPatientList] = useState([])
   const [showPPI, setShowPPI] = useState(true);
-  //const [loading, setLoading] = useState(true)
   const handleCheckBox = (e) => {
     if (e.target.checked) {
       setShowPPI(false);
@@ -124,7 +119,6 @@ const Patients = (props) => {
         icons={tableIcons}
         title="ART Patients"
         columns={[
-          // { title: " ID", field: "Id" },
           {
             title: "Patient Name",
             field: "name",
@@ -133,9 +127,7 @@ const Patients = (props) => {
           { title: "Unique ID", field: "uniqueId", filtering: false },
           { title: "Sex", field: "sex", filtering: false },
           { title: "Age", field: "age", filtering: false },
-          //{ title: "Enrollment Status", field: "v_status", filtering: false },
-          //{ title: "ART Number", field: "v_status", filtering: false },
-          { title: "ART Status", field: "status", filtering: false },
+          // { title: "ART Status", field: "status", filtering: false },
           { title: "Actions", field: "actions", filtering: false },
         ]}
         data={(query) =>
@@ -180,12 +172,6 @@ const Patients = (props) => {
                     uniqueId: row.uniqueId,
                     sex: row.sex,
                     age: calculate_age(row.dateOfBirth),
-
-                    status: (
-                      <Label color="blue" size="mini">
-                        {row.currentStatus}
-                      </Label>
-                    ),
                     actions: (
                       <div>
                         {row.currentStatus !== "Not Enrolled" ? (

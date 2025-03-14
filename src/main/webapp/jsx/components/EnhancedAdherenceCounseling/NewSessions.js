@@ -247,8 +247,6 @@ const NEWEACSESSION = (props) => {
                         variant="contained"
                         color="primary"
                         className=" float-end ms-2 mr-2 mt-2 "
-                        //startIcon={<FaUserPlus size="10"/>}
-                        //startIcon={<TiArrowBack  />}
                         onClick={()=>BackToSession(props.activeContent.obj, 'view')}
                         style={{backgroundColor:"#014D88", color:'#fff', height:'35px'}}
 
@@ -277,6 +275,7 @@ const NEWEACSESSION = (props) => {
                                     max= { moment(new Date()).format("YYYY-MM-DD") }
                                     onChange={handleInputChange}
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                    onKeyPress={(e) => e.preventDefault()}
                                     
                                 />
                                  
@@ -325,36 +324,6 @@ const NEWEACSESSION = (props) => {
                                 
                         </FormGroup>
                         </div>
-                        {/* <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Barriers</Label>
-                                <Input
-                                    type="select"
-                                    name="barriers"
-                                    id="barriers"
-                                    value={objValues.barriers}
-                                    onChange={handleInputChange}
-                                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                    
-                                >
-                                 <option value="">Select</option> 
-                                 <option value="Forgot">  Forgot</option> 
-                                 <option value="Knowledge/beliefs">Knowledge/beliefs</option> 
-                                 <option value="Side effects">Side effects</option> 
-                                 <option value="Physical illness">Physical illness</option>
-                                 <option value="Substance use">Substance use</option> 
-                                 <option value="Depression">Depression</option> 
-                                 <option value="Pill burden">Pill burden</option> 
-                                 <option value="Lost/ran out">Lost/ran out</option> 
-                                 <option value="Transport">Transport</option>
-                                 <option value="Child behavior/refusing Scheduling">Child behavior/refusing Scheduling</option>
-                                 <option value="Fear disclosure Family/partner Food insecurity Drug stock out Long wait Stigma">Fear disclosure Family/partner Food insecurity Drug stock out Long wait Stigma</option>
-                                 <option value="Others">Others</option>
-
-                                </Input>
-                                  
-                                </FormGroup>
-                        </div> */}
                         <div className="form-group mb-12 col-md-12">
                         <FormGroup>
                             <Label for="permissions" style={{color:'#014d88',fontWeight:'bolder'}}>Barriers</Label>
@@ -397,38 +366,6 @@ const NEWEACSESSION = (props) => {
                             />
                         </FormGroup>
                         </div>
-                        {/* <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Intervention</Label>
-                                <Input
-                                    type="select"
-                                    name="intervention"
-                                    id="intervention"
-                                    value={objValues.intervention}
-                                    onChange={handleInputChange}
-                                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                    
-                                >
-                                 <option value="">Select</option> 
-                                 <option value="Education">  Education</option> 
-                                 <option value="Counseling (ind)">Counseling (ind)</option> 
-                                 <option value="Counseling (grp)">Counseling (grp)</option> 
-                                 <option value="Peer support">Peer support</option>
-                                 <option value="Treatment buddy"> Treatment buddy</option> 
-                                 <option value="Extended Drug pick-up">Extended Drug pick-up</option> 
-                                 <option value="Community ART Group">Community ART Group</option> 
-                                 <option value="Directly Observed Therapy">Directly Observed Therapy</option> 
-                                 <option value="Transport">Transport</option>
-                                 <option value="Child behavior/refusing Scheduling">Child behavior/refusing Scheduling</option>
-                                 <option value="Fear disclosure Family/partner Food insecurity Drug stock out Long wait Stigma">Fear disclosure Family/partner Food insecurity Drug stock out Long wait Stigma</option>
-                                 <option value="Tools Pill box Calendar">Tools Pill box Calendar</option>
-                                 <option value="Incentive calendar (peds) ARV swallowing instruction Written instructions Phone calls SMS">Incentive calendar (peds) ARV swallowing instruction Written instructions Phone calls SMS</option>
-                                 <option value="Others">Others</option>
-
-                                </Input>
-                                  
-                                </FormGroup>
-                        </div> */}
                         {selectedInterventions.includes('Others') && (<>
                         <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
@@ -475,6 +412,7 @@ const NEWEACSESSION = (props) => {
                                 //max= {moment(new Date()).format("YYYY-MM-DD") }
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 required
+                                onKeyPress={(e) => e.preventDefault()}
                             />
                            
                             </FormGroup>

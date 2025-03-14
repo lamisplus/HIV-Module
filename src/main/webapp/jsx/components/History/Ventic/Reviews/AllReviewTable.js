@@ -19,7 +19,7 @@ const AllReviewTable = () => {
 
   // Active data
   const chageData = (frist, sec) => {
-    for (var i = 0; i < data.length; ++i) {
+    for (let i = 0; i < data.length; ++i) {
       if (i >= frist && i < sec) {
         data[i].classList.remove("d-none");
       } else {
@@ -30,7 +30,6 @@ const AllReviewTable = () => {
   // use effect
   useEffect(() => {
     setData(document.querySelectorAll("#allreview tbody tr"));
-    //chackboxFun();
   }, [test]);
 
  

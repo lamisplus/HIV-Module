@@ -8,7 +8,7 @@ import org.springframework.core.annotation.Order;
 @Order(9)
 @Installer(name = "update-base_application-codeset-table",
         description = "update base application codeset table",
-        version = 2)
+        version = 3)
 public class UpdateApplicationCodset extends AcrossLiquibaseInstaller {
     public UpdateApplicationCodset() {
         super("classpath:installers/hiv/schema/update_application_codeset.xml");

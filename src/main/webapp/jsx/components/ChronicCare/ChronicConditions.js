@@ -436,6 +436,7 @@ const handleInputChangeCurrentHtnRegimen = (selectedValues) => {
                                   borderRadius: "0.25rem",
                                 }}
                                 required
+                                onKeyPress={(e) => e.preventDefault()}
                               />
                             </FormGroup>
                           </Col>
@@ -496,6 +497,7 @@ const handleInputChangeCurrentHtnRegimen = (selectedValues) => {
                                   borderRadius: "0.25rem",
                                 }}
                                 required
+                                onKeyPress={(e) => e.preventDefault()}
                               />
                             </FormGroup>
                           </Col>
@@ -586,6 +588,7 @@ const handleInputChangeCurrentHtnRegimen = (selectedValues) => {
                                     borderRadius: "0.25rem",
                                   }}
                                   required
+                                  onKeyPress={(e) => e.preventDefault()}
                                 />
                               </FormGroup>
                             </Col>

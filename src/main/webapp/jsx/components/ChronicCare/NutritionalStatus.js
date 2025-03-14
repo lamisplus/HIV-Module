@@ -231,7 +231,6 @@ const BasicInfo = (props) => {
                 <div className=" mb-3 col-md-4">
                   <FormGroup>
                     <Label>Body Weight</Label>
-                    {console.log(nutritionEducation)}
                     <InputGroup>
                       <Input
                         type="number"
@@ -370,7 +369,6 @@ const BasicInfo = (props) => {
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
                   <Label>Nutrition Education and Counselled</Label>
-                  {console.log("Nutrition Education", nutritionEducation)}
                   {/* Nutrition Education */}
                   <DualListBox
                     //canFilter
@@ -385,8 +383,6 @@ const BasicInfo = (props) => {
                 <FormGroup>
                   <Label>Nutrition Support</Label>
                   {/* Nutrition Education */}
-                  {console.log("Nutrition suppport & education", nutritionSupport, nutritionEducation)}
-
                   <DualListBox
                     //canFilter
                     options={nutritionSupport}

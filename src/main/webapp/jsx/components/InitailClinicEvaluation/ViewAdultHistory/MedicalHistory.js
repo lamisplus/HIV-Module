@@ -193,7 +193,7 @@ const MedicalHistory = (props) => {
                                                 motherName:"", 
                                                 motherAddress:"", 
                                                 childFatherAlive:"", 
-                                                immunisationComplete:"",
+                                                // immunisationComplete:"",
                                                 fatherName:"", 
                                                 fatherAddress:"", 
                                                 parentChildMarriageStatus:"",  
@@ -410,7 +410,7 @@ const MedicalHistory = (props) => {
                                 <option value="">Select</option>
                                 <option value="Married">Married</option>
                                 <option value="Co-habiting">Co-habiting</option>
-                                <option value="Signle">Signle</option>
+                                <option value="Single">Single</option>
                                 </Input> 
                                                                   
                             </FormGroup>

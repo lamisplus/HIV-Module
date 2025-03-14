@@ -8,6 +8,124 @@
     <changeSet failOnError="true" author="Basil" id="20240402-001">
         <sql>DELETE FROM public.hiv_regimen WHERE id = 247 AND description = 'Liposomal Amphotericin B (3mg/Kg IV dly) (50mg)';</sql>
     </changeSet>
+
+    <changeSet failOnError="true" id="20240704-01" author="Taiwo Gboyegun">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM hiv_regimen WHERE description = 'TDF(300mg)+3TC(300mg)+DTG(50mg)'
+            </sqlCheck>
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM hiv_regimen WHERE description = 'ABC(600mg)+3TC(300mg)+DTG(50mg)'
+            </sqlCheck>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM hiv_regimen WHERE description = 'ABC(60mg)+3TC(30mg)+DTG(10mg)'
+            </sqlCheck>
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*) FROM hiv_regimen WHERE description = 'ABC/3TC/DTG10mg'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen), 'TDF(300mg)+3TC(300mg)+DTG(50mg)', 'Tenofovir+Lamivudine+Dolutegravir', 3, true, 1);
+
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen), 'ABC(600mg)+3TC(300mg)+DTG(50mg)', 'Abacavir+Lamivudine+Dolutegravir', 3, true, 1);
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen) VALUES ('ABC(60mg)+3TC(30mg)+DTG(10mg)','ABC-3TC-DTG');
+
+            UPDATE public.hiv_regimen SET active = true WHERE description = 'ABC(60mg)+3TC(30mg)+DTG(50mg)';
+            UPDATE public.hiv_regimen SET description = 'ABC(120mg)/3TC(60mg)/DTG(10mg)' WHERE description = 'ABC/3TC/DTG10mg';
+        </sql>
+
+    </changeSet>
+
+    <changeSet id="20240704-02" author="Taiwo Gboyegun">
+        <sql>
+            UPDATE hiv_regimen
+            SET description = 'ABC(600mg)/3TC(300mg)+DTG(50mg)'
+            WHERE description = 'ABC(600mg)+3TC(300mg)+DTG(50mg)';
+
+            UPDATE hiv_regimen
+            SET description = 'ABC(60mg)/3TC(30mg)+DTG(10mg)'
+            WHERE description = 'ABC(60mg)/3TC(30mg)+DTG(50mg)';
+
+            UPDATE hiv_regimen
+            SET description = 'ABC(60mg)/3TC(30mg)+DTG(10mg)'
+            WHERE description = 'ABC(60mg)+3TC(30mg)+DTG(10mg)';
+
+            UPDATE hiv_regimen
+            SET description = 'ABC(120mg)/3TC(60mg)+DTG(10mg)'
+            WHERE description = 'ABC(120mg)/3TC(60mg)/DTG(10mg)';
+
+            UPDATE hiv_regimen
+            SET description = 'TDF(300mg)/3TC(300mg)/DTG(50mg)'
+            WHERE description = 'TDF(300mg)+3TC(300mg)+DTG(50mg)';
+        </sql>
+    </changeSet>
+
+    <changeSet id="20240704-03" author="Taiwo Gboyegun">
+        <sql>
+            UPDATE hiv_regimen
+            SET description = 'ABC(60mg)/3TC(30mg)+DTG(50mg)'
+            WHERE description = 'ABC(60mg)+3TC(30mg)+DTG(50mg)';
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="true" id="20240711-03" author="Taiwo Gboyegun">
+        <sql>
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 251, 102);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 251, 5);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 251, 22);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 124, 25);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 124, 36);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 124, 122);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 252, 25);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 252, 36);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 252, 118);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 250, 31);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 250, 5);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES ((SELECT MAX(id) + 1 FROM hiv_regimen_drug), 250, 122);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" id="20240730-01" author="Taiwo Gboyegun">
+        <sql>
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('ABC(600mg)/3TC(300mg)+DTG(50mg)', 'ABC/3TC+DTG50' );
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('ABC(60mg)/3TC(30mg)+DTG(10mg)', '60/30+DTG10');
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('ABC(60mg)/3TC(30mg)+DTG(50mg)', '60/30+DTG50');
+
+            UPDATE hiv_regimen_resolver
+            SET regimensys = 'TDF(300mg)/3TC(300mg)/DTG(50mg)', regimen = 'TLD'
+            WHERE regimensys = 'TDF(300mg)+3TC(300mg)+DTG(50mg)' and regimen = 'TDF-3TC-DTG';
+        </sql>
+    </changeSet>
 </databaseChangeLog>
 
 

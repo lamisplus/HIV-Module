@@ -71,7 +71,7 @@ public interface LinkageRepository extends JpaRepository<OvcLinkage, UUID> {
             "        ON pr.art_pharmacy_id = p.id\n" +
             "         INNER JOIN public.hiv_regimen r on r.id = pr.regimens_id\n" +
             "         INNER JOIN public.hiv_regimen_type rt on rt.id = r.regimen_type_id\n" +
-            "WHERE r.regimen_type_id in (1,2,3,4,14)\n" +
+            "WHERE r.regimen_type_id in (1,2,3,4,14,16)\n" +
             "  AND  p.archived = 0\n" +
             "        ) as pr1\n" +
             "           ) as pr2\n" +

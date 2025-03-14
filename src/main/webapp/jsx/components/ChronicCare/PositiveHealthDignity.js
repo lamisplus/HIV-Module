@@ -211,17 +211,13 @@ const PositiveHealthDignity = (props) => {
                       last appointment?
                     </Label>
                     <Input
-                      type="select"
+                        type="number" min="0"
                       name="cotrimoxazole"
                       id="cotrimoxazole"
                       onChange={handleInputChange}
                       value={props.preventive.cotrimoxazole}
                       disabled={props.action === "view" ? true : false}
-                    >
-                      <option value="">Select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </Input>
+                    />
                   </FormGroup>
                 </div>
               </div>

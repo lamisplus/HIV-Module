@@ -27,6 +27,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import { toast } from "react-toastify";
 import { Icon } from "semantic-ui-react";
 import Select from "react-select";
+import {Get} from "react-lodash";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -71,6 +72,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Laboratory = (props) => {
+
   let visitId = "";
   //let =""
   const patientObj = props.patientObj;
@@ -82,21 +84,20 @@ const Laboratory = (props) => {
   const [buttonHidden, setButtonHidden] = useState(false);
   const [moduleStatus, setModuleStatus] = useState("0");
   const [testGroup, setTestGroup] = useState([]);
-  //const [test, setTest] = useState([]);
-  //const [vlRequired, setVlRequired]=useState(false)
   const [priority, setPriority] = useState([]);
   const [eacStatusObj, setEacStatusObj] = useState();
-  //const [labNumberOption, setLabNumberOption] = useState("")
-  //const [currentVisit, setCurrentVisit]=useState(true)
   const [vLIndication, setVLIndication] = useState([]);
   const [testOrderList, setTestOrderList] = useState([]); //Test Order List
-  //const [showVLIndication, setShowVLIndication] = useState(false);
   const [labNumbers, setLabNumbers] = useState([]); //
   const [selectedOption, setSelectedOption] = useState([]);
   const [labTestOptions, setLabTestOptions] = useState([]);
   const [labOrderIndication, setLabOrderIndication] = useState([]);
   let testsOptions = [];
+  const [chronicCareTestResult, setChronicCareTestResult] = useState("")
+  const [userHasChanged, setUserHasChanged] = useState(false);
+  const [tptMonitorng, setTptMonitoring ] = useState({})
   let temp = { ...errors };
+  const [cd4CountObj, setCd4CountObj] = useState({cd4CountType:"", SQC4CountValue:"", FCCd4CountValue: ""})
   const [tests, setTests] = useState({
     comments: "",
     dateAssayed: "",
@@ -194,6 +195,75 @@ const Laboratory = (props) => {
       .catch((error) => {});
   };
 
+  // Fetch chronic care
+  const GetCareAndSupportDiagnosticTest = () => {
+    axios
+        .get(  `${baseUrl}observation/person/${props.patientObj.id}`, {
+          headers: { Authorization: `Bearer ${token}` }, // Add token here
+        })
+        .then((response) => {
+          const data = response.data;
+          const filteredRecords = data.filter(
+              (item) =>
+                  item.type === "Chronic Care" &&
+                  item.data?.tptMonitoring?.diagnosticTestType !== null &&
+                  item.data?.tptMonitoring?.diagnosticTestType !== ""
+          );
+          if (filteredRecords.length > 0) {
+            const mostRecentRecord = filteredRecords.sort(
+                (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
+            )[0];
+            setTptMonitoring(mostRecentRecord.data.tptMonitoring)
+            const { diagnosticTestType } = mostRecentRecord.data.tptMonitoring;
+            if (diagnosticTestType === "TB-LAMP") {
+              setChronicCareTestResult("TB LAMP");
+            } else if (diagnosticTestType === "LF-LAM") {
+              setChronicCareTestResult("LF-LAM");
+            } else if (diagnosticTestType === "Truenat") {
+              setChronicCareTestResult("TrueNAT");
+            } else if (diagnosticTestType === "Smear Microscopy") {
+              setChronicCareTestResult("AFB smear microscopy");
+            } else if (diagnosticTestType === "Cobas") {
+              setChronicCareTestResult("Cobas");
+            }
+            else if (diagnosticTestType === "GeneXpert") {
+              setChronicCareTestResult("Gene Xpert");
+            }
+          } else {
+            setChronicCareTestResult("");
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching care and support data:", error);
+        });
+  };
+
+  useEffect(() => {
+    GetCareAndSupportDiagnosticTest();
+  }, []);
+
+// Auto-populate the select field when chronicCareTestResult is updated
+  useEffect(() => {
+    if (chronicCareTestResult && !userHasChanged) {
+      const matchedOption = labTestOptions.find(
+          (option) => option.label === chronicCareTestResult
+      );
+      if (matchedOption) {
+        setSelectedOption(matchedOption);
+        setTests((prevObject) => ({
+          ...prevObject,
+          labTestGroupId: matchedOption.testGroupId,
+          labTestId: matchedOption.value,
+          result: tptMonitorng.tbTestResult,
+          sampleCollectionDate: moment((tptMonitorng.dateSpecimenSent)).format("YYYY-MM-DDTHH:mm"),
+          dateResultReceived: tptMonitorng?.DateDiagnosticTestResultReceived
+              ? moment(tptMonitoring.DateDiagnosticTestResultReceived).format("YYYY-MM-DDTHH:mm")
+              : ""
+        }));
+      }
+    }
+  }, [chronicCareTestResult, labTestOptions, userHasChanged]);
+
   //Load the tests of all Laboratory
   //Get list of Test Group
   const PriorityOrder = () => {
@@ -238,31 +308,50 @@ const Laboratory = (props) => {
   };
 
   const handleInputChangeObject = (e) => {
-    console.log(e);
+    setUserHasChanged(true)
     setSelectedOption(e);
     setTests((prevObject) => ({
       ...prevObject,
       labTestGroupId: e.testGroupId,
       labTestId: e.value,
     }));
+    console.log("object ", selectedOption )
   };
 
   useEffect(() => {
     // Clear result when labTestId changes
-    if (tests.labTestId !== 65 && tests.labTestId !== 50) {
+    if (tests.labTestId !== 65 ) {
       setTests((prevTests) => ({ ...prevTests, result: "" }));
     }
+    if(tests.labTestId !== 1){
+      setCd4CountObj({cd4CountType:"", SQC4CountValue:"", FCCd4CountValue: ""})
+    }
   }, [tests.labTestId]);
+
+  useEffect(()=>{
+    if(tests.labTestId === 1){
+      setTests({...tests, result: cd4CountObj.FCCd4CountValue !== "" ? cd4CountObj.FCCd4CountValue : cd4CountObj.SQC4CountValue })
+    }
+  },[cd4CountObj])
 
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
     if (e.target.name === "labNumber") {
-      const onlyPositiveNumber = e.target.value; //Math.abs(e.target.value)
+      const onlyPositiveNumber = e.target.value;
       setTests({ ...tests, [e.target.name]: onlyPositiveNumber });
-    } else {
+    }else if(e.target.name === "cd4CountType"){
+      setCd4CountObj({...cd4CountObj, [e.target.name]: e.target.value})
+    } else if(e.target.name === "SQC4CountValue"){
+      setCd4CountObj({...cd4CountObj, SQC4CountValue:e.target.value, FCCd4CountValue: ""})
+    }else if(e.target.name === "FCCd4CountValue"){
+      setCd4CountObj({...cd4CountObj,SQC4CountValue:"", FCCd4CountValue: e.target.value})
+    }
+    else {
       setTests({ ...tests, [e.target.name]: e.target.value });
     }
   };
+
+
 
   const addOrder = (e) => {
     if (validate()) {
@@ -331,15 +420,15 @@ const Laboratory = (props) => {
       (temp.viralLoadIndication = tests.viralLoadIndication
         ? ""
         : "This field is required");
-    {
-      tests.dateResultReceived !== "" &&
-        (temp.result = tests.result ? "" : "This field is required");
+    // Only check result if dateResultReceived is not empty or undefined
+    if (tests.dateResultReceived !== "" && tests.dateResultReceived !== undefined) {
+      temp.result = tests.result && tests.result !== undefined ? "" : "This field is required";
     }
-    {
-      tests.result !== "" &&
-        (temp.dateResultReceived = tests.dateResultReceived
+    // Only check dateResultReceived if result is not empty or undefined
+    if (tests.result !== "" && tests.result !== undefined) {
+      temp.dateResultReceived = tests.dateResultReceived
           ? ""
-          : "This field is required");
+          : "This field is required";
     }
 
     setErrors({
@@ -358,8 +447,6 @@ const Laboratory = (props) => {
       })
       .catch((error) => {});
   };
-
-  
 
    const handleSubmit = (e) => {
      e.preventDefault();
@@ -527,6 +614,67 @@ const Laboratory = (props) => {
                        )}
                      </FormGroup>
                    </Col>
+                   {/*cd4 count type */}
+                   {tests.labTestId === 1 && <>
+                     <Col md={4} className="form-group mb-3">
+                       <FormGroup>
+                         <Label>CD4 Count (Type)</Label>
+                         <select
+                             className="form-control"
+                             name="cd4CountType"
+                             id="cd4CountType"
+                             value={cd4CountObj.cd4CountType}
+                             onChange={handleInputChange}
+                             style={{
+                               border: "1px solid #014D88",
+                               borderRadius: "0.2rem",
+                             }}
+                         >
+                           <option value={""}></option>
+                           <option value="Semi-Quantitative">Semi-Quantitative</option>
+                           <option value="Flow Cyteometry">Flow Cytometry</option>
+                         </select>
+                       </FormGroup>
+                       {/* </div> */}
+                     </Col>
+                   </>}
+                   { cd4CountObj.cd4CountType === "Semi-Quantitative" && (<Col md={4} className="form-group mb-3">
+                     <FormGroup>
+                       <Label>CD4 Count Value(Semi-Quantitative)</Label>
+                       <select
+                           className="form-control"
+                           name="SQC4CountValue"
+                           id="SQC4CountValue"
+                           value={cd4CountObj.SQC4CountValue}
+                           onChange={handleInputChange}
+                           style={{
+                             border: "1px solid #014D88",
+                             borderRadius: "0.2rem",
+                           }}
+                       >
+                         <option value={""}></option>
+                         <option value="<200">{"<200"}</option>
+                         <option value=">=200">{">=200"}</option>
+                       </select>
+                     </FormGroup>
+                   </Col>)}
+                   { cd4CountObj.cd4CountType === "Flow Cyteometry" && (<Col md={4} className="form-group mb-3">
+                       <FormGroup>
+                         <Label for="">CD4 Count Value (Flow Cytometry)</Label>
+                         <Input
+                             type="number"
+                             min={1}
+                             name="FCCd4CountValue"
+                             id="FCCd4CountValue"
+                             value={cd4CountObj.FCCd4CountValue}
+                             onChange={handleInputChange}
+                             style={{
+                               border: "1px solid #014D88",
+                               borderRadius: "0.25rem",
+                             }}
+                         />
+                       </FormGroup>
+                   </Col>)}
                    {/* Indications */}
                    <>
                      <Col md={4} className="form-group mb-3">
@@ -534,14 +682,14 @@ const Laboratory = (props) => {
                        <FormGroup>
                          <Label>
                            Lab Order Indication{" "}
-                           <span style={{ color: "red" }}> *</span>
+                           <span style={{color: "red"}}> *</span>
                          </Label>
                          <select
-                           className="form-control"
-                           name="labOrderIndication"
-                           id="labOrderIndication"
-                           value={tests.labOrderIndication}
-                           onChange={handleInputChange}
+                             className="form-control"
+                             name="labOrderIndication"
+                             id="labOrderIndication"
+                             value={tests.labOrderIndication}
+                             onChange={handleInputChange}
                            style={{
                              border: "1px solid #014D88",
                              borderRadius: "0.2rem",
@@ -622,6 +770,7 @@ const Laboratory = (props) => {
                            borderRadius: "0.25rem",
                          }}
                          required
+                         onKeyDown={(e) => e.preventDefault()}
                        />
                        {errors.sampleCollectionDate !== "" ? (
                          <span className={classes.error}>
@@ -658,6 +807,7 @@ const Laboratory = (props) => {
                            borderRadius: "0.25rem",
                          }}
                          required
+                         onKeyPress={(e) => e.preventDefault()}
                        />
                        {errors.dateResultReceived !== "" ? (
                          <span className={classes.error}>
@@ -672,6 +822,7 @@ const Laboratory = (props) => {
                    {tests.labTestId === 73 ||
                    tests.labTestId === 75 ||
                    tests.labTestId === 78 ||
+                   tests.labTestId === 67 ||
                    tests.labTestId === 79 ||
                    tests.labTestId === 80 ? (
                      <>
@@ -726,9 +877,31 @@ const Laboratory = (props) => {
                                borderRadius: "0.2rem",
                              }}
                            >
-                             <option value={""}>Select</option>
-                             <option value="Detected">Detected</option>
-                             <option value="Not Detected">Not Detected</option>
+
+                           //start
+                          <option value={""}>Select</option>
+                          <option value="MTB not detected">
+                             {"MTB not detected"}
+                          </option>
+                          <option value="MTB detected RR not detected">
+                             {"MTB detected RR not detected"}
+                          </option>
+                          <option value="MTB detected RR detected">
+                           {"MTB detected RR detected"}
+                          </option>
+                          <option value="MTB detected RR indeterminate">
+                           {"MTB detected RR indeterminate"}
+                          </option>
+                          <option value="Error">
+                            {"Error"}
+                          </option>
+                          <option value="Invalid ">
+                            {"Invalid "}
+                          </option>
+                          <option value="Incomplete">
+                             {"Incomplete"}
+                          </option>
+                          //end
                            </select>
                          </FormGroup>
                        </Col>
@@ -793,7 +966,76 @@ const Laboratory = (props) => {
                          </FormGroup>
                        </Col>
                      </>
-                   ) : tests.labTestId === 69 ? (
+                   ) :
+                       tests.labTestId === 50 ? (
+                               <>
+                                 <Col md={4} className="form-group mb-3">
+                                   <FormGroup>
+                                     <Label>
+                                       Result{" "}
+                                       {tests.dateResultReceived !== "" ? (
+                                           <span style={{ color: "red" }}> *</span>
+                                       ) : (
+                                           ""
+                                       )}
+                                     </Label>
+                                     <select
+                                         className="form-control"
+                                         name="result"
+                                         id="result"
+                                         value={tests.result}
+                                         onChange={handleInputChange}
+                                         style={{
+                                           border: "1px solid #014D88",
+                                           borderRadius: "0.2rem",
+                                         }}
+                                     >
+                                       <option value={""}></option>
+                                       <option value="<200">{"<200"}</option>
+                                       <option value=">=200">{">=200"}</option>
+                                     </select>
+                                   </FormGroup>
+                                 </Col>
+                               </>
+                           )
+                           //start
+                   : tests.labTestId === 82 ||
+                     tests.labTestId === 83 ||
+                     tests.labTestId === 84 ||
+                     tests.labTestId === 85 ? (
+                    <>
+                      <Col md={4} className="form-group mb-3">
+                        <FormGroup>
+                          <Label>
+                            Result{" "}
+                            {tests.dateResultReceived !== "" ? (
+                              <span style={{ color: "red" }}> *</span>
+                            ) : (
+                              ""
+                            )}
+                          </Label>
+                          <select
+                            className="form-control"
+                            name="result"
+                            id="result"
+                            value={tests.result}
+                            onChange={handleInputChange}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                          >
+                            <option value={""}>Select</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Deranged">Deranged</option>
+                          </select>
+                        </FormGroup>
+                      </Col>
+                    </>
+                  )
+               //end
+
+                   : tests.labTestId === 69 ? (
                      <>
                        <Col md={4} className="form-group mb-3">
                          <FormGroup>
@@ -847,11 +1089,11 @@ const Laboratory = (props) => {
                              }}
                            >
                              <option value={""}>Select</option>
-                             <option value="X-ray suggestive">
-                               X-ray suggestive
+                             <option value="Suggestive for TB">
+                               {"Suggestive for TB"}
                              </option>
-                             <option value="X-ray not suggestive">
-                               X-ray not suggestive
+                             <option value="Not suggestive for TB">
+                               {"Not suggestive for TB"}
                              </option>
                            </select>
                          </FormGroup>
@@ -881,8 +1123,8 @@ const Laboratory = (props) => {
                              }}
                            >
                              <option value={""}>Select</option>
-                             <option value="AFB Positive">AFB Positive</option>
-                             <option value="AFB Negative">AFB Negative</option>
+                             <option value="Positive">AFB Positive</option>
+                             <option value="Negative">AFB Negative</option>
                            </select>
                          </FormGroup>
                        </Col>
@@ -1031,13 +1273,49 @@ const Laboratory = (props) => {
                              }}
                            >
                              <option value={""}>Select</option>
-                             <option value="Positive">Positive</option>
-                             <option value="Negative">Negative</option>
+                             <option value="Normal">Normal</option>
+                             <option value="Deranged">Deranged</option>
                            </select>
                          </FormGroup>
                        </Col>
                      </>
-                   ) : tests.labTestId === 32 ? (
+                   )
+
+                   //start
+                    : tests.labTestId === 33 ? (
+                        <>
+                          <Col md={4} className="form-group mb-3">
+                            <FormGroup>
+                              <Label>
+                                Result{" "}
+                                {tests.dateResultReceived !== "" ? (
+                                  <span style={{ color: "red" }}> *</span>
+                                ) : (
+                                  ""
+                                )}
+                              </Label>
+                              <select
+                                className="form-control"
+                                name="result"
+                                id="result"
+                                value={tests.result}
+                                onChange={handleInputChange}
+                                style={{
+                                  border: "1px solid #014D88",
+                                  borderRadius: "0.2rem",
+                                }}
+                              >
+                                <option value={""}>Select</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Deranged">Deranged</option>
+                              </select>
+                            </FormGroup>
+                          </Col>
+                        </>
+                      )
+
+                    //end
+                    : tests.labTestId === 32 ? (
                      <>
                        <Col md={4} className="form-group mb-3">
                          <FormGroup>
@@ -1187,7 +1465,41 @@ const Laboratory = (props) => {
                          </FormGroup>
                        </Col>
                      </>
-                   ) : tests.labTestId === 65 ? (
+                   )
+
+                //start
+               : tests.labTestId === 21 ? (
+                   <>
+                     <Col md={4} className="form-group mb-3">
+                       <FormGroup>
+                         <Label>
+                           Result{" "}
+                           {tests.dateResultReceived !== "" ? (
+                             <span style={{ color: "red" }}> *</span>
+                           ) : (
+                             ""
+                           )}
+                         </Label>
+                         <select
+                           className="form-control"
+                           name="result"
+                           id="result"
+                           value={tests.result}
+                           onChange={handleInputChange}
+                           style={{
+                             border: "1px solid #014D88",
+                             borderRadius: "0.2rem",
+                           }}
+                         >
+                           <option value={""}>Select</option>
+                           <option value="Normal">Normal</option>
+                           <option value="Deranged">Deranged</option>
+                         </select>
+                       </FormGroup>
+                     </Col>
+                   </>
+                 )
+                   : tests.labTestId === 65 ? (
                      <>
                        <Col md={4} className="form-group mb-3">
                          <FormGroup>
@@ -1210,47 +1522,115 @@ const Laboratory = (props) => {
                                borderRadius: "0.2rem",
                              }}
                            >
+                             //start
                              <option value={""}>Select</option>
-                             <option value="MTB Detected (Rifampicin not Resistance)">
-                               {"MTB Detected (Rifampicin not Resistance)"}
+                             <option value="MTB not detected">
+                                {"MTB not detected"}
                              </option>
-                             <option value="MTB Detected (Rifampicin Resistance Detected)">
-                               {"MTB Detected (Rifampicin Resistance Detected)"}
+                             <option value="MTB detected RIF resistance not detected">
+                                {"MTB detected RIF resistance not detected"}
                              </option>
-                             <option value="MTb Not Detected">
-                               MTb Not Detected
+                             <option value="MTB detected RIF resistance detected">
+                              {"MTB detected RIF resistance detected"}
                              </option>
+                             <option value="MTB trace RIF resistance indeterminate">
+                              {"MTB trace RIF resistance indeterminate"}
+                             </option>
+                             <option value="Error">
+                               {"Error"}
+                             </option>
+                             <option value="Invalid">
+                               {"Invalid"}
+                             </option>
+                             <option value="Incomplete">
+                                {"Incomplete"}
+                             </option>
+                             //end
+
                            </select>
                          </FormGroup>
                        </Col>
                      </>
-                   ) : tests.labTestId === 50 ? (
+                   )
+                    : tests.labTestId === 86 ? (
+                        <>
+                          <Col md={4} className="form-group mb-3">
+                            <FormGroup>
+                              <Label>
+                                Result{" "}
+                                {tests.dateResultReceived !== "" ? (
+                                  <span style={{ color: "red" }}> *</span>
+                                ) : (
+                                  ""
+                                )}
+                              </Label>
+                              <select
+                                className="form-control"
+                                name="result"
+                                id="result"
+                                value={tests.result}
+                                onChange={handleInputChange}
+                                style={{
+                                  border: "1px solid #014D88",
+                                  borderRadius: "0.2rem",
+                                }}
+                              >
+                                //start
+                                <option value={""}>Select</option>
+                                <option value="MTB not detected">
+                                   {"MTB not detected"}
+                                </option>
+                                <option value="MTB detected RIF/INH not detected">
+                                   {"MTB detected RIF/INH not detected"}
+                                </option>
+                                <option value="MTB detected RIF detected">
+                                 {"MTB detected RIF detected"}
+                                </option>
+                                <option value="MTB detected INH detected">
+                                 {"MTB detected INH detected"}
+                                </option>
+                                <option value="MTB detected RIF&INH detected">
+                                  {"MTB detected RIF&INH detected"}
+                                </option>
+                                <option value="Invalid">
+                                  {"Invalid"}
+                                </option>
+                                <option value="No result">
+                                   {"No result"}
+                                </option>
+                                //end
+
+                              </select>
+                            </FormGroup>
+                          </Col>
+                        </>
+                      )
+
+                   : tests.labTestId === 1 ? (
                      <>
                        <Col md={4} className="form-group mb-3">
                          <FormGroup>
                            <Label>
                              Result{" "}
                              {tests.dateResultReceived !== "" ? (
-                               <span style={{ color: "red" }}> *</span>
+                                 <span style={{ color: "red" }}> *</span>
                              ) : (
-                               ""
+                                 ""
                              )}
                            </Label>
-                           <select
-                             className="form-control"
-                             name="result"
-                             id="result"
-                             value={tests.result}
-                             onChange={handleInputChange}
-                             style={{
-                               border: "1px solid #014D88",
-                               borderRadius: "0.2rem",
-                             }}
-                           >
-                             <option value={""}>Select</option>
-                             <option value="<200">{"<200"}</option>
-                             <option value=">=200">{">=200"}</option>
-                           </select>
+                           <Input
+                               className="form-control"
+                               type="text"
+                               name="result"
+                               id="result"
+                               value={tests.result}
+                               onChange={handleInputChange}
+                               style={{
+                                 border: "1px solid #014D88",
+                                 borderRadius: "0.25rem",
+                               }}
+                               required
+                           />
                          </FormGroup>
                        </Col>
                      </>
@@ -1334,6 +1714,7 @@ const Laboratory = (props) => {
                            border: "1px solid #014D88",
                            borderRadius: "0.25rem",
                          }}
+                         onKeyPress={(e) => e.preventDefault()}
                          required
                        />
                        {errors.orderedDate !== "" ? (
@@ -1415,6 +1796,7 @@ const Laboratory = (props) => {
                            borderRadius: "0.25rem",
                          }}
                          required
+                         onKeyPress={(e) => e.preventDefault()}
                        />
                        {errors.dateChecked !== "" ? (
                          <span className={classes.error}>
@@ -1449,6 +1831,22 @@ const Laboratory = (props) => {
                        )}
                      </FormGroup>
                    </Col>
+                   <Col md={6} className="form-group mb-3">
+                     <FormGroup>
+                       <Label for="priority">Comment</Label>
+                       <Input
+                           type="textarea"
+                           name="comments"
+                           id="comments"
+                           value={tests.comments}
+                           onChange={handleInputChange}
+                           style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                       >
+
+                       </Input>
+
+                     </FormGroup>
+                   </Col>
 
                    <Col md={12}>
                      <LabelSui
@@ -1459,7 +1857,7 @@ const Laboratory = (props) => {
                        size="small"
                        style={{ marginTop: 20, marginBottom: 20 }}
                      >
-                       <Icon name="plus" /> Add Test
+                       <Icon name="plus" /> Add Test1
                      </LabelSui>
                    </Col>
                    <hr />

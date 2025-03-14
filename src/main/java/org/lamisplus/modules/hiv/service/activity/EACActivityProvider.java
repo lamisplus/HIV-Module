@@ -26,7 +26,6 @@ public class EACActivityProvider implements PatientActivityProvider {
 	public List<PatientActivity> getActivitiesFor(Person person) {
 		
 		List<HIVEac> hivEacList = hivEacRepository.getAllByPersonAndArchived(person, 0);
-		System.out.println("eac list: " + hivEacList.size());
 		return hivEacList.stream()
 				.filter(Objects::nonNull)
 				.map(this::buildPatientActivity).collect(Collectors.toList());

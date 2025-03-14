@@ -290,7 +290,7 @@ return (
                                     >
                                         <option value={""}></option>
                                         <option value="Semi-Quantitative">Semi-Quantitative</option>
-                                        <option value="Flow Cyteometry">Flow Cyteometry</option>
+                                        <option value="Flow Cyteometry">Flow Cytometry</option>
                                         
                                     </select>
                                     

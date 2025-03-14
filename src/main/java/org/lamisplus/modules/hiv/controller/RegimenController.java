@@ -50,7 +50,9 @@ public class RegimenController {
 				||e.getDescription().contains("IPT")
 				|| e.getDescription().contains("CTX")
 				|| e.getDescription().contains("Paediatric 1st Line")
-				|| e.getDescription().contains("Paediatric 2nd Line"))
+				|| e.getDescription().contains("Paediatric 2nd Line")
+				|| e.getDescription().contains("Paediatric 3rd Line")
+				)
 				.collect(Collectors.toList()));
 	}
 	

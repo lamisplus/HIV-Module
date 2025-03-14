@@ -99,43 +99,16 @@ public class LinkageService {
         return repository.findByHouseholdUniqueId(householdUniqueId);
     }
 
-//    public String exportRecordToJson() {
-//        String filePath = "None";
-//        try {
-//            //write your query to retrieve vc from database
-//            //List<LinkageRequest> linkageList = getAllPositiveNonArt();
-//            List<LinkageRequest> linkageList = new ArrayList<>();
-//            if (!linkageList.isEmpty()) {
-//                filePath = LINKAGE_EXPORT + File.separator + "ovc_linkage_" + df.format(new java.util.Date()) + ".json";
-//                String json = objectToJson(linkageList);
-//                writeObjectToFile(json, filePath);
-//                File file = new File(filePath);
-//                if (file.exists()) {
-//                    FileData fileData = new FileData(file.getName(), FILE_TYPE);
-//                }
-//            } else {
-//                filePath = "None";
-//                log.info("No record found");
-//            }
-//        } catch (IOException exception) {
-//            log.debug(exception.getMessage());
-//        }
-//
-//        return filePath;
-//    }
     
     public boolean importJsonFromFile(MultipartFile file) throws IOException {
         boolean result = false;
         String jsonObjectFilePath = LINKAGE_IMPORT + File.separator + file.getOriginalFilename();
-        log.info("file path: " + jsonObjectFilePath);
         file.transferTo(new File(jsonObjectFilePath));
         List<OvcLinkage> linkageList = jsonFileToObjectList(jsonObjectFilePath);
-        log.info("linked list: " + linkageList);
         linkageList = save(linkageList);
         if (!linkageList.isEmpty()) {
             result = true;
         }
-        
         return result;
     }
     
@@ -154,7 +127,6 @@ public class LinkageService {
                 }
             }
         }
-        
         return fileList;
     }
     
@@ -175,29 +147,6 @@ public class LinkageService {
         return byteArrayOutputStream;
     }
 
-//    private LinkageNotFoundException throwException(String value) {
-//        throw new LinkageNotFoundException("Linkage Not Found with ID: " + value);
-//    }
-
-//    private String objectToJson(List<LinkageRequest> object) {
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-//        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-//        objectMapper.registerModule(new JavaTimeModule());
-//        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//        objectMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
-//        objectMapper.configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, false);
-//        try {
-//            if (object != null) {
-//                return mapper.writeValueAsString(object);
-//            }
-//            return null;
-//        } catch (IOException e) {
-//            log.error("Error writing object to JSON");
-//            return null;
-//        }
-//    }
-    
     private void writeObjectToFile(String jsonObject, String jsonFilePath) throws IOException {
         try(FileWriter writer = new FileWriter(jsonFilePath)){
             writer.write(jsonObject);
@@ -239,7 +188,6 @@ public class LinkageService {
         File directory = new File(directoryPath);
         if (!directory.exists()) {
             if (directory.mkdirs()) {
-                log.info("Directory created: " + directory.getAbsolutePath());
             } else {
                 log.error("Failed to create the directory: " + directory.getAbsolutePath());
             }
@@ -250,20 +198,16 @@ public class LinkageService {
     public LinkageResponse convertToLinkageResponseDto(OvcLinkage ovcLinkage) {
         LinkageResponse response = new LinkageResponse();
         response.setArtNumber(ovcLinkage.getArtNumber());
-        // recently added entity
         response.setArvRegimen(ovcLinkage.getArvRegimen());
         response.setDateTested(ovcLinkage.getDateTested());
         response.setArtEnrollmentDate(ovcLinkage.getArtEnrollmentDate());
         response.setVlTestDate(ovcLinkage.getVlTestDate());
         response.setVlResult(ovcLinkage.getVlResult());
         response.setVlResultDate(ovcLinkage.getVlResultDate());
-
         response.setLastName(ovcLinkage.getLastName());
         response.setOtherName(ovcLinkage.getOtherName());
         response.setGender(ovcLinkage.getGender());
-        // Format birthDate
         response.setBirthDate(formatDate(ovcLinkage.getBirthDate()));
-
         response.setFacilityState(ovcLinkage.getFacilityState());
         response.setFacilityLga(ovcLinkage.getFacilityLga());
         response.setFacilityUid(ovcLinkage.getFacilityUid());
@@ -272,10 +216,8 @@ public class LinkageService {
         response.setStateOfResidence(ovcLinkage.getStateOfResidence());
         response.setLgaOfResidence(ovcLinkage.getLgaOfResidence());
         response.setEntryPoint(ovcLinkage.getEntryPoint());
-        // recent added entity
         response.setOfferedOvcFromFacility(ovcLinkage.getOfferedOvcFromFacility());
         response.setOfferAccepted(ovcLinkage.getOfferAccepted());
-
         response.setShareContactWithOvc(ovcLinkage.getShareContactWithOvc());
         response.setReasonForDecline(ovcLinkage.getReasonForDecline());
         response.setDrugRefillNotification(ovcLinkage.getDrugRefillNotification());
@@ -284,7 +226,6 @@ public class LinkageService {
         response.setCaregiverOtherName(ovcLinkage.getCaregiverOtherName());
         response.setOfferDate(formatDate(ovcLinkage.getOfferDate()));
         response.setEnrollmentDate(formatDate(ovcLinkage.getEnrollmentDate()));
-
         response.setOvcUniqueId(ovcLinkage.getOvcUniqueId());
         response.setHouseholdUniqueId(ovcLinkage.getHouseholdUniqueId());
         response.setEnrolledInOvcProgram(ovcLinkage.getEnrolledInOvcProgram());
@@ -299,20 +240,13 @@ public class LinkageService {
         return date != null ? date.toString() : null;
     }
 
-    /**
-     * Convert response to list
-     */
+
     public List<LinkageResponse> convertToResponseList(List<OvcLinkage> ovcLinkages) {
         return ovcLinkages.stream()
                 .map(this::convertToLinkageResponseDto)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Export OvcLinkage records to a JSON file.
-     *
-     * @return Success message, or "None" if no records were found.
-     */
     public String exportRecordsToJson() {
         try {
             List<LinkageResponseInterface> linkageList = getAllEnrolledOvcClients();
@@ -347,9 +281,6 @@ public class LinkageService {
         }
     }
 
-    /**
-     * get the list of enrolled ovc patients
-     */
     @Transactional(readOnly = true)
     public Page<LinkageResponseInterface> getPagedEnrolledOvcClients(Pageable pageable) {
         List<LinkageResponseInterface> enrolledClients = getAllEnrolledOvcClients();
@@ -359,7 +290,6 @@ public class LinkageService {
 
         return new PageImpl<>(enrolledClients.subList(start, end), pageable, enrolledClients.size());
     }
-
 
     public List<LinkageResponseInterface> getAllEnrolledOvcClients() {
         return repository.findAllEnrolledOvcClients();

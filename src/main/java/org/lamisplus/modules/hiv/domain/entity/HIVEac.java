@@ -17,6 +17,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class HIVEac extends HivAuditEntity implements Serializable, Persistable<Long> {
     @Id
     @Column(name = "id", nullable = false)

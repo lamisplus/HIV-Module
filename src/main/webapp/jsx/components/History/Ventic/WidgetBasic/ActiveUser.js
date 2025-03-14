@@ -1,7 +1,7 @@
 import React from "react";
 import { Bar } from "react-chartjs-2";
 import "chartjs-plugin-streaming";
-var createReactClass = require("create-react-class");
+let createReactClass = require("create-react-class");
 
 const data = {
 	labels: ["0", "1", "2", "3", "4", "5", "6", "0", "1", "2", "3", "4", "5", "6"],

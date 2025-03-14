@@ -367,7 +367,7 @@ const OtzRegister = (props) => {
                                     <Label >Visit Date *</Label>
                                      
                                     <Input
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     name="dateOfObservation"
                                     id="dateOfObservation"
                                     value={observation.dateOfObservation}

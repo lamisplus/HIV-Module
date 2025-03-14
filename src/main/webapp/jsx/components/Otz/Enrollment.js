@@ -214,7 +214,7 @@ const EnrollmentOtz = (props) => {
     formik.setValues({
       ...formik?.values,
       dateEnrolledIntoOtz: e?.target?.value,
-      dateDone: "",
+      dateDone: e?.target?.value
     });
   };
 
@@ -263,7 +263,7 @@ const EnrollmentOtz = (props) => {
                     <Input
                       name="artStartDate"
                       id="artStartDate"
-                      type="date"
+                       type="date" onKeyPress={(e) => e.preventDefault()}
                       value={formik?.values?.artStartDate}
                       disabled
                       style={{
@@ -286,7 +286,7 @@ const EnrollmentOtz = (props) => {
                     <Input
                       name="dateEnrolledIntoOtz"
                       id="dateEnrolledIntoOtz"
-                      type="date"
+                       type="date" onKeyPress={(e) => e.preventDefault()}
                       value={formik?.values?.dateEnrolledIntoOtz}
                       onChange={setCustomDate}
                       onBlur={formik.handleBlur}
@@ -387,7 +387,7 @@ const EnrollmentOtz = (props) => {
                     <Input
                       name="dateDone"
                       id="dateDone"
-                      type="date"
+                       type="date" onKeyPress={(e) => e.preventDefault()}
                       {...{
                         min: moment(
                           new Date(props?.activeContent?.artCommence?.visitDate)
@@ -396,10 +396,12 @@ const EnrollmentOtz = (props) => {
                       {...{
                         max: moment(Date.now()).format("YYYY-MM-DD"),
                       }}
-                      value={formik?.values?.dateDone}
+                      // value={formik?.values?.dateDone}
+                      value={moment(props?.activeContent?.currentLabResult?.dateResultReceived).format("YYYY-MM-DD")}
                       onChange={formik?.handleChange}
                       onBlur={formik?.handleBlur}
-                      disabled={!formik?.values?.dateEnrolledIntoOtz}
+                      // disabled={!formik?.values?.dateEnrolledIntoOtz}
+                      disabled
                       style={{
                         border: "1px solid #014D88",
                         borderRadius: "0.25rem",

@@ -15,15 +15,14 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import MatButton from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
 import SaveIcon from "@material-ui/icons/Save";
-//import CancelIcon from '@material-ui/icons/Cancel'
+
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import { Spinner } from "reactstrap";
-//import Select from "react-select";
+
 import { url as baseUrl, token } from "../../../api";
 import { toast } from "react-toastify";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
-//import { Icon,Button, } from 'semantic-ui-react'
 import { calculate_age_to_number } from "../../../utils";
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -83,8 +82,6 @@ const Pharmacy = (props) => {
   const [mmdType, setmmdType] = useState();
   const [dsdModelType, setDsdModelType] = useState([]);
   const [showmmdType, setShowmmdType] = useState(false);
-  // const [showDsdModel, setShowDsdModel] = useState(false);
-  // const [showAdr, setShowAdr] = useState(false);
   const [showRegimen, setShowRegimen] = useState(false);
   const [regimen, setRegimen] = useState([]);
   const [eacStatusObj, setEacStatusObj] = useState();
@@ -94,8 +91,6 @@ const Pharmacy = (props) => {
   const [regimenDrug, setRegimenDrug] = useState([]);
   const [regimenDrugList, setRegimenDrugList] = useState([]);
   const [showCurrentVitalSigns, setShowCurrentVitalSigns] = useState(false);
-  // const [currentVitalSigns, setcurrentVitalSigns] = useState({})
-  // const [adultRegimenLine, setAdultRegimenLine] = useState([]);
   const [adultArtRegimenLine, setAdultArtRegimenLine] = useState([]);
   const [oIRegimenLine, setOIRegimenLine] = useState([]);
   const [tbRegimenLine, setTbRegimenLine] = useState([]);
@@ -109,6 +104,9 @@ const Pharmacy = (props) => {
   const [regimenTypeOther, setRegimenTypeOther] = useState([]);
   const [iptEligibilty, setIptEligibilty] = useState("");
   const [dsdDevolvement, setDsdDevolvement] = useState(null);
+  const [clientDsdStatus, setClientDsdStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [tptCareAndSupportRegimen, setTptCareAndSupportRegimen] = useState("")
   const [objValues, setObjValues] = useState({
     adherence: "",
     adrScreened: "",
@@ -164,6 +162,13 @@ const Pharmacy = (props) => {
       setDisabledField(true);
     }
   }, [props.activeContent.obj, props.activeContent.id, objValues.dsdModelType]);
+
+  useEffect(() => {
+    if (iptEligibilty.IPTEligibility === true && tptCareAndSupportRegimen !== "") {
+      handleSelectedRegimenOI({target: {value: 15}});
+    }
+  }, [iptEligibilty.IPTEligibility, tptCareAndSupportRegimen]);
+
   const IPT_TYPE = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/IPT_TYPE`, {
@@ -185,6 +190,41 @@ const Pharmacy = (props) => {
       })
       .catch((error) => {});
   };
+
+  const GetCareAndSupportTptRegimen = () => {
+    if (!objValues.visitDate) return; // Only proceed if visitDate is set
+    axios
+        .get(`${baseUrl}observation/person/${props.patientObj.id}`, {
+          headers: {Authorization: `Bearer ${token}`}, // Add token here
+        })
+        .then((response) => {
+          const data = response.data;
+          const matchedRecord = data.find(
+              (item) =>
+                  item.type === "Chronic Care" &&
+                  item.dateOfObservation === objValues.visitDate &&
+                  item.data.tptMonitoring.tptRegimen !== null &&
+                  item.data.tptMonitoring.tptRegimen !== ""
+          );
+          // If a matching record is found, set the tptRegimen and update objValues
+          if (matchedRecord) {
+            setTptCareAndSupportRegimen(matchedRecord.data.tptMonitoring.tptRegimen);
+            setObjValues((prevValues) => ({
+              ...prevValues,
+              regimenId: matchedRecord.data.tptMonitoring.tptRegimen,
+            }));
+          } else {
+            setTptCareAndSupportRegimen("");
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching care and support data:", error);
+        });
+  };
+
+  useEffect(() => {
+    GetCareAndSupportTptRegimen();
+  }, [objValues.visitDate]);
 
   //GET Other Drugd
   //remove arv prohpylaxis for pregnant women form the list of regimen type and populate the drop down list
@@ -209,29 +249,24 @@ const Pharmacy = (props) => {
       //.catch((error) => {});
     }
   };
-
+//  check if patient is on dsd
   useEffect(() => {
-    getDsd();
-  }, []);
-  const getDsd = async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}hiv/patients/${props.patientObj.id}/history/activities`,
-        {
+    setIsLoading(true);
+    axios
+        .get(`${baseUrl}hiv/art/pharmacy/devolve/patient/${patientObj.personUuid}`, {
           headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const dsdActivities = response.data;
-      const firstDsdService = dsdActivities.find(
-        (activity) => activity.name === "DSD Service"
-      );
-      setDsdDevolvement(firstDsdService.date); //Get first Occurence
-    } catch (error) {
-      toast.error("Fill DSD Form", {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-    }
-  };
+        })
+        .then((response) => {
+          const isOnDsd = response.data === true;
+          setClientDsdStatus(isOnDsd ? "Yes" : "No");
+        })
+        .catch((error) => {
+          console.error(error);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+  }, []);
 
   const patientAge = calculate_age_to_number(patientObj.dateOfBirth);
   //GET ChildRegimenLine
@@ -679,22 +714,7 @@ const Pharmacy = (props) => {
       RegimenDrug(objValues.regimenId);
     }
   };
-  // const handlePrescriptionErrorCheckBox =e =>{
-  //     if(e.target.checked){
-  //         setObjValues ({...objValues,  prescriptionError: true});
-  //     }else{
-  //         setObjValues ({...objValues,  prescriptionError: false});
-  //     }
-  // }
-  // const handleCheckBoxAdverseDrugReactions =e =>{
-  //     if(e.target.checked){
-  //         setShowAdr(true)
-  //         setObjValues ({...objValues,  adrScreened:true});
-  //     }else{
-  //         setShowAdr(false)
-  //         setObjValues ({...objValues,  adrScreened:false});
-  //     }
-  // }
+
   const handlRefillPeriod = (e) => {
     let refillcount = "";
     if (e.target.value === "30") {
@@ -744,13 +764,20 @@ const Pharmacy = (props) => {
       setObjValues({ ...objValues, [e.target.name]: true });
     }
   };
+
   const handleFormChange = (index, event) => {
     let data = [...regimenDrug];
-    data[index][event.target.name] = event.target.value;
-    data[index]["prescribed"] =
-      data[index]["frequency"] * data[index]["duration"];
+    const prescribedQuantity = data[index]["frequency"] * data[index]["duration"];
+    if (event.target.name === "dispense" && event.target.value > prescribedQuantity) {
+      event.target.value = prescribedQuantity;
+      data[index][event.target.name] = prescribedQuantity;
+    } else {
+      data[index][event.target.name] = event.target.value;
+    }
+    data[index]["prescribed"] = prescribedQuantity;
     setRegimenDrug(data);
   };
+
   const addDrug = (e) => {
     setRegimenDrugList([...regimenDrugList, ...regimenDrug]);
   };
@@ -763,13 +790,13 @@ const Pharmacy = (props) => {
     e.preventDefault();
     setSaving(true);
 
-    if (dsdDevolvement === null) {
-      toast.error("No recent DSD, unable to proceed", {
-        position: toast.POSITION.BOTTOM_CENTER,
-      });
-      setSaving(false);
-      return;
-    }
+    // if (dsdDevolvement === null) {
+    //   toast.error("No recent DSD, unable to proceed", {
+    //     position: toast.POSITION.BOTTOM_CENTER,
+    //   });
+    //   setSaving(false);
+    //   return;
+    // }
     objValues.adverseDrugReactions = selectedOptionAdr;
     objValues.personId = props.patientObj.id;
     objValues.extra["regimens"] = regimenDrugList;
@@ -882,152 +909,148 @@ const Pharmacy = (props) => {
                   <div className="form-group mb-3 col-md-4">
                     <FormGroup>
                       <Label for="artDate">
-                        Encounter Date <span style={{ color: "red" }}> *</span>{" "}
+                        Encounter Date <span style={{color: "red"}}> *</span>{" "}
                       </Label>
                       <Input
-                        type="date"
-                        name="visitDate"
-                        id="visitDate"
-                        onChange={handleInputChange}
-                        value={objValues.visitDate}
-                        min={enrollDate}
-                        max={moment(new Date()).format("YYYY-MM-DD")}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        disabled={disabledField}
+                          type="date"
+                          name="visitDate"
+                          id="visitDate"
+                          onChange={handleInputChange}
+                          value={objValues.visitDate}
+                          min={enrollDate}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
+                          disabled={disabledField}
+                          onKeyPress={(e) => e.preventDefault()}
                       />
                     </FormGroup>
                   </div>
                 </div>
                 {vital.bodyWeight !== "" && vital.height !== "" && (
-                  <>
-                    <div className="row">
-                      <div className=" mb-3 col-md-3">
-                        <FormGroup>
-                          <Label>Body Weight</Label>
-                          <InputGroup>
-                            <Input
-                              type="text"
-                              name="bodyWeight"
-                              id="bodyWeight"
-                              min="3"
-                              value={vital.bodyWeight}
-                              max="150"
-                              disabled
-                              style={{
-                                border: "1px solid #014D88",
-                                borderRadius: "0rem",
-                              }}
-                            />
-                            <InputGroupText
-                              addonType="append"
-                              style={{
-                                backgroundColor: "#014D88",
-                                color: "#fff",
-                                border: "1px solid #014D88",
-                                borderRadius: "0rem",
-                              }}
-                            >
-                              kg
-                            </InputGroupText>
-                          </InputGroup>
-                        </FormGroup>
-                      </div>
-                      <div className="form-group mb-3 col-md-3">
-                        <FormGroup>
-                          <Label>Height</Label>
-                          <InputGroup>
-                            <InputGroupText
-                              addonType="append"
-                              style={{
-                                backgroundColor: "#014D88",
-                                color: "#fff",
-                                border: "1px solid #014D88",
-                                borderRadius: "0rem",
-                              }}
-                            >
-                              cm
-                            </InputGroupText>
-                            <Input
-                              type="text"
-                              name="height"
-                              id="height"
-                              disabled
-                              value={vital.height}
-                              min="48.26"
-                              max="216.408"
-                              style={{
-                                border: "1px solid #014D88",
-                                borderRadius: "0rem",
-                              }}
-                            />
-                            <InputGroupText
-                              addonType="append"
-                              style={{
-                                backgroundColor: "#992E62",
-                                color: "#fff",
-                                border: "1px solid #992E62",
-                                borderRadius: "0rem",
-                              }}
-                            >
-                              {vital.height !== ""
-                                ? (vital.height / 100).toFixed(2) + "m"
-                                : "m"}
-                            </InputGroupText>
-                          </InputGroup>
-                        </FormGroup>
-                      </div>
-                      <div className="form-group mb-3 mt-2 col-md-3">
-                        {vital.bodyWeight !== "" && vital.height !== "" && (
+                    <>
+                      <div className="row">
+                        <div className=" mb-3 col-md-3">
                           <FormGroup>
-                            <Label> </Label>
+                            <Label>Body Weight</Label>
                             <InputGroup>
+                              <Input
+                                  type="text"
+                                  name="bodyWeight"
+                                  id="bodyWeight"
+                                  min="3"
+                                  value={vital.bodyWeight}
+                                  max="150"
+                                  disabled
+                                  style={{
+                                    border: "1px solid #014D88",
+                                    borderRadius: "0rem",
+                                  }}
+                              />
                               <InputGroupText
-                                addonType="append"
-                                style={{
-                                  backgroundColor: "#014D88",
-                                  color: "#fff",
-                                  border: "1px solid #014D88",
-                                  borderRadius: "0rem",
-                                }}
+                                  addonType="append"
+                                  style={{
+                                    backgroundColor: "#014D88",
+                                    color: "#fff",
+                                    border: "1px solid #014D88",
+                                    borderRadius: "0rem",
+                                  }}
                               >
-                                BMI :{" "}
-                                {(
-                                  vital.bodyWeight /
-                                  ((vital.height * vital.height) / 100)
-                                ).toFixed(2)}
+                                kg
                               </InputGroupText>
                             </InputGroup>
                           </FormGroup>
-                        )}
+                        </div>
+                        <div className="form-group mb-3 col-md-3">
+                          <FormGroup>
+                            <Label>Height</Label>
+                            <InputGroup>
+                              <InputGroupText
+                                  addonType="append"
+                                  style={{
+                                    backgroundColor: "#014D88",
+                                    color: "#fff",
+                                    border: "1px solid #014D88",
+                                    borderRadius: "0rem",
+                                  }}
+                              >
+                                cm
+                              </InputGroupText>
+                              <Input
+                                  type="text"
+                                  name="height"
+                                  id="height"
+                                  disabled
+                                  value={vital.height}
+                                  min="48.26"
+                                  max="216.408"
+                                  style={{
+                                    border: "1px solid #014D88",
+                                    borderRadius: "0rem",
+                                  }}
+                              />
+                              <InputGroupText
+                                  addonType="append"
+                                  style={{
+                                    backgroundColor: "#992E62",
+                                    color: "#fff",
+                                    border: "1px solid #992E62",
+                                    borderRadius: "0rem",
+                                  }}
+                              >
+                                {vital.height !== ""
+                                    ? (vital.height / 100).toFixed(2) + "m"
+                                    : "m"}
+                              </InputGroupText>
+                            </InputGroup>
+                          </FormGroup>
+                        </div>
+                        <div className="form-group mb-3 mt-2 col-md-3">
+                          {vital.bodyWeight !== "" && vital.height !== "" && (
+                              <FormGroup>
+                                <Label> </Label>
+                                <InputGroup>
+                                  <InputGroupText
+                                      addonType="append"
+                                      style={{
+                                        backgroundColor: "#014D88",
+                                        color: "#fff",
+                                        border: "1px solid #014D88",
+                                        borderRadius: "0rem",
+                                      }}
+                                  >
+                                    BMI :{" "}
+                                    {(
+                                        vital.bodyWeight /
+                                        ((vital.height * vital.height) / 100)
+                                    ).toFixed(2)}
+                                  </InputGroupText>
+                                </InputGroup>
+                              </FormGroup>
+                          )}
+                        </div>
                       </div>
-                      {/* <div className="form-group mb-3 mt-2 col-md-3">
-                    <FormGroup>
-                        <Label >Pregnant Status  : Yes</Label>                                    
-                    </FormGroup>
-                </div> */}
-                    </div>
-                  </>
+                    </>
                 )}
                 <div className="row">
                   <div className="form-group mb-3 col-md-3">
                     <FormGroup>
                       <Label>Visit Type</Label>
                       <Input
-                        type="select"
-                        name="visitType"
-                        id="visitType"
-                        value={objValues.visitType}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        disabled={disabledField}
+                          type="select"
+                          name="visitType"
+                          id="visitType"
+                          value={objValues.visitType}
+                          onChange={handleInputChange}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
+                          disabled={disabledField}
                       >
-                        <option value="">Select </option>
+                        <option value="">Select</option>
                         <option value="Initial Visit">Initial Visit</option>
                         <option value="Follow Up Visit">
                           Follow Up Visit{" "}
@@ -1039,104 +1062,65 @@ const Pharmacy = (props) => {
                     <FormGroup>
                       <Label>Refill</Label>
                       <Input
-                        type="select"
-                        name="refill"
-                        id="refill"
-                        value={objValues.refill}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        disabled={disabledField}
+                          type="select"
+                          name="refill"
+                          id="refill"
+                          value={objValues.refill}
+                          onChange={handleInputChange}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
+                          disabled={disabledField}
                       >
-                        <option value="">Select </option>
+                        <option value="">Select</option>
                         <option value="Yes">Yes</option>
-                        <option value="No">No </option>
+                        <option value="No">No</option>
                       </Input>
                     </FormGroup>
                   </div>
                   <div className="form-group mb-3 col-md-4">
                     <FormGroup>
                       <Label for="artDate">
-                        Encounter Date <span style={{ color: "red" }}> *</span>
+                        Encounter Date <span style={{color: "red"}}> *</span>
                       </Label>
                       <Input
-                        type="date"
-                        name="visitDate"
-                        id="visitDate"
-                        onChange={handleInputChange}
-                        value={objValues.visitDate}
-                        min={enrollDate !== "" ? enrollDate : ""}
-                        max={moment(new Date()).format("YYYY-MM-DD")}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        disabled={disabledField}
+                          type="date"
+                          name="visitDate"
+                          id="visitDate"
+                          onChange={handleInputChange}
+                          value={objValues.visitDate}
+                          min={enrollDate !== "" ? enrollDate : ""}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
+                          disabled={disabledField}
+                          onKeyPress={(e) => e.preventDefault()}
                       />
                     </FormGroup>
                   </div>
-                  {/* <div className="mt-4 col-md-2" > 
-                      
-                        <div className="form-check custom-checkbox ml-1 ">
-                            <input
-                            type="radio"
-                            className="form-check-input"                       
-                            name="switch"
-                            id="switch"
-                            value="switch"
-                            onChange={handleCheckBox}
-                            style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                            />
-                            <label
-                            className="form-check-label"
-                            htmlFor="basic_checkbox_1"
-                            >
-                            Switch
-                            </label>
-                        </div>
-                   
-                </div>
-                <div className="mt-4 col-md-2">        
-                        <div className="form-check custom-checkbox ml-1 ">
-                            <input
-                            type="radio"
-                            className="form-check-input"                       
-                            name="switch"
-                            id="switch"
-                            value="Substitution"
-                            onChange={handleCheckBox}
-                            style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                            />
-                            <label
-                            className="form-check-label"
-                            htmlFor="basic_checkbox_1"
-                            >
-                            Substitution
-                            </label>
-                        </div>
-                </div> */}
                   <div className="form-group mb-3 col-md-4">
                     <FormGroup>
                       <Label>Substitution/Switch </Label>
                       <Input
-                        type="select"
-                        name="refillType"
-                        id="refillType"
-                        value={objValues.refillType}
-                        disabled={disabledField}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
+                          type="select"
+                          name="refillType"
+                          id="refillType"
+                          value={objValues.refillType}
+                          disabled={disabledField}
+                          onChange={handleInputChange}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
                       >
-                        <option value="">Select </option>
+                        <option value="">Select</option>
 
                         <option value="Switch">Switch</option>
-                        <option value="Substitution">Substitution </option>
-                        <option value="None">None </option>
+                        <option value="Substitution">Substitution</option>
+                        <option value="None">None</option>
                       </Input>
                     </FormGroup>
                   </div>
@@ -1146,28 +1130,28 @@ const Pharmacy = (props) => {
                     <FormGroup>
                       <Label>
                         Refill Period(days){" "}
-                        <span style={{ color: "red" }}> *</span>
+                        <span style={{color: "red"}}> *</span>
                       </Label>
                       <Input
-                        type="select"
-                        name="refillPeriod"
-                        id="refillPeriod"
-                        value={objValues.refillPeriod}
-                        disabled={objValues.visitDate !== null ? false : true}
-                        onChange={handlRefillPeriod}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
+                          type="select"
+                          name="refillPeriod"
+                          id="refillPeriod"
+                          value={objValues.refillPeriod}
+                          disabled={objValues.visitDate !== null ? false : true}
+                          onChange={handlRefillPeriod}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
                       >
-                        <option value="">Select </option>
+                        <option value="">Select</option>
                         <option value="15">15</option>
-                        <option value="30">30 </option>
-                        <option value="60">60 </option>
-                        <option value="90">90 </option>
-                        <option value="120">120 </option>
-                        <option value="150">150 </option>
-                        <option value="180">180 </option>
+                        <option value="30">30</option>
+                        <option value="60">60</option>
+                        <option value="90">90</option>
+                        <option value="120">120</option>
+                        <option value="150">150</option>
+                        <option value="180">180</option>
                       </Input>
                     </FormGroup>
                   </div>
@@ -1177,184 +1161,157 @@ const Pharmacy = (props) => {
                       <Label for="artDate">
                         {" "}
                         Date of Next Appointment{" "}
-                        <span style={{ color: "red" }}> *</span>{" "}
+                        <span style={{color: "red"}}> *</span>{" "}
                       </Label>
                       <Input
-                        type="date"
-                        name="nextAppointment"
-                        id="nextAppointment"
-                        min={enrollDate}
-                        disabled={
-                          objValues.refillPeriod !== null ? false : true
-                        }
-                        onChange={handleInputChange}
-                        value={objValues.nextAppointment}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        required
-                      />
-                    </FormGroup>
-                  </div>
-                  {showmmdType && (
-                    <div className="form-group mb-3 col-md-4">
-                      <FormGroup>
-                        <Label>MMD Type</Label>
-                        <Input
-                          type="text"
-                          name="mmdType"
-                          id="mmdType"
-                          disabled="true"
-                          value={mmdType}
+                          type="date"
+                          name="nextAppointment"
+                          id="nextAppointment"
+                          min={enrollDate}
+                          disabled={
+                            objValues.refillPeriod !== null ? false : true
+                          }
                           onChange={handleInputChange}
+                          value={objValues.nextAppointment}
                           style={{
                             border: "1px solid #014D88",
                             borderRadius: "0.25rem",
                           }}
-                        />
-                      </FormGroup>
-                    </div>
+                          required
+                          onKeyPress={(e) => e.preventDefault()}
+                      />
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-4">
+                    <FormGroup>
+                      <Label for="">Client on DSD?</Label>
+                      <Input
+                          type="select"
+                          name="clientDsdStatus"
+                          id="clientDsdStatus"
+                          disabled={true}
+                          value={clientDsdStatus}
+                      >
+                        <option value="Yes">Yes</option>
+                        // Add options for Yes and No
+                        <option value="No">No</option>
+                      </Input>
+                    </FormGroup>
+                  </div>
+                  {showmmdType && (
+                      <div className="form-group mb-3 col-md-4">
+                        <FormGroup>
+                          <Label>MMD Type</Label>
+                          <Input
+                              type="text"
+                              name="mmdType"
+                              id="mmdType"
+                              disabled="true"
+                              value={mmdType}
+                              onChange={handleInputChange}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.25rem",
+                              }}
+                          />
+                        </FormGroup>
+                      </div>
                   )}
                 </div>
-                {/*<div className="form-group mb-3 col-md-6">*/}
-                {/*  <FormGroup>*/}
-                {/*    <Label>DSD Model</Label>*/}
-                {/*    <Input*/}
-                {/*      type="select"*/}
-                {/*      name="dsdModel"*/}
-                {/*      id="dsdModel"*/}
-                {/*      value={objValues.dsdModel}*/}
-                {/*      onChange={handleInputChange}*/}
-                {/*      style={{*/}
-                {/*        border: "1px solid #014D88",*/}
-                {/*        borderRadius: "0.25rem",*/}
-                {/*      }}*/}
-                {/*      disabled={disabledField}*/}
-                {/*    >*/}
-                {/*      <option value="">Select </option>*/}
-                {/*      <option value="Facility">Facility </option>*/}
-                {/*      <option value="Community">Community </option>*/}
-                {/*    </Input>*/}
-                {/*  </FormGroup>*/}
-                {/*</div>*/}
-                {/*<div className="form-group mb-3 col-md-6">*/}
-                {/*  <FormGroup>*/}
-                {/*    <Label>DSD Model Type </Label>*/}
-                {/*    <Input*/}
-                {/*      type="select"*/}
-                {/*      name="dsdModelType"*/}
-                {/*      id="dsdModelType"*/}
-                {/*      value={objValues.dsdModelType}*/}
-                {/*      onChange={handleInputChange}*/}
-                {/*      style={{*/}
-                {/*        border: "1px solid #014D88",*/}
-                {/*        borderRadius: "0.25rem",*/}
-                {/*      }}*/}
-                {/*      disabled={disabledField}*/}
-                {/*    >*/}
-                {/*      <option value="">Select </option>*/}
-                {/*      {dsdModelType.map((value) => (*/}
-                {/*        <option key={value.code} value={value.code}>*/}
-                {/*          {value.display}*/}
-                {/*        </option>*/}
-                {/*      ))}*/}
-                {/*    </Input>*/}
-                {/*  </FormGroup>*/}
-                {/*</div>*/}
-
                 {eacStatusObj &&
-                  eacStatusObj.eacsession &&
-                  eacStatusObj.eacsession !== "Default" && (
-                    <>
-                      <h3>Ehanced Adherance Counseling</h3>
-                      <div className="row">
-                        <div className="form-group mb-3 col-md-3">
-                          <FormGroup>
-                            <Label>Viral Load Result</Label>
-                            <Input
-                              type="date"
-                              name="deliveryPoint"
-                              id="deliveryPoint"
-                              disabled
-                            />
-                          </FormGroup>
-                        </div>
-                        <div className="form-group mb-3 col-md-3">
-                          <FormGroup>
-                            <Label>Date of Last Viral Load</Label>
-                            <Input
-                              type="date"
-                              name="deliveryPoint"
-                              id="deliveryPoint"
-                              disabled
-                            />
-                          </FormGroup>
-                        </div>
+                    eacStatusObj.eacsession &&
+                    eacStatusObj.eacsession !== "Default" && (
+                        <>
+                          <h3>Ehanced Adherance Counseling</h3>
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-3">
+                              <FormGroup>
+                                <Label>Viral Load Result</Label>
+                                <Input
+                                    type="date"
+                                    name="deliveryPoint"
+                                    id="deliveryPoint"
+                                    disabled
+                                />
+                              </FormGroup>
+                            </div>
+                            <div className="form-group mb-3 col-md-3">
+                              <FormGroup>
+                                <Label>Date of Last Viral Load</Label>
+                                <Input
+                                    type="date"
+                                    name="deliveryPoint"
+                                    id="deliveryPoint"
+                                    disabled
+                                    onKeyPress={(e) => e.preventDefault()}
+                                />
+                              </FormGroup>
+                            </div>
 
-                        <div className="form-group mb-3 col-md-3">
-                          <FormGroup>
-                            <Label>EAC Status</Label>
-                            <p>Second Session</p>
-                          </FormGroup>
-                        </div>
-                        <div className="form-group mb-3 col-md-3">
-                          <FormGroup>
-                            <Label>Date of EAC</Label>
-                            <Input
-                              type="date"
-                              name="deliveryPoint"
-                              id="deliveryPoint"
-                              disabled
-                            />
-                          </FormGroup>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                <hr />
+                            <div className="form-group mb-3 col-md-3">
+                              <FormGroup>
+                                <Label>EAC Status</Label>
+                                <p>Second Session</p>
+                              </FormGroup>
+                            </div>
+                            <div className="form-group mb-3 col-md-3">
+                              <FormGroup>
+                                <Label>Date of EAC</Label>
+                                <Input
+                                    type="date"
+                                    name="deliveryPoint"
+                                    id="deliveryPoint"
+                                    disabled
+                                    onKeyPress={(e) => e.preventDefault()}
+                                />
+                              </FormGroup>
+                            </div>
+                          </div>
+                        </>
+                    )}
+                <hr/>
                 <LabelSui
-                  as="a"
-                  color="teal"
-                  style={{ width: "106%", height: "35px" }}
-                  ribbon
+                    as="a"
+                    color="teal"
+                    style={{width: "106%", height: "35px"}}
+                    ribbon
                 >
-                  <h4 style={{ color: "#fff" }}>ART DRUGS</h4>
+                  <h4 style={{color: "#fff"}}>ART DRUGS</h4>
                 </LabelSui>
-                <br />
+                <br/>
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label>Select Regimen Line </Label>
                     <Input
-                      type="select"
-                      name="regimen"
-                      id="regimen"
-                      value={objValues.drugName}
-                      onChange={handleSelectedRegimen}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
+                        type="select"
+                        name="regimen"
+                        id="regimen"
+                        value={objValues.drugName}
+                        onChange={handleSelectedRegimen}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        disabled={objValues.refillPeriod !== null ? false : true}
                     >
-                      <option value="">Select </option>
+                      <option value="">Select</option>
                       {patientAge >= 15 && (
-                        <>
-                          {adultArtRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {adultArtRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                       {patientAge < 15 && (
-                        <>
-                          {childRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {childRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                     </Input>
                   </FormGroup>
@@ -1365,199 +1322,223 @@ const Pharmacy = (props) => {
                     <Label>Regimen </Label>
 
                     <Input
-                      type="select"
-                      name="regimenId"
-                      id="regimenId"
-                      value={objValues.regimenId}
-                      onChange={handleSelectedRegimenCombination}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
+                        type="select"
+                        name="regimenId"
+                        id="regimenId"
+                        value={objValues.regimenId}
+                        onChange={handleSelectedRegimenCombination}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        disabled={objValues.refillPeriod !== null ? false : true}
                     >
-                      <option value="">Select </option>
+                      <option value="">Select</option>
 
                       {regimenType.map((value) => (
-                        <option key={value.id} value={value.value}>
-                          {value.label}
-                        </option>
+                          <option key={value.id} value={value.value}>
+                            {value.label}
+                          </option>
                       ))}
                     </Input>
                   </FormGroup>
                 </div>
                 <LabelSui
-                  as="a"
-                  color="teal"
-                  style={{ width: "106%", height: "35px" }}
-                  ribbon
+                    as="a"
+                    color="teal"
+                    style={{width: "106%", height: "35px"}}
+                    ribbon
                 >
-                  <h4 style={{ color: "#fff" }}>OI DRUGS</h4>
+                  <h4 style={{color: "#fff"}}>OI DRUGS</h4>
                 </LabelSui>
-                <br />
-                <div className="form-group mb-3 col-md-6">
+                <br/>
+                <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                   <FormGroup>
-                    <Label>OI's</Label>
+                    <Label>OI's </Label>
                     <Input
-                      type="select"
-                      name="regimen"
-                      id="regimen"
-                      value={objValues.drugName}
-                      onChange={handleSelectedRegimenOI}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
+                        type="select"
+                        name="regimen"
+                        id="regimen"
+                        // value={objValues.drugName}
+                        value={
+                          iptEligibilty.IPTEligibility === true && tptCareAndSupportRegimen !== ""
+                              ? 15
+                              : objValues.drugName
+                        }
+                        onChange={handleSelectedRegimenOI}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        disabled={objValues.refillPeriod !== null ? false : true
+                            || (iptEligibilty.IPTEligibility === true && tptCareAndSupportRegimen !== "")}
                     >
-                      <option value="">Select </option>
-
+                      <option value="">Select</option>
                       {patientAge > 15 && (
-                        <>
-                          {iptEligibilty.IPTEligibility === true ? ( //Logic to check for TPT eligibility to filter TPT drugs
-                            <>
-                              {oIRegimenLine.map((value) => (
-                                <option key={value.id} value={value.id}>
-                                  {value.description}
-                                </option>
-                              ))}
-                            </>
-                          ) : (
-                            <>
-                              {oIRegimenLine
-                                .filter((x) => x.id !== 15)
-                                .map((value) => (
-                                  <option key={value.id} value={value.id}>
-                                    {value.description}
-                                  </option>
-                                ))}
-                            </>
-                          )}
-                        </>
+                          <>
+                            {/* If IPTEligibility is true */}
+                            {iptEligibilty.IPTEligibility === true ? (
+                                <>
+                                  {/* If tpeCareAndSupport is also true, show only x.id === 15 */}
+                                  {tptCareAndSupportRegimen !== "" ? (
+                                      <>
+                                        {oIRegimenLine
+                                            .filter((x) => x.id === 15) // Only show option with id 15
+                                            .map((value) => (
+                                                <option key={value.id} value={value.id}>
+                                                  {value.description}
+                                                </option>
+                                            ))}
+                                      </>
+                                  ) : (
+                                      <>
+                                        {/* Otherwise, show all options */}
+                                        {oIRegimenLine.map((value) => (
+                                            <option key={value.id} value={value.id}>
+                                              {value.description}
+                                            </option>
+                                        ))}
+                                      </>
+                                  )}
+                                </>
+                            ) : (
+                                <>
+                                  {/* If IPTEligibility is false, exclude id === 15 */}
+                                  {oIRegimenLine
+                                      .filter((x) => x.id !== 15)
+                                      .map((value) => (
+                                          <option key={value.id} value={value.id}>
+                                            {value.description}
+                                          </option>
+                                      ))}
+                                </>
+                            )}
+                          </>
                       )}
                       {patientAge <= 15 && (
-                        <>
-                          {iptEligibilty.IPTEligibility === true ? ( //Logic to check for TPT eligibility to filter TPT drugs for children
-                            <>
-                              {oIRegimenLine.map((value) => (
-                                <option key={value.id} value={value.id}>
-                                  {value.description}
-                                </option>
-                              ))}
-                            </>
-                          ) : (
-                            <>
-                              {oIRegimenLine
-                                .filter((x) => x.id !== 15)
-                                .map((value) => (
-                                  <option key={value.id} value={value.id}>
-                                    {value.description}
-                                  </option>
-                                ))}
-                            </>
-                          )}
-                        </>
+                          <>
+                            {iptEligibilty.IPTEligibility === true ? ( //Logic to check for TPT eligibility to filter TPT drugs for children
+                                <>
+                                  {oIRegimenLine.map((value) => (
+                                      <option key={value.id} value={value.id}>
+                                        {value.description}
+                                      </option>
+                                  ))}
+                                </>
+                            ) : (
+                                <>
+                                  {oIRegimenLine
+                                      .filter((x) => x.id !== 15)
+                                      .map((value) => (
+                                          <option key={value.id} value={value.id}>
+                                            {value.description}
+                                          </option>
+                                      ))}
+                                </>
+                            )}
+                          </>
                       )}
                     </Input>
                   </FormGroup>
                 </div>
 
+
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label>Drugs</Label>
                     <Input
-                      type="select"
-                      name="regimenId"
-                      id="regimenId"
-                      value={objValues.regimenId}
-                      onChange={handleSelectedRegimenCombinationOI}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
+                        type="select"
+                        name="regimenId"
+                        id="regimenId"
+                        value={objValues.regimenId}
+                        onChange={handleSelectedRegimenCombinationOI}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        disabled={objValues.refillPeriod !== null ? false : true}
                     >
-                      <option value="">Select </option>
+                      <option value="">Select</option>
 
                       {regimenTypeOI.map((value) => (
-                        <option key={value.id} value={value.value}>
-                          {value.label}
-                        </option>
+                          <option key={value.id} value={value.value}>
+                            {value.label}
+                          </option>
                       ))}
                     </Input>
                   </FormGroup>
                 </div>
 
                 {iptEligibilty.IPTEligibility === true && ( //iptEligibilty check to display Visit type
-                  <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                    <FormGroup>
-                      <Label>Visit Type</Label>
+                    <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                      <FormGroup>
+                        <Label>Visit Type</Label>
 
-                      <Input
-                        type="select"
-                        name="iptType"
-                        id="iptType"
-                        value={objValues.iptType}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                      >
-                        <option value="">Select </option>
+                        <Input
+                            type="select"
+                            name="iptType"
+                            id="iptType"
+                            value={objValues.iptType}
+                            onChange={handleInputChange}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.25rem",
+                            }}
+                        >
+                          <option value="">Select</option>
 
-                        {iptType.map((value) => (
-                          <option key={value.id} value={value.code}>
-                            {value.display}
-                          </option>
-                        ))}
-                      </Input>
-                    </FormGroup>
-                  </div>
+                          {iptType.map((value) => (
+                              <option key={value.id} value={value.code}>
+                                {value.display}
+                              </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
+                    </div>
                 )}
 
                 <LabelSui
-                  as="a"
-                  color="blue"
-                  style={{ width: "106%", height: "35px" }}
-                  ribbon
+                    as="a"
+                    color="blue"
+                    style={{width: "106%", height: "35px"}}
+                    ribbon
                 >
-                  <h4 style={{ color: "#fff" }}>TB DRUG</h4>
+                  <h4 style={{color: "#fff"}}>TB DRUG</h4>
                 </LabelSui>
-                <br />
+                <br/>
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label>TB Treatment </Label>
                     <Input
-                      type="select"
-                      name="regimen"
-                      id="regimen"
-                      value={objValues.drugName}
-                      onChange={handleSelectedRegimenTB}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
+                        type="select"
+                        name="regimen"
+                        id="regimen"
+                        value={objValues.drugName}
+                        onChange={handleSelectedRegimenTB}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        disabled={objValues.refillPeriod !== null ? false : true}
                     >
-                      <option value="">Select </option>
+                      <option value="">Select</option>
                       {patientAge > 15 && (
-                        <>
-                          {tbRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {tbRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                       {patientAge <= 15 && (
-                        <>
-                          {childrenTB.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {childrenTB.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                     </Input>
                   </FormGroup>
@@ -1567,58 +1548,58 @@ const Pharmacy = (props) => {
                     <Label>Drugs </Label>
 
                     <Input
-                      type="select"
-                      name="regimenId"
-                      id="regimenId"
-                      value={objValues.regimenId}
-                      onChange={handleSelectedRegimenCombinationTB}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
+                        type="select"
+                        name="regimenId"
+                        id="regimenId"
+                        value={objValues.regimenId}
+                        onChange={handleSelectedRegimenCombinationTB}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        disabled={objValues.refillPeriod !== null ? false : true}
                     >
-                      <option value="">Select </option>
+                      <option value="">Select</option>
 
                       {regimenTypeTB.map((value) => (
-                        <option key={value.id} value={value.value}>
-                          {value.label}
-                        </option>
+                          <option key={value.id} value={value.value}>
+                            {value.label}
+                          </option>
                       ))}
                     </Input>
                   </FormGroup>
                 </div>
                 <LabelSui
-                  as="a"
-                  color="blue"
-                  style={{ width: "106%", height: "35px" }}
-                  ribbon
+                    as="a"
+                    color="blue"
+                    style={{width: "106%", height: "35px"}}
+                    ribbon
                 >
-                  <h4 style={{ color: "#fff" }}>OTHER DRUG</h4>
+                  <h4 style={{color: "#fff"}}>OTHER DRUG</h4>
                 </LabelSui>
-                <br />
+                <br/>
                 <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                   <FormGroup>
                     <Label>Other Drugs </Label>
 
                     <Input
-                      type="select"
-                      name="regimen"
-                      id="regimen"
-                      value={objValues.drugName}
-                      onChange={handleSelectedRegimenOther}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
+                        type="select"
+                        name="regimen"
+                        id="regimen"
+                        value={objValues.drugName}
+                        onChange={handleSelectedRegimenOther}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        disabled={objValues.refillPeriod !== null ? false : true}
                     >
-                      <option value="">Select </option>
+                      <option value="">Select</option>
 
                       {otherDrugs.map((value) => (
-                        <option key={value.id} value={value.value}>
-                          {value.label}
-                        </option>
+                          <option key={value.id} value={value.value}>
+                            {value.label}
+                          </option>
                       ))}
                     </Input>
                   </FormGroup>
@@ -1627,266 +1608,266 @@ const Pharmacy = (props) => {
                   <FormGroup>
                     <Label>Drug</Label>
                     <Input
-                      type="select"
-                      name="regimenId"
-                      id="regimenId"
-                      value={objValues.regimenId}
-                      onChange={handleSelectedRegimenCombinationOthers}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
-                      }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
+                        type="select"
+                        name="regimenId"
+                        id="regimenId"
+                        value={objValues.regimenId}
+                        onChange={handleSelectedRegimenCombinationOthers}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        disabled={objValues.refillPeriod !== null ? false : true}
                     >
-                      <option value="">Select </option>
+                      <option value="">Select</option>
                       {regimenTypeOther.map((value) => (
-                        <option key={value.id} value={value.value}>
-                          {value.label}
-                        </option>
+                          <option key={value.id} value={value.value}>
+                            {value.label}
+                          </option>
                       ))}
                     </Input>
                   </FormGroup>
                 </div>
 
                 {regimenDrug && regimenDrug.length > 0 ? (
-                  <>
-                    <Card>
-                      <CardBody>
-                        <h4>Drugs Information </h4>
-                        <div className="form-check custom-checkbox ml-1 ">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            name="devolvePatient"
-                            id="devolvePatient"
-                            onChange={handleCheckBoxRegimen}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor="basic_checkbox_1"
-                          >
-                            As no combination
-                          </label>
-                        </div>
-                        <div className="row">
-                          <div className="form-group mb-3 col-md-4">
-                            Regimen Name{" "}
-                          </div>
-                          <div className="form-group mb-3 col-md-2">
-                            Frequency{" "}
-                          </div>
-                          <div className="form-group mb-3 col-md-2">
-                            Duration{" "}
-                          </div>
-                          <div className="form-group mb-3 col-md-2">
-                            Quantity Prescribed
-                          </div>
-                          <div className="form-group mb-3 col-md-2">
-                            Quantity Dispensed
-                          </div>
-                        </div>
-                        {regimenDrug.map((input, index) => (
-                          <>
-                            <div className="row">
-                              <div className="form-group mb-3 col-md-4">
-                                <FormGroup>
-                                  <Label>
-                                    <b>
-                                      {input.name}{" "}
-                                      {input.strength !== ""
-                                        ? input.strength
-                                        : ""}
-                                    </b>
-                                  </Label>
-                                  <Input
-                                    type="hidden"
-                                    name="id"
-                                    id="id"
-                                    value={input.id}
-                                    onChange={(event) =>
-                                      handleFormChange(index, event)
-                                    }
-                                    required
-                                  ></Input>
-                                </FormGroup>
-                              </div>
-
-                              <div className="form-group mb-3 col-md-2">
-                                <FormGroup>
-                                  <Input
-                                    type="select"
-                                    name="frequency"
-                                    id="frequency"
-                                    value={input.frequency}
-                                    style={{
-                                      border: "1px solid #014D88",
-                                      borderRadius: "0.25rem",
-                                    }}
-                                    onChange={(event) =>
-                                      handleFormChange(index, event)
-                                    }
-                                    required
-                                  >
-                                    <option value="">Select</option>
-                                    <option value="2">BD</option>
-                                    <option value="1">OD</option>
-                                    <option value="4">2BD</option>
-                                    <option value="6">OD/BD</option>
-                                    <option value="8">QDS</option>
-                                    <option value="10">3ce/Week</option>
-                                  </Input>
-                                </FormGroup>
-                              </div>
-                              <div className="form-group mb-3 col-md-2">
-                                <FormGroup>
-                                  <Input
-                                    type="number"
-                                    name="duration"
-                                    id="duration"
-                                    value={input.duration}
-                                    style={{
-                                      border: "1px solid #014D88",
-                                      borderRadius: "0.25rem",
-                                    }}
-                                    onChange={(event) =>
-                                      handleFormChange(index, event)
-                                    }
-                                    //disabled
-                                  ></Input>
-                                </FormGroup>
-                              </div>
-                              <div className="form-group mb-3 col-md-2">
-                                <FormGroup>
-                                  <Input
-                                    type="text"
-                                    name="prescribed"
-                                    id="prescribed"
-                                    value={
-                                      input.frequency && input.frequency !== ""
-                                        ? input.frequency * input.duration
-                                        : 0
-                                    }
-                                    style={{
-                                      border: "1px solid #014D88",
-                                      borderRadius: "0.25rem",
-                                    }}
-                                    onChange={(event) =>
-                                      handleFormChange(index, event)
-                                    }
-                                    disabled
-                                  ></Input>
-                                </FormGroup>
-                              </div>
-                              <div className="form-group mb-3 col-md-2">
-                                <FormGroup>
-                                  <Input
-                                    type="number"
-                                    name="dispense"
-                                    id="dispense"
-                                    value={input.dispense}
-                                    style={{
-                                      border: "1px solid #014D88",
-                                      borderRadius: "0.25rem",
-                                    }}
-                                    onChange={(event) =>
-                                      handleFormChange(index, event)
-                                    }
-                                    required
-                                  ></Input>
-                                </FormGroup>
-                              </div>
-                            </div>
-                          </>
-                        ))}
-                        <div className="row">
-                          <div className="form-group mb-3 col-md-4"></div>
-
-                          <div className="form-group mb-3 col-md-2"></div>
-                          <div className="form-group mb-3 col-md-2"></div>
-                          <div className="form-group mb-3 col-md-2">
-                            <b>Total : {TotalPrescribed}</b>
-                          </div>
-                          <div className="form-group mb-3 col-md-2">
-                            <b>Total : {TotalDispensed}</b>
-                          </div>
-                        </div>
-                        <div className="row">
-                          <div className="form-group mb-3 col-md-2 float-end">
-                            <LabelSui
-                              as="a"
-                              color="black"
-                              onClick={addDrug}
-                              size="small"
-                              style={{ marginTop: 35 }}
+                    <>
+                      <Card>
+                        <CardBody>
+                          <h4>Drugs Information </h4>
+                          <div className="form-check custom-checkbox ml-1 ">
+                            <input
+                                type="checkbox"
+                                className="form-check-input"
+                                name="devolvePatient"
+                                id="devolvePatient"
+                                onChange={handleCheckBoxRegimen}
+                                style={{
+                                  border: "1px solid #014D88",
+                                  borderRadius: "0.25rem",
+                                }}
+                            />
+                            <label
+                                className="form-check-label"
+                                htmlFor="basic_checkbox_1"
                             >
-                              <Icon name="plus" /> Add
-                            </LabelSui>
+                              As no combination
+                            </label>
                           </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-                    <br />
-                    <br />
-                  </>
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-4">
+                              Regimen Name{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Frequency{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Duration{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Quantity Prescribed
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Quantity Dispensed
+                            </div>
+                          </div>
+                          {regimenDrug.map((input, index) => (
+                              <>
+                                <div className="row">
+                                  <div className="form-group mb-3 col-md-4">
+                                    <FormGroup>
+                                      <Label>
+                                        <b>
+                                          {input.name}{" "}
+                                          {input.strength !== ""
+                                              ? input.strength
+                                              : ""}
+                                        </b>
+                                      </Label>
+                                      <Input
+                                          type="hidden"
+                                          name="id"
+                                          id="id"
+                                          value={input.id}
+                                          onChange={(event) =>
+                                              handleFormChange(index, event)
+                                          }
+                                          required
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="select"
+                                          name="frequency"
+                                          id="frequency"
+                                          value={input.frequency}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChange(index, event)
+                                          }
+                                          required
+                                      >
+                                        <option value="">Select</option>
+                                        <option value="2">BD</option>
+                                        <option value="1">OD</option>
+                                        <option value="4">2BD</option>
+                                        <option value="6">OD/BD</option>
+                                        <option value="8">QDS</option>
+                                        <option value="10">3ce/Week</option>
+                                      </Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="number"
+                                          name="duration"
+                                          id="duration"
+                                          value={input.duration}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChange(index, event)
+                                          }
+                                          //disabled
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="text"
+                                          name="prescribed"
+                                          id="prescribed"
+                                          value={
+                                            input.frequency && input.frequency !== ""
+                                                ? input.frequency * input.duration
+                                                : 0
+                                          }
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChange(index, event)
+                                          }
+                                          disabled
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="number"
+                                          name="dispense"
+                                          id="dispense"
+                                          value={input.dispense}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChange(index, event)
+                                          }
+                                          required
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                </div>
+                              </>
+                          ))}
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-4"></div>
+
+                            <div className="form-group mb-3 col-md-2"></div>
+                            <div className="form-group mb-3 col-md-2"></div>
+                            <div className="form-group mb-3 col-md-2">
+                              <b>Total : {TotalPrescribed}</b>
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              <b>Total : {TotalDispensed}</b>
+                            </div>
+                          </div>
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-2 float-end">
+                              <LabelSui
+                                  as="a"
+                                  color="black"
+                                  onClick={addDrug}
+                                  size="small"
+                                  style={{marginTop: 35}}
+                              >
+                                <Icon name="plus"/> Add
+                              </LabelSui>
+                            </div>
+                          </div>
+                        </CardBody>
+                      </Card>
+                      <br/>
+                      <br/>
+                    </>
                 ) : (
-                  ""
+                    ""
                 )}
                 {regimenDrugList.length > 0 ? (
-                  <List>
-                    <Table striped responsive>
-                      <thead>
+                    <List>
+                      <Table striped responsive>
+                        <thead>
                         <tr>
                           <th>Regimen Drug</th>
                           <th>Frequency</th>
                           <th>Duration</th>
                           <th>Quantity Prescribed</th>
-                          <th>Quantity Dispensed </th>
+                          <th>Quantity Dispensed</th>
 
                           <th></th>
                         </tr>
-                      </thead>
-                      <tbody>
+                        </thead>
+                        <tbody>
                         {regimenDrugList.map((regimenDrugObj, index) => (
-                          <DrugDispensedLists
-                            key={index}
-                            index={index}
-                            regimenDrugObj={regimenDrugObj}
-                            removeAttempt={removeAttempt}
-                          />
+                            <DrugDispensedLists
+                                key={index}
+                                index={index}
+                                regimenDrugObj={regimenDrugObj}
+                                removeAttempt={removeAttempt}
+                            />
                         ))}
-                      </tbody>
-                    </Table>
-                  </List>
+                        </tbody>
+                      </Table>
+                    </List>
                 ) : (
-                  ""
+                    ""
                 )}
               </div>
-              {saving ? <Spinner /> : ""}
-              <br />
+              {saving ? <Spinner/> : ""}
+              <br/>
               {regimenDrugList.length > 0 && (
-                <MatButton
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  className={classes.button}
-                  startIcon={<SaveIcon />}
-                  hidden={disabledField}
-                  onClick={handleSubmit}
-                  style={{ backgroundColor: "#014d88" }}
-                  disabled={saving}
-                >
-                  {!saving ? (
-                    <span style={{ textTransform: "capitalize" }}>Update</span>
-                  ) : (
-                    <span style={{ textTransform: "capitalize" }}>
+                  <MatButton
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      className={classes.button}
+                      startIcon={<SaveIcon/>}
+                      hidden={disabledField}
+                      onClick={handleSubmit}
+                      style={{backgroundColor: "#014d88"}}
+                      disabled={saving}
+                  >
+                    {!saving ? (
+                        <span style={{textTransform: "capitalize"}}>Update</span>
+                    ) : (
+                        <span style={{textTransform: "capitalize"}}>
                       Updating...
                     </span>
-                  )}
-                </MatButton>
+                    )}
+                  </MatButton>
               )}
             </form>
           </CardBody>
@@ -1896,7 +1877,7 @@ const Pharmacy = (props) => {
   );
 };
 
-function DrugDispensedLists({ regimenDrugObj, index, removeAttempt }) {
+function DrugDispensedLists({regimenDrugObj, index, removeAttempt}) {
   function FrequencyLabel(count) {
     if (count === "1") {
       return "OD";
@@ -1914,28 +1895,30 @@ function DrugDispensedLists({ regimenDrugObj, index, removeAttempt }) {
       return "";
     }
   }
+
   return (
-    <tr>
-      <th>
-        {regimenDrugObj.name ? regimenDrugObj.name : regimenDrugObj.regimenName}{" "}
-        {regimenDrugObj.strength !== "" ? regimenDrugObj.strength : ""}
-      </th>
-      <th>{FrequencyLabel(regimenDrugObj.frequency)}</th>
-      <th>{regimenDrugObj.duration}</th>
-      <th>{regimenDrugObj.prescribed}</th>
-      <th>{regimenDrugObj.dispense}</th>
-      <th></th>
-      <th>
-        <IconButton
-          aria-label="delete"
-          size="small"
-          color="error"
-          onClick={() => removeAttempt(index)}
-        >
-          <DeleteIcon fontSize="inherit" />
-        </IconButton>
-      </th>
-    </tr>
+      <tr>
+        <th>
+          {regimenDrugObj.name ? regimenDrugObj.name : regimenDrugObj.regimenName}{" "}
+          {regimenDrugObj.strength !== "" ? regimenDrugObj.strength : ""}
+        </th>
+        <th>{FrequencyLabel(regimenDrugObj.frequency)}</th>
+        <th>{regimenDrugObj.duration}</th>
+        <th>{regimenDrugObj.prescribed}</th>
+        <th>{regimenDrugObj.dispense}</th>
+        <th></th>
+        <th>
+          <IconButton
+              aria-label="delete"
+              size="small"
+              color="error"
+              onClick={() => removeAttempt(index)}
+          >
+            <DeleteIcon fontSize="inherit"/>
+          </IconButton>
+        </th>
+      </tr>
   );
 }
+
 export default Pharmacy;

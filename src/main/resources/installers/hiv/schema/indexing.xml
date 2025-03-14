@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20241120-002-002" author="gboyegun-taiwo">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_patient_person_main
+                ON patient_person(facility_id, id DESC)
+                WHERE archived = 0;
+
+            CREATE INDEX IF NOT EXISTS idx_patient_person_uuid_facility
+                ON patient_person(uuid, facility_id)
+                WHERE archived = 0;
+
+            CREATE INDEX IF NOT EXISTS idx_hiv_art_clinical_filtered
+                ON hiv_art_clinical(person_uuid)
+                WHERE archived = 0 AND is_commencement = true;
+
+            CREATE INDEX IF NOT EXISTS idx_patient_person_search
+                ON patient_person(facility_id, hospital_number, first_name, surname)
+                WHERE archived = 0;
+        </sql>
+        <rollback>
+            DROP INDEX IF EXISTS idx_patient_person_main;
+            DROP INDEX IF EXISTS idx_patient_person_uuid_facility;
+            DROP INDEX IF EXISTS idx_hiv_art_clinical_filtered;
+            DROP INDEX IF EXISTS idx_patient_person_search;
+        </rollback>
+    </changeSet>
+
+
+</databaseChangeLog>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet id="20250107-01" author="Taiwo Gboyegun">
+        <sql>
+            UPDATE hiv_art_pharmacy
+            SET ipt = jsonb_set(ipt, '{type}', '"START_INITIATION"'), ipt_type = 'START_INITIATION'
+            WHERE ipt->>'type' = '' AND archived = 0 AND person_uuid IN (
+                SELECT h.person_uuid
+                FROM hiv_art_pharmacy h
+                INNER JOIN jsonb_array_elements(h.extra -> 'regimens') WITH ORDINALITY p(pharmacy_object) ON TRUE
+                INNER JOIN hiv_regimen hr ON hr.description = CAST(p.pharmacy_object ->> 'regimenName' AS VARCHAR)
+                INNER JOIN hiv_regimen_type hrt ON hrt.id = hr.regimen_type_id  AND hrt.id = 15 AND hrt.id NOT IN (1,2,3,4,14, 16)
+                );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

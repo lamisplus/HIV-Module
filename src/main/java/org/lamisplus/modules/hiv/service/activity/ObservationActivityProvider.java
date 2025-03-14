@@ -26,9 +26,8 @@ public class ObservationActivityProvider implements PatientActivityProvider {
         return observations.stream ()
                 .map (observation -> {
                     String type = observation.getType ();
-                    String path = type.replaceAll (" ", "-");
+                    String path = type.replace(" ", "-");
                     StringBuilder sb = new StringBuilder(type);
-                    log.info ("observation-path {}", path );
                     LocalDate dateOfObservation =
                             CustomDateTimeFormat.handleNullDateActivity(sb,observation.getDateOfObservation());
                     return new PatientActivity (observation.getId (), sb.toString(), dateOfObservation, "", path);

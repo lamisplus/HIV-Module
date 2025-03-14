@@ -105,7 +105,6 @@ table.dataTable tfoot th{
     display: flex;
 	flex-flow:wrap;
 	.paginate_button.previous,.paginate_button.next{
-		margin-left: 0px;
 		font-size: 18px;
 		margin:0 2px;
 		border: 0!important;
@@ -139,7 +138,6 @@ table.dataTable tfoot th{
 			height:60px;
 			width:60px;
 			padding:0;
-			margin-left: 0px;
 			margin:0 2px;
 			line-height:58px;
 			text-align:center;

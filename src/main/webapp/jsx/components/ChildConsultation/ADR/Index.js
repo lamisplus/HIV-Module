@@ -121,6 +121,7 @@ const ADR = (props) => {
                 value={adrObj.adrOnsetDate}
                 onChange={handAdrleInputChange}
                 required
+                onKeyPress={(e) => e.preventDefault()}
                 > 
             </Input>
           

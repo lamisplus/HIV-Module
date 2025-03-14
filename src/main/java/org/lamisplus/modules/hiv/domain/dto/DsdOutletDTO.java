@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DsdOutletDTO {
     private Long id;
-    private String im;
     private String state;
     private String lga;
     private String name;

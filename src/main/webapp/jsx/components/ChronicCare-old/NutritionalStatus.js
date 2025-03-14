@@ -7,21 +7,14 @@ import {FormGroup, Label , CardBody, Spinner,Input,Form, InputGroup,
 } from "reactstrap";
 import {makeStyles} from "@material-ui/core/styles";
 import {Card, CardContent} from "@material-ui/core";
-import SaveIcon from "@material-ui/icons/Save";
-// import AddIcon from "@material-ui/icons/Add";
-// import CancelIcon from "@material-ui/icons/Cancel";
-import {ToastContainer, toast} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
-import { useHistory, } from "react-router-dom";
-// import {TiArrowBack} from 'react-icons/ti'
 import {token, url as baseUrl } from "../../../api";
 import 'react-phone-input-2/lib/style.css'
 import 'semantic-ui-css/semantic.min.css';
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import 'react-phone-input-2/lib/style.css'
-import { Button} from 'semantic-ui-react'
 import {  Message} from 'semantic-ui-react'
 import DualListBox from "react-dual-listbox";
 import 'react-dual-listbox/lib/react-dual-listbox.css';
@@ -149,11 +142,9 @@ const BasicInfo = (props) => {
     }
  
     const onSelectedOption = (selectedValues) => {
-        //setWho({...who, stage2ValueOption: selectedValues})
         setSelectedOptions1(selectedValues);
     }; 
     const onSelectedOption2 = (selectedValues) => {
-        //setWho({...who, stage2ValueOption: selectedValues})
         setSelectedOptions2(selectedValues);
     }; 
 
@@ -321,7 +312,8 @@ const BasicInfo = (props) => {
                     </div>
                     </div>
                     <br/>
-                    
+
+
                     </form>
                     
                 </CardBody>
