@@ -61,30 +61,31 @@ const LabHistory = (props) => {
     const toggle = () => setOpen(!open);
     const [loading, setLoading] = useState(true)
 
-// fetch Test Result from lims
     const fetchTestResult = async (row) => {
         try {
             if (row.sampleNumber) {
                 const modifiedSampleNumber = row.sampleNumber.replace(/\//g, "_");
                 const response = await axios.get(`${baseUrl}lims/sample/result/${modifiedSampleNumber}`, {
-                    headers: {Authorization: `Bearer ${token}`}
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-                console.log("response data", response.data)
+                // console.log("response data", response.data);
                 // Update the results state, mapping the result by sample number
                 setResults((prevResults) => ({
                     ...prevResults,
-                    // Use row.sampleNumber for test result
+                    // Use response.data.testResult for test result if row.result is not defined
                     [`${row.sampleNumber}_result`]: row.result
                         ? row.result
-                                : <div style={{
-                                    display: 'inline-block',
-                                    backgroundColor: 'red',
-                                    color: 'white',
-                                    padding: '5px 10px',
-                                    borderRadius: '4px'
-                                }}>No Result Yet</div>,
+                        : response.data?.testResult
+                            ? response.data.testResult
+                            : <div style={{
+                                display: 'inline-block',
+                                backgroundColor: 'red',
+                                color: 'white',
+                                padding: '5px 10px',
+                                borderRadius: '4px'
+                            }}>No Result Yet</div>,
 
-                    // Use a different key for dateResultReceived
+                    // Use response.data.resultDate for dateReceived if row.dateResultReceived is not defined
                     [`${row.sampleNumber}_dateReceived`]: row.dateResultReceived
                         ? row.dateResultReceived
                         : response.data?.resultDate
@@ -94,8 +95,8 @@ const LabHistory = (props) => {
             } else {
                 setResults((prevResults) => ({
                     ...prevResults,
-                    [`${row.sampleNumber}_result`]: row.result || 'No Result Yet',
-                    [`${row.sampleNumber}_dateReceived`]: row.dateResultReceived || 'No Date Available'
+                    [`${row.sampleNumber}_result`]: row.result || '',
+                    [`${row.sampleNumber}_dateReceived`]: row.dateResultReceived || ''
                 }));
             }
         } catch (error) {
@@ -107,6 +108,53 @@ const LabHistory = (props) => {
             }));
         }
     };
+
+// fetch Test Result from lims
+//     const fetchTestResult = async (row) => {
+//         try {
+//             if (row.sampleNumber) {
+//                 const modifiedSampleNumber = row.sampleNumber.replace(/\//g, "_");
+//                 const response = await axios.get(`${baseUrl}lims/sample/result/${modifiedSampleNumber}`, {
+//                     headers: {Authorization: `Bearer ${token}`}
+//                 });
+//                 console.log("response data", response.data)
+//                 // Update the results state, mapping the result by sample number
+//                 setResults((prevResults) => ({
+//                     ...prevResults,
+//                     // Use row.sampleNumber for test result
+//                     [`${row.sampleNumber}_result`]: row.result
+//                         ? row.result
+//                                 : <div style={{
+//                                     display: 'inline-block',
+//                                     backgroundColor: 'red',
+//                                     color: 'white',
+//                                     padding: '5px 10px',
+//                                     borderRadius: '4px'
+//                                 }}>No Result Yet</div>,
+//
+//                     // Use a different key for dateResultReceived
+//                     [`${row.sampleNumber}_dateReceived`]: row.dateResultReceived
+//                         ? row.dateResultReceived
+//                         : response.data?.resultDate
+//                             ? 'Result Date Available'
+//                             : 'No Date Available'
+//                 }));
+//             } else {
+//                 setResults((prevResults) => ({
+//                     ...prevResults,
+//                     [`${row.sampleNumber}_result`]: row.result || 'No Result Yet',
+//                     [`${row.sampleNumber}_dateReceived`]: row.dateResultReceived || 'No Date Available'
+//                 }));
+//             }
+//         } catch (error) {
+//             console.error("Error fetching test result:", error);
+//             setResults((prevResults) => ({
+//                 ...prevResults,
+//                 [`${row.sampleNumber}_result`]: row.result || '',
+//                 [`${row.sampleNumber}_dateReceived`]: row.dateResultReceived || ''
+//             }));
+//         }
+//     };
 
     // useEffect(() => {
     //     console.log("I got here 0 :", props.orderList.length)
