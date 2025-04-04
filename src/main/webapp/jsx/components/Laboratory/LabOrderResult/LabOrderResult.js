@@ -254,10 +254,10 @@ const Laboratory = (props) => {
           ...prevObject,
           labTestGroupId: matchedOption.testGroupId,
           labTestId: matchedOption.value,
-          result: tptMonitorng.tbTestResult,
-          sampleCollectionDate: moment((tptMonitorng.dateSpecimenSent)).format("YYYY-MM-DDTHH:mm"),
+          result: tptMonitorng?.tbTestResult,
+          sampleCollectionDate: moment((tptMonitorng?.dateSpecimenSent)).format("YYYY-MM-DDTHH:mm"),
           dateResultReceived: tptMonitorng?.DateDiagnosticTestResultReceived
-              ? moment(tptMonitoring.DateDiagnosticTestResultReceived).format("YYYY-MM-DDTHH:mm")
+              ? moment(tptMonitorng?.DateDiagnosticTestResultReceived).format("YYYY-MM-DDTHH:mm")
               : ""
         }));
       }
@@ -803,7 +803,7 @@ const Laboratory = (props) => {
                      <FormGroup>
                        <Label for="">
                          Date Result Received{" "}
-                         {tests.result !== "" ? (
+                         {tests.dateResultReceived !== "" ? (
                            <span style={{ color: "red" }}> *</span>
                          ) : (
                            ""
