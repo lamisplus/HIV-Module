@@ -334,45 +334,28 @@ const Laboratory = (props) => {
     }
   },[cd4CountObj])
 
-
-  // Function to validate the sample number
-  const validateSampleNumber = async (sampleNumber) => {
-    try {
-      const response = await fetch(`${baseUrl}laboratory/check-sample-number/${sampleNumber}`);
-      const result = await response.json();
-
-      if (!result) { // If the sample number exists
-        setErrors({ ...errors, sampleNumber: "Sample number already exists." });
-      } else {
-        setErrors({ ...errors, sampleNumber: "" }); // Clear error if valid
-      }
-    } catch (error) {
-      console.error("Error checking sample number:", error);
-      setErrors({ ...errors, sampleNumber: "Failed to check sample number." });
-    }
-  };
-
   const handleInputChange = (e) => {
-    setErrors({ ...temp, [e.target.name]: "" });
-    if (e.target.name === "labNumber") {
+    setErrors({...temp, [e.target.name]: ""});
+      if (e.target.name === "labNumber") {
       const onlyPositiveNumber = e.target.value;
-      setTests({ ...tests, [e.target.name]: onlyPositiveNumber });
-    }else if(e.target.name === "cd4CountType"){
+      setTests({...tests, [e.target.name]: onlyPositiveNumber});
+    } else if (e.target.name === "cd4CountType") {
       setCd4CountObj({...cd4CountObj, [e.target.name]: e.target.value})
-    } else if(e.target.name === "SQC4CountValue"){
-      setCd4CountObj({...cd4CountObj, SQC4CountValue:e.target.value, FCCd4CountValue: ""})
-    }else if(e.target.name === "FCCd4CountValue"){
-      setCd4CountObj({...cd4CountObj,SQC4CountValue:"", FCCd4CountValue: e.target.value})
+    } else if (e.target.name === "SQC4CountValue") {
+      setCd4CountObj({...cd4CountObj, SQC4CountValue: e.target.value, FCCd4CountValue: ""})
+    } else if (e.target.name === "FCCd4CountValue") {
+      setCd4CountObj({...cd4CountObj, SQC4CountValue: "", FCCd4CountValue: e.target.value})
+    } else {
+      setTests({...tests, [e.target.name]: e.target.value});
     }
-    else {
-      setTests({ ...tests, [e.target.name]: e.target.value });
+  }
+
+  const addOrder = async (e) => {
+    const isValid = await validate();
+    if(!isValid){
+      return;
     }
-  };
 
-
-
-  const addOrder = (e) => {
-    if (validate()) {
       tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format(
         "YYYY-MM-DD HH:MM:SS"
       );
@@ -408,7 +391,7 @@ const Laboratory = (props) => {
         resultReportedBy: "",
       });
       setSelectedOption([]);
-    }
+
   };
   /* Remove ADR  function **/
   const removeOrder = (index) => {
@@ -422,37 +405,104 @@ const Laboratory = (props) => {
     setTestOrderList([...testOrderList]);
   };
   //Validations of the forms
-  const validate = () => {
-    //temp.dateAssayed = tests.dateAssayed ? "" : "This field is required"
+  // const validate = () => {
+  //   //temp.dateAssayed = tests.dateAssayed ? "" : "This field is required"
+  //   temp.labTestGroupId = tests.labTestGroupId ? "" : "This field is required";
+  //   temp.labTestId = tests.labTestId ? "" : "This field is required";
+  //   temp.labOrderIndication = tests.labOrderIndication
+  //     ? ""
+  //     : "This field is required";
+  //   temp.orderedDate = tests.orderedDate ? "" : "This field is required";
+  //   temp.sampleNumber = tests.sampleNumber ? "" : "This field is required";
+  //   temp.sampleCollectionDate = tests.sampleCollectionDate
+  //     ? ""
+  //     : "This field is required";
+  //   tests.labTestId === "16" &&
+  //     (temp.viralLoadIndication = tests.viralLoadIndication
+  //       ? ""
+  //       : "This field is required");
+  //   // Only check result if dateResultReceived is not empty or undefined
+  //   if (tests.dateResultReceived !== "" && tests.dateResultReceived !== undefined) {
+  //     temp.result = tests.result && tests.result !== undefined ? "" : "This field is required";
+  //   }
+  //   // Only check dateResultReceived if result is not empty or undefined
+  //   if (tests.result !== "" && tests.result !== undefined) {
+  //     temp.dateResultReceived = tests.dateResultReceived
+  //         ? ""
+  //         : "This field is required";
+  //   }
+  //
+  //   setErrors({
+  //     ...temp,
+  //   });
+  //   return Object.values(temp).every((x) => x == "");
+  // };
+
+  const validate = async () => {
+    // const temp = {};
+
+    // Synchronous validations
     temp.labTestGroupId = tests.labTestGroupId ? "" : "This field is required";
     temp.labTestId = tests.labTestId ? "" : "This field is required";
-    temp.labOrderIndication = tests.labOrderIndication
-      ? ""
-      : "This field is required";
+    temp.labOrderIndication = tests.labOrderIndication ? "" : "This field is required";
     temp.orderedDate = tests.orderedDate ? "" : "This field is required";
     temp.sampleNumber = tests.sampleNumber ? "" : "This field is required";
-    temp.sampleCollectionDate = tests.sampleCollectionDate
-      ? ""
-      : "This field is required";
-    tests.labTestId === "16" &&
-      (temp.viralLoadIndication = tests.viralLoadIndication
-        ? ""
-        : "This field is required");
-    // Only check result if dateResultReceived is not empty or undefined
-    if (tests.dateResultReceived !== "" && tests.dateResultReceived !== undefined) {
-      temp.result = tests.result && tests.result !== undefined ? "" : "This field is required";
-    }
-    // Only check dateResultReceived if result is not empty or undefined
-    if (tests.result !== "" && tests.result !== undefined) {
-      temp.dateResultReceived = tests.dateResultReceived
-          ? ""
-          : "This field is required";
+    temp.sampleCollectionDate = tests.sampleCollectionDate ? "" : "This field is required";
+
+    // Conditional validation for viralLoadIndication
+    if (tests.labTestId === "16") {
+      temp.viralLoadIndication = tests.viralLoadIndication ? "" : "This field is required";
     }
 
-    setErrors({
+    // Conditional validation for result and dateResultReceived
+    if (tests.dateResultReceived) {
+      temp.result = tests.result ? "" : "This field is required";
+    }
+    if (tests.result) {
+      temp.dateResultReceived = tests.dateResultReceived ? "" : "This field is required";
+    }
+
+    // Update errors with synchronous validations
+    setErrors((prevErrors) => ({
+      ...prevErrors,
       ...temp,
-    });
-    return Object.values(temp).every((x) => x == "");
+    }));
+
+    // Check if all synchronous validations pass
+    const isSyncValid = Object.values(temp).every((x) => x === "");
+
+    // Asynchronous validation for sample number
+    if (tests.sampleNumber) {
+      try {
+        const response = await axios.get(`${baseUrl}laboratory/check-sample-number?sampleNumber=${tests.sampleNumber}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = response.data;
+
+        if (data) {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            sampleNumber: "This sample number is already taken.",
+          }));
+          return false; // Validation fails
+        } else {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            sampleNumber: "",
+          }));
+        }
+      } catch (error) {
+        console.error("Error validating sample number:", error);
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          sampleNumber: "An error occurred while checking the sample number.",
+        }));
+        return false;
+      }
+    }
+
+    // Return true only if both synchronous and asynchronous validations pass
+    return isSyncValid;
   };
 
   const LAB_ORDER_INDICATION = () => {
@@ -577,7 +627,7 @@ const Laboratory = (props) => {
                    <Col md={4} className="form-group mb-3">
                      <FormGroup>
                        <Label for="encounterDate">
-                         Sample Number <span style={{ color: "red" }}> *</span>
+                         Sample Number<span style={{ color: "red" }}> *</span>
                        </Label>
                        <Input
                          type="text"
@@ -1875,7 +1925,7 @@ const Laboratory = (props) => {
                        size="small"
                        style={{ marginTop: 20, marginBottom: 20 }}
                      >
-                       <Icon name="plus" /> Add Test1
+                       <Icon name="plus" /> Add Test
                      </LabelSui>
                    </Col>
                    <hr />
