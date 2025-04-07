@@ -63,10 +63,8 @@ function PatientCard(props) {
     const {classes} = props;
     //const patientCurrentStatus=props.patientObj && props.patientObj.currentStatus==="Died (Confirmed)" ? true : false ;
     const patientObject = props.patientObj1;
-    // console.log("in", patientObject);
-    // console.log("out", props.patientObj);
     const id = props.patientObj.id;
-
+    const [viralLoadIsPresent, setViralLoadIsPresent] = useState(false);
     const [patientFlag, setPatientFlag] = useState({});
     const [patientMlValue, setPatientMlValue] = useState({"iit": null, "chance": null});
     const getPhoneNumber = (identifier) => {
@@ -111,9 +109,33 @@ function PatientCard(props) {
         });
     }
 
+    const LaboratoryHistory = () => {
+        axios
+            .get(
+                `${baseUrl}laboratory/rde-all-orders/patients/${props.patientObj.id}`,
+                {headers: {Authorization: `Bearer ${token}`}}
+            )
+            .then((response) => {
+                // Check if the response contains data and process it
+                if (response.data && Array.isArray(response.data)) {
+                    const isViralLoadResultPresent = response.data.some(item =>
+                        item.labTestName === "Viral Load" && item.result !== null && item.result.trim() !== ""
+                    );
+                    setViralLoadIsPresent(isViralLoadResultPresent);
+                } else {
+                    setViralLoadIsPresent(false);
+                }
+            })
+            .catch((error) => {
+                setViralLoadIsPresent(false);
+                console.log(error);
+            })
+    }
+
     useEffect(() => {
         fetchPatientFlags(id);
         fetchPatientMlReport();
+        LaboratoryHistory();
     }, []);
 
     return (
@@ -232,7 +254,7 @@ function PatientCard(props) {
                                             color: "rgb(153, 46, 98)",
                                         }}
                                     >
-                                {" "}
+                                        {" "}
                                         {"   "} due in{" "}
                                         <Badge
                                             style={{
@@ -240,11 +262,11 @@ function PatientCard(props) {
                                                 fontSize: "14px",
                                             }}
                                         >
-                                  {" "}
+                                            {" "}
                                             {patientFlag.dateDiff}
-                                </Badge>{" "}
+                                        </Badge>{" "}
                                         days{" "}
-                              </span>
+                                    </span>
                                 ) : null}
                           </b>
                         </span>
@@ -351,38 +373,52 @@ function PatientCard(props) {
                                                             alignItems: "left",
                                                         }}
                                                     >
-                                                        {/* <Label.Detail style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', text: 'center'}}> */}
                                                         {patientFlag.vlSurpression ===
                                                         "LOW SURPRESSION RATE" ? (
                                                             <span>
-                                VIRAL LOAD RESULT{" "}
+                                                                VIRAL LOAD RESULT{" "}
                                                                 <Badge
                                                                     style={{
                                                                         backgroundColor: "blue",
                                                                         fontSize: "14px",
                                                                     }}
                                                                 >
-                                  {" "}
+                                                                    {" "}
                                                                     {patientFlag.currentViralLoadResult}
-                                </Badge>{" "}
-                              </span>
+                                                                </Badge>{" "}
+                                                            </span>
                                                         ) : patientFlag.vlSurpression ===
                                                         "HIGH SURPRESSION RATE" ? (
                                                             <span>
-                                VIRAL LOAD RESULT{" "}
+                                                                VIRAL LOAD RESULT{" "}
                                                                 <Badge
                                                                     style={{
                                                                         backgroundColor: "red",
                                                                         fontSize: "14px",
                                                                     }}
                                                                 >
-                                  {" "}
+                                                                    {" "}
                                                                     {patientFlag.currentViralLoadResult}
-                                </Badge>{" "}
-                              </span>
-                                                        ) : (
-                                                            <span>NO VIRAL LOAD RESULT </span>
-                                                        )}
+
+                                                                </Badge>{" "}
+                                                            </span>
+                                                        ) : viralLoadIsPresent ?
+
+                                                            <span>
+
+                                                                <Badge
+                                                                    style={{
+                                                                        backgroundColor: "seagreen",
+                                                                        fontSize: "14px",
+                                                                    }}
+                                                                >
+                                                                    {" "}
+                                                                    VIRAL LOAD RESULT AVAILABLE
+                                                                </Badge>{" "}
+                                                            </span>
+                                                            : (
+                                                                <span>NO VIRAL LOAD RESULT </span>
+                                                            )}
                                                     </Label>
                                                 </Typography>
                                             </Col>
