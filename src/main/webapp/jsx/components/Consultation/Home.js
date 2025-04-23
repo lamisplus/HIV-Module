@@ -1057,8 +1057,7 @@ const ClinicVisit = (props) => {
           });
           props.setActiveContent({
             ...props.activeContent,
-            route: "consultation",
-            activeTab: "history",
+            route: "recent-history",
           });
         })
         .catch((error) => {
