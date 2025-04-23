@@ -30,6 +30,7 @@ import "react-widgets/dist/css/react-widgets.css";
 import {toast} from "react-toastify";
 import {Dropdown, Button, Menu, Icon} from 'semantic-ui-react';
 import {queryClient} from '../../../../utils/queryClient';
+import moment from "moment";
 
 
 const tableIcons = {
@@ -66,32 +67,45 @@ const LabHistory = (props) => {
             if (row.sampleNumber) {
                 const modifiedSampleNumber = row.sampleNumber.replace(/\//g, "-");
                 const response = await axios.get(`${baseUrl}lims/sample/result/${modifiedSampleNumber}`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: {Authorization: `Bearer ${token}`}
                 });
-                // console.log("response data", response.data);
-                // Update the results state, mapping the result by sample number
+
+                const {testResult, resultDate, assayDate, testedBy} = response.data;
+                // Update the results state
                 setResults((prevResults) => ({
                     ...prevResults,
-                    // Use response.data.testResult for test result if row.result is not defined
-                    [`${row.sampleNumber}_result`]: row.result
-                        ? row.result
-                        : response.data?.testResult
-                            ? response.data.testResult
-                            : <div style={{
-                                display: 'inline-block',
-                                backgroundColor: 'red',
-                                color: 'white',
-                                padding: '5px 10px',
-                                borderRadius: '4px'
-                            }}>No Result Yet</div>,
-
-                    // Use response.data.resultDate for dateReceived if row.dateResultReceived is not defined
+                    [`${row.sampleNumber}_result`]: testResult || row.result || (
+                        <div style={{
+                            display: 'inline-block',
+                            backgroundColor: 'red',
+                            color: 'white',
+                            padding: '5px 10px',
+                            borderRadius: '4px'
+                        }}>No Result Yet</div>
+                    ),
                     [`${row.sampleNumber}_dateReceived`]: row.dateResultReceived
                         ? row.dateResultReceived
-                        : response.data?.resultDate
+                        : resultDate
                             ? 'Result Date Available'
                             : 'No Date Available'
                 }));
+
+                // Check if row.result is null and response.data.testResult exists
+                if (!row.result && testResult) {
+                    // Prepare the updated row data
+                    const updatedRow = {
+                        ...row,
+                        result: testResult,
+                        dateResultReceived: moment(resultDate).format("YYYY-MM-DD HH:mm:ss"),
+                        dateAssayedBy: moment(assayDate).format('YYYY-MM-DD'),
+                        assayedBy: testedBy
+                    };
+                    await axios.put(
+                        `${baseUrl}laboratory/vl-results/${row.orderId}`,
+                        updatedRow,
+                        {headers: {Authorization: `Bearer ${token}`}}
+                    );
+                }
             } else {
                 setResults((prevResults) => ({
                     ...prevResults,
@@ -100,15 +114,9 @@ const LabHistory = (props) => {
                 }));
             }
         } catch (error) {
-            console.error("Error fetching test result:", error);
-            setResults((prevResults) => ({
-                ...prevResults,
-                [`${row.sampleNumber}_result`]: row.result || '',
-                [`${row.sampleNumber}_dateReceived`]: row.dateResultReceived || ''
-            }));
+            console.error("Error fetching or updating test result:", error);
         }
     };
-
 
     useEffect(() => {
         const fetchAllResults = async () => {
@@ -119,7 +127,7 @@ const LabHistory = (props) => {
                 } catch (error) {
                     console.error("Error fetching all test results:", error);
                 } finally {
-                   await new Promise((resolve) => setTimeout(resolve, 1000))
+                    await new Promise((resolve) => setTimeout(resolve, 1000))
                     setLoading(false);
                 }
             } else {

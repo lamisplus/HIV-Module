@@ -67,6 +67,7 @@ function PatientCard(props) {
     const [viralLoadIsPresent, setViralLoadIsPresent] = useState(false);
     const [patientFlag, setPatientFlag] = useState({});
     const [patientMlValue, setPatientMlValue] = useState({"iit": null, "chance": null});
+    const [resultCheck, setResultCheck] = useState({})
     const getPhoneNumber = (identifier) => {
         const phoneNumber = identifier?.contactPoint?.find(
             (obj) => obj.type === "phone"
@@ -109,33 +110,63 @@ function PatientCard(props) {
         });
     }
 
-    const LaboratoryHistory = () => {
-        axios
-            .get(
-                `${baseUrl}laboratory/rde-all-orders/patients/${props.patientObj.id}`,
-                {headers: {Authorization: `Bearer ${token}`}}
-            )
-            .then((response) => {
-                // Check if the response contains data and process it
-                if (response.data && Array.isArray(response.data)) {
-                    const isViralLoadResultPresent = response.data.some(item =>
-                        item.labTestName === "Viral Load" && item.result !== null && item.result.trim() !== ""
-                    );
-                    setViralLoadIsPresent(isViralLoadResultPresent);
-                } else {
+    useEffect(() => {
+        const fetchLaboratoryHistory = () => {
+            axios
+                .get(
+                    `${baseUrl}laboratory/rde-all-orders/patients/${props.patientObj.id}`,
+                    {headers: {Authorization: `Bearer ${token}`}}
+                )
+                .then((response) => {
+                    const { labTestName, sampleNumber, result, } = response.data[0]
+                    setResultCheck({ labTestName, sampleNumber, result: "" })
+
+                    //add lims endpoint
+                    const improvedSampleNumber = sampleNumber.replace(/\//g, "-")
+                   axios.get(`${baseUrl}lims/sample/result/${improvedSampleNumber}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }).then((data) => {
+                       if (data.data === null || data.data === "") {
+                       }else {
+                           const { testResult } = data.data;
+                           setResultCheck({ labTestName, sampleNumber, result: testResult })
+                       }
+                   }).catch((error) => {
+                       console.log("err",error)
+                   })
+
+                    if (response.data && Array.isArray(response.data)) {
+                        const viralLoadResults = response.data.filter(
+                            (item) =>
+                                item.labTestName === "Viral Load"
+                        );
+
+                        if (viralLoadResults.length > 0) {
+                            const mostRecent = viralLoadResults[0];
+                            if (mostRecent.result != null && mostRecent.result.trim() !== "") {
+                                setViralLoadIsPresent(true);
+                            } else {
+                                setViralLoadIsPresent(false);
+                            }
+                        } else {
+                            setViralLoadIsPresent(false);
+                        }
+                    } else {
+                        setViralLoadIsPresent(false);
+                    }
+                })
+                .catch((error) => {
                     setViralLoadIsPresent(false);
-                }
-            })
-            .catch((error) => {
-                setViralLoadIsPresent(false);
-                console.log(error);
-            })
-    }
+                    console.log(error);
+                });
+        };
+
+        fetchLaboratoryHistory();
+    }, [props.patientObj.id]);
 
     useEffect(() => {
         fetchPatientFlags(id);
         fetchPatientMlReport();
-        LaboratoryHistory();
     }, []);
 
     return (
@@ -416,9 +447,24 @@ function PatientCard(props) {
                                                                     VIRAL LOAD RESULT AVAILABLE
                                                                 </Badge>{" "}
                                                             </span>
-                                                            : (
+                                                            : resultCheck !== null && resultCheck.labTestName === "Viral Load" && resultCheck.result !== "" ?
+                                                                <span>
+
+                                                                    <Badge
+                                                                        style={{
+                                                                        backgroundColor: "seagreen",
+                                                                        fontSize: "14px",
+                                                                    }}
+                                                                    >
+                                                                        {" "}
+                                                                        LATEST VIRAL LOAD RESULT AVAILABLE
+                                                                    </Badge>{" "}
+                                                                </span>
+                                                            :
+                                                            (
                                                                 <span>NO VIRAL LOAD RESULT </span>
-                                                            )}
+                                                            )
+                                                        }
                                                     </Label>
                                                 </Typography>
                                             </Col>

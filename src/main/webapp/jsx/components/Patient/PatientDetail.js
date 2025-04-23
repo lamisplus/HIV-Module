@@ -470,13 +470,6 @@ function PatientCard(props) {
               activeContent={activeContent}
             />
           )}
-          {/*{activeContent.route === "eac-outcome" && (*/}
-          {/*    <EACOUTCOME*/}
-          {/*        patientObj={patientObj}*/}
-          {/*        setActiveContent={setActiveContent}*/}
-          {/*        activeContent={activeContent}*/}
-          {/*    />*/}
-          {/*)}*/}
           {activeContent.route === "eac-outcome" && (
             <EACOutcome
               patientObj={patientObj}

@@ -146,8 +146,6 @@ const Laboratory = (props) => {
            .then((response) => {
                const patientDTO= response.data.enrollment
                setEnrollDate (patientDTO && patientDTO.dateOfRegistration ? patientDTO.dateOfRegistration :"")
-               //setEacStatusObj(response.data);
-               
            })
            .catch((error) => {
            
@@ -219,29 +217,7 @@ const Laboratory = (props) => {
             });
         
     }
-   
-    // const PatientVisit =()=>{
-    //     axios
-    //         .get(`${baseUrl}patient/visit/visit-detail/${props.patientObj.id}`,
-    //             { headers: {"Authorization" : `Bearer ${token}`} }
-    //         )
-    //         .then((response) => {
-    //             const lastVisit = response.data[response.data.length - 1]
-    //             if(lastVisit.status==="PENDING"){
-    //                 visitId= lastVisit.id
-    //                 //setCurrentVisit(true)
-    //                 setButtonHidden(false)
-    //             }else{
-    //                 toast.error("Patient do not have any active visit")
-    //                 setButtonHidden(true)
-    //                 //setCurrentVisit(false)
-    //             }
 
-    //         })
-    //         .catch((error) => {
-    //         
-    //         });        
-    // }
     //Get list of Test Group
     const ViraLoadIndication =()=>{
         axios
@@ -259,15 +235,10 @@ const Laboratory = (props) => {
         setTests ({...tests,  labTestGroupId: e.target.value});
         const getTestList= testGroup.filter((x)=> x.id===parseInt(e.target.value))
         setTest(getTestList[0].labTests)
-        // if(e.target.value==='4'){            
-        //     setVlRequired(true)
-        // }else{
-        //     setVlRequired(false) 
-        // }
     }
     const handleInputChangeObject = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
-        setTests ({...tests,  [e.target.name]: e.target.value});               
+        setTests ({...tests,  [e.target.name]: e.target.value});
     }
     const handleInputChange = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
@@ -276,7 +247,7 @@ const Laboratory = (props) => {
             const onlyPositiveNumber = e.target.value //Math.abs(e.target.value)
             setTests ({...tests,  [e.target.name]: onlyPositiveNumber});
         }else{
-            setTests ({...tests,  [e.target.name]: e.target.value}); 
+            setTests ({...tests,  [e.target.name]: e.target.value});
         }
         if(e.target.name==='dateReceivedAtPcrLab'){
             const dateReceivedAtPcrLab = moment(e.target.value).format("YYYY-MM-DD HH:MM:SS")   //Math.abs(e.target.value)
@@ -290,19 +261,19 @@ const Laboratory = (props) => {
 
     const handleInputChangeTest = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
-        
+
         if(e.target.value==="16"){
             setShowVLIndication(true)
             setVlRequired(true)
             setErrors({...temp, viralLoadIndication:""})
-            
+
             setTests ({...tests,  labTestId: e.target.value});
         }else{
             setShowVLIndication(false)
-            setVlRequired(false) 
+            setVlRequired(false)
             setTests ({...tests,  labTestId: e.target.value});
         }
-        //setObjValues ({...objValues,  [e.target.name]: e.target.value});       
+        //setObjValues ({...objValues,  [e.target.name]: e.target.value});
     }
 
       //Validations of the forms
