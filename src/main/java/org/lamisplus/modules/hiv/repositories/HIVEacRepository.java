@@ -16,21 +16,23 @@ public interface HIVEacRepository extends JpaRepository<HIVEac, Long> {
 	List<HIVEac> getAllByPersonAndArchived(Person person, Integer archived);
 	Optional<HIVEac>  getHIVEacByPersonAndLabNumber(Person person, String labNumber);
 
-	@Query(value = "select * from\n" +
-			"(\n" +
-			"    select a.patient_id as patientId\n" +
-			"         , b.id as testResultId\n" +
-			"         , d.group_name as testGroup\n" +
-			"         , c.lab_test_name as testName\n" +
-			"         , a.lab_number as labNumber\n" +
-			"         , b.date_result_reported resultDate\n" +
-			"         , CAST(b.result_reported as bigint) as result\n" +
-			"    from laboratory_test a\n" +
-			"             inner join laboratory_result b on a.id=b.test_id\n" +
-			"             inner join laboratory_labtest c on a.lab_test_id=c.id\n" +
-			"             inner join laboratory_labtestgroup d on a.lab_test_group_id=d.id\n" +
-			"    where c.lab_test_name = 'Viral Load' and b.result_reported != '' and b.result_reported ~ '^[0-9]+$'\n" +
-			") a where result > 1000 and a.patientId = ?1", nativeQuery = true)
+	@Query(value = "SELECT * FROM (\n" +
+			"    SELECT a.patient_id AS patientId,\n" +
+			"           b.id AS testResultId,\n" +
+			"           d.group_name AS testGroup,\n" +
+			"           c.lab_test_name AS testName,\n" +
+			"           a.lab_number AS labNumber,\n" +
+			"           b.date_result_reported AS resultDate,\n" +
+			"           regexp_replace(b.result_reported, '[^0-9<>=]', '', 'g') AS result\n" +
+			"    FROM laboratory_test a\n" +
+			"             INNER JOIN laboratory_result b ON a.id = b.test_id\n" +
+			"             INNER JOIN laboratory_labtest c ON a.lab_test_id = c.id\n" +
+			"             INNER JOIN laboratory_labtestgroup d ON a.lab_test_group_id = d.id\n" +
+			"    WHERE c.lab_test_name = 'Viral Load' AND b.result_reported != ''\n" +
+			") a\n" +
+			"WHERE NULLIF(regexp_replace(result, '[^0-9]', '', 'g'), '') IS NOT NULL\n" +
+			"  AND CAST(NULLIF(regexp_replace(result, '[^0-9]', '', 'g'), '') AS bigint) > 1000\n" +
+			"  AND a.patientId = ?1", nativeQuery = true)
 	List<LabEacInfo> getPatientAllEacs(Long personId);
 	
 	@Query(value =
