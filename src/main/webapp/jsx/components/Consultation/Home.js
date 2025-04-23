@@ -2480,7 +2480,6 @@ const ClinicVisit = (props) => {
               {/*      </Input>*/}
               {/*    </FormGroup>*/}
               {/*  </div>*/}
-              )}
             </div>
             {/* End of section if the patient is Female */}
             <Label

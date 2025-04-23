@@ -111,6 +111,7 @@ const LabHistory = (props) => {
             { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
+                console.log("response_data Viral load list : ", response.data)
                 setLoading(false)
                 setOrderList(response.data);                
             })

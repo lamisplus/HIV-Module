@@ -163,7 +163,6 @@ const Laboratory = (props) => {
         })
       .then((response) => {
           const data = response.data
-          // console.log("data in update view", response.data);
           const formattedResultDate = data?.resultDate ? moment(data.resultDate).format('YYYY-MM-DDTHH:mm'): '';
             setTests((prevTests) => ({
                 ...prevTests,
@@ -181,7 +180,6 @@ const Laboratory = (props) => {
         setShowResult(true)
         fetchTestResult(props.activeContent.obj.sampleNumber);
     }
-    // console.log("Active Content Object:", props.activeContent?.obj);
 }, [props.activeContent]);
 
 
@@ -350,8 +348,6 @@ const Laboratory = (props) => {
         props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', id:row.id, activeTab:"history", actionType:"", obj:{}})
      }
 
-     // console.log(" active content in view viral load", tests)
-  
   return (      
       <div >
 
