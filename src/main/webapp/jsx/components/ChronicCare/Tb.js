@@ -107,6 +107,9 @@ const TbScreening = (props) => {
   const [chestXrayResult, setChestXrayResult] = useState([]);
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
   const [careAndSupportEncounterDate, setCareAndSupportEncounterDate] = useState("");
+
+  // console.log("TB PROPS TBOBJ", props.tbObj)
+
   //Above 14 years Old
   useEffect(() => {
     if (
@@ -828,6 +831,7 @@ const TbScreening = (props) => {
         ...updateObj,
         tbTreatmentStartDate: '',
         tbScreeningType: '',
+        cadScore:'',
         completedTbTreatment: '',
         specimentCollectedStatus: '',
         diagnosticTestType:'',
@@ -882,6 +886,7 @@ const TbScreening = (props) => {
       updateObj = {
         ...updateObj,
         chestXray: '',
+        cadScore:'',
         chestXrayResult: '',
         isTbTestConfirmed: '',
         fever: '',
@@ -894,13 +899,38 @@ const TbScreening = (props) => {
         status: '',
       };
     }
+    // CAD Score logic when tbScreeningType is set to "Chest X-ray with CAD"
+    else if (name === 'cadScore' && props.tbObj.tbScreeningType === "Chest X-ray with CAD") {
+      const cadValue = parseInt(value, 10);
+
+      if (!isNaN(cadValue)) {
+        let chestXrayDisplay = '';
+        let outcome = '';
+        let status = '';
+
+        if (cadValue >= 34) {
+          chestXrayDisplay = 'Suggestive of TB';
+          outcome = 'Presumptive TB';
+          status = 'Presumptive TB';
+        } else if (cadValue <= 33) {
+          chestXrayDisplay = 'Not suggestive of TB';
+          outcome = 'Not Presumptive';
+          status = 'No signs and symptoms of TB';
+        }
+
+        updateObj = {
+          ...updateObj,
+          chestXrayResult: chestXrayDisplay,
+          outcome: outcome,
+          status: status,
+        };
+      }
+    }
     else if( name === 'chestXrayResult' || value === ''){
       updateObj = {
         ...updateObj,
         completedTbTreatment: '',
         specimentCollectedStatus: '',
-        // outcome:'',
-        // status:'',
       };
        updatedTpt = {
          ...updatedTpt,
@@ -908,14 +938,10 @@ const TbScreening = (props) => {
          referredForServices: "",
          adherence: "",
          rash: "",
-         // neurologicSymptoms: "",g
          hepatitisSymptoms: "",
          tbSymptoms: "",
          resonForStoppingIpt: "",
          outComeOfIpt: "",
-         // tbTreatmentStartDate: "",
-
-         //TPT prevention
          everCompletedTpt:"",
          eligibilityTpt:"",
          tptPreventionOutcome:"",
@@ -1181,7 +1207,7 @@ const TbScreening = (props) => {
                               name="tbScreeningType"
                               id="tbScreeningType"
                               onChange={handleInputChange}
-                              disabled={props.action === "view" ? true : false}
+                              disabled={props.action === "view"}
                               value={props.tbObj.tbScreeningType}
                           >
                             <option value="">Select</option>
@@ -1200,6 +1226,32 @@ const TbScreening = (props) => {
                       </FormGroup>
                     </div>
 
+                    { props.tbObj.tbScreeningType === "Chest X-ray with CAD"  && (
+                        <div className="form-group mb-3 col-md-6">
+                          <FormGroup>
+                            <Label>CAD Score</Label>
+                            <span style={{ color: "red" }}> *</span>
+                            <InputGroup>
+                              <Input
+                                  type="number"
+                                  name="cadScore"
+                                  id="cadScore"
+                                  onChange={handleInputChange}
+                                  disabled={props.action === "view"}
+                                  value={props.tbObj.cadScore}
+                                  min="0"
+                                  max="100"
+                                  onKeyPress={(e) => e.preventDefault()}
+                              />
+                            </InputGroup>
+                            {errors.cadScore !== "" ? (
+                                <span className={classes.error}>{errors.cadScore}</span>
+                            ) : (
+                                ""
+                            )}
+                          </FormGroup>
+                    </div> )}
+
                     {(props.tbObj.tbScreeningType === "Chest X-ray with CAD" || props.tbObj.tbScreeningType === 'Chest X-ray without CAD') && (
                         <FormGroup>
                           <Label>
@@ -1213,7 +1265,10 @@ const TbScreening = (props) => {
                                 id="chestXrayResult"
                                 onChange={handleInputChange}
                                 value={props.tbObj.chestXrayResult}
-                                disabled={props.action === "view" ? true : false}
+                                disabled={
+                                    props.action === "view" ||
+                                    props.tbObj.cadScore !== ''
+                                }
                             >
                               <option value="">Select</option>
                               {chestXrayResult.map((value) => (

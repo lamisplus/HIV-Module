@@ -226,7 +226,6 @@ const ChronicCare = (props) => {
     //TB and IPT Screening Object
     currentlyOnTuberculosis: "",
     tbTreatment: "",
-    // tbTreatmentStartDate: "",
     coughing: "",
     fever: "",
     losingWeight: "",
@@ -246,7 +245,6 @@ const ChronicCare = (props) => {
     chestXrayResult:"",
     isTbTestConfirmed:"",
 
-    // treatementOutcome: "",
     //This is section for TB Treament Variable
     specimentCollectedStatus: "",
     specimenType: "",
@@ -272,7 +270,8 @@ const ChronicCare = (props) => {
     completionDate: "",
     treatmentCompletionStatus: "",
     completedTbTreatment: "",
-    currentWeight:""
+    currentWeight:"",
+    cadScore:""
 
   });
   const [observationObj, setObservationObj] = useState({
@@ -382,6 +381,10 @@ const ChronicCare = (props) => {
     if(tbObj.tbTreatment === "No"){
       temp.tbScreeningType = tbObj.tbScreeningType ? '' : "This field is required.";
     }
+    if(tbObj.tbTreatment === "No" && tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === "Chest X-ray with CAD"){
+      temp.cadScore = tbObj.cadScore ? '' : "This field is required.";
+    }
+
     if(tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-ray'){
       temp.chestXray = tbObj.chestXray ? '' : "This field is required.";
       temp.isTbTestConfirmed = tbObj.isTbTestConfirmed ? '' : "This field is required.";
