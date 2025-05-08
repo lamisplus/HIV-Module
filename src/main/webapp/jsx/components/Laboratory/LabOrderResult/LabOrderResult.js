@@ -21,13 +21,14 @@ import "react-widgets/dist/css/react-widgets.css";
 import { Spinner } from "reactstrap";
 import { url as baseUrl, token } from "../../../../api";
 import moment from "moment";
-import { List, Label as LabelSui } from "semantic-ui-react";
+import {List, Label as LabelSui, Button} from "semantic-ui-react";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { toast } from "react-toastify";
 import { Icon } from "semantic-ui-react";
 import Select from "react-select";
 import {Get} from "react-lodash";
+import {Modal} from "react-bootstrap";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -98,6 +99,8 @@ const Laboratory = (props) => {
   const [tptMonitorng, setTptMonitoring ] = useState({})
   let temp = { ...errors };
   const [cd4CountObj, setCd4CountObj] = useState({cd4CountType:"", SQC4CountValue:"", FCCd4CountValue: ""})
+  const [chestXrayDocumented, setChestXrayDocumented] = useState(false);
+  const [showModal, setShowModal] = useState({ show: true, message: "" });
   const [tests, setTests] = useState({
     comments: "",
     dateAssayed: "",
@@ -121,7 +124,12 @@ const Laboratory = (props) => {
     resultReportedBy: "",
     sampleNumber: "",
   });
+  const [genexpertStatus, setGenexpertStatus] = useState(false);
 
+  const hideModal = () => {
+    setShowModal({ show: false, message: "" });
+  };
+  //console.log("testOrderList.", testOrderList)
   useEffect(() => {
     CheckLabModule();
     TestGroup();
@@ -131,7 +139,7 @@ const Laboratory = (props) => {
     CheckEACStatus();
     LabNumbers();
     LAB_ORDER_INDICATION();
-  }, [props.patientObj.id, tests.labTestId]);
+  }, [props.patientObj.id, tests.labTestId, genexpertStatus]);
   const GetPatientDTOObj = () => {
     axios
       .get(`${baseUrl}hiv/patient/${props.patientObj.id}`, {
@@ -197,11 +205,13 @@ const Laboratory = (props) => {
 
   // Fetch chronic care
   const GetCareAndSupportDiagnosticTest = () => {
+    console.log("statt",genexpertStatus, tests)
     axios
         .get(  `${baseUrl}observation/person/${props.patientObj.id}`, {
           headers: { Authorization: `Bearer ${token}` }, // Add token here
         })
         .then((response) => {
+          console.log("diagnois data", response.data)
           const data = response.data;
           const filteredRecords = data.filter(
               (item) =>
@@ -214,7 +224,10 @@ const Laboratory = (props) => {
                 (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
             )[0];
             setTptMonitoring(mostRecentRecord.data.tptMonitoring)
-            const { diagnosticTestType } = mostRecentRecord.data.tptMonitoring;
+            const { diagnosticTestType, chestXrayDone } = mostRecentRecord.data.tptMonitoring;
+            // const chestXrayDone = diagnosticTestType?.chestXrayResultTest != "" ? true : false;
+            console.log("Is chest X ray done: ",chestXrayDone)
+            setChestXrayDocumented(chestXrayDone)
             if (diagnosticTestType === "TB-LAMP") {
               setChronicCareTestResult("TB LAMP");
             } else if (diagnosticTestType === "LF-LAM") {
@@ -226,8 +239,11 @@ const Laboratory = (props) => {
             } else if (diagnosticTestType === "Cobas") {
               setChronicCareTestResult("Cobas");
             }
-            else if (diagnosticTestType === "GeneXpert") {
+            else if (diagnosticTestType === "GeneXpert" ) {
               setChronicCareTestResult("Gene Xpert");
+            }
+            else if (chestXrayDone === "Yes" && tests.labTestId === 65) {
+              setChronicCareTestResult("Chest X-ray");
             }
           } else {
             setChronicCareTestResult("");
@@ -315,6 +331,7 @@ const Laboratory = (props) => {
       labTestGroupId: e.testGroupId,
       labTestId: e.value,
     }));
+
     console.log("object ", selectedOption )
   };
 
@@ -326,6 +343,7 @@ const Laboratory = (props) => {
     if(tests.labTestId !== 1){
       setCd4CountObj({cd4CountType:"", SQC4CountValue:"", FCCd4CountValue: ""})
     }
+
   }, [tests.labTestId]);
 
   useEffect(()=>{
@@ -365,6 +383,12 @@ const Laboratory = (props) => {
           : "";
 
       tests.visitId = visitId;
+
+    if (tests.labTestId === 65) {
+      setGenexpertStatus(true);
+      GetCareAndSupportDiagnosticTest();
+      console.log("done")
+    }
 
       setTestOrderList([...testOrderList, tests]);
       setTests({
@@ -2004,6 +2028,33 @@ const Laboratory = (props) => {
            </CardBody>
          </Card>
        </div>
+       {/*MODAL PROMPT*/}
+       {showModal.show && (
+           <Modal
+               show={showModal.show}
+               className="fade"
+               size="sm"
+               aria-labelledby="contained-modal-title-vcenter"
+               centered
+           >
+             <Modal.Header>
+               <Modal.Title id="contained-modal-title-vcenter">
+                 Update TPT Completion Status
+               </Modal.Title>
+             </Modal.Header>
+             <Modal.Body>
+               <h4>{showModal.message}</h4>
+             </Modal.Body>
+             <Modal.Footer>
+               <Button
+                   style={{ backgroundColor: "#014d88", color: "#fff" }}
+                   onClick={hideModal}
+               >
+                 Cancel
+               </Button>
+             </Modal.Footer>
+           </Modal>
+       )}
      </div>
    );
 };
@@ -2066,6 +2117,14 @@ function TestOrdersList({
       </th>
     </tr>
   );
+
+
+
 }
+
+
+
+
+
 
 export default Laboratory;
