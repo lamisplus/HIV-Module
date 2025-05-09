@@ -90,7 +90,8 @@ const Laboratory = (props) => {
   const [vLIndication, setVLIndication] = useState([]);
   const [testOrderList, setTestOrderList] = useState([]); //Test Order List
   const [labNumbers, setLabNumbers] = useState([]); //
-  const [selectedOption, setSelectedOption] = useState([]);
+  // const [selectedOption, setSelectedOption] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
   const [labTestOptions, setLabTestOptions] = useState([]);
   const [labOrderIndication, setLabOrderIndication] = useState([]);
   let testsOptions = [];
@@ -100,7 +101,7 @@ const Laboratory = (props) => {
   let temp = { ...errors };
   const [cd4CountObj, setCd4CountObj] = useState({cd4CountType:"", SQC4CountValue:"", FCCd4CountValue: ""})
   const [chestXrayDocumented, setChestXrayDocumented] = useState(false);
-  const [showModal, setShowModal] = useState({ show: true, message: "" });
+  const [showModal, setShowModal] = useState({ show: false, message: "" });
   const [tests, setTests] = useState({
     comments: "",
     dateAssayed: "",
@@ -124,12 +125,11 @@ const Laboratory = (props) => {
     resultReportedBy: "",
     sampleNumber: "",
   });
-  const [genexpertStatus, setGenexpertStatus] = useState(false);
 
   const hideModal = () => {
     setShowModal({ show: false, message: "" });
   };
-  //console.log("testOrderList.", testOrderList)
+
   useEffect(() => {
     CheckLabModule();
     TestGroup();
@@ -139,7 +139,7 @@ const Laboratory = (props) => {
     CheckEACStatus();
     LabNumbers();
     LAB_ORDER_INDICATION();
-  }, [props.patientObj.id, tests.labTestId, genexpertStatus]);
+  }, [props.patientObj.id, tests.labTestId]);
   const GetPatientDTOObj = () => {
     axios
       .get(`${baseUrl}hiv/patient/${props.patientObj.id}`, {
@@ -205,13 +205,11 @@ const Laboratory = (props) => {
 
   // Fetch chronic care
   const GetCareAndSupportDiagnosticTest = () => {
-    console.log("statt",genexpertStatus, tests)
     axios
         .get(  `${baseUrl}observation/person/${props.patientObj.id}`, {
           headers: { Authorization: `Bearer ${token}` }, // Add token here
         })
         .then((response) => {
-          console.log("diagnois data", response.data)
           const data = response.data;
           const filteredRecords = data.filter(
               (item) =>
@@ -225,8 +223,6 @@ const Laboratory = (props) => {
             )[0];
             setTptMonitoring(mostRecentRecord.data.tptMonitoring)
             const { diagnosticTestType, chestXrayDone } = mostRecentRecord.data.tptMonitoring;
-            // const chestXrayDone = diagnosticTestType?.chestXrayResultTest != "" ? true : false;
-            console.log("Is chest X ray done: ",chestXrayDone)
             setChestXrayDocumented(chestXrayDone)
             if (diagnosticTestType === "TB-LAMP") {
               setChronicCareTestResult("TB LAMP");
@@ -242,9 +238,6 @@ const Laboratory = (props) => {
             else if (diagnosticTestType === "GeneXpert" ) {
               setChronicCareTestResult("Gene Xpert");
             }
-            else if (chestXrayDone === "Yes" && tests.labTestId === 65) {
-              setChronicCareTestResult("Chest X-ray");
-            }
           } else {
             setChronicCareTestResult("");
           }
@@ -258,7 +251,7 @@ const Laboratory = (props) => {
     GetCareAndSupportDiagnosticTest();
   }, []);
 
-// Auto-populate the select field when chronicCareTestResult is updated
+
   useEffect(() => {
     if (chronicCareTestResult && !userHasChanged) {
       const matchedOption = labTestOptions.find(
@@ -271,14 +264,47 @@ const Laboratory = (props) => {
           labTestGroupId: matchedOption.testGroupId,
           labTestId: matchedOption.value,
           result: tptMonitorng?.tbTestResult,
-          sampleCollectionDate: moment((tptMonitorng?.dateSpecimenSent)).format("YYYY-MM-DDTHH:mm"),
+          sampleCollectionDate: moment(tptMonitorng?.dateSpecimenSent).format("YYYY-MM-DDTHH:mm"),
           dateResultReceived: tptMonitorng?.DateDiagnosticTestResultReceived
               ? moment(tptMonitorng?.DateDiagnosticTestResultReceived).format("YYYY-MM-DDTHH:mm")
               : ""
         }));
       }
     }
-  }, [chronicCareTestResult, labTestOptions, userHasChanged]);
+  }, [chronicCareTestResult, userHasChanged]);
+
+
+  useEffect(() => {
+    if (chestXrayDocumented && testOrderList.length === 1) {
+      const chestXrayOption = labTestOptions.find(
+          (option) => option.label === "Chest X-ray"
+      );
+
+      if (chestXrayOption && !userHasChanged) {
+        setSelectedOption(chestXrayOption);
+        setTests((prev) => ({
+          ...prev,
+          labTestGroupId: chestXrayOption.testGroupId,
+          labTestId: chestXrayOption.value,
+          result: tptMonitorng?.chestXrayResultTest === "Not suggestive of TB"
+              ? "Not suggestive for TB"
+              : tptMonitorng?.chestXrayResultTest === "Suggestive of TB"
+                  ? "Suggestive for TB"
+                  : "",
+          dateResultReceived: tptMonitorng?.dateOfChestXrayResultTestDone
+              ? moment(tptMonitorng?.dateOfChestXrayResultTestDone).format("YYYY-MM-DDTHH:mm")
+              : ""
+        }));
+        // toast.success("Chest X-ray test has been autopopulated", {
+        //   position: toast.POSITION.BOTTOM_CENTER
+        // });
+        setShowModal({
+          show: true,
+          message: "Chest X-ray test has been autopopulated. It is required to also be added to the list"
+        });
+      }
+    }
+  }, [chestXrayDocumented, testOrderList.length, labTestOptions, userHasChanged]);
 
   //Load the tests of all Laboratory
   //Get list of Test Group
@@ -331,8 +357,6 @@ const Laboratory = (props) => {
       labTestGroupId: e.testGroupId,
       labTestId: e.value,
     }));
-
-    console.log("object ", selectedOption )
   };
 
   useEffect(() => {
@@ -373,7 +397,6 @@ const Laboratory = (props) => {
     if(!isValid){
       return;
     }
-
       tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format(
         "YYYY-MM-DD HH:MM:SS"
       );
@@ -381,15 +404,7 @@ const Laboratory = (props) => {
         tests.dateResultReceived !== ""
           ? moment(tests.dateResultReceived).format("YYYY-MM-DD HH:MM:SS")
           : "";
-
       tests.visitId = visitId;
-
-    if (tests.labTestId === 65) {
-      setGenexpertStatus(true);
-      GetCareAndSupportDiagnosticTest();
-      console.log("done")
-    }
-
       setTestOrderList([...testOrderList, tests]);
       setTests({
         comments: "",
@@ -414,7 +429,9 @@ const Laboratory = (props) => {
         orderId: "",
         resultReportedBy: "",
       });
-      setSelectedOption([]);
+      // setSelectedOption([]);
+    setSelectedOption(null);
+    // setUserHasChanged(false);
 
   };
   /* Remove ADR  function **/
@@ -428,43 +445,22 @@ const Laboratory = (props) => {
     testOrderList.splice(index, 1);
     setTestOrderList([...testOrderList]);
   };
-  //Validations of the forms
-  // const validate = () => {
-  //   //temp.dateAssayed = tests.dateAssayed ? "" : "This field is required"
-  //   temp.labTestGroupId = tests.labTestGroupId ? "" : "This field is required";
-  //   temp.labTestId = tests.labTestId ? "" : "This field is required";
-  //   temp.labOrderIndication = tests.labOrderIndication
-  //     ? ""
-  //     : "This field is required";
-  //   temp.orderedDate = tests.orderedDate ? "" : "This field is required";
-  //   temp.sampleNumber = tests.sampleNumber ? "" : "This field is required";
-  //   temp.sampleCollectionDate = tests.sampleCollectionDate
-  //     ? ""
-  //     : "This field is required";
-  //   tests.labTestId === "16" &&
-  //     (temp.viralLoadIndication = tests.viralLoadIndication
-  //       ? ""
-  //       : "This field is required");
-  //   // Only check result if dateResultReceived is not empty or undefined
-  //   if (tests.dateResultReceived !== "" && tests.dateResultReceived !== undefined) {
-  //     temp.result = tests.result && tests.result !== undefined ? "" : "This field is required";
-  //   }
-  //   // Only check dateResultReceived if result is not empty or undefined
-  //   if (tests.result !== "" && tests.result !== undefined) {
-  //     temp.dateResultReceived = tests.dateResultReceived
-  //         ? ""
-  //         : "This field is required";
-  //   }
-  //
-  //   setErrors({
-  //     ...temp,
-  //   });
-  //   return Object.values(temp).every((x) => x == "");
-  // };
+
+  const isCheckXrayAddedToList = () => {
+    if (chestXrayDocumented && testOrderList.length > 0) {
+      const xrayExists = testOrderList.some(test => test.labTestId === 66);
+      setShowModal({
+        show: !xrayExists,
+        message: "Chest X-ray documented on care and support for this encounter. It is required to also be added to the list"
+      });
+      return !xrayExists;
+    }
+    setShowModal({ show: false, message: "" });
+    return false;
+  };
+
 
   const validate = async () => {
-    // const temp = {};
-
     // Synchronous validations
     temp.labTestGroupId = tests.labTestGroupId ? "" : "This field is required";
     temp.labTestId = tests.labTestId ? "" : "This field is required";
@@ -542,6 +538,9 @@ const Laboratory = (props) => {
 
    const handleSubmit = (e) => {
      e.preventDefault();
+     if(isCheckXrayAddedToList()){
+       return;
+     }
      setSaving(true);
      tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format(
        "YYYY-MM-DD HH:MM:SS"
@@ -683,9 +682,12 @@ const Laboratory = (props) => {
                        </Label>
 
                        <Select
-                         value={selectedOption}
-                         onChange={handleInputChangeObject}
-                         options={labTestOptions}
+                         // value={selectedOption}
+                         // onChange={handleInputChangeObject}
+                         // options={labTestOptions}
+                           value={selectedOption}
+                           onChange={handleInputChangeObject}
+                           options={labTestOptions}
                          theme={(theme) => ({
                            ...theme,
                            borderRadius: "0.25rem",
@@ -2013,44 +2015,45 @@ const Laboratory = (props) => {
                  )}
                </MatButton>
              </form>
-             {/* )} */}
-             {/* {moduleStatus==="2" && (
-            <>
-            <Alert
-                variant="warning"
-                className="alert-dismissible solid fade show"
-            >
-                <p>Laboratory Module is not install</p>
-            </Alert>
-           
-            </>
-            )}  */}
            </CardBody>
          </Card>
        </div>
-       {/*MODAL PROMPT*/}
+
        {showModal.show && (
            <Modal
                show={showModal.show}
+               onHide={hideModal}
                className="fade"
-               size="sm"
-               aria-labelledby="contained-modal-title-vcenter"
+               size="md"
                centered
+               backdrop="static"
+               keyboard={false}
+               aria-labelledby="chest-xray-warning-label"
            >
-             <Modal.Header>
-               <Modal.Title id="contained-modal-title-vcenter">
-                 Update TPT Completion Status
+             <Modal.Header closeButton style={{ backgroundColor: "#007bff",fontWeight: "bold", color: "#fff" }}>
+               <Modal.Title id="chest-xray-warning-label">
+                 <strong color="#fff">Chest X-ray Required</strong>
                </Modal.Title>
              </Modal.Header>
-             <Modal.Body>
-               <h4>{showModal.message}</h4>
+
+             <Modal.Body className="text-center py-4">
+               <p style={{ fontSize: "1.2rem", color: "#333" }}>
+                 {showModal.message}
+               </p>
              </Modal.Body>
-             <Modal.Footer>
+
+             <Modal.Footer className="justify-content-center">
                <Button
-                   style={{ backgroundColor: "#014d88", color: "#fff" }}
+                   variant="secondary"
                    onClick={hideModal}
+                   style={{
+                     backgroundColor: "#007bff",
+                     borderColor: "#014d88",
+                     fontWeight: "bold",
+                     padding: "0.5rem 1.5rem",
+                   }}
                >
-                 Cancel
+                 Close
                </Button>
              </Modal.Footer>
            </Modal>
