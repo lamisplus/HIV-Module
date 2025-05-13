@@ -220,7 +220,6 @@ const ChronicCare = (props) => {
     neurologicSymptomsEffectSeverity:"",
     hepatotoxicityEffectSeverity:'',
     enrolledOnTpt:""
-
   });
   const [tbObj, setTbObj] = useState({
     //TB and IPT Screening Object
@@ -244,7 +243,6 @@ const ChronicCare = (props) => {
     eligibleForTPT: "",
     chestXrayResult:"",
     isTbTestConfirmed:"",
-
     //This is section for TB Treament Variable
     specimentCollectedStatus: "",
     specimenType: "",
@@ -271,7 +269,16 @@ const ChronicCare = (props) => {
     treatmentCompletionStatus: "",
     completedTbTreatment: "",
     currentWeight:"",
-    cadScore:""
+    //CAD VARIABLES FOR ADULT
+    cadScore:"",
+    cadOutcome:"",
+    // cadCoughing:"",
+    // cadFever:"",
+    // cadLosingWeight:"",
+    // cadNightSweats: "",
+    //ADDITIONAL CAD VARIABLES FOR PEDIATRIC
+    // cadPoorWeightGain:"",
+    // cadHistoryWithAdults: ""
 
   });
   const [observationObj, setObservationObj] = useState({
