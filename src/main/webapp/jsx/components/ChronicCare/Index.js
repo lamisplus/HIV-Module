@@ -414,6 +414,16 @@ const ChronicCare = (props) => {
       temp.nightSweats= tbObj.nightSweats ? '' : "This field is required.";
       temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
     }
+
+    if ( tbObj.tbTreatment === "No" &&
+        tbObj.cadScore !== '' &&
+        tbObj.tbScreeningType === "Chest X-ray with CAD") {
+      temp.coughing = tbObj.coughing ? '' : "This field is required.";
+      temp.fever = tbObj.fever ? '': "This field is required. ";
+      temp.nightSweats= tbObj.nightSweats ? '' : "This field is required.";
+      temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
+    }
+
     if(tbObj.specimentCollectedStatus === "Yes"){
       temp.specimentSent = tbObj.specimentSent ? '' : "This field is required.";
     }
@@ -453,6 +463,7 @@ const ChronicCare = (props) => {
     setErrors({
       ...temp,
     });
+    // console.log("temp error", temp)
     return Object.values(temp).every((x) => x === "");
   };
 
