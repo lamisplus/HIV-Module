@@ -1101,16 +1101,16 @@ const TbScreening = (props) => {
                 }
             }
 
-            //  Case 4: Chest X-ray without CAD → Suggestive of TB
-            if (props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-ray without CAD" && props.tbObj.chestXrayResult === "Suggestive of TB") {
-                updatedTbObj.outcome = "Presumptive TB";
-                updatedTbObj.status = "Presumptive TB";
-            }
-            //  Case 5: Chest X-ray without CAD → Not Suggestive of TB
-            if (props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-ray without CAD" && props.tbObj.chestXrayResult === "Not suggestive of TB") {
-                updatedTbObj.outcome = "Not Presumptive";
-                updatedTbObj.status = "No signs or symptoms of TB";
-            }
+            // //  Case 4: Chest X-ray without CAD → Suggestive of TB
+            // if (props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-ray without CAD" && props.tbObj.chestXrayResult === "Suggestive of TB") {
+            //     updatedTbObj.outcome = "Presumptive TB";
+            //     updatedTbObj.status = "Presumptive TB";
+            // }
+            // //  Case 5: Chest X-ray without CAD → Not Suggestive of TB
+            // if (props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-ray without CAD" && props.tbObj.chestXrayResult === "Not suggestive of TB") {
+            //     updatedTbObj.outcome = "Not Presumptive";
+            //     updatedTbObj.status = "No signs or symptoms of TB";
+            // }
 
             // Case 6: CAD + Chest X-ray logic
             if (props.tbObj.tbTreatment === "No" && props.tbObj.cadScore !== '' && props.tbObj.tbScreeningType === "Chest X-ray with CAD") {
@@ -1347,29 +1347,29 @@ const TbScreening = (props) => {
                             </FormGroup>
                         </div>)}
 
-                    {(props.tbObj.tbScreeningType === "Chest X-ray with CAD" || props.tbObj.tbScreeningType === 'Chest X-ray without CAD') && (
-                        <FormGroup>
-                            <Label>
-                                Chest X-ray Result{" "}
-                                <span style={{color: "red"}}> *</span>
-                            </Label>
-                            <InputGroup>
-                                <Input
-                                    type="select"
-                                    name="chestXrayResult"
-                                    id="chestXrayResult"
-                                    onChange={handleInputChange}
-                                    value={props.tbObj.chestXrayResult}
-                                    disabled={props.action === "view" || props.tbObj.cadScore !== ''}
-                                >
-                                    <option value="">Select</option>
-                                    {chestXrayResult.map((value) => (<option key={value.id} value={value.display}>
-                                        {value.display}
-                                    </option>))}
-                                </Input>
-                            </InputGroup>
-                            {errors.chestXrayResult && (<span style={{color: "red"}}>{errors.chestXrayResult}</span>)}
-                        </FormGroup>)}
+                    {/*{(props.tbObj.tbScreeningType === "Chest X-ray with CAD" || props.tbObj.tbScreeningType === 'Chest X-ray without CAD') && (*/}
+                    {/*    <FormGroup>*/}
+                    {/*        <Label>*/}
+                    {/*            Chest X-ray Result{" "}*/}
+                    {/*            <span style={{color: "red"}}> *</span>*/}
+                    {/*        </Label>*/}
+                    {/*        <InputGroup>*/}
+                    {/*            <Input*/}
+                    {/*                type="select"*/}
+                    {/*                name="chestXrayResult"*/}
+                    {/*                id="chestXrayResult"*/}
+                    {/*                onChange={handleInputChange}*/}
+                    {/*                value={props.tbObj.chestXrayResult}*/}
+                    {/*                disabled={props.action === "view" || props.tbObj.cadScore !== ''}*/}
+                    {/*            >*/}
+                    {/*                <option value="">Select</option>*/}
+                    {/*                {chestXrayResult.map((value) => (<option key={value.id} value={value.display}>*/}
+                    {/*                    {value.display}*/}
+                    {/*                </option>))}*/}
+                    {/*            </Input>*/}
+                    {/*        </InputGroup>*/}
+                    {/*        {errors.chestXrayResult && (<span style={{color: "red"}}>{errors.chestXrayResult}</span>)}*/}
+                    {/*    </FormGroup>)}*/}
 
                     {props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-ray with CAD" && props.cadOutcome !== '' && (
                         <p style={{color: "black"}}>
