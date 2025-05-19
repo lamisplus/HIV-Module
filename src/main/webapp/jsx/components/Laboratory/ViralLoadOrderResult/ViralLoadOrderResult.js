@@ -277,8 +277,8 @@ const Laboratory = (props) => {
     }
 
       //Validations of the forms
-      const validate = () => {  
-        
+      const validate = async () => {
+        // synchronous validations
         temp.sampleTypeId = tests.sampleTypeId ? "" : "This field is required"
         temp.sampleCollectionDate =  tests.sampleCollectionDate ? "" : "This field is required"
         temp.viralLoadIndication = tests.viralLoadIndication ? "" : "This field is required"
@@ -304,15 +304,60 @@ const Laboratory = (props) => {
         showPcrLabDetail &&  (temp.checkedBy = tests.checkedBy ? "" : "This field is required")
         showPcrLabDetail && (temp.approvedBy = tests.approvedBy ? "" : "This field is required")
         
-        setErrors({
-            ...temp
-        })
-        return Object.values(temp).every(x => x == "")
+        // setErrors({
+        //     ...temp
+        // })
+        // return Object.values(temp).every(x => x == "")
+
+          // Update errors with synchronous validations
+          setErrors((prevErrors) => ({
+              ...prevErrors,
+              ...temp,
+          }));
+
+          // Check if all synchronous validations pass
+          const isSyncValid = Object.values(temp).every((x) => x === "");
+
+          // Asynchronous validation for sample number
+          if (tests.sampleNumber) {
+              try {
+                  const response = await axios.get(`${baseUrl}laboratory/check-sample-number?sampleNumber=${tests.sampleNumber}`, {
+                      headers: { Authorization: `Bearer ${token}` },
+                  });
+                  const data = response.data;
+
+                  if (data) {
+                      setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          sampleNumber: "This sample number is already taken.",
+                      }));
+                      return false; // Validation fails
+                  } else {
+                      setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          sampleNumber: "",
+                      }));
+                  }
+              } catch (error) {
+                  console.error("Error validating sample number:", error);
+                  setErrors((prevErrors) => ({
+                      ...prevErrors,
+                      sampleNumber: "An error occurred while checking the sample number.",
+                  }));
+                  return false;
+              }
+          }
+
+          // Return true only if both synchronous and asynchronous validations pass
+          return isSyncValid;
     }
 
-    const handleSubmit = (e) => {        
+    const handleSubmit = async  (e) => {
+        const isValid = await validate();
+        if(!isValid){
+            return;
+        }
         e.preventDefault();
-        if(validate()){
             //tests.labNumber=labNumberOption+"/"+tests.labNumber
             tests.labTestGroupId= testOrderList.labTestGroupId
             tests.labTestId= testOrderList.id
@@ -370,9 +415,7 @@ const Laboratory = (props) => {
                         toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER}); 
                     }                  
                 }); 
-            
-           
-        }
+
     }
     const handleCheckBox =e =>{
         if(e.target.checked){
