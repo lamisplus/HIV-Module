@@ -77,8 +77,6 @@ const TbScreening = (props) => {
     const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
     const [careAndSupportEncounterDate, setCareAndSupportEncounterDate] = useState("");
 
-    console.log("TB PROPS TBOBJ", props.tbObj)
-
     useEffect(() => {
         TB_TREATMENT_OUTCOME();
         TB_TREATMENT_TYPE();
@@ -216,8 +214,8 @@ const TbScreening = (props) => {
                 status: '',
             };
         }
-        // CAD Score logic when tbScreeningType is set to "Chest X-ray with CAD"
-        else if (name === 'cadScore' && props.tbObj.tbScreeningType === "Chest X-ray with CAD") {
+        // CAD Score logic when tbScreeningType is set to "Chest X-Ray with CAD and/or Symptom screening"
+        else if (name === 'cadScore' && props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening") {
             let numericValue = parseInt(value, 10);
             if (isNaN(numericValue) || value === '') {
                 numericValue = '';
@@ -457,7 +455,7 @@ const TbScreening = (props) => {
             // }
 
             // Case 6: CAD + Chest X-ray logic
-            if (props.tbObj.tbTreatment === "No" && props.tbObj.cadScore !== '' && props.tbObj.tbScreeningType === "Chest X-ray with CAD") {
+            if (props.tbObj.tbTreatment === "No" && props.tbObj.cadScore !== '' && props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening") {
                 if (props.tbObj.chestXrayResult === "Not suggestive of TB") {
                     updatedTbObj.cadOutcome = "Not Presumptive";
                     updatedTbObj.outcome = "";
@@ -479,12 +477,12 @@ const TbScreening = (props) => {
 
             const pedHasNoSymptoms = props.tbObj.coughing === "No" && props.tbObj.fever === "No" && props.tbObj.nightSweats === "No" && props.tbObj.losingWeight === "No" && props.tbObj.historyWithAdults === "No" && props.tbObj.poorWeightGain === "No";
 
-            if (pedHasSymptoms && updatedTbObj.tbTreatment === "No" && updatedTbObj.tbScreeningType === "Chest X-ray with CAD" && !updatedTbObj.outcome && patientAge <= 14) {
+            if (pedHasSymptoms && updatedTbObj.tbTreatment === "No" && updatedTbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" && !updatedTbObj.outcome && patientAge <= 14) {
                 updatedTbObj.outcome = "Presumptive TB";
                 updatedTbObj.status = "";
             }
 
-            if (pedHasNoSymptoms && updatedTbObj.tbTreatment === "No" && updatedTbObj.tbScreeningType === "Chest X-ray with CAD" && !updatedTbObj.outcome && patientAge <= 14) {
+            if (pedHasNoSymptoms && updatedTbObj.tbTreatment === "No" && updatedTbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" && !updatedTbObj.outcome && patientAge <= 14) {
                 updatedTbObj.outcome = "Not Presumptive";
                 updatedTbObj.status = "";
             }
@@ -599,7 +597,7 @@ const TbScreening = (props) => {
     }, [props.tbObj.tbTreatment, props.tbObj.tbScreeningType, props.tbObj.chestXrayResult, props.tbObj.cadScore, props.tbObj.coughing, props.tbObj.fever, props.tbObj.nightSweats, props.tbObj.losingWeight, props.tbObj.outcome, props.tbObj.tbTestResult, props.tbObj.diagnosticTestType, props.tbObj.specimentCollectedStatus, props.tbObj.specimentSent, props.tbObj.chestXrayResultTest, props.tbObj.clinicallyEvaulated, props.tbObj.chestXrayDone, props.tbObj.resultOfClinicalEvaluation, props.tbObj.coughing, props.tbObj.fever, props.tbObj.nightSweats, props.tbObj.losingWeight, props.tbObj.historyWithAdults, props.tbObj.poorWeightGain]);
 
     const shouldShowTbTreatment = (tbObj) => {
-        return (tbObj.outcome === "Presumptive TB" || (tbObj.tbTreatment === "No" && tbObj.cadScore !== '' && tbObj.tbScreeningType === "Chest X-ray with CAD" && tbObj.status === "Presumptive TB"));
+        return (tbObj.outcome === "Presumptive TB" || (tbObj.tbTreatment === "No" && tbObj.cadScore !== '' && tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" && tbObj.status === "Presumptive TB"));
     };
 
     return (<>
@@ -683,6 +681,11 @@ const TbScreening = (props) => {
                               {tbScreeningType.map((value) => (<option key={value.id} value={value.display}>
                                   {value.display}
                               </option>))}
+                              {props.tbObj.tbScreeningType === "Chest X-ray with CAD" && (
+                                  <option value="Chest X-ray with CAD" key="legacy-option">
+                                      Chest X-ray with CAD
+                                  </option>
+                              )}
                           </Input>
                         </InputGroup>
                           {errors.tbScreeningType !== "" ? (
@@ -690,7 +693,7 @@ const TbScreening = (props) => {
                       </FormGroup>
                     </div>
 
-                    {props.tbObj.tbScreeningType === "Chest X-ray with CAD" && (
+                    {props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" && (
                         <div className="form-group mb-3 col-md-6">
                             <FormGroup>
                                 <Label>CAD Score</Label>
@@ -713,7 +716,7 @@ const TbScreening = (props) => {
                             </FormGroup>
                         </div>)}
 
-                    {/*{(props.tbObj.tbScreeningType === "Chest X-ray with CAD" || props.tbObj.tbScreeningType === 'Chest X-ray without CAD') && (*/}
+                    {/*{(props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" || props.tbObj.tbScreeningType === 'Chest X-ray without CAD') && (*/}
                     {/*    <FormGroup>*/}
                     {/*        <Label>*/}
                     {/*            Chest X-ray Result{" "}*/}
@@ -737,9 +740,9 @@ const TbScreening = (props) => {
                     {/*        {errors.chestXrayResult && (<span style={{color: "red"}}>{errors.chestXrayResult}</span>)}*/}
                     {/*    </FormGroup>)}*/}
 
-                    {props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-ray with CAD" && props.cadOutcome !== '' && (
+                    {props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" && props.cadOutcome !== '' && (
                         <p style={{color: "black"}}>
-                            Chest X-ray with CAD Screening Outcome:
+                            Chest X-Ray with CAD and/or Symptom screening Screening Outcome:
                             <b> {" " + props.tbObj.cadOutcome}</b>
                         </p>)}
 
@@ -916,7 +919,7 @@ const TbScreening = (props) => {
 
                     {/*SYMPTOMS SCREENING FOR  CHEST X RAY WITH CARD AND CAD SCORE */}
 
-                    {props.tbObj.cadScore !== '' && props.tbObj.tbScreeningType === "Chest X-ray with CAD" && (<>
+                    {props.tbObj.cadScore !== '' && props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" && (<>
                             <h2 style={{color: "#000"}}>Symptoms Screening</h2>
                     <br/>
                           <div className="form-group mb-3 col-md-6">
@@ -1015,7 +1018,7 @@ const TbScreening = (props) => {
                                 {errors.losingWeight && (<span style={{color: "red"}}>{errors.losingWeight}</span>)}
                             </FormGroup>
                           </div>
-                        {props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-ray with CAD" && props.cadOutcome !== '' && patientAge <= 14 && (<>
+                        {props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" && props.cadOutcome !== '' && patientAge <= 14 && (<>
                                     <div className="form-group mb-3 col-md-6">
                                       <FormGroup>
                                         <Label>
