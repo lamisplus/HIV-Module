@@ -388,7 +388,7 @@ const ChronicCare = (props) => {
     if(tbObj.tbTreatment === "No"){
       temp.tbScreeningType = tbObj.tbScreeningType ? '' : "This field is required.";
     }
-    if(tbObj.tbTreatment === "No" && tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === "Chest X-ray with CAD"){
+    if(tbObj.tbTreatment === "No" && tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening"){
       temp.cadScore = tbObj.cadScore ? '' : "This field is required.";
     }
 
@@ -396,13 +396,13 @@ const ChronicCare = (props) => {
       temp.chestXray = tbObj.chestXray ? '' : "This field is required.";
       temp.isTbTestConfirmed = tbObj.isTbTestConfirmed ? '' : "This field is required.";
     }
-    if(tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-ray with CAD'){
+    if(tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening'){
       temp.chestXrayResult = tbObj.chestXrayResult ? '' : "This field is required.";
     }
-    if (tbObj.tbScreeningType === 'Chest X-ray with CAD' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
+    if (tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
       temp.chestXrayResult = tbObj.chestXrayResult ? '' : "This field is required.";
     }
-    if (tbObj.tbScreeningType === 'Chest X-ray with CAD' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
+    if (tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
       temp.chestXrayResult = tbObj.chestXrayResult ? '' : "This field is required.";
     }
     if(tbObj.tbTreatment ==="No" && tbObj.outcome === "Presumptive TB" ){
@@ -415,14 +415,14 @@ const ChronicCare = (props) => {
       temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
     }
 
-    if ( tbObj.tbTreatment === "No" &&
-        tbObj.cadScore !== '' &&
-        tbObj.tbScreeningType === "Chest X-ray with CAD") {
-      temp.coughing = tbObj.coughing ? '' : "This field is required.";
-      temp.fever = tbObj.fever ? '': "This field is required. ";
-      temp.nightSweats= tbObj.nightSweats ? '' : "This field is required.";
-      temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
-    }
+    // if ( tbObj.tbTreatment === "No" &&
+    //     tbObj.cadScore !== '' &&
+    //     tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening") {
+    //   temp.coughing = tbObj.coughing ? '' : "This field is required.";
+    //   temp.fever = tbObj.fever ? '': "This field is required. ";
+    //   temp.nightSweats= tbObj.nightSweats ? '' : "This field is required.";
+    //   temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
+    // }
 
     if(tbObj.specimentCollectedStatus === "Yes"){
       temp.specimentSent = tbObj.specimentSent ? '' : "This field is required.";
@@ -777,8 +777,8 @@ const ChronicCare = (props) => {
 
               {
                   (tbObj.tbEvaulationOutcome === 'TB Not Diagnosed' ||
-                      tbObj.outcome === "Not Presumptive" ||
-                       tbObj.status === 'No signs or symptoms of TB'
+                       tbObj.status === 'No signs or symptoms of TB' ||
+                       tbObj.status === 'Currently on TB treatment'
                   // || tbObj.tbTreatment === "No"
                   )
                   &&

@@ -159,7 +159,21 @@ const TbScreening = (props) => {
                 nightSweats: '',
                 losingWeight: "",
                 historyWithAdults: '',
-                poorWeightGain: ''
+                poorWeightGain: '',
+
+                specimentSent:'',
+                tbTestResult:'',
+                specimenType:'',
+                poorTreatmentAdherence:'',
+                chestXrayDone:'',
+                clinicallyEvaulated:'',
+                DateDiagnosticTestResultReceived:'',
+                dateOfChestXrayResultTestDone:'',
+                dateOfDiagnosticTest:'',
+                dateSpecimenSent:'',
+                diagnosticTestDone:'',
+                tbTreeatmentStarted:'',
+                chestXrayResultTest:''
             };
 
             updatedTpt = {
@@ -212,6 +226,26 @@ const TbScreening = (props) => {
                 historyWithAdults: '',
                 poorWeightGain: '',
                 status: '',
+
+                specimentSent:'',
+                tbTestResult:'',
+                specimenType:'',
+                poorTreatmentAdherence:'',
+                diagnosticTestType:'',
+                chestXrayDone:'',
+                clinicallyEvaulated:'',
+                DateDiagnosticTestResultReceived:'',
+                dateOfChestXrayResultTestDone:'',
+                dateOfDiagnosticTest:'',
+                dateSpecimenSent:'',
+                diagnosticTestDone:'',
+                tbTreeatmentStarted:'',
+                chestXrayResultTest:'',
+                tbType:'',
+                tbTreatmentStarted:'',
+                tbTreatmentStartDate: '',
+                specimentCollectedStatus: '',
+                tbEvaulationOutcome: '',
             };
         }
         // CAD Score logic when tbScreeningType is set to "Chest X-Ray with CAD and/or Symptom screening"
@@ -231,6 +265,31 @@ const TbScreening = (props) => {
                 ...props.tbObj,
                 cadScore: numericValue,
                 chestXrayResult: chestXrayDisplay,
+
+                coughing: '',
+                fever: '',
+                nightSweats: '',
+                losingWeight: "",
+                historyWithAdults: '',
+                poorWeightGain: '',
+                specimentSent:'',
+                tbTestResult:'',
+                specimenType:'',
+                poorTreatmentAdherence:'',
+                chestXrayDone:'',
+                clinicallyEvaulated:'',
+                DateDiagnosticTestResultReceived:'',
+                dateOfChestXrayResultTestDone:'',
+                dateOfDiagnosticTest:'',
+                dateSpecimenSent:'',
+                diagnosticTestDone:'',
+                tbTreeatmentStarted:'',
+                chestXrayResultTest:'',
+                tbType:'',
+                diagnosticTestType:'',
+                tbTreatmentStarted:'',
+                tbTreatmentStartDate: '',
+                tbEvaulationOutcome: '',
             };
         } else if (name === 'chestXrayResult' || value === '') {
             updateObj = {
@@ -270,7 +329,37 @@ const TbScreening = (props) => {
                 hepatotoxicityEffectSeverity: '',
                 enrolledOnTpt: "",
             }
-        } else if (name === 'specimentCollectedStatus' || value === '') {
+        }
+        else if (
+            props.tbObj.tbTreatment === "No" &&
+            props.tbObj.cadScore !== '' &&
+            props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" &&
+            (name === "coughing" || name === "fever" || name === "nightSweats" || name === "losingWeight")
+        ) {
+            updateObj = {
+                ...updateObj,
+                specimentCollectedStatus: '',
+                specimentSent: '',
+                tbTestResult: '',
+                specimenType: '',
+                poorTreatmentAdherence: '',
+                chestXrayDone: '',
+                clinicallyEvaulated: '',
+                DateDiagnosticTestResultReceived: '',
+                dateOfChestXrayResultTestDone: '',
+                dateOfDiagnosticTest: '',
+                dateSpecimenSent: '',
+                diagnosticTestDone: '',
+                tbTreatmentStarted: '',
+                chestXrayResultTest: '',
+                tbType: '',
+                tbTreatmentStartDate: '',
+                tbEvaulationOutcome: '',
+                diagnosticTestType:'',
+            };
+            props.setTbObj(updateObj);
+        }
+        else if (name === 'specimentCollectedStatus' || value === '') {
             updateObj = {
                 ...updateObj,
                 specimentSent: '',
@@ -443,27 +532,16 @@ const TbScreening = (props) => {
                 }
             }
 
-            // //  Case 4: Chest X-ray without CAD → Suggestive of TB
-            // if (props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-ray without CAD" && props.tbObj.chestXrayResult === "Suggestive of TB") {
-            //     updatedTbObj.outcome = "Presumptive TB";
-            //     updatedTbObj.status = "Presumptive TB";
-            // }
-            // //  Case 5: Chest X-ray without CAD → Not Suggestive of TB
-            // if (props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-ray without CAD" && props.tbObj.chestXrayResult === "Not suggestive of TB") {
-            //     updatedTbObj.outcome = "Not Presumptive";
-            //     updatedTbObj.status = "No signs or symptoms of TB";
-            // }
-
             // Case 6: CAD + Chest X-ray logic
             if (props.tbObj.tbTreatment === "No" && props.tbObj.cadScore !== '' && props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening") {
                 if (props.tbObj.chestXrayResult === "Not suggestive of TB") {
                     updatedTbObj.cadOutcome = "Not Presumptive";
                     updatedTbObj.outcome = "";
-                    updatedTbObj.status = "";
+                    updatedTbObj.status = "No signs or symptoms of TB";
                 } else if (props.tbObj.chestXrayResult === "Suggestive of TB") {
                     updatedTbObj.cadOutcome = "Presumptive TB";
                     updatedTbObj.outcome = "";
-                    updatedTbObj.status = "";
+                    updatedTbObj.status = "Presumptive TB";
                 }
             }
 
@@ -926,7 +1004,6 @@ const TbScreening = (props) => {
                             <FormGroup>
                               <Label>
                                 Are you coughing?{" "}
-                                  <span style={{color: "red"}}> *</span>
                               </Label>
                               <InputGroup>
                                 <Input
@@ -942,7 +1019,6 @@ const TbScreening = (props) => {
                                   <option value="No">No</option>
                                 </Input>
                               </InputGroup>
-                                {errors.coughing && (<span style={{color: "red"}}>{errors.coughing}</span>)}
                             </FormGroup>
                           </div>
 
@@ -950,7 +1026,7 @@ const TbScreening = (props) => {
                             <FormGroup>
                               <Label>
                                 Do you have fever for 2 weeks or more? (Unexplained
-                                fever) <span style={{color: "red"}}> *</span>
+                                fever)
                               </Label>
                               <InputGroup>
                                 <Input
@@ -966,7 +1042,6 @@ const TbScreening = (props) => {
                                   <option value="No">No</option>
                                 </Input>
                               </InputGroup>
-                                {errors.fever && (<span style={{color: "red"}}>{errors.fever}</span>)}
                             </FormGroup>
                           </div>
 
@@ -975,7 +1050,6 @@ const TbScreening = (props) => {
                               <Label>
                                 Are you having night sweats? (drenching or excessive
                                 night sweats)
-                                <span style={{color: "red"}}> *</span>
                               </Label>
                               <InputGroup>
                                 <Input
@@ -991,7 +1065,6 @@ const TbScreening = (props) => {
                                   <option value="No">No</option>
                                 </Input>
                               </InputGroup>
-                                {errors.nightSweats && (<span style={{color: "red"}}>{errors.nightSweats}</span>)}
                             </FormGroup>
                           </div>
 
@@ -999,7 +1072,6 @@ const TbScreening = (props) => {
                             <FormGroup>
                               <Label>
                                 Are you losing weight? (Unexplained weight loss)
-                                <span style={{color: "red"}}> *</span>
                               </Label>
                               <InputGroup>
                                 <Input
@@ -1015,7 +1087,6 @@ const TbScreening = (props) => {
                                   <option value="No">No</option>
                                 </Input>
                               </InputGroup>
-                                {errors.losingWeight && (<span style={{color: "red"}}>{errors.losingWeight}</span>)}
                             </FormGroup>
                           </div>
                         {props.tbObj.tbTreatment === "No" && props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" && props.cadOutcome !== '' && patientAge <= 14 && (<>

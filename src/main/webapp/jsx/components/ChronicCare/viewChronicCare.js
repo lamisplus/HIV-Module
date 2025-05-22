@@ -713,6 +713,13 @@ const handleSubmit = async (e) => {
               </div>
               {/* End TB & IPT  Screening  */}
               {/* TPT MONITORING */}
+              {
+                  (tbObj.tbEvaulationOutcome === 'TB Not Diagnosed' ||
+                      tbObj.status === 'No signs or symptoms of TB' ||
+                      tbObj.status === 'Currently on TB treatment'
+                  )
+                  &&
+                  (
               <div className="card">
                 <div
                   className="card-header"
@@ -724,7 +731,7 @@ const handleSubmit = async (e) => {
                   }}
                 >
                   <h5 className="card-title" style={{ color: "#fff" }}>
-                    TPT Monitoring
+                    TPT Prevention/Monitoring
                   </h5>
                   {showTpt === false ? (
                     <>
@@ -760,6 +767,8 @@ const handleSubmit = async (e) => {
                   />
                 )}
               </div>
+                  )
+              }
               {/* End TPT MONITORING */}
               {/* End Nutritional Status Assessment */}
               <div className="card">
