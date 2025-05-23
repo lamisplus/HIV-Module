@@ -626,7 +626,7 @@ const TbScreening = (props) => {
             }
 
 // MTB detected cases
-            else if (props.tbObj.tbTestResult === "MTB detected RR detected" || props.tbObj.tbTestResult === "MTB trace RR indeterminate" || props.tbObj.tbTestResult === "MTB detected RIF/INH not detected" || props.tbObj.tbTestResult === "MTB detected INH detected" || props.tbObj.tbTestResult === "MTB detected RR not detected" || props.tbObj.tbTestResult === "MTB detected RIF&INH detected") {
+            else if (props.tbObj.tbTestResult === "MTB detected RR detected" || props.tbObj.tbTestResult === "MTB trace RR indeterminate" || props.tbObj.tbTestResult === "MTB detected RIF/INH not detected" || props.tbObj.tbTestResult === "MTB detected INH detected" || props.tbObj.tbTestResult === "MTB detected RR not detected" || props.tbObj.tbTestResult === "MTB detected RIF&INH detected" || props.tbObj.tbTestResult === "MTB detected RIF detected") {
                 updatedTbObj.tbEvaulationOutcome = "TB Diagnosed";
             }
 
