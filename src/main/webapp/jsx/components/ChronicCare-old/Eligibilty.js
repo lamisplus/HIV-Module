@@ -24,6 +24,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import "react-phone-input-2/lib/style.css";
 import { calculate_age_to_number } from "../../../utils";
+import useCodesets from "../../../hooks/useCodesets";
 const useStyles = makeStyles((theme) => ({
   card: {
     margin: theme.spacing(20),
@@ -88,7 +89,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "CHRONIC_CARE_CLIENT_TYPE",
+  "ART_STATUS",
+  "PREGNANCY_STATUS",
+  "WHO_STAGING_CRITERIA",
+];
 const Eligibility = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   const [clientType, setClientType] = useState([]);
   const [pregnancyStatus, setPregnancyStatus] = useState([]);
@@ -100,52 +108,52 @@ const Eligibility = (props) => {
       [e.target.name]: e.target.value,
     });
   };
-  useEffect(() => {
-    CHRONIC_CARE_CLIENT_TYPE();
-    PREGNANCY_STATUS();
-    ART_STATUS();
-    WHO_STAGING_CRITERIA();
-  }, []);
-  const CHRONIC_CARE_CLIENT_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CHRONIC_CARE_CLIENT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setClientType(response.data);
-      })
-      .catch((error) => {});
-  };
-  const ART_STATUS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/ART_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setArtStatus(response.data);
-      })
-      .catch((error) => {});
-  };
-  const PREGNANCY_STATUS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPregnancyStatus(response.data);
-      })
-      .catch((error) => {});
-  };
-  const WHO_STAGING_CRITERIA = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/WHO_STAGING_CRITERIA`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setWho(response.data);
-      })
-      .catch((error) => {});
-  };
+  // useEffect(() => {
+  //   CHRONIC_CARE_CLIENT_TYPE();
+  //   PREGNANCY_STATUS();
+  //   ART_STATUS();
+  //   WHO_STAGING_CRITERIA();
+  // }, []);
+  // const CHRONIC_CARE_CLIENT_TYPE = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/CHRONIC_CARE_CLIENT_TYPE`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setClientType(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
+  // const ART_STATUS = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/ART_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setArtStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
+  // const PREGNANCY_STATUS = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setPregnancyStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
+  // const WHO_STAGING_CRITERIA = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/WHO_STAGING_CRITERIA`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setWho(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
 
   return (
@@ -169,7 +177,7 @@ const Eligibility = (props) => {
                       value={props.eligibility.typeOfClient}
                     >
                       <option value="">Select</option>
-                      {clientType.map((value) => (
+                      {getOptions("CHRONIC_CARE_CLIENT_TYPE").map((value) => (
                         <option key={value.id} value={value.display}>
                           {value.display}
                         </option>
@@ -191,7 +199,7 @@ const Eligibility = (props) => {
                         value={props.eligibility.pregnantStatus}
                       >
                         <option value="">Select</option>
-                        {pregnancyStatus.map((value) => (
+                        {getOptions("PREGNANCY_STATUS").map((value) => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
@@ -213,7 +221,7 @@ const Eligibility = (props) => {
                       value={props.eligibility.artStatus}
                     >
                       <option value="">Select</option>
-                      {artStatus.map((value) => (
+                      {getOptions("ART_STATUS").map((value) => (
                         <option key={value.id} value={value.display}>
                           {value.display}
                         </option>
@@ -234,7 +242,7 @@ const Eligibility = (props) => {
                       value={props.eligibility.whoStaging}
                     >
                       <option value="">Select</option>
-                      {who.map((value) => (
+                      {getOptions("WHO_STAGING_CRITERIA").map((value) => (
                         <option key={value.id} value={value.display}>
                           {value.display}
                         </option>

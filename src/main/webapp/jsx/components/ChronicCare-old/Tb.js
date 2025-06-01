@@ -17,6 +17,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import 'react-phone-input-2/lib/style.css'
 import { Button} from 'semantic-ui-react'
+import useCodesets from "../../../hooks/useCodesets";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -83,9 +84,11 @@ const useStyles = makeStyles((theme) => ({
         fontSize: '12.8px'
     }
 }));
+const CODESET_KEYS = ["TB_TREATMENT_TYPE", "TB_TREATMENT_OUTCOME"];
 
 
 const TbScreening = (props) => {
+    const { getOptions } = useCodesets(CODESET_KEYS);
     const classes = useStyles();
     const [contraindicationDisplay, setcontraindicationDisplay]=useState(false)
     const [tbTreatmentType, setTbTreatmentType]= useState([])
@@ -198,34 +201,34 @@ const TbScreening = (props) => {
         TB_TREATMENT_OUTCOME();
         TB_TREATMENT_TYPE();
     }, []);
-    const TB_TREATMENT_TYPE =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
+    // const TB_TREATMENT_TYPE =()=>{
+    //     axios
+    //         .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`,
+    //             { headers: {"Authorization" : `Bearer ${token}`} }
+    //         )
+    //         .then((response) => {
                 
-                setTbTreatmentType(response.data);
-            })
-            .catch((error) => {
+    //             setTbTreatmentType(response.data);
+    //         })
+    //         .catch((error) => {
            
-            });
+    //         });
         
-    }
-    const TB_TREATMENT_OUTCOME =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
+    // }
+    // const TB_TREATMENT_OUTCOME =()=>{
+    //     axios
+    //         .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`,
+    //             { headers: {"Authorization" : `Bearer ${token}`} }
+    //         )
+    //         .then((response) => {
                 
-                setTbTreatmentOutCome(response.data);
-            })
-            .catch((error) => {
+    //             setTbTreatmentOutCome(response.data);
+    //         })
+    //         .catch((error) => {
            
-            });
+    //         });
         
-    }
+    // }
     const handleInputChange =e =>{
         props.setTbObj({...props.tbObj, [e.target.name]: e.target.value})
         
@@ -298,456 +301,466 @@ const TbScreening = (props) => {
 
 
     return (
-        <>  
-        
-            <Card className={classes.root}>
-                <CardBody>   
-                <h2 style={{color:'#000'}}>TB & IPT Screening </h2>
-                <br/>
-                    <form >
-     
-                    <div className="row">
+      <>
+        <Card className={classes.root}>
+          <CardBody>
+            <h2 style={{ color: "#000" }}>TB & IPT Screening </h2>
+            <br />
+            <form>
+              <div className="row">
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <Label>
+                      Are you currently on Tuberculosis Preventive Therapy ( TPT
+                      )
+                    </Label>
+                    <InputGroup>
+                      <Input
+                        type="select"
+                        name="currentlyOnTuberculosis"
+                        id="currentlyOnTuberculosis"
+                        onChange={handleInputChange}
+                        value={props.tbObj.currentlyOnTuberculosis}
+                      >
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </Input>
+                    </InputGroup>
+                  </FormGroup>
+                </div>
+                {props.tbObj.currentlyOnTuberculosis !== "" &&
+                  props.tbObj.currentlyOnTuberculosis === "No" && (
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>Are you currently on TB treatment?</Label>
+                        <InputGroup>
+                          <Input
+                            type="select"
+                            name="tbTreatment"
+                            id="tbTreatment"
+                            onChange={handleInputChange}
+                            value={props.tbObj.tbTreatment}
+                          >
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                          </Input>
+                        </InputGroup>
+                      </FormGroup>
+                    </div>
+                  )}
+                {props.tbObj.tbTreatment !== "" &&
+                  props.tbObj.tbTreatment === "Yes" && (
+                    <>
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>TB treatment start date </Label>
+                          <InputGroup>
+                            <Input
+                              type="date"
+                              name="tbTreatmentStartDate"
+                              id="tbTreatmentStartDate"
+                              onChange={handleInputChange}
+                              value={props.tbObj.tbTreatmentStartDate}
+                              min={props.encounterDate}
+                              max={moment(new Date()).format("YYYY-MM-DD")}
+                            ></Input>
+                          </InputGroup>
+                        </FormGroup>
+                      </div>
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>Treatment Type </Label>
+                          <InputGroup>
+                            <Input
+                              type="select"
+                              name="treatementType"
+                              id="treatementType"
+                              onChange={handleInputChange}
+                              value={props.tbObj.treatementType}
+                            >
+                              <option value="">Select</option>
+                              {getOptions("TB_TREATMENT_TYPE").map((value) => (
+                                <option key={value.id} value={value.display}>
+                                  {value.display}
+                                </option>
+                              ))}
+                            </Input>
+                          </InputGroup>
+                        </FormGroup>
+                      </div>
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>Treatment Outcome </Label>
+                          <InputGroup>
+                            <Input
+                              type="select"
+                              name="treatmentOutcome"
+                              id="treatmentOutcome"
+                              onChange={handleInputChange}
+                              value={props.tbObj.treatmentOutcome}
+                            >
+                              <option value="">Select</option>
+                              {getOptions("TB_TREATMENT_OUTCOME").map(
+                                (value) => (
+                                  <option key={value.id} value={value.display}>
+                                    {value.display}
+                                  </option>
+                                )
+                              )}
+                            </Input>
+                          </InputGroup>
+                        </FormGroup>
+                      </div>
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>Completion Date </Label>
+                          <InputGroup>
+                            <Input
+                              type="date"
+                              name="completionDate"
+                              id="completionDate"
+                              onChange={handleInputChange}
+                              value={props.tbObj.completionDate}
+                              min={props.encounterDate}
+                              max={moment(new Date()).format("YYYY-MM-DD")}
+                            ></Input>
+                          </InputGroup>
+                        </FormGroup>
+                      </div>
+                    </>
+                  )}
+                {(props.tbObj.currentlyOnTuberculosis === "Yes" ||
+                  props.tbObj.tbTreatment === "No") && (
+                  <>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>Are you coughing currently? </Label>
+                        <InputGroup>
+                          <Input
+                            type="select"
+                            name="coughing"
+                            id="coughing"
+                            onChange={handleInputChange}
+                            value={props.tbObj.coughing}
+                          >
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                          </Input>
+                        </InputGroup>
+                      </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>
+                          Do you have fever for 2 weeks or more? (Unexplained
+                          fever){" "}
+                        </Label>
+                        <InputGroup>
+                          <Input
+                            type="select"
+                            name="fever"
+                            id="fever"
+                            onChange={handleInputChange}
+                            value={props.tbObj.fever}
+                          >
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                          </Input>
+                        </InputGroup>
+                      </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>
+                          Are you losing weight? (Unplanned weight loss)
+                        </Label>
+                        <InputGroup>
+                          <Input
+                            type="select"
+                            name="losingWeight"
+                            id="losingWeight"
+                            onChange={handleInputChange}
+                            value={props.tbObj.losingWeight}
+                          >
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                          </Input>
+                        </InputGroup>
+                      </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>
+                          Are you having night sweats? (drenching or excessive
+                          night sweats)
+                        </Label>
+                        <InputGroup>
+                          <Input
+                            type="select"
+                            name="nightSweats"
+                            id="nightSweats"
+                            onChange={handleInputChange}
+                            value={props.tbObj.nightSweats}
+                          >
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                          </Input>
+                        </InputGroup>
+                      </FormGroup>
+                    </div>
+                    {props.patientObj && props.patientObj <= 5 && (
+                      <>
                         <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Are you currently on Tuberculosis Preventive Therapy ( TPT )</Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="select"
-                                        name="currentlyOnTuberculosis"
-                                        id="currentlyOnTuberculosis"
-                                        onChange={handleInputChange} 
-                                        value={props.tbObj.currentlyOnTuberculosis} 
-                                    >
-                                    <option value="">Select</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                    
-                                    </Input>
-                                </InputGroup>                    
-                                </FormGroup>
-                        </div>
-                        {(props.tbObj.currentlyOnTuberculosis!=='' && props.tbObj.currentlyOnTuberculosis==='No' ) && (
-                        <div className="form-group mb-3 col-md-6">
-                            <FormGroup>
-                            <Label >Are you currently on TB treatment?</Label>
-                            <InputGroup> 
-                                <Input 
-                                    type="select"
-                                    name="tbTreatment"
-                                    id="tbTreatment"
-                                    onChange={handleInputChange} 
-                                    value={props.tbObj.tbTreatment} 
-
-                                >
+                          <FormGroup>
+                            <Label>
+                              Poor weight gain (Paediatrics clients {"<"}12
+                              months){" "}
+                            </Label>
+                            <InputGroup>
+                              <Input
+                                type="select"
+                                name="poorWeightGain"
+                                id="poorWeightGain"
+                                onChange={handleInputChange}
+                                value={props.tbObj.poorWeightGain}
+                              >
                                 <option value="">Select</option>
                                 <option value="Yes">Yes</option>
                                 <option value="No">No</option>
-                                </Input>
+                              </Input>
                             </InputGroup>
-                            </FormGroup>
-                        </div> 
-                        )}
-                        {(props.tbObj.tbTreatment!=='' && props.tbObj.tbTreatment==='Yes') && (
-                        <>
-                        <div className="form-group mb-3 col-md-6">
-                            <FormGroup>
-                            <Label >TB treatment start date </Label>
-                            <InputGroup> 
-                                <Input 
-                                    type="date"
-                                    name="tbTreatmentStartDate"
-                                    id="tbTreatmentStartDate"
-                                    onChange={handleInputChange} 
-                                    value={props.tbObj.tbTreatmentStartDate} 
-                                    min={props.encounterDate}
-                                    max= {moment(new Date()).format("YYYY-MM-DD") }
-                                >
-                                
-                                </Input>
-                            </InputGroup>
-                            </FormGroup>
+                          </FormGroup>
                         </div>
                         <div className="form-group mb-3 col-md-6">
-                            <FormGroup>
-                            <Label >Treatment Type </Label>
-                            <InputGroup> 
-                                <Input 
-                                    type="select"
-                                    name="treatementType"
-                                    id="treatementType"
-                                    onChange={handleInputChange} 
-                                    value={props.tbObj.treatementType} 
-                                >
-                                    <option value="">Select</option>
-                                    {tbTreatmentType.map((value) => (
-                                        <option key={value.id} value={value.display}>
-                                            {value.display}
-                                        </option>
-                                    ))}
-                                </Input>
+                          <FormGroup>
+                            <Label>
+                              History of contacts with adults with TB
+                              (Paediatrics clients {"<"} months){" "}
+                            </Label>
+                            <InputGroup>
+                              <Input
+                                type="select"
+                                name="historyWithAdults"
+                                id="historyWithAdults"
+                                onChange={handleInputChange}
+                                value={props.tbObj.historyWithAdults}
+                              >
+                                <option value="">Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                              </Input>
                             </InputGroup>
-                            </FormGroup>
-                        </div> 
-                        <div className="form-group mb-3 col-md-6">
-                            <FormGroup>
-                            <Label >Treatment Outcome </Label>
-                            <InputGroup> 
-                                <Input 
-                                    type="select"
-                                    name="treatmentOutcome"
-                                    id="treatmentOutcome"
-                                    onChange={handleInputChange} 
-                                    value={props.tbObj.treatmentOutcome} 
-                                >
-                                    <option value="">Select</option>
-                                    {tbTreatmentOutCome.map((value) => (
-                                        <option key={value.id} value={value.display}>
-                                            {value.display}
-                                        </option>
-                                    ))}
-                                </Input>
-                            </InputGroup>
-                            </FormGroup>
+                          </FormGroup>
                         </div>
-                        <div className="form-group mb-3 col-md-6">
-                            <FormGroup>
-                            <Label >Completion Date </Label>
-                            <InputGroup> 
-                                <Input 
-                                    type="date"
-                                    name="completionDate"
-                                    id="completionDate"
-                                    onChange={handleInputChange} 
-                                    value={props.tbObj.completionDate} 
-                                    min={props.encounterDate}
-                                    max= {moment(new Date()).format("YYYY-MM-DD") }
-                                >
-                                
-                                </Input>
-                            </InputGroup>
-                            </FormGroup>
-                        </div>
-                        </>
-                         )}
-                        {(props.tbObj.currentlyOnTuberculosis==='Yes' || props.tbObj.tbTreatment==='No') && (
-                        <>
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Are you coughing currently? </Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="select"
-                                        name="coughing"
-                                        id="coughing"
-                                        onChange={handleInputChange} 
-                                        value={props.tbObj.coughing} 
-                                    >
-                                    <option value="">Select</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                    </Input>
-                                </InputGroup>
-                                </FormGroup>
-                            </div> 
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Do you have fever for 2 weeks or more? (Unexplained fever) </Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="select"
-                                        name="fever"
-                                        id="fever"
-                                        onChange={handleInputChange} 
-                                        value={props.tbObj.fever} 
-                                    >
-                                    <option value="">Select</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                    </Input>
-                                </InputGroup>
-                                </FormGroup>
-                            </div>
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Are you losing weight? (Unplanned weight loss)</Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="select"
-                                        name="losingWeight"
-                                        id="losingWeight"
-                                        onChange={handleInputChange} 
-                                        value={props.tbObj.losingWeight} 
-                                    >
-                                    <option value="">Select</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                    </Input>
-                                </InputGroup>
-                                </FormGroup>
-                            </div> 
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Are you having night sweats? (drenching or excessive night sweats)</Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="select"
-                                        name="nightSweats"
-                                        id="nightSweats"
-                                        onChange={handleInputChange} 
-                                        value={props.tbObj.nightSweats} 
-                                    >
-                                    <option value="">Select</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                    </Input>
-                                </InputGroup>
-                                </FormGroup>
-                            </div>
-                            {(props.patientObj && props.patientObj<=5) &&(<>
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Poor weight gain (Paediatrics clients {"<"}12 months) </Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="select"
-                                        name="poorWeightGain"
-                                        id="poorWeightGain"
-                                        onChange={handleInputChange} 
-                                        value={props.tbObj.poorWeightGain} 
-                                    >
-                                    <option value="">Select</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                    </Input>
-                                </InputGroup>
-                                </FormGroup>
-                            </div> 
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >History of contacts with adults with TB (Paediatrics clients {"<"} months) </Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="select"
-                                        name="historyWithAdults"
-                                        id="historyWithAdults"
-                                        onChange={handleInputChange} 
-                                        value={props.tbObj.historyWithAdults} 
-                                    >
-                                    <option value="">Select</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                    </Input>
-                                </InputGroup>
-                                </FormGroup>
-                            </div> 
-                            </>)}
-                        </>)}
-                        <br/>
-                        { (contraindicationDisplay===true) && (<>
-                        <hr/>
+                      </>
+                    )}
+                  </>
+                )}
+                <br />
+                {contraindicationDisplay === true && (
+                  <>
+                    <hr />
 
-                        <h3>Contraindications for TPT</h3>
-                        {(props.tbObj.currentlyOnTuberculosis==='Yes' || props.tbObj.tbTreatment==='No') && (
-                        <>
-                        <div className="form-group mb-3 col-md-12">                                    
-                                <div className="form-check custom-checkbox ml-1 ">
-                                    <input
-                                    type="checkbox"
-                                    className="form-check-input"                           
-                                    name="activeTb"
-                                    id="activeTb"
-                                    value={props.tbObj.activeTb}
-                                    onChange={handleInputChangeContrain}
-                                    />
-                                    <label
-                                    className="form-check-label"
-                                    htmlFor="basic_checkbox_1"
-                                    >
-                                    Active TB
-                                    </label>
-                                </div>
+                    <h3>Contraindications for TPT</h3>
+                    {(props.tbObj.currentlyOnTuberculosis === "Yes" ||
+                      props.tbObj.tbTreatment === "No") && (
+                      <>
+                        <div className="form-group mb-3 col-md-12">
+                          <div className="form-check custom-checkbox ml-1 ">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              name="activeTb"
+                              id="activeTb"
+                              value={props.tbObj.activeTb}
+                              onChange={handleInputChangeContrain}
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="basic_checkbox_1"
+                            >
+                              Active TB
+                            </label>
+                          </div>
                         </div>
-                        <div className="form-group mb-3 col-md-12">                                    
-                                <div className="form-check custom-checkbox ml-1 ">
-                                    <input
-                                    type="checkbox"
-                                    className="form-check-input"                           
-                                    name="abnormalChest"
-                                    id="abnormalChest"
-                                    value={props.tbObj.abnormalChest}
-                                    onChange={handleInputChangeContrain}
-                                    />
-                                    <label
-                                    className="form-check-label"
-                                    htmlFor="basic_checkbox_1"
-                                    >
-                                    Abnormal Chest X-Ray
-                                    </label>
-                                </div>
+                        <div className="form-group mb-3 col-md-12">
+                          <div className="form-check custom-checkbox ml-1 ">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              name="abnormalChest"
+                              id="abnormalChest"
+                              value={props.tbObj.abnormalChest}
+                              onChange={handleInputChangeContrain}
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="basic_checkbox_1"
+                            >
+                              Abnormal Chest X-Ray
+                            </label>
+                          </div>
                         </div>
-                        <div className="form-group mb-3 col-md-12">                                    
-                                <div className="form-check custom-checkbox ml-1 ">
-                                    <input
-                                    type="checkbox"
-                                    className="form-check-input"                           
-                                    name="poorTreatmentAdherence"
-                                    id="poorTreatmentAdherence"
-                                    value={props.tbObj.poorTreatmentAdherence}
-                                    onChange={handleInputChangeContrain}
-                                    />
-                                    <label
-                                    className="form-check-label"
-                                    htmlFor="basic_checkbox_1"
-                                    >
-                                    History of poor treatment adherence
-                                    </label>
-                                </div>
-                        </div> 
-                        <div className="form-group mb-3 col-md-12">                                    
-                                <div className="form-check custom-checkbox ml-1 ">
-                                    <input
-                                    type="checkbox"
-                                    className="form-check-input"                           
-                                    name="age1year"
-                                    id="age1year"
-                                    value={props.tbObj.age1year}
-                                    onChange={handleInputChangeContrain}
-                                    />
-                                    <label
-                                    className="form-check-label"
-                                    htmlFor="basic_checkbox_1"
-                                    >
-                                    Age  {"<"}1 year without history of close contact with TB patient 
-                                    </label>
-                                </div>
+                        <div className="form-group mb-3 col-md-12">
+                          <div className="form-check custom-checkbox ml-1 ">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              name="poorTreatmentAdherence"
+                              id="poorTreatmentAdherence"
+                              value={props.tbObj.poorTreatmentAdherence}
+                              onChange={handleInputChangeContrain}
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="basic_checkbox_1"
+                            >
+                              History of poor treatment adherence
+                            </label>
+                          </div>
                         </div>
-                        <div className="form-group mb-3 col-md-12">                                    
-                                <div className="form-check custom-checkbox ml-1 ">
-                                    <input
-                                    type="checkbox"
-                                    className="form-check-input"                           
-                                    name="activeHepatitis"
-                                    id="activeHepatitis"
-                                    value={props.tbObj.activeHepatitis}
-                                    onChange={handleInputChangeContrain}
-                                    />
-                                    <label
-                                    className="form-check-label"
-                                    htmlFor="basic_checkbox_1"
-                                    >
-                                    Active hepatitis (clinical or lab)
-                                    </label>
-                                </div>
+                        <div className="form-group mb-3 col-md-12">
+                          <div className="form-check custom-checkbox ml-1 ">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              name="age1year"
+                              id="age1year"
+                              value={props.tbObj.age1year}
+                              onChange={handleInputChangeContrain}
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="basic_checkbox_1"
+                            >
+                              Age {"<"}1 year without history of close contact
+                              with TB patient
+                            </label>
+                          </div>
                         </div>
-                        <div className="form-group mb-3 col-md-12">                                    
-                                <div className="form-check custom-checkbox ml-1 ">
-                                    <input
-                                    type="checkbox"
-                                    className="form-check-input"                           
-                                    name="highAlcohol"
-                                    id="highAlcohol"
-                                    value={props.tbObj.highAlcohol}
-                                    onChange={handleInputChangeContrain}
-                                    />
-                                    <label
-                                    className="form-check-label"
-                                    htmlFor="basic_checkbox_1"
-                                    >
-                                    High alcohol consumption
-                                    </label>
-                                </div>
-                        </div> 
-                        <div className="form-group mb-3 col-md-12">                                    
-                                <div className="form-check custom-checkbox ml-1 ">
-                                    <input
-                                    type="checkbox"
-                                    className="form-check-input"                           
-                                    name="priorInh"
-                                    id="priorInh"
-                                    value={props.tbObj.priorInh}
-                                    onChange={handleInputChangeContrain}
-                                    />
-                                    <label
-                                    className="form-check-label"
-                                    htmlFor="basic_checkbox_1"
-                                    >
-                                    Prior allergy to INH
-                                    </label>
-                                </div>
+                        <div className="form-group mb-3 col-md-12">
+                          <div className="form-check custom-checkbox ml-1 ">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              name="activeHepatitis"
+                              id="activeHepatitis"
+                              value={props.tbObj.activeHepatitis}
+                              onChange={handleInputChangeContrain}
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="basic_checkbox_1"
+                            >
+                              Active hepatitis (clinical or lab)
+                            </label>
+                          </div>
                         </div>
-                        </>
-                        )}
-                            <h4>Result :{props.tbObj.contraindications} </h4>
-                        </>
-                         )}
-                        <hr/>
-                        <br/>
-                        <h2>Outcome :{props.tbObj.outcome}</h2>
-                        <br/>
-                        <h2>Eligible for IPT :{props.tbObj.eligibleForTPT}</h2>
-                        {props.tbObj.eligibleForTPT==="Yes" && (
-                        <>
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Date TPT start </Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="date"
-                                        name="dateTPTStart"
-                                        id="dateTPTStart"
-                                        onChange={handleInputChange}
-                                        min={props.encounterDate}
-                                        max= {moment(new Date()).format("YYYY-MM-DD") } 
-                                        value={props.tbObj.dateTPTStart} 
-                                    >
-                                    
-                                    </Input>
-                                </InputGroup>
-                                </FormGroup>
-                            </div>
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >Weight at start of TPT</Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="text"
-                                        name="weightAtStartTPT"
-                                        id="weightAtStartTPT"
-                                        onChange={handleInputChange} 
-                                        value={props.tbObj.weightAtStartTPT} 
-                                    >
-                                    
-                                    </Input>
-                                </InputGroup>
-                                </FormGroup>
-                            </div>
-                            <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >INH daily dose  </Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="text"
-                                        name="inhDailyDose"
-                                        id="inhDailyDose"
-                                        onChange={handleInputChange} 
-                                        value={props.tbObj.inhDailyDose} 
-                                    >
-                                    
-                                    </Input>
-                                </InputGroup>
-                                </FormGroup>
-                            </div>
-                        </>
-                        )}
+                        <div className="form-group mb-3 col-md-12">
+                          <div className="form-check custom-checkbox ml-1 ">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              name="highAlcohol"
+                              id="highAlcohol"
+                              value={props.tbObj.highAlcohol}
+                              onChange={handleInputChangeContrain}
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="basic_checkbox_1"
+                            >
+                              High alcohol consumption
+                            </label>
+                          </div>
+                        </div>
+                        <div className="form-group mb-3 col-md-12">
+                          <div className="form-check custom-checkbox ml-1 ">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              name="priorInh"
+                              id="priorInh"
+                              value={props.tbObj.priorInh}
+                              onChange={handleInputChangeContrain}
+                            />
+                            <label
+                              className="form-check-label"
+                              htmlFor="basic_checkbox_1"
+                            >
+                              Prior allergy to INH
+                            </label>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    <h4>Result :{props.tbObj.contraindications} </h4>
+                  </>
+                )}
+                <hr />
+                <br />
+                <h2>Outcome :{props.tbObj.outcome}</h2>
+                <br />
+                <h2>Eligible for IPT :{props.tbObj.eligibleForTPT}</h2>
+                {props.tbObj.eligibleForTPT === "Yes" && (
+                  <>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>Date TPT start </Label>
+                        <InputGroup>
+                          <Input
+                            type="date"
+                            name="dateTPTStart"
+                            id="dateTPTStart"
+                            onChange={handleInputChange}
+                            min={props.encounterDate}
+                            max={moment(new Date()).format("YYYY-MM-DD")}
+                            value={props.tbObj.dateTPTStart}
+                          ></Input>
+                        </InputGroup>
+                      </FormGroup>
                     </div>
-                    
-                    
-                    </form>
-                    
-                </CardBody>
-            </Card> 
-                                     
-        </>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>Weight at start of TPT</Label>
+                        <InputGroup>
+                          <Input
+                            type="text"
+                            name="weightAtStartTPT"
+                            id="weightAtStartTPT"
+                            onChange={handleInputChange}
+                            value={props.tbObj.weightAtStartTPT}
+                          ></Input>
+                        </InputGroup>
+                      </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>INH daily dose </Label>
+                        <InputGroup>
+                          <Input
+                            type="text"
+                            name="inhDailyDose"
+                            id="inhDailyDose"
+                            onChange={handleInputChange}
+                            value={props.tbObj.inhDailyDose}
+                          ></Input>
+                        </InputGroup>
+                      </FormGroup>
+                    </div>
+                  </>
+                )}
+              </div>
+            </form>
+          </CardBody>
+        </Card>
+      </>
     );
 };
 

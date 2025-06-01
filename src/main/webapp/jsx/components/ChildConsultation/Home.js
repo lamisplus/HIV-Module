@@ -69,7 +69,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "CLINICAL_STAGE",
+  "PREP_SIDE_EFFECTS",
+  "TB_STATUS",
+  "FUNCTIONAL _STATUS",
+  "PrEP_LEVEL_OF_ADHERENCE",
+];
+
 const Widget = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
   const [clinicalStage, setClinicalStage] = useState([]);
@@ -112,72 +121,72 @@ const Widget = (props) => {
     whoStagingId: 0,
   });
 
-  useEffect(() => {
-    FunctionalStatus();
-    WhoStaging();
-    AdherenceLevel();
-    TBStatus();
-    PrepSideEffect();
-  }, []);
+  // useEffect(() => {
+  //   FunctionalStatus();
+  //   WhoStaging();
+  //   AdherenceLevel();
+  //   TBStatus();
+  //   PrepSideEffect();
+  // }, []);
 
   //Get list of WhoStaging
-  const WhoStaging = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setClinicalStage(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const WhoStaging = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setClinicalStage(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //Get list of WhoStaging
-  const PrepSideEffect = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPrepSideEffect(response.data);
-        adherenceLevelObj = response.data;
-      })
-      .catch((error) => {});
-  };
+  // const PrepSideEffect = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setPrepSideEffect(response.data);
+  //       adherenceLevelObj = response.data;
+  //     })
+  //     .catch((error) => {});
+  // };
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
-  const TBStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbStatus(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const TBStatus = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setTbStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
 
-  async function FunctionalStatus() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setFunctionalStatus(response.data);
-        //setValues(response.data)
-      })
-      .catch((error) => {});
-  }
+  // async function FunctionalStatus() {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setFunctionalStatus(response.data);
+  //       //setValues(response.data)
+  //     })
+  //     .catch((error) => {});
+  // }
   ///Level of Adherence
-  async function AdherenceLevel() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setAdherenceLevel(response.data);
-      })
-      .catch((error) => {});
-  }
+  // async function AdherenceLevel() {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setAdherenceLevel(response.data);
+  //     })
+  //     .catch((error) => {});
+  // }
   const handleInputChange = (e) => {
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
     if (e.target.name === "whoStagingId") {
@@ -343,7 +352,7 @@ const Widget = (props) => {
                   >
                     <option value="select"> </option>
 
-                    {clinicalStage.map((value) => (
+                    {getOptions("CLINICAL_STAGE").map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -364,7 +373,7 @@ const Widget = (props) => {
                   >
                     <option value="select"> </option>
 
-                    {functionalStatus.map((value) => (
+                    {getOptions("FUNCTIONAL _STATUS").map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -385,7 +394,7 @@ const Widget = (props) => {
                   >
                     <option value="select"> </option>
 
-                    {adherenceLevel.map((value) => (
+                    {getOptions("PrEP_LEVEL_OF_ADHERENCE").map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>

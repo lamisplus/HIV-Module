@@ -86,26 +86,32 @@ const PatientVisits = (props) => {
     [hasAnyPermission]
   );
 
-  const fetchServices = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get(`${baseUrl}patient/post-service`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+const fetchServices = useCallback(async () => {
+  setIsLoading(true);
+  try {
+    const response = await axios.get(`${baseUrl}patient/post-service`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      setAllServices(response.data);
-      setServices(
-        response.data.map((service) => ({
-          label: service.moduleServiceName,
-          value: service.moduleServiceCode,
-        }))
-      );
-    } catch (error) {
-      toast.error("Failed to fetch services");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    // Filter out services that contain "PrEP" (case-insensitive)
+    const filteredServices = response.data.filter(
+      (service) => !service.moduleServiceName.toLowerCase().includes("prep")
+    );
+
+    setAllServices(filteredServices);
+    setServices(
+      filteredServices.map((service) => ({
+        label: service.moduleServiceName,
+        value: service.moduleServiceCode,
+      }))
+    );
+  } catch (error) {
+    toast.error("Failed to fetch services");
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
+
 
 const fetchPatientVisits = useCallback(async () => {
   try {

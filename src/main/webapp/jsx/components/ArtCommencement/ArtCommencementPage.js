@@ -24,6 +24,7 @@ import { Spinner } from "reactstrap";
 //import { DateTimePicker } from "react-widgets";
 import { Message } from "semantic-ui-react";
 import { calculate_age_to_number } from "../../../utils";
+import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -92,8 +93,14 @@ const useStyles = makeStyles((theme) => ({
     fontSize: "11px",
   },
 }));
+const CODESET_KEYS = [
+  "CLINICAL_STAGE",
+  "PREGANACY_STATUS",
+  "FUNCTIONAL _STATUS",
+];
 
 const ArtCommencement = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const patientObj = props.patientObj;
   const [enrollDate, setEnrollDate] = useState("");
   //let history = useHistory();
@@ -169,10 +176,10 @@ const ArtCommencement = (props) => {
   const patientAge = calculate_age_to_number(patientObj.dateOfBirth);
   const [patientObject, setPatientObject] = useState(null);
   useEffect(() => {
-    FunctionalStatus();
-    WhoStaging();
+    // FunctionalStatus();
+    // WhoStaging();
     //TBStatus();
-    PreganacyStatus();
+    // PreganacyStatus();
     RegimenLine();
     InitialClinicEvaluation();
     AdultRegimenLine();
@@ -235,16 +242,16 @@ const ArtCommencement = (props) => {
       .catch((error) => {});
   };
   //Get list of WhoStaging
-  const WhoStaging = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setClinicalStage(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const WhoStaging = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setClinicalStage(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   const InitialClinicEvaluation = () => {
     axios
       .get(`${baseUrl}observation/person/${props.patientObj.id}`, {
@@ -286,28 +293,28 @@ const ArtCommencement = (props) => {
       .catch((error) => {});
   };
   //Get list of PREGANACY_STATUS
-  const PreganacyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setpregnancyStatus(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const PreganacyStatus = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setpregnancyStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   ///GET LIST OF FUNCTIONAL%20_STATUS
-  async function FunctionalStatus() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setFunctionalStatus(response.data);
-        //setValues(response.data)
-      })
-      .catch((error) => {});
-  }
+  // async function FunctionalStatus() {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setFunctionalStatus(response.data);
+  //       //setValues(response.data)
+  //     })
+  //     .catch((error) => {});
+  // }
 
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
@@ -885,7 +892,7 @@ const ArtCommencement = (props) => {
                     }}
                   >
                     <option value=""> Select</option>
-                    {clinicalStage.map((value) => (
+                    {getOptions("CLINICAL_STAGE").map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -902,7 +909,7 @@ const ArtCommencement = (props) => {
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>
-                    Functional Status <span style={{ color: "red" }}> *</span>
+                    Functional Status<span style={{ color: "red" }}> *</span>
                   </Label>
                   <Input
                     type="select"
@@ -918,7 +925,7 @@ const ArtCommencement = (props) => {
                   >
                     <option value=""> Select</option>
 
-                    {functionalStatus.map((value) => (
+                    {getOptions("FUNCTIONAL _STATUS").map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -965,7 +972,7 @@ const ArtCommencement = (props) => {
                         //disabled
                       >
                         <option value=""> Select</option>
-                        {pregnancyStatus.map((value) => (
+                        {getOptions("PREGANACY_STATUS").map((value) => (
                           <option key={value.id} value={value.id}>
                             {value.display}
                           </option>
@@ -1010,11 +1017,11 @@ const ArtCommencement = (props) => {
                             >
                                 <option value=""> Select</option>
         
-                                {tbStatus.map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                        {value.display}
-                                    </option>
-                                ))}
+                               {getOptions('TB_STATUS').map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.display}
+                          </option>
+                        ))}
                         </Input>
                         {errors.tbStatusId !=="" ? (
                             <span className={classes.error}>{errors.tbStatusId}</span>
@@ -1280,11 +1287,11 @@ const ArtCommencement = (props) => {
                             borderRadius: "0rem",
                           }}
                         >
-                          BMI :{" "}
+                          BMI:{" "}
                           {(
                             vital.bodyWeight /
-                            ((vital.height / 100) * (vital.height / 100))
-                          ).toFixed(2)}
+                            (vital.height / 100) ** 2
+                          ).toFixed(1)}
                         </InputGroupText>
                       </InputGroup>
                     </FormGroup>

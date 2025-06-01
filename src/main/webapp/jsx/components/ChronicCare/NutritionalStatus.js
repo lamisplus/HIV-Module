@@ -30,6 +30,7 @@ import { Button } from "semantic-ui-react";
 import { Message } from "semantic-ui-react";
 import DualListBox from "react-dual-listbox";
 import "react-dual-listbox/lib/react-dual-listbox.css";
+import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -71,57 +72,62 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "NUTRITION_EDUCATION_COUNSELLED",
+  "NUTRITION_SUPPORT",
+];
 const BasicInfo = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   const [errors, setErrors] = useState({});
   const [selectedOptions1, setSelectedOptions1] = useState([]);
   const [selectedOptions2, setSelectedOptions2] = useState([]);
   const [nutritionEducation, setNutritionEducation] = useState([]);
   const [nutritionSupport, setNutritionSupport] = useState([]);
-  useEffect(() => {
-    NUTRITION_EDUCATION_COUNSELLED();
-    NUTRITION_SUPPORT();
-  }, []);
+  // useEffect(() => {
+  //   NUTRITION_EDUCATION_COUNSELLED();
+  //   NUTRITION_SUPPORT();
+  // }, []);
   //Get list of NUTRITION_EDUCATION_COUNSELLED
-  const NUTRITION_EDUCATION_COUNSELLED = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/NUTRITION_EDUCATION_COUNSELLED`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        if (props.nutrition.education.length > 0) {
-          setSelectedOptions1(props.nutrition.education);
-        }
+  // const NUTRITION_EDUCATION_COUNSELLED = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/NUTRITION_EDUCATION_COUNSELLED`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       if (props.nutrition.education.length > 0) {
+  //         setSelectedOptions1(props.nutrition.education);
+  //       }
         
-        setNutritionEducation(
-          Object.entries(response.data).map(([key, value]) => ({
-            label: value.display,
-            value: value.display,
-          }))
-        );
-      })
-      .catch((error) => {});
-  };
+  //       setNutritionEducation(
+  //         Object.entries(response.data).map(([key, value]) => ({
+  //           label: value.display,
+  //           value: value.display,
+  //         }))
+  //       );
+  //     })
+  //     .catch((error) => {});
+  // };
   //Get list of NUTRITION_SUPPORT
-  const NUTRITION_SUPPORT = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/NUTRITION_SUPPORT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        if (props.nutrition.support.length > 0) {
-          setSelectedOptions2(props.nutrition.support);
-        }
+  // const NUTRITION_SUPPORT = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/NUTRITION_SUPPORT`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       if (props.nutrition.support.length > 0) {
+  //         setSelectedOptions2(props.nutrition.support);
+  //       }
 
-        setNutritionSupport(
-          Object.entries(response.data).map(([key, value]) => ({
-            label: value.display,
-            value: value.display,
-          }))
-        );
-      })
-      .catch((error) => {});
-  };
+  //       setNutritionSupport(
+  //         Object.entries(response.data).map(([key, value]) => ({
+  //           label: value.display,
+  //           value: value.display,
+  //         }))
+  //       );
+  //     })
+  //     .catch((error) => {});
+  // };
   const [vital, setVitalSignDto] = useState({
     bodyWeight: props?.nutrition?.bodyWeight
       ? props?.nutrition?.bodyWeight
@@ -211,6 +217,23 @@ const BasicInfo = (props) => {
       label: "Referred to community support",
     },
   ];
+
+
+   const getNutritionEducationOptions = () => {
+     const educationOptions = getOptions("NUTRITION_EDUCATION_COUNSELLED");
+     return educationOptions.map((item) => ({
+       label: item.display,
+       value: item.display,
+     }));
+   };
+
+   const getNutritionSupportOptions = () => {
+     const supportOptions = getOptions("NUTRITION_SUPPORT");
+     return supportOptions.map((item) => ({
+       label: item.display,
+       value: item.display,
+     }));
+   };
 
   
 
@@ -370,11 +393,11 @@ const BasicInfo = (props) => {
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
                   <Label>Nutrition Education and Counselled</Label>
-          
+
                   {/* Nutrition Education */}
                   <DualListBox
                     //canFilter
-                    options={nutritionEducation}
+                    options={getNutritionEducationOptions()}
                     onChange={onSelectedOption}
                     selected={selectedOptions1}
                     disabled={props.action === "view" ? true : false}
@@ -385,11 +408,10 @@ const BasicInfo = (props) => {
                 <FormGroup>
                   <Label>Nutrition Support</Label>
                   {/* Nutrition Education */}
-               
 
                   <DualListBox
                     //canFilter
-                    options={nutritionSupport}
+                    options={getNutritionSupportOptions()}
                     onChange={onSelectedOption2}
                     selected={selectedOptions2}
                     disabled={props.action === "view" ? true : false}

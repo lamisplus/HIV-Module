@@ -24,6 +24,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import "react-phone-input-2/lib/style.css";
 import { Button } from "semantic-ui-react";
+import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -89,7 +90,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "TB_TREATMENT_TYPE",
+  "TB_TREATMENT_OUTCOME",
+  "CLINIC_VISIT_LEVEL_OF_ADHERENCE",
+];
+
 const TPT = (props) => {
+   const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   //const [errors, setErrors] = useState({});
   const [adherence, setAdherence] = useState([]);
@@ -104,31 +112,31 @@ const TPT = (props) => {
     setHasMounted(true);
   }, []);
 
-  const TB_TREATMENT_TYPE = () => {
-      axios
-        .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-          setTbTreatmentType(response.data);
-        })
-        .catch((error) => {});
-    };
-    const TB_TREATMENT_OUTCOME = () => {
-      axios
-        .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-          setTbTreatmentOutCome(response.data);
-        })
-        .catch((error) => {});
-    };
-  useEffect(() => {
-    TB_TREATMENT_TYPE();
-    TB_TREATMENT_OUTCOME();
-    CLINIC_VISIT_LEVEL_OF_ADHERENCE();
-  }, []);
+  // const TB_TREATMENT_TYPE = () => {
+  //     axios
+  //       .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       })
+  //       .then((response) => {
+  //         setTbTreatmentType(response.data);
+  //       })
+  //       .catch((error) => {});
+  //   };
+    // const TB_TREATMENT_OUTCOME = () => {
+    //   axios
+    //     .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`, {
+    //       headers: { Authorization: `Bearer ${token}` },
+    //     })
+    //     .then((response) => {
+    //       setTbTreatmentOutCome(response.data);
+    //     })
+    //     .catch((error) => {});
+    // };
+  // useEffect(() => {
+  //   TB_TREATMENT_TYPE();
+  //   TB_TREATMENT_OUTCOME();
+  //   CLINIC_VISIT_LEVEL_OF_ADHERENCE();
+  // }, []);
   // TPT Logic
 
   useEffect(() => {
@@ -220,17 +228,17 @@ const TPT = (props) => {
   }, [hasMounted, props.tpt.contractionForTpt]);
 
   //Get list of CLINIC_VISIT_LEVEL_OF_ADHERENCE
-  const CLINIC_VISIT_LEVEL_OF_ADHERENCE = () => {
-    axios
-      .get(
-        `${baseUrl}application-codesets/v2/CLINIC_VISIT_LEVEL_OF_ADHERENCE`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((response) => {
-        setAdherence(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const CLINIC_VISIT_LEVEL_OF_ADHERENCE = () => {
+  //   axios
+  //     .get(
+  //       `${baseUrl}application-codesets/v2/CLINIC_VISIT_LEVEL_OF_ADHERENCE`,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     )
+  //     .then((response) => {
+  //       setAdherence(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //let temp = { ...errors }
 
 

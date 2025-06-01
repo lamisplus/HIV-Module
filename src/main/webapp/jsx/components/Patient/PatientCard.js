@@ -148,7 +148,8 @@ function PatientCard(props) {
   }, []);
 
   const calculateBMI = (weight, height) => {
-    const BMI = Math.round(weight / ((height / 100) * (height / 100)));
+    const BMI = (weight / (height / 100) ** 2).toFixed(1);
+
     if (BMI < 18.5) {
       return (
         <span className="text-primary">{`Patient is underweight with a BMI of ${BMI}`}</span>

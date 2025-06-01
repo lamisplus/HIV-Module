@@ -249,317 +249,489 @@ const BasicInfo = (props) => {
     }
     
 return (
-        <>  
-        
-            <Card className={classes.root}>
-                <CardBody>   
-                <h2 style={{color:'#000'}}>Physical Examination</h2>
-                <br/>
-                    <form >
-                    {/* Medical History form inputs */}
-                    <div className="row">
-                  
-                    <div className="row">
-                    <div className=" mb-3 col-md-4">
-                        <FormGroup>
-                        <Label >Pulse </Label>
-                        <InputGroup> 
-                            <Input 
-                                type="number"
-                                name="pulse"
-                                id="pulse"
-                                onChange={handleInputChangeVitalSignDto}
-                                min="40"
-                                max="120"
-                                value={vital.pulse}
-                                onKeyUp={handleInputValueCheckPulse} 
-                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
-                            />
-                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                bmp
-                            </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.pulse !=="" ? (
-                                <span className={classes.error}>{vitalClinicalSupport.pulse}</span>
-                        ) : ""}
-                        {errors.pulse !=="" ? (
-                            <span className={classes.error}>{errors.pulse}</span>
-                        ) : "" }
-                        </FormGroup>
-                    </div>
-                    <div className=" mb-3 col-md-4">
-                        <FormGroup>
-                        <Label >Respiratory Rate </Label>
-                        <InputGroup> 
-                            <Input 
-                                type="number"
-                                name="respiratoryRate"
-                                id="respiratoryRate"
-                                onChange={handleInputChangeVitalSignDto}
-                                min="10"
-                                max="70"
-                                value={vital.respiratoryRate}
-                                onKeyUp={handleInputValueCheckRespiratoryRate} 
-                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
-                            />
-                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                bmp
-                            </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.respiratoryRate !=="" ? (
-                                <span className={classes.error}>{vitalClinicalSupport.respiratoryRate}</span>
-                        ) : ""}
-                        {errors.respiratoryRate !=="" ? (
-                            <span className={classes.error}>{errors.respiratoryRate}</span>
-                        ) : "" }
-                        </FormGroup>
-                    </div>
-                    <div className=" mb-3 col-md-4">
-                        <FormGroup>
-                        <Label >Temperature </Label>
-                        <InputGroup> 
-                            <Input 
-                                type="number"
-                                name="temperature"
-                                id="temperature"
-                                onChange={handleInputChangeVitalSignDto}
-                                min="35"
-                                max="47"
-                                value={vital.temperature}
-                                onKeyUp={handleInputValueCheckTemperature} 
-                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
-                            />
-                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                <sup>o</sup>c
-                            </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.temperature !=="" ? (
-                                <span className={classes.error}>{vitalClinicalSupport.temperature}</span>
-                        ) : ""}
-                        {errors.temperature !=="" ? (
-                            <span className={classes.error}>{errors.temperature}</span>
-                        ) : "" }
-                        </FormGroup>
-                    </div>
-                   
-                    <div className=" mb-3 col-md-4">
-                        <FormGroup>
-                        <Label >Body Weight <span style={{ color:"red"}}> *</span></Label>
-                        <InputGroup> 
-                            <Input 
-                                type="number"
-                                name="bodyWeight"
-                                id="bodyWeight"
-                                onChange={handleInputChangeVitalSignDto}
-                                min="3"
-                                max="150"
-                                value={vital.bodyWeight}
-                                onKeyUp={handleInputValueCheckBodyWeight} 
-                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
-                            />
-                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                kg
-                            </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.bodyWeight !=="" ? (
-                                <span className={classes.error}>{vitalClinicalSupport.bodyWeight}</span>
-                        ) : ""}
-                        {errors.bodyWeight !=="" ? (
-                            <span className={classes.error}>{errors.bodyWeight}</span>
-                        ) : "" }
-                        </FormGroup>
-                    </div>                                   
-                    <div className="form-group mb-3 col-md-5">
-                        <FormGroup>
-                        <Label >Height <span style={{ color:"red"}}> *</span></Label>
-                        <InputGroup> 
-                        <InputGroupText
-                                addonType="append"
-                                
-                                style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}
-                                >
-                                cm
-                        </InputGroupText>
-                            <Input 
-                                type="number"
-                                name="height"
-                                id="height"
-                                onChange={handleInputChangeVitalSignDto}
-                                value={vital.height}
-                                min="48.26"
-                                max="216.408"
-                                onKeyUp={handleInputValueCheckHeight} 
-                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
-                            />
-                                <InputGroupText
+  <>
+    <Card className={classes.root}>
+      <CardBody>
+        <h2 style={{ color: "#000" }}>Physical Examination</h2>
+        <br />
+        <form>
+          {/* Medical History form inputs */}
+          <div className="row">
+            <div className="row">
+              <div className=" mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Pulse </Label>
+                  <InputGroup>
+                    <Input
+                      type="number"
+                      name="pulse"
+                      id="pulse"
+                      onChange={handleInputChangeVitalSignDto}
+                      min="40"
+                      max="120"
+                      value={vital.pulse}
+                      onKeyUp={handleInputValueCheckPulse}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    />
+                    <InputGroupText
+                      addonType="append"
+                      style={{
+                        backgroundColor: "#014D88",
+                        color: "#fff",
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    >
+                      bmp
+                    </InputGroupText>
+                  </InputGroup>
+                  {vitalClinicalSupport.pulse !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.pulse}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.pulse !== "" ? (
+                    <span className={classes.error}>{errors.pulse}</span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
+              <div className=" mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Respiratory Rate </Label>
+                  <InputGroup>
+                    <Input
+                      type="number"
+                      name="respiratoryRate"
+                      id="respiratoryRate"
+                      onChange={handleInputChangeVitalSignDto}
+                      min="10"
+                      max="70"
+                      value={vital.respiratoryRate}
+                      onKeyUp={handleInputValueCheckRespiratoryRate}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    />
+                    <InputGroupText
+                      addonType="append"
+                      style={{
+                        backgroundColor: "#014D88",
+                        color: "#fff",
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    >
+                      bmp
+                    </InputGroupText>
+                  </InputGroup>
+                  {vitalClinicalSupport.respiratoryRate !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.respiratoryRate}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.respiratoryRate !== "" ? (
+                    <span className={classes.error}>
+                      {errors.respiratoryRate}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
+              <div className=" mb-3 col-md-4">
+                <FormGroup>
+                  <Label>Temperature </Label>
+                  <InputGroup>
+                    <Input
+                      type="number"
+                      name="temperature"
+                      id="temperature"
+                      onChange={handleInputChangeVitalSignDto}
+                      min="35"
+                      max="47"
+                      value={vital.temperature}
+                      onKeyUp={handleInputValueCheckTemperature}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    />
+                    <InputGroupText
+                      addonType="append"
+                      style={{
+                        backgroundColor: "#014D88",
+                        color: "#fff",
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    >
+                      <sup>o</sup>c
+                    </InputGroupText>
+                  </InputGroup>
+                  {vitalClinicalSupport.temperature !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.temperature}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.temperature !== "" ? (
+                    <span className={classes.error}>{errors.temperature}</span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
 
-                                style={{ backgroundColor:"#992E62", color:"#fff", border: "1px solid #992E62", borderRadius:"0rem"}}
-                                >
-                                {vital.height ? (vital.height/100).toFixed(2) + "m" : "m"}
-                            </InputGroupText>
-                        </InputGroup>
-                        {vitalClinicalSupport.height !=="" ? (
-                            <span className={classes.error}>{vitalClinicalSupport.height}</span>
-                        ) : ""}
-                        {errors.height !=="" ? (
-                            <span className={classes.error}>{errors.height}</span>
-                        ) : "" }
-                        </FormGroup>
-                    </div>
-                    <div className="form-group mb-3 mt-2 col-md-3">
-                        {vital.bodyWeight && vital.height &&(
-                            <FormGroup>
-                            <Label > {" "}</Label>
-                            <InputGroup> 
-                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                BMI : {(vital.bodyWeight/(((vital.height/100) * (vital.height/100)))).toFixed(2)}
-                            </InputGroupText>                   
-                           
-                            </InputGroup>                
-                            </FormGroup>
+              <div className=" mb-3 col-md-4">
+                <FormGroup>
+                  <Label>
+                    Body Weight <span style={{ color: "red" }}> *</span>
+                  </Label>
+                  <InputGroup>
+                    <Input
+                      type="number"
+                      name="bodyWeight"
+                      id="bodyWeight"
+                      onChange={handleInputChangeVitalSignDto}
+                      min="3"
+                      max="150"
+                      value={vital.bodyWeight}
+                      onKeyUp={handleInputValueCheckBodyWeight}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    />
+                    <InputGroupText
+                      addonType="append"
+                      style={{
+                        backgroundColor: "#014D88",
+                        color: "#fff",
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    >
+                      kg
+                    </InputGroupText>
+                  </InputGroup>
+                  {vitalClinicalSupport.bodyWeight !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.bodyWeight}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.bodyWeight !== "" ? (
+                    <span className={classes.error}>{errors.bodyWeight}</span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
+              <div className="form-group mb-3 col-md-5">
+                <FormGroup>
+                  <Label>
+                    Height <span style={{ color: "red" }}> *</span>
+                  </Label>
+                  <InputGroup>
+                    <InputGroupText
+                      addonType="append"
+                      style={{
+                        backgroundColor: "#014D88",
+                        color: "#fff",
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    >
+                      cm
+                    </InputGroupText>
+                    <Input
+                      type="number"
+                      name="height"
+                      id="height"
+                      onChange={handleInputChangeVitalSignDto}
+                      value={vital.height}
+                      min="48.26"
+                      max="216.408"
+                      onKeyUp={handleInputValueCheckHeight}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    />
+                    <InputGroupText
+                      style={{
+                        backgroundColor: "#992E62",
+                        color: "#fff",
+                        border: "1px solid #992E62",
+                        borderRadius: "0rem",
+                      }}
+                    >
+                      {vital.height
+                        ? (vital.height / 100).toFixed(2) + "m"
+                        : "m"}
+                    </InputGroupText>
+                  </InputGroup>
+                  {vitalClinicalSupport.height !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.height}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.height !== "" ? (
+                    <span className={classes.error}>{errors.height}</span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
+              <div className="form-group mb-3 mt-2 col-md-3">
+                {vital.bodyWeight && vital.height && (
+                  <FormGroup>
+                    <Label> </Label>
+                    <InputGroup>
+                      <InputGroupText
+                        addonType="append"
+                        style={{
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
+                        }}
+                      >
+                        BMI:{" "}
+                        {(vital.bodyWeight / (vital.height / 100) ** 2).toFixed(
+                          1
                         )}
-                    </div>
-                    </div>
-                    {vital.bodyWeight && vital.height!==null && (
-                        
-                      <div className="form-group mb-3 mt-2 col-md-12">
-                            {
-                              BmiCal((vital.bodyWeight/(((vital.height/100) * (vital.height/100)))).toFixed(2))
-                            }
-                      </div>
-                     )}
-                    <div className="row">
-                    <div className="form-group mb-3 col-md-12">
-                        <FormGroup>
-                        <Label >Blood Pressure </Label>
-                        <InputGroup>
-                        <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                systolic(mmHg)
-                        </InputGroupText> 
-                            <Input 
-                                type="number"
-                                name="systolic"
-                                id="systolic"
-                                min="90"
-                                max="2240"
-                                onChange={handleInputChangeVitalSignDto}
-                                value={vital.systolic}
-                                onKeyUp={handleInputValueCheckSystolic}
-                                style={{border: "1px solid #014D88", borderRadius:"0rem"}} 
-                            />
-                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                            diastolic(mmHg)
-                            </InputGroupText>
-                                <Input 
-                                type="number"
-                                name="diastolic"
-                                id="diastolic"
-                                min={0}
-                                max={140}
-                                onChange={handleInputChangeVitalSignDto}
-                                value={vital.diastolic}
-                                onKeyUp={handleInputValueCheckDiastolic} 
-                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
-                                />
-                            
-                            
-                        </InputGroup>
-                        {vitalClinicalSupport.systolic !=="" ? (
-                        <span className={classes.error}>{vitalClinicalSupport.systolic}</span>
-                        ) : ""}
-                        {errors.systolic !=="" ? (
-                            <span className={classes.error}>{errors.systolic}</span>
-                        ) : "" }  
-                        {vitalClinicalSupport.diastolic !=="" ? (
-                        <span className={classes.error}>{vitalClinicalSupport.diastolic}</span>
-                        ) : ""}
-                        {errors.diastolic !=="" ? (
-                            <span className={classes.error}>{errors.diastolic}</span>
-                        ) : "" }          
-                        </FormGroup>
-                    </div>
-                    </div>
-                    {props.patientAge<14 && (
-                    <div className="row">
-                    <div className=" mb-3 col-md-4">
-                        <FormGroup>
-                        <Label >Head circumference</Label>
-                        <InputGroup> 
-                            <Input 
-                                type="number"
-                                name="headCircumference"
-                                id="headCircumference"
-                                onChange={handleInputChangeVitalSignDto}
-                                min="35"
-                                max="47"
-                                value={vital.headCircumference}
-                                onKeyUp={handleInputValueCheckTemperature} 
-                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
-                            />
-                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                cm
-                            </InputGroupText>
-                        </InputGroup>
-                        
-                        </FormGroup>
-                    </div>
-                    <div className=" mb-3 col-md-4">
-                        <FormGroup>
-                        <Label >Surface Area </Label>
-                        <InputGroup> 
-                            <Input 
-                                type="number"
-                                name="surfaceArea"
-                                id="surfaceArea"
-                                onChange={handleInputChangeVitalSignDto}
-                                value={vital.surfaceArea}
-                                onKeyUp={handleInputValueCheckTemperature} 
-                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
-                            />
-                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                cm<sup>3</sup>
-                            </InputGroupText>
-                        </InputGroup>
-                        
-                        </FormGroup>
-                    </div>
-                    <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >MUAC </Label>
-                                <InputGroup> 
-                                    <Input 
-                                        type="select"
-                                        name="muac"
-                                        id="muac"
-                                        onChange={handleInputChangeVitalSignDto} 
-                                        value={vital.muac} 
-                                    >
-                                    <option value="">Select</option>
-                                    <option value="Normal">Normal</option>
-                                    <option value="Under">Under</option>
-                                    <option value="Over">Over</option>
-                                    </Input>
-                                    <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
-                                        cm
-                                    </InputGroupText>
-                                </InputGroup>
-                            
-                                </FormGroup>
-                        </div>
-                    </div>
-                    )}
-                    </div>
-                    <br/>
-                    <Button content='Back' icon='left arrow' labelPosition='left' style={{backgroundColor:"#992E62", color:'#fff'}} onClick={()=>handleItemClick('past-arv', 'past-arv')}/>
-                    <Button content='Next' type="submit" icon='right arrow' labelPosition='right' style={{backgroundColor:"#014d88", color:'#fff'}} onClick={handleSubmit}/>
-                    
-                    </form>
-                    
-                </CardBody>
-            </Card> 
-                                     
-        </>
-    );
+                      </InputGroupText>
+                    </InputGroup>
+                  </FormGroup>
+                )}
+              </div>
+            </div>
+            {vital.bodyWeight && vital.height !== null && (
+              <div className="form-group mb-3 mt-2 col-md-12">
+                {BmiCal(
+                  (
+                    vital.bodyWeight /
+                    ((vital.height / 100) * (vital.height / 100))
+                  ).toFixed(2)
+                )}
+              </div>
+            )}
+            <div className="row">
+              <div className="form-group mb-3 col-md-12">
+                <FormGroup>
+                  <Label>Blood Pressure </Label>
+                  <InputGroup>
+                    <InputGroupText
+                      addonType="append"
+                      style={{
+                        backgroundColor: "#014D88",
+                        color: "#fff",
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    >
+                      systolic(mmHg)
+                    </InputGroupText>
+                    <Input
+                      type="number"
+                      name="systolic"
+                      id="systolic"
+                      min="90"
+                      max="2240"
+                      onChange={handleInputChangeVitalSignDto}
+                      value={vital.systolic}
+                      onKeyUp={handleInputValueCheckSystolic}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    />
+                    <InputGroupText
+                      addonType="append"
+                      style={{
+                        backgroundColor: "#014D88",
+                        color: "#fff",
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    >
+                      diastolic(mmHg)
+                    </InputGroupText>
+                    <Input
+                      type="number"
+                      name="diastolic"
+                      id="diastolic"
+                      min={0}
+                      max={140}
+                      onChange={handleInputChangeVitalSignDto}
+                      value={vital.diastolic}
+                      onKeyUp={handleInputValueCheckDiastolic}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0rem",
+                      }}
+                    />
+                  </InputGroup>
+                  {vitalClinicalSupport.systolic !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.systolic}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.systolic !== "" ? (
+                    <span className={classes.error}>{errors.systolic}</span>
+                  ) : (
+                    ""
+                  )}
+                  {vitalClinicalSupport.diastolic !== "" ? (
+                    <span className={classes.error}>
+                      {vitalClinicalSupport.diastolic}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                  {errors.diastolic !== "" ? (
+                    <span className={classes.error}>{errors.diastolic}</span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
+            </div>
+            {props.patientAge < 14 && (
+              <div className="row">
+                <div className=" mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Head circumference</Label>
+                    <InputGroup>
+                      <Input
+                        type="number"
+                        name="headCircumference"
+                        id="headCircumference"
+                        onChange={handleInputChangeVitalSignDto}
+                        min="35"
+                        max="47"
+                        value={vital.headCircumference}
+                        onKeyUp={handleInputValueCheckTemperature}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
+                        }}
+                      />
+                      <InputGroupText
+                        addonType="append"
+                        style={{
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
+                        }}
+                      >
+                        cm
+                      </InputGroupText>
+                    </InputGroup>
+                  </FormGroup>
+                </div>
+                <div className=" mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Surface Area </Label>
+                    <InputGroup>
+                      <Input
+                        type="number"
+                        name="surfaceArea"
+                        id="surfaceArea"
+                        onChange={handleInputChangeVitalSignDto}
+                        value={vital.surfaceArea}
+                        onKeyUp={handleInputValueCheckTemperature}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
+                        }}
+                      />
+                      <InputGroupText
+                        addonType="append"
+                        style={{
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
+                        }}
+                      >
+                        cm<sup>3</sup>
+                      </InputGroupText>
+                    </InputGroup>
+                  </FormGroup>
+                </div>
+                <div className="form-group mb-3 col-md-6">
+                  <FormGroup>
+                    <Label>MUAC </Label>
+                    <InputGroup>
+                      <Input
+                        type="select"
+                        name="muac"
+                        id="muac"
+                        onChange={handleInputChangeVitalSignDto}
+                        value={vital.muac}
+                      >
+                        <option value="">Select</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Under">Under</option>
+                        <option value="Over">Over</option>
+                      </Input>
+                      <InputGroupText
+                        addonType="append"
+                        style={{
+                          backgroundColor: "#014D88",
+                          color: "#fff",
+                          border: "1px solid #014D88",
+                          borderRadius: "0rem",
+                        }}
+                      >
+                        cm
+                      </InputGroupText>
+                    </InputGroup>
+                  </FormGroup>
+                </div>
+              </div>
+            )}
+          </div>
+          <br />
+          <Button
+            content="Back"
+            icon="left arrow"
+            labelPosition="left"
+            style={{ backgroundColor: "#992E62", color: "#fff" }}
+            onClick={() => handleItemClick("past-arv", "past-arv")}
+          />
+          <Button
+            content="Next"
+            type="submit"
+            icon="right arrow"
+            labelPosition="right"
+            style={{ backgroundColor: "#014d88", color: "#fff" }}
+            onClick={handleSubmit}
+          />
+        </form>
+      </CardBody>
+    </Card>
+  </>
+);
 };
 
 export default BasicInfo
