@@ -146,8 +146,6 @@ const Laboratory = (props) => {
            .then((response) => {
                const patientDTO= response.data.enrollment
                setEnrollDate (patientDTO && patientDTO.dateOfRegistration ? patientDTO.dateOfRegistration :"")
-               //setEacStatusObj(response.data);
-               
            })
            .catch((error) => {
            
@@ -219,29 +217,7 @@ const Laboratory = (props) => {
             });
         
     }
-   
-    // const PatientVisit =()=>{
-    //     axios
-    //         .get(`${baseUrl}patient/visit/visit-detail/${props.patientObj.id}`,
-    //             { headers: {"Authorization" : `Bearer ${token}`} }
-    //         )
-    //         .then((response) => {
-    //             const lastVisit = response.data[response.data.length - 1]
-    //             if(lastVisit.status==="PENDING"){
-    //                 visitId= lastVisit.id
-    //                 //setCurrentVisit(true)
-    //                 setButtonHidden(false)
-    //             }else{
-    //                 toast.error("Patient do not have any active visit")
-    //                 setButtonHidden(true)
-    //                 //setCurrentVisit(false)
-    //             }
 
-    //         })
-    //         .catch((error) => {
-    //         
-    //         });        
-    // }
     //Get list of Test Group
     const ViraLoadIndication =()=>{
         axios
@@ -259,15 +235,10 @@ const Laboratory = (props) => {
         setTests ({...tests,  labTestGroupId: e.target.value});
         const getTestList= testGroup.filter((x)=> x.id===parseInt(e.target.value))
         setTest(getTestList[0].labTests)
-        // if(e.target.value==='4'){            
-        //     setVlRequired(true)
-        // }else{
-        //     setVlRequired(false) 
-        // }
     }
     const handleInputChangeObject = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
-        setTests ({...tests,  [e.target.name]: e.target.value});               
+        setTests ({...tests,  [e.target.name]: e.target.value});
     }
     const handleInputChange = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
@@ -276,7 +247,7 @@ const Laboratory = (props) => {
             const onlyPositiveNumber = e.target.value //Math.abs(e.target.value)
             setTests ({...tests,  [e.target.name]: onlyPositiveNumber});
         }else{
-            setTests ({...tests,  [e.target.name]: e.target.value}); 
+            setTests ({...tests,  [e.target.name]: e.target.value});
         }
         if(e.target.name==='dateReceivedAtPcrLab'){
             const dateReceivedAtPcrLab = moment(e.target.value).format("YYYY-MM-DD HH:MM:SS")   //Math.abs(e.target.value)
@@ -290,24 +261,24 @@ const Laboratory = (props) => {
 
     const handleInputChangeTest = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
-        
+
         if(e.target.value==="16"){
             setShowVLIndication(true)
             setVlRequired(true)
             setErrors({...temp, viralLoadIndication:""})
-            
+
             setTests ({...tests,  labTestId: e.target.value});
         }else{
             setShowVLIndication(false)
-            setVlRequired(false) 
+            setVlRequired(false)
             setTests ({...tests,  labTestId: e.target.value});
         }
-        //setObjValues ({...objValues,  [e.target.name]: e.target.value});       
+        //setObjValues ({...objValues,  [e.target.name]: e.target.value});
     }
 
       //Validations of the forms
-      const validate = () => {  
-        
+      const validate = async () => {
+        // synchronous validations
         temp.sampleTypeId = tests.sampleTypeId ? "" : "This field is required"
         temp.sampleCollectionDate =  tests.sampleCollectionDate ? "" : "This field is required"
         temp.viralLoadIndication = tests.viralLoadIndication ? "" : "This field is required"
@@ -333,15 +304,60 @@ const Laboratory = (props) => {
         showPcrLabDetail &&  (temp.checkedBy = tests.checkedBy ? "" : "This field is required")
         showPcrLabDetail && (temp.approvedBy = tests.approvedBy ? "" : "This field is required")
         
-        setErrors({
-            ...temp
-        })
-        return Object.values(temp).every(x => x == "")
+        // setErrors({
+        //     ...temp
+        // })
+        // return Object.values(temp).every(x => x == "")
+
+          // Update errors with synchronous validations
+          setErrors((prevErrors) => ({
+              ...prevErrors,
+              ...temp,
+          }));
+
+          // Check if all synchronous validations pass
+          const isSyncValid = Object.values(temp).every((x) => x === "");
+
+          // Asynchronous validation for sample number
+          if (tests.sampleNumber) {
+              try {
+                  const response = await axios.get(`${baseUrl}laboratory/check-sample-number?sampleNumber=${tests.sampleNumber}`, {
+                      headers: { Authorization: `Bearer ${token}` },
+                  });
+                  const data = response.data;
+
+                  if (data) {
+                      setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          sampleNumber: "This sample number is already taken.",
+                      }));
+                      return false; // Validation fails
+                  } else {
+                      setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          sampleNumber: "",
+                      }));
+                  }
+              } catch (error) {
+                  console.error("Error validating sample number:", error);
+                  setErrors((prevErrors) => ({
+                      ...prevErrors,
+                      sampleNumber: "An error occurred while checking the sample number.",
+                  }));
+                  return false;
+              }
+          }
+
+          // Return true only if both synchronous and asynchronous validations pass
+          return isSyncValid;
     }
 
-    const handleSubmit = (e) => {        
+    const handleSubmit = async  (e) => {
+        const isValid = await validate();
+        if(!isValid){
+            return;
+        }
         e.preventDefault();
-        if(validate()){
             //tests.labNumber=labNumberOption+"/"+tests.labNumber
             tests.labTestGroupId= testOrderList.labTestGroupId
             tests.labTestId= testOrderList.id
@@ -399,9 +415,7 @@ const Laboratory = (props) => {
                         toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER}); 
                     }                  
                 }); 
-            
-           
-        }
+
     }
     const handleCheckBox =e =>{
         if(e.target.checked){

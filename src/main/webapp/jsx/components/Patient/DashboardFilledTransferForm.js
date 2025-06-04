@@ -542,7 +542,7 @@ const DashboardFilledTransferForm = (props) => {
               <h2>Transfer {observationType === "ART Transfer Out" ? "Out" : "In"} Form</h2>
               <br/>
               <div className="row">
-                <div className="form-group mb-3 col-md-12">
+                <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                     <Label for="">Encounter Date</Label>
                     <span style={{color: "red"}}> *</span>
@@ -558,8 +558,9 @@ const DashboardFilledTransferForm = (props) => {
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
                         }}
+                        min={payload.dateEnrolledInTreatment}
                         disabled={
-                          props.activeContent.actionType === "view" ? true : false
+                          props.activeContent.actionType === "view"
                         }
                         onKeyPress={(e) => e.preventDefault()}
                     />

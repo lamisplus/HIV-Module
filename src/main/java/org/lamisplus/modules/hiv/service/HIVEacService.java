@@ -45,13 +45,22 @@ public class HIVEacService {
 		if (moduleService.exist("Lab")) {
 			List<LabEacInfo> patientAllEacs = hivEacRepository.getPatientAllEacs(patientId);
 			List<LocalDate> existingDates = hivEacRepository
-					.getAllByPersonAndArchived(person, 0) // Assuming you have a method to fetch by person and archived
+					.getAllByPersonAndArchived(person, 0)
 					.stream()
 					.map(HIVEac::getDateOfLastViralLoad)
 					.collect(Collectors.toList());
-			// Filter out LabEacInfo objects with duplicate resultDate
-			patientAllEacs.stream()
+
+			// Deduplicate LabEacInfo objects by resultDate, retaining only the first occurrence
+			Map<LocalDate, LabEacInfo> uniqueRecordsByDate = patientAllEacs.stream()
 					.filter(labEacInfo -> !existingDates.contains(labEacInfo.getResultDate().toLocalDate()))
+					.collect(Collectors.toMap(
+							labEacInfo -> labEacInfo.getResultDate().toLocalDate(), // Key: resultDate
+							labEacInfo -> labEacInfo,                              // Value: LabEacInfo object
+							(existing, replacement) -> existing                     // Keep the first occurrence
+					));
+
+			// Process the unique records
+			uniqueRecordsByDate.values().stream()
 					.map(labEacInfo -> HIVEacDto.builder()
 							.labNumber(labEacInfo.getLabNumber())
 							.dateOfLastViralLoad(labEacInfo.getResultDate().toLocalDate())
@@ -68,9 +77,12 @@ public class HIVEacService {
 		}
 
 		return hivEacRepository.getAllByPersonAndArchived(person, 0)
-				.stream().map(this::mapEntityDto)
+				.stream()
+				.map(this::mapEntityDto)
 				.collect(Collectors.toList());
 	}
+
+
 	
 	public EACPharmacyDisplayDto getPatientOpenEAc(Long patientId) {
 		Person person = personRepository.findById(patientId)

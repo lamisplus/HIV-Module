@@ -5,7 +5,6 @@ import axios from "axios";
 import { token as token, url as baseUrl } from "./../../../../api";
 import { forwardRef } from 'react';
 import 'semantic-ui-css/semantic.min.css';
-import { Link } from 'react-router-dom'
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowUpward from '@material-ui/icons/ArrowUpward';
 import Check from '@material-ui/icons/Check';
@@ -64,8 +63,7 @@ const LabHistory = (props) => {
         //LabOrders()
       }, [props.orderList]);
 
-      const onClickHome = (row, actionType) =>{  
-        // props.setActiveContent({...props.activeContent, route:'pharmacy', activeTab:"hsitory"})
+      const onClickHome = (row, actionType) =>{
          props.setActiveContent({...props.activeContent, route:'lab-view-order-result', id:row.id, activeTab:"history", actionType:actionType, obj:row})
      }
 
@@ -118,17 +116,13 @@ const LabHistory = (props) => {
                   { title: "Action", field: "Action", filtering: false },
 
                 ]}
-                //isLoading={loading}
                 data={ props.orderList.map((row) => ({
-                    //Id: manager.id,
                     testGroup:row.labTestGroupName,
                     testName: row.labTestName,
                     labNumber: row.labNumber,
                     sampleNumber: row.sampleNumber,
                     sampleCollectionDate: row.sampleCollectionDate,    
-                    //dateAssayed: row.dateAssayed,
-                    dateResultReceived: row.dateResultReceived, 
-                    //viralLoadIndication: row.viralLoadIndicationName,
+                    dateResultReceived: row.dateResultReceived,
                     Action: 
                    
                     <div>

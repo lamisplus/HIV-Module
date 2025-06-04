@@ -21,13 +21,14 @@ import "react-widgets/dist/css/react-widgets.css";
 import { Spinner } from "reactstrap";
 import { url as baseUrl, token } from "../../../../api";
 import moment from "moment";
-import { List, Label as LabelSui } from "semantic-ui-react";
+import {List, Label as LabelSui, Button} from "semantic-ui-react";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { toast } from "react-toastify";
 import { Icon } from "semantic-ui-react";
 import Select from "react-select";
 import {Get} from "react-lodash";
+import {Modal} from "react-bootstrap";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -89,7 +90,8 @@ const Laboratory = (props) => {
   const [vLIndication, setVLIndication] = useState([]);
   const [testOrderList, setTestOrderList] = useState([]); //Test Order List
   const [labNumbers, setLabNumbers] = useState([]); //
-  const [selectedOption, setSelectedOption] = useState([]);
+  // const [selectedOption, setSelectedOption] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
   const [labTestOptions, setLabTestOptions] = useState([]);
   const [labOrderIndication, setLabOrderIndication] = useState([]);
   let testsOptions = [];
@@ -98,6 +100,8 @@ const Laboratory = (props) => {
   const [tptMonitorng, setTptMonitoring ] = useState({})
   let temp = { ...errors };
   const [cd4CountObj, setCd4CountObj] = useState({cd4CountType:"", SQC4CountValue:"", FCCd4CountValue: ""})
+  const [chestXrayDocumented, setChestXrayDocumented] = useState(false);
+  const [showModal, setShowModal] = useState({ show: false, message: "" });
   const [tests, setTests] = useState({
     comments: "",
     dateAssayed: "",
@@ -121,6 +125,10 @@ const Laboratory = (props) => {
     resultReportedBy: "",
     sampleNumber: "",
   });
+
+  const hideModal = () => {
+    setShowModal({ show: false, message: "" });
+  };
 
   useEffect(() => {
     CheckLabModule();
@@ -214,7 +222,8 @@ const Laboratory = (props) => {
                 (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
             )[0];
             setTptMonitoring(mostRecentRecord.data.tptMonitoring)
-            const { diagnosticTestType } = mostRecentRecord.data.tptMonitoring;
+            const { diagnosticTestType, chestXrayDone } = mostRecentRecord.data.tptMonitoring;
+            setChestXrayDocumented(chestXrayDone)
             if (diagnosticTestType === "TB-LAMP") {
               setChronicCareTestResult("TB LAMP");
             } else if (diagnosticTestType === "LF-LAM") {
@@ -226,7 +235,7 @@ const Laboratory = (props) => {
             } else if (diagnosticTestType === "Cobas") {
               setChronicCareTestResult("Cobas");
             }
-            else if (diagnosticTestType === "GeneXpert") {
+            else if (diagnosticTestType === "GeneXpert" ) {
               setChronicCareTestResult("Gene Xpert");
             }
           } else {
@@ -242,7 +251,7 @@ const Laboratory = (props) => {
     GetCareAndSupportDiagnosticTest();
   }, []);
 
-// Auto-populate the select field when chronicCareTestResult is updated
+
   useEffect(() => {
     if (chronicCareTestResult && !userHasChanged) {
       const matchedOption = labTestOptions.find(
@@ -254,15 +263,48 @@ const Laboratory = (props) => {
           ...prevObject,
           labTestGroupId: matchedOption.testGroupId,
           labTestId: matchedOption.value,
-          result: tptMonitorng.tbTestResult,
-          sampleCollectionDate: moment((tptMonitorng.dateSpecimenSent)).format("YYYY-MM-DDTHH:mm"),
+          result: tptMonitorng?.tbTestResult,
+          sampleCollectionDate: moment(tptMonitorng?.dateSpecimenSent).format("YYYY-MM-DDTHH:mm"),
           dateResultReceived: tptMonitorng?.DateDiagnosticTestResultReceived
-              ? moment(tptMonitoring.DateDiagnosticTestResultReceived).format("YYYY-MM-DDTHH:mm")
+              ? moment(tptMonitorng?.DateDiagnosticTestResultReceived).format("YYYY-MM-DDTHH:mm")
               : ""
         }));
       }
     }
-  }, [chronicCareTestResult, labTestOptions, userHasChanged]);
+  }, [chronicCareTestResult, userHasChanged]);
+
+
+  useEffect(() => {
+    if (chestXrayDocumented && testOrderList.length === 1) {
+      const chestXrayOption = labTestOptions.find(
+          (option) => option.label === "Chest X-ray"
+      );
+
+      if (chestXrayOption && !userHasChanged) {
+        setSelectedOption(chestXrayOption);
+        setTests((prev) => ({
+          ...prev,
+          labTestGroupId: chestXrayOption.testGroupId,
+          labTestId: chestXrayOption.value,
+          result: tptMonitorng?.chestXrayResultTest === "Not suggestive of TB"
+              ? "Not suggestive for TB"
+              : tptMonitorng?.chestXrayResultTest === "Suggestive of TB"
+                  ? "Suggestive for TB"
+                  : "",
+          dateResultReceived: tptMonitorng?.dateOfChestXrayResultTestDone
+              ? moment(tptMonitorng?.dateOfChestXrayResultTestDone).format("YYYY-MM-DDTHH:mm")
+              : ""
+        }));
+        // toast.success("Chest X-ray test has been autopopulated", {
+        //   position: toast.POSITION.BOTTOM_CENTER
+        // });
+        setShowModal({
+          show: true,
+          message: "Chest X-ray test has been autopopulated. It is required to also be added to the list"
+        });
+      }
+    }
+  }, [chestXrayDocumented, testOrderList.length, labTestOptions, userHasChanged]);
 
   //Load the tests of all Laboratory
   //Get list of Test Group
@@ -315,7 +357,6 @@ const Laboratory = (props) => {
       labTestGroupId: e.testGroupId,
       labTestId: e.value,
     }));
-    console.log("object ", selectedOption )
   };
 
   useEffect(() => {
@@ -326,6 +367,7 @@ const Laboratory = (props) => {
     if(tests.labTestId !== 1){
       setCd4CountObj({cd4CountType:"", SQC4CountValue:"", FCCd4CountValue: ""})
     }
+
   }, [tests.labTestId]);
 
   useEffect(()=>{
@@ -335,26 +377,26 @@ const Laboratory = (props) => {
   },[cd4CountObj])
 
   const handleInputChange = (e) => {
-    setErrors({ ...temp, [e.target.name]: "" });
-    if (e.target.name === "labNumber") {
+    setErrors({...temp, [e.target.name]: ""});
+      if (e.target.name === "labNumber") {
       const onlyPositiveNumber = e.target.value;
-      setTests({ ...tests, [e.target.name]: onlyPositiveNumber });
-    }else if(e.target.name === "cd4CountType"){
+      setTests({...tests, [e.target.name]: onlyPositiveNumber});
+    } else if (e.target.name === "cd4CountType") {
       setCd4CountObj({...cd4CountObj, [e.target.name]: e.target.value})
-    } else if(e.target.name === "SQC4CountValue"){
-      setCd4CountObj({...cd4CountObj, SQC4CountValue:e.target.value, FCCd4CountValue: ""})
-    }else if(e.target.name === "FCCd4CountValue"){
-      setCd4CountObj({...cd4CountObj,SQC4CountValue:"", FCCd4CountValue: e.target.value})
+    } else if (e.target.name === "SQC4CountValue") {
+      setCd4CountObj({...cd4CountObj, SQC4CountValue: e.target.value, FCCd4CountValue: ""})
+    } else if (e.target.name === "FCCd4CountValue") {
+      setCd4CountObj({...cd4CountObj, SQC4CountValue: "", FCCd4CountValue: e.target.value})
+    } else {
+      setTests({...tests, [e.target.name]: e.target.value});
     }
-    else {
-      setTests({ ...tests, [e.target.name]: e.target.value });
+  }
+
+  const addOrder = async (e) => {
+    const isValid = await validate();
+    if(!isValid){
+      return;
     }
-  };
-
-
-
-  const addOrder = (e) => {
-    if (validate()) {
       tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format(
         "YYYY-MM-DD HH:MM:SS"
       );
@@ -362,9 +404,7 @@ const Laboratory = (props) => {
         tests.dateResultReceived !== ""
           ? moment(tests.dateResultReceived).format("YYYY-MM-DD HH:MM:SS")
           : "";
-
       tests.visitId = visitId;
-
       setTestOrderList([...testOrderList, tests]);
       setTests({
         comments: "",
@@ -389,8 +429,10 @@ const Laboratory = (props) => {
         orderId: "",
         resultReportedBy: "",
       });
-      setSelectedOption([]);
-    }
+      // setSelectedOption([]);
+    setSelectedOption(null);
+    // setUserHasChanged(false);
+
   };
   /* Remove ADR  function **/
   const removeOrder = (index) => {
@@ -403,38 +445,84 @@ const Laboratory = (props) => {
     testOrderList.splice(index, 1);
     setTestOrderList([...testOrderList]);
   };
-  //Validations of the forms
-  const validate = () => {
-    //temp.dateAssayed = tests.dateAssayed ? "" : "This field is required"
+
+  const isCheckXrayAddedToList = () => {
+    if (chestXrayDocumented && testOrderList.length > 0) {
+      const xrayExists = testOrderList.some(test => test.labTestId === 66);
+      setShowModal({
+        show: !xrayExists,
+        message: "Chest X-ray documented on care and support for this encounter. It is required to also be added to the list"
+      });
+      return !xrayExists;
+    }
+    setShowModal({ show: false, message: "" });
+    return false;
+  };
+
+
+  const validate = async () => {
+    // Synchronous validations
     temp.labTestGroupId = tests.labTestGroupId ? "" : "This field is required";
     temp.labTestId = tests.labTestId ? "" : "This field is required";
-    temp.labOrderIndication = tests.labOrderIndication
-      ? ""
-      : "This field is required";
+    temp.labOrderIndication = tests.labOrderIndication ? "" : "This field is required";
     temp.orderedDate = tests.orderedDate ? "" : "This field is required";
     temp.sampleNumber = tests.sampleNumber ? "" : "This field is required";
-    temp.sampleCollectionDate = tests.sampleCollectionDate
-      ? ""
-      : "This field is required";
-    tests.labTestId === "16" &&
-      (temp.viralLoadIndication = tests.viralLoadIndication
-        ? ""
-        : "This field is required");
-    // Only check result if dateResultReceived is not empty or undefined
-    if (tests.dateResultReceived !== "" && tests.dateResultReceived !== undefined) {
-      temp.result = tests.result && tests.result !== undefined ? "" : "This field is required";
-    }
-    // Only check dateResultReceived if result is not empty or undefined
-    if (tests.result !== "" && tests.result !== undefined) {
-      temp.dateResultReceived = tests.dateResultReceived
-          ? ""
-          : "This field is required";
+    temp.sampleCollectionDate = tests.sampleCollectionDate ? "" : "This field is required";
+
+    // Conditional validation for viralLoadIndication
+    if (tests.labTestId === "16") {
+      temp.viralLoadIndication = tests.viralLoadIndication ? "" : "This field is required";
     }
 
-    setErrors({
+    // Conditional validation for result and dateResultReceived
+    if (tests.dateResultReceived) {
+      temp.result = tests.result ? "" : "This field is required";
+    }
+    if (tests.result) {
+      temp.dateResultReceived = tests.dateResultReceived ? "" : "This field is required";
+    }
+
+    // Update errors with synchronous validations
+    setErrors((prevErrors) => ({
+      ...prevErrors,
       ...temp,
-    });
-    return Object.values(temp).every((x) => x == "");
+    }));
+
+    // Check if all synchronous validations pass
+    const isSyncValid = Object.values(temp).every((x) => x === "");
+
+    // Asynchronous validation for sample number
+    if (tests.sampleNumber) {
+      try {
+        const response = await axios.get(`${baseUrl}laboratory/check-sample-number?sampleNumber=${tests.sampleNumber}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = response.data;
+
+        if (data) {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            sampleNumber: "This sample number is already taken.",
+          }));
+          return false; // Validation fails
+        } else {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            sampleNumber: "",
+          }));
+        }
+      } catch (error) {
+        console.error("Error validating sample number:", error);
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          sampleNumber: "An error occurred while checking the sample number.",
+        }));
+        return false;
+      }
+    }
+
+    // Return true only if both synchronous and asynchronous validations pass
+    return isSyncValid;
   };
 
   const LAB_ORDER_INDICATION = () => {
@@ -450,6 +538,9 @@ const Laboratory = (props) => {
 
    const handleSubmit = (e) => {
      e.preventDefault();
+     if(isCheckXrayAddedToList()){
+       return;
+     }
      setSaving(true);
      tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format(
        "YYYY-MM-DD HH:MM:SS"
@@ -559,7 +650,7 @@ const Laboratory = (props) => {
                    <Col md={4} className="form-group mb-3">
                      <FormGroup>
                        <Label for="encounterDate">
-                         Sample Number <span style={{ color: "red" }}> *</span>
+                         Sample Number<span style={{ color: "red" }}> *</span>
                        </Label>
                        <Input
                          type="text"
@@ -591,9 +682,12 @@ const Laboratory = (props) => {
                        </Label>
 
                        <Select
-                         value={selectedOption}
-                         onChange={handleInputChangeObject}
-                         options={labTestOptions}
+                         // value={selectedOption}
+                         // onChange={handleInputChangeObject}
+                         // options={labTestOptions}
+                           value={selectedOption}
+                           onChange={handleInputChangeObject}
+                           options={labTestOptions}
                          theme={(theme) => ({
                            ...theme,
                            borderRadius: "0.25rem",
@@ -785,7 +879,7 @@ const Laboratory = (props) => {
                      <FormGroup>
                        <Label for="">
                          Date Result Received{" "}
-                         {tests.result !== "" ? (
+                         {tests.dateResultReceived !== "" ? (
                            <span style={{ color: "red" }}> *</span>
                          ) : (
                            ""
@@ -1857,7 +1951,7 @@ const Laboratory = (props) => {
                        size="small"
                        style={{ marginTop: 20, marginBottom: 20 }}
                      >
-                       <Icon name="plus" /> Add Test1
+                       <Icon name="plus" /> Add Test
                      </LabelSui>
                    </Col>
                    <hr />
@@ -1921,21 +2015,49 @@ const Laboratory = (props) => {
                  )}
                </MatButton>
              </form>
-             {/* )} */}
-             {/* {moduleStatus==="2" && (
-            <>
-            <Alert
-                variant="warning"
-                className="alert-dismissible solid fade show"
-            >
-                <p>Laboratory Module is not install</p>
-            </Alert>
-           
-            </>
-            )}  */}
            </CardBody>
          </Card>
        </div>
+
+       {showModal.show && (
+           <Modal
+               show={showModal.show}
+               onHide={hideModal}
+               className="fade"
+               size="md"
+               centered
+               backdrop="static"
+               keyboard={false}
+               aria-labelledby="chest-xray-warning-label"
+           >
+             <Modal.Header closeButton style={{ backgroundColor: "#007bff",fontWeight: "bold", color: "#fff" }}>
+               <Modal.Title id="chest-xray-warning-label">
+                 <strong color="#fff">Chest X-ray Required</strong>
+               </Modal.Title>
+             </Modal.Header>
+
+             <Modal.Body className="text-center py-4">
+               <p style={{ fontSize: "1.2rem", color: "#333" }}>
+                 {showModal.message}
+               </p>
+             </Modal.Body>
+
+             <Modal.Footer className="justify-content-center">
+               <Button
+                   variant="secondary"
+                   onClick={hideModal}
+                   style={{
+                     backgroundColor: "#007bff",
+                     borderColor: "#014d88",
+                     fontWeight: "bold",
+                     padding: "0.5rem 1.5rem",
+                   }}
+               >
+                 Close
+               </Button>
+             </Modal.Footer>
+           </Modal>
+       )}
      </div>
    );
 };
@@ -1998,6 +2120,14 @@ function TestOrdersList({
       </th>
     </tr>
   );
+
+
+
 }
+
+
+
+
+
 
 export default Laboratory;

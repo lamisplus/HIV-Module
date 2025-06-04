@@ -63,12 +63,11 @@ function PatientCard(props) {
     const {classes} = props;
     //const patientCurrentStatus=props.patientObj && props.patientObj.currentStatus==="Died (Confirmed)" ? true : false ;
     const patientObject = props.patientObj1;
-    // console.log("in", patientObject);
-    // console.log("out", props.patientObj);
     const id = props.patientObj.id;
-
+    const [viralLoadIsPresent, setViralLoadIsPresent] = useState(false);
     const [patientFlag, setPatientFlag] = useState({});
     const [patientMlValue, setPatientMlValue] = useState({"iit": null, "chance": null});
+    const [resultCheck, setResultCheck] = useState({})
     const getPhoneNumber = (identifier) => {
         const phoneNumber = identifier?.contactPoint?.find(
             (obj) => obj.type === "phone"
@@ -110,6 +109,60 @@ function PatientCard(props) {
             }
         });
     }
+
+    useEffect(() => {
+        const fetchLaboratoryHistory = () => {
+            axios
+                .get(
+                    `${baseUrl}laboratory/rde-all-orders/patients/${props.patientObj.id}`,
+                    {headers: {Authorization: `Bearer ${token}`}}
+                )
+                .then((response) => {
+                    const { labTestName, sampleNumber, result, } = response.data[0]
+                    setResultCheck({ labTestName, sampleNumber, result: "" })
+
+                    //add lims endpoint
+                    const improvedSampleNumber = sampleNumber.replace(/\//g, "-")
+                   axios.get(`${baseUrl}lims/sample/result/${improvedSampleNumber}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }).then((data) => {
+                       if (data.data === null || data.data === "") {
+                       }else {
+                           const { testResult } = data.data;
+                           setResultCheck({ labTestName, sampleNumber, result: testResult })
+                       }
+                   }).catch((error) => {
+                       console.log("err",error)
+                   })
+
+                    if (response.data && Array.isArray(response.data)) {
+                        const viralLoadResults = response.data.filter(
+                            (item) =>
+                                item.labTestName === "Viral Load"
+                        );
+
+                        if (viralLoadResults.length > 0) {
+                            const mostRecent = viralLoadResults[0];
+                            if (mostRecent.result != null && mostRecent.result.trim() !== "") {
+                                setViralLoadIsPresent(true);
+                            } else {
+                                setViralLoadIsPresent(false);
+                            }
+                        } else {
+                            setViralLoadIsPresent(false);
+                        }
+                    } else {
+                        setViralLoadIsPresent(false);
+                    }
+                })
+                .catch((error) => {
+                    setViralLoadIsPresent(false);
+                    console.log(error);
+                });
+        };
+
+        fetchLaboratoryHistory();
+    }, [props.patientObj.id]);
 
     useEffect(() => {
         fetchPatientFlags(id);
@@ -232,7 +285,7 @@ function PatientCard(props) {
                                             color: "rgb(153, 46, 98)",
                                         }}
                                     >
-                                {" "}
+                                        {" "}
                                         {"   "} due in{" "}
                                         <Badge
                                             style={{
@@ -240,11 +293,11 @@ function PatientCard(props) {
                                                 fontSize: "14px",
                                             }}
                                         >
-                                  {" "}
+                                            {" "}
                                             {patientFlag.dateDiff}
-                                </Badge>{" "}
+                                        </Badge>{" "}
                                         days{" "}
-                              </span>
+                                    </span>
                                 ) : null}
                           </b>
                         </span>
@@ -351,38 +404,67 @@ function PatientCard(props) {
                                                             alignItems: "left",
                                                         }}
                                                     >
-                                                        {/* <Label.Detail style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', text: 'center'}}> */}
                                                         {patientFlag.vlSurpression ===
                                                         "LOW SURPRESSION RATE" ? (
                                                             <span>
-                                VIRAL LOAD RESULT{" "}
+                                                                VIRAL LOAD RESULT{" "}
                                                                 <Badge
                                                                     style={{
                                                                         backgroundColor: "blue",
                                                                         fontSize: "14px",
                                                                     }}
                                                                 >
-                                  {" "}
+                                                                    {" "}
                                                                     {patientFlag.currentViralLoadResult}
-                                </Badge>{" "}
-                              </span>
+                                                                </Badge>{" "}
+                                                            </span>
                                                         ) : patientFlag.vlSurpression ===
                                                         "HIGH SURPRESSION RATE" ? (
                                                             <span>
-                                VIRAL LOAD RESULT{" "}
+                                                                VIRAL LOAD RESULT{" "}
                                                                 <Badge
                                                                     style={{
                                                                         backgroundColor: "red",
                                                                         fontSize: "14px",
                                                                     }}
                                                                 >
-                                  {" "}
+                                                                    {" "}
                                                                     {patientFlag.currentViralLoadResult}
-                                </Badge>{" "}
-                              </span>
-                                                        ) : (
-                                                            <span>NO VIRAL LOAD RESULT </span>
-                                                        )}
+
+                                                                </Badge>{" "}
+                                                            </span>
+                                                        ) : viralLoadIsPresent ?
+
+                                                            <span>
+
+                                                                <Badge
+                                                                    style={{
+                                                                        backgroundColor: "seagreen",
+                                                                        fontSize: "14px",
+                                                                    }}
+                                                                >
+                                                                    {" "}
+                                                                    VIRAL LOAD RESULT AVAILABLE
+                                                                </Badge>{" "}
+                                                            </span>
+                                                            : resultCheck !== null && resultCheck.labTestName === "Viral Load" && resultCheck.result !== "" ?
+                                                                <span>
+
+                                                                    <Badge
+                                                                        style={{
+                                                                        backgroundColor: "seagreen",
+                                                                        fontSize: "14px",
+                                                                    }}
+                                                                    >
+                                                                        {" "}
+                                                                        LATEST VIRAL LOAD RESULT AVAILABLE
+                                                                    </Badge>{" "}
+                                                                </span>
+                                                            :
+                                                            (
+                                                                <span>NO VIRAL LOAD RESULT </span>
+                                                            )
+                                                        }
                                                     </Label>
                                                 </Typography>
                                             </Col>

@@ -29,7 +29,7 @@ const EACOutcome = (props) => {
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
-                console.log("outcome response:", response.data)
+                console.log("outcome response at index:", response.data)
                 setOrderList(response.data);
             })
             .catch((error) => {

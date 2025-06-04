@@ -220,13 +220,11 @@ const ChronicCare = (props) => {
     neurologicSymptomsEffectSeverity:"",
     hepatotoxicityEffectSeverity:'',
     enrolledOnTpt:""
-
   });
   const [tbObj, setTbObj] = useState({
     //TB and IPT Screening Object
     currentlyOnTuberculosis: "",
     tbTreatment: "",
-    // tbTreatmentStartDate: "",
     coughing: "",
     fever: "",
     losingWeight: "",
@@ -245,8 +243,6 @@ const ChronicCare = (props) => {
     eligibleForTPT: "",
     chestXrayResult:"",
     isTbTestConfirmed:"",
-
-    // treatementOutcome: "",
     //This is section for TB Treament Variable
     specimentCollectedStatus: "",
     specimenType: "",
@@ -272,7 +268,17 @@ const ChronicCare = (props) => {
     completionDate: "",
     treatmentCompletionStatus: "",
     completedTbTreatment: "",
-    currentWeight:""
+    currentWeight:"",
+    //CAD VARIABLES FOR ADULT
+    cadScore:"",
+    cadOutcome:"",
+    // cadCoughing:"",
+    // cadFever:"",
+    // cadLosingWeight:"",
+    // cadNightSweats: "",
+    //ADDITIONAL CAD VARIABLES FOR PEDIATRIC
+    // cadPoorWeightGain:"",
+    // cadHistoryWithAdults: ""
 
   });
   const [observationObj, setObservationObj] = useState({
@@ -382,17 +388,21 @@ const ChronicCare = (props) => {
     if(tbObj.tbTreatment === "No"){
       temp.tbScreeningType = tbObj.tbScreeningType ? '' : "This field is required.";
     }
+    if(tbObj.tbTreatment === "No" && tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening"){
+      temp.cadScore = tbObj.cadScore ? '' : "This field is required.";
+    }
+
     if(tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-ray'){
       temp.chestXray = tbObj.chestXray ? '' : "This field is required.";
       temp.isTbTestConfirmed = tbObj.isTbTestConfirmed ? '' : "This field is required.";
     }
-    if(tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-ray with CAD'){
+    if(tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening'){
       temp.chestXrayResult = tbObj.chestXrayResult ? '' : "This field is required.";
     }
-    if (tbObj.tbScreeningType === 'Chest X-ray with CAD' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
+    if (tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
       temp.chestXrayResult = tbObj.chestXrayResult ? '' : "This field is required.";
     }
-    if (tbObj.tbScreeningType === 'Chest X-ray with CAD' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
+    if (tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
       temp.chestXrayResult = tbObj.chestXrayResult ? '' : "This field is required.";
     }
     if(tbObj.tbTreatment ==="No" && tbObj.outcome === "Presumptive TB" ){
@@ -404,6 +414,16 @@ const ChronicCare = (props) => {
       temp.nightSweats= tbObj.nightSweats ? '' : "This field is required.";
       temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
     }
+
+    // if ( tbObj.tbTreatment === "No" &&
+    //     tbObj.cadScore !== '' &&
+    //     tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening") {
+    //   temp.coughing = tbObj.coughing ? '' : "This field is required.";
+    //   temp.fever = tbObj.fever ? '': "This field is required. ";
+    //   temp.nightSweats= tbObj.nightSweats ? '' : "This field is required.";
+    //   temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
+    // }
+
     if(tbObj.specimentCollectedStatus === "Yes"){
       temp.specimentSent = tbObj.specimentSent ? '' : "This field is required.";
     }
@@ -443,6 +463,7 @@ const ChronicCare = (props) => {
     setErrors({
       ...temp,
     });
+    // console.log("temp error", temp)
     return Object.values(temp).every((x) => x === "");
   };
 
@@ -756,8 +777,8 @@ const ChronicCare = (props) => {
 
               {
                   (tbObj.tbEvaulationOutcome === 'TB Not Diagnosed' ||
-                      tbObj.outcome === "Not Presumptive" ||
-                       tbObj.status === 'No signs or symptoms of TB'
+                       tbObj.status === 'No signs or symptoms of TB' ||
+                       tbObj.status === 'Currently on TB treatment'
                   // || tbObj.tbTreatment === "No"
                   )
                   &&
@@ -859,7 +880,8 @@ const ChronicCare = (props) => {
                 )}
               </div>
               {/* End Nutritional Status Assessment */}
-              {/* Gender Based Violence Screening */}
+              {/*SWO-FEATURE*/}
+              {/* Gender Based Violence Screening*/}
               <div className="card">
                 <div
                   className="card-header"
@@ -871,7 +893,7 @@ const ChronicCare = (props) => {
                   }}
                 >
                   <h5 className="card-title" style={{ color: "#fff" }}>
-                    Gender Based Violence Screening{" "}
+                    Intimate Partner Violence Form{" "}
                   </h5>
                   {showGenderBase === false ? (
                     <>
@@ -910,7 +932,7 @@ const ChronicCare = (props) => {
                   </div>
                 )}
               </div>
-              {/* End Gender Based Violence Screening */}
+               {/*End Gender Based Violence Screening*/}
               {/* End Screening for Chronic Conditions */}
               <div className="card">
                 <div
@@ -1068,57 +1090,58 @@ const ChronicCare = (props) => {
                 )}
               </div>
               {/* End Positive Health Dignity and Prevention */}
+              {/*SWO-FEATURE */}
               {/* Reproductive Intentions */}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    Reproductive Intentions{" "}
-                  </h5>
-                  {showReproductive === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickReproductive}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickReproductive}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
-                  )}
-                </div>
-                {showReproductive && (
-                  <div className="card-body">
-                    <div className="row">
-                      <ReproductiveIntentions
-                        setReproductive={setReproductive}
-                        reproductive={reproductive}
-                        setErrors={setErrors}
-                        errors={errors}
-                        encounterDate={observation.dateOfObservation}
-                        patientObj={patientObj}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/*<div className="card">*/}
+              {/*  <div*/}
+              {/*    className="card-header"*/}
+              {/*    style={{*/}
+              {/*      backgroundColor: "#014d88",*/}
+              {/*      color: "#fff",*/}
+              {/*      fontWeight: "bolder",*/}
+              {/*      borderRadius: "0.2rem",*/}
+              {/*    }}*/}
+              {/*  >*/}
+              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
+              {/*      Reproductive Intentions{" "}*/}
+              {/*    </h5>*/}
+              {/*    {showReproductive === false ? (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickReproductive}*/}
+              {/*        >*/}
+              {/*          <FaPlus />*/}
+              {/*        </span>*/}
+              {/*      </>*/}
+              {/*    ) : (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickReproductive}*/}
+              {/*        >*/}
+              {/*          <FaAngleDown />*/}
+              {/*        </span>{" "}*/}
+              {/*      </>*/}
+              {/*    )}*/}
+              {/*  </div>*/}
+              {/*  {showReproductive && (*/}
+              {/*    <div className="card-body">*/}
+              {/*      <div className="row">*/}
+              {/*        <ReproductiveIntentions*/}
+              {/*          setReproductive={setReproductive}*/}
+              {/*          reproductive={reproductive}*/}
+              {/*          setErrors={setErrors}*/}
+              {/*          errors={errors}*/}
+              {/*          encounterDate={observation.dateOfObservation}*/}
+              {/*          patientObj={patientObj}*/}
+              {/*        />*/}
+              {/*      </div>*/}
+              {/*    </div>*/}
+              {/*  )}*/}
+              {/*</div> */}
               {/* End Reproductive Intentions */}
               {saving ? <Spinner /> : ""}
 

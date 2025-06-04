@@ -432,7 +432,7 @@ const Tracking = (props) => {
                             <h2>Transfer {patientCurrentStatus === "ART TRANSFER OUT" ? "In " : "Out "} Form</h2>
                             <br/>
                             <div class="row">
-                                <div className="form-group mb-3 col-md-12">
+                                <div className="form-group mb-3 col-md-4">
                                     <FormGroup>
                                         <Label for="">Encounter Date</Label>
                                         <span style={{color: "red"}}> *</span>
@@ -447,6 +447,7 @@ const Tracking = (props) => {
                                                 border: `1px solid ${hasExistingTransfer ? "red" : "#014D88"}`,
                                                 borderRadius: "0.25rem",
                                             }}
+                                            min={payload.dateEnrolledInTreatment}
                                             onKeyPress={(e) => e.preventDefault()}
                                         />
                                         {errors.encounterDate !== "" ? (
@@ -897,7 +898,6 @@ const Tracking = (props) => {
                                             type="date"
                                             name="dateEnrolledInCare"
                                             id="dateEnrolledInCare"
-                                            // onChange={handleInputChange}
                                             disabled={true}
                                             value={payload.dateEnrolledInCare}
                                             onKeyPress={(e) => e.preventDefault()}
@@ -912,7 +912,6 @@ const Tracking = (props) => {
                                             type="date"
                                             name="dateEnrolledInTreatment"
                                             id="dateEnrolledInTreatment"
-                                            // onChange={handleInputChange}
                                             disabled={true}
                                             value={payload.dateEnrolledInTreatment}
                                             onKeyPress={(e) => e.preventDefault()}

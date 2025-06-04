@@ -713,6 +713,13 @@ const handleSubmit = async (e) => {
               </div>
               {/* End TB & IPT  Screening  */}
               {/* TPT MONITORING */}
+              {
+                  (tbObj.tbEvaulationOutcome === 'TB Not Diagnosed' ||
+                      tbObj.status === 'No signs or symptoms of TB' ||
+                      tbObj.status === 'Currently on TB treatment'
+                  )
+                  &&
+                  (
               <div className="card">
                 <div
                   className="card-header"
@@ -724,7 +731,7 @@ const handleSubmit = async (e) => {
                   }}
                 >
                   <h5 className="card-title" style={{ color: "#fff" }}>
-                    TPT Monitoring
+                    TPT Prevention/Monitoring
                   </h5>
                   {showTpt === false ? (
                     <>
@@ -760,6 +767,8 @@ const handleSubmit = async (e) => {
                   />
                 )}
               </div>
+                  )
+              }
               {/* End TPT MONITORING */}
               {/* End Nutritional Status Assessment */}
               <div className="card">
@@ -810,7 +819,8 @@ const handleSubmit = async (e) => {
                 )}
               </div>
               {/* End Nutritional Status Assessment */}
-              {/* Gender Based Violence Screening */}
+              {/* SWO-FEATURE */}
+              {/* Gender Based Violence Screening*/}
               <div className="card">
                 <div
                   className="card-header"
@@ -822,7 +832,7 @@ const handleSubmit = async (e) => {
                   }}
                 >
                   <h5 className="card-title" style={{ color: "#fff" }}>
-                    Gender Based Violence Screening{" "}
+                    Intimate Partner Violence Form{" "}
                   </h5>
                   {showGenderBase === false ? (
                     <>
@@ -862,7 +872,7 @@ const handleSubmit = async (e) => {
                   </div>
                 )}
               </div>
-              {/* End Gender Based Violence Screening */}
+               {/*End Gender Based Violence Screening*/}
               {/* End Screening for Chronic Conditions */}
               <div className="card">
                 <div
@@ -969,58 +979,59 @@ const handleSubmit = async (e) => {
                 )}
               </div>
               {/* End Positive Health Dignity and Prevention */}
+              {/*SWO-FEATURE */}
               {/* Reproductive Intentions */}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    Reproductive Intentions{" "}
-                  </h5>
-                  {showReproductive === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickReproductive}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickReproductive}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
-                  )}
-                </div>
-                {showReproductive && (
-                  <div className="card-body">
-                    <div className="row">
-                      <ReproductiveIntentions
-                        setReproductive={setReproductive}
-                        reproductive={reproductive}
-                        setErrors={setErrors}
-                        errors={errors}
-                        encounterDate={observation.dateOfObservation}
-                        patientObj={patientObj}
-                        action={props.activeContent.actionType}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/*<div className="card">*/}
+              {/*  <div*/}
+              {/*    className="card-header"*/}
+              {/*    style={{*/}
+              {/*      backgroundColor: "#014d88",*/}
+              {/*      color: "#fff",*/}
+              {/*      fontWeight: "bolder",*/}
+              {/*      borderRadius: "0.2rem",*/}
+              {/*    }}*/}
+              {/*  >*/}
+              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
+              {/*      Reproductive Intentions{" "}*/}
+              {/*    </h5>*/}
+              {/*    {showReproductive === false ? (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickReproductive}*/}
+              {/*        >*/}
+              {/*          <FaPlus />*/}
+              {/*        </span>*/}
+              {/*      </>*/}
+              {/*    ) : (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickReproductive}*/}
+              {/*        >*/}
+              {/*          <FaAngleDown />*/}
+              {/*        </span>{" "}*/}
+              {/*      </>*/}
+              {/*    )}*/}
+              {/*  </div>*/}
+              {/*  {showReproductive && (*/}
+              {/*    <div className="card-body">*/}
+              {/*      <div className="row">*/}
+              {/*        <ReproductiveIntentions*/}
+              {/*          setReproductive={setReproductive}*/}
+              {/*          reproductive={reproductive}*/}
+              {/*          setErrors={setErrors}*/}
+              {/*          errors={errors}*/}
+              {/*          encounterDate={observation.dateOfObservation}*/}
+              {/*          patientObj={patientObj}*/}
+              {/*          action={props.activeContent.actionType}*/}
+              {/*        />*/}
+              {/*      </div>*/}
+              {/*    </div>*/}
+              {/*  )}*/}
+              {/*</div> */}
               {/* End Reproductive Intentions */}
               {saving ? <Spinner /> : ""}
 

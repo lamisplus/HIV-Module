@@ -18,7 +18,7 @@ import {Alert } from "react-bootstrap";
 import { Icon,Button, } from 'semantic-ui-react'
 
 
-const useStyles = makeStyles(theme => ({ 
+const useStyles = makeStyles(theme => ({
     button: {
       margin: theme.spacing(1)
     },
@@ -92,16 +92,16 @@ const Laboratory = (props) => {
                                         result: "",
                                         sampleCollectionDate: null,
                                         viralLoadIndication: 0,
-                                        visitId:"" 
+                                        visitId:""
                                     })
-                                    
-    useEffect(() => {           
+
+    useEffect(() => {
         CheckLabModule();
         LabTestDetail();
         ViraLoadIndication();
-        GetPatientDTOObj();  
+        GetPatientDTOObj();
         }, [props.patientObj.id]);
-        
+
         const GetPatientDTOObj =()=>{
             axios
                .get(`${baseUrl}hiv/patient/${props.patientObj.id}`,
@@ -111,13 +111,13 @@ const Laboratory = (props) => {
                    const patientDTO= response.data.enrollment
                    setEnrollDate (patientDTO && patientDTO.dateOfRegistration ? patientDTO.dateOfRegistration :"")
                    //setEacStatusObj(response.data);
-                   
+
                })
                .catch((error) => {
-               
+
                });
-           
-        } 
+
+        }
     //Get list of Test Group
     const LabTestDetail =()=>{
         axios
@@ -127,12 +127,12 @@ const Laboratory = (props) => {
             .then((response) => {
                 setLabTestDetail(response.data.sampleType);
                 tests.labTestGroupId= response.data.labTestGroupId
-                tests.labTestId= response.data.id 
+                tests.labTestId= response.data.id
             })
             .catch((error) => {
-            
+
             });
-        
+
     }
 
     //Check if Module Exist
@@ -152,9 +152,9 @@ const Laboratory = (props) => {
                     setButtonHidden(true)
                 }
             }).catch((error) => {
-            
+
             });
-        
+
     }
     //Get list of Test Group
     const ViraLoadIndication =()=>{
@@ -163,17 +163,17 @@ const Laboratory = (props) => {
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
-                
+
                 setVLIndication(response.data);
             })
             .catch((error) => {
-            
-            });        
+
+            });
     }
-   
+
     const handleInputChangeObject = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
-        setTests ({...tests,  [e.target.name]: e.target.value});               
+        setTests ({...tests,  [e.target.name]: e.target.value});
     }
     const handleInputChange = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
@@ -182,27 +182,27 @@ const Laboratory = (props) => {
             const onlyPositiveNumber = e.target.value //Math.abs(e.target.value)
             setTests ({...tests,  [e.target.name]: onlyPositiveNumber});
         }else{
-            setTests ({...tests,  [e.target.name]: e.target.value}); 
+            setTests ({...tests,  [e.target.name]: e.target.value});
         }
-                      
+
     }
-   
-    const addOrder = e => {  
+
+    const addOrder = e => {
         if(validate()){
         tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format("YYYY-MM-DD HH:MM:SS")
-        tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format("YYYY-MM-DD HH:MM:SS") 
+        tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format("YYYY-MM-DD HH:MM:SS")
             tests.visitId=visitId
             setTestOrderList([...testOrderList, tests])
         }
       }
       /* Remove ADR  function **/
-      const removeOrder = index => {       
+      const removeOrder = index => {
         testOrderList.splice(index, 1);
         setTestOrderList([...testOrderList]);
-         
+
       };
       //Validations of the forms
-      const validate = () => {        
+      const validate = async () => {
         temp.sampleCollectedBy = tests.sampleCollectedBy ? "" : "This field is required"
         temp.labNumber = tests.labNumber ? "" : "This field is required"
         //temp.labTestId = tests.labTestId ? "" : "This field is required"
@@ -210,24 +210,24 @@ const Laboratory = (props) => {
         temp.sampleCollectionDate = tests.sampleCollectionDate ? "" : "This field is required"
         //temp.dateCollectedBy =  tests.dateCollectedBy ? "" : "This field is required"
         temp.viralLoadIndication = tests.viralLoadIndication ? "" : "This field is required"
-       
+
         setErrors({
             ...temp
         })
         return Object.values(temp).every(x => x == "")
     }
-    
-    const handleSubmit = (e) => {        
+
+    const handleSubmit = (e) => {
         e.preventDefault();
-        if(validate()){         
+        if(validate()){
         setSaving(true);
-        
+
         axios.post(`${baseUrl}laboratory/vl-orders`,tests,
             { headers: {"Authorization" : `Bearer ${token}`}},)
             .then(response => {
                 setSaving(false);
                 props.LabOrders();
-                
+
                 toast.success("Viral load order created successful");
                 props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', activeTab:"history"})
             })
@@ -235,21 +235,21 @@ const Laboratory = (props) => {
                 setSaving(false);
                 if(error.response && error.response.data){
                     let errorMessage = error.response.data && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                    toast.error(errorMessage); 
-                }                  
-            }); 
-        }  
+                    toast.error(errorMessage);
+                }
+            });
+        }
     }
 
 
-  return (      
+  return (
       <div >
 
         <div className="row">
         <div className="col-md-6">
         <h2>Viral Load Order </h2>
         </div>
-     
+
         <br/>
         <br/>
         <Card className={classes.root}>
@@ -257,7 +257,7 @@ const Laboratory = (props) => {
             {/* {moduleStatus==="1" && ( */}
                 <form >
                 <div className="row">
-                    
+
                     <Row>
                     <Col md={6} className="form-group mb-3">
                             <FormGroup>
@@ -268,7 +268,7 @@ const Laboratory = (props) => {
                                     id="labNumber"
                                     value={tests.labNumber}
                                     onChange={handleInputChange}
-                                   
+
                                     style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                     required
                                 />
@@ -277,7 +277,7 @@ const Laboratory = (props) => {
                                 ) : "" }
                             </FormGroup>
                     </Col>
-                    
+
                     <Col md={6} className="form-group mb-3">
                             <FormGroup>
                                 <Label for="vlIndication">VL Indication*</Label>
@@ -286,11 +286,11 @@ const Laboratory = (props) => {
                                 name="viralLoadIndication"
                                 id="viralLoadIndication"
                                 value={tests.viralLoadIndication}
-                                onChange={handleInputChange}  
-                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}                 
+                                onChange={handleInputChange}
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 >
                                 <option value="">Select </option>
-                                                
+
                                     {vLIndication.map((value) => (
                                         <option key={value.id} value={value.id}>
                                             {value.display}
@@ -306,7 +306,7 @@ const Laboratory = (props) => {
                                 id="labTestGroupId"
                                 hidden
                                 value={tests.labTestGroupId}
-                                                
+
                             />
                             <Input
                                 type="text"
@@ -314,11 +314,11 @@ const Laboratory = (props) => {
                                 id="labTestId"
                                 hidden
                                 value={tests.labTestId}
-                                                
+
                             />
                             </FormGroup>
                     </Col>
-                    
+
                     <Col md={6} className="form-group mb-3">
                             <FormGroup>
                                 <Label for="encounterDate">Sample Type</Label>
@@ -371,7 +371,7 @@ const Laboratory = (props) => {
                                 type="text"
                                 name="sampleCollectedBy"
                                 id="sampleCollectedBy"
-                                value={tests.sampleCollectedBy}                                
+                                value={tests.sampleCollectedBy}
                                 onChange={handleInputChange}
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
                                 required
@@ -404,10 +404,10 @@ const Laboratory = (props) => {
 
                     </Row>
                 </div>
-                    
+
                     {saving ? <Spinner /> : ""}
                     <br />
-                
+
                     <MatButton
                         type="submit"
                         variant="contained"
@@ -425,7 +425,7 @@ const Laboratory = (props) => {
                         <span style={{ textTransform: "capitalize" }}>Saving...</span>
                         )}
                     </MatButton>
-                
+
                 </form>
             {/* )}
             {moduleStatus==="2" && (
@@ -436,12 +436,12 @@ const Laboratory = (props) => {
             >
                 <p>Laboratory Module is not install</p>
             </Alert>
-           
+
             </>
             )}  */}
             </CardBody>
-        </Card> 
-        </div>             
+        </Card>
+        </div>
     </div>
   );
 }
@@ -452,7 +452,7 @@ function TestOrdersList({
     testGroupObj,
     vLIndicationObj,
   }) {
-    
+
     const testGroupName= testGroupObj.find((x)=> x.id===parseInt(order.labTestGroupId))
     const testName= testGroupName.labTests.find((x)=> x.id===parseInt(order.labTestId))
     const vLIndication=vLIndicationObj.length>0 ?
@@ -472,9 +472,9 @@ function TestOrdersList({
                     <IconButton aria-label="delete" size="small" color="error" onClick={() =>removeOrder(index)}>
                         <DeleteIcon fontSize="inherit" />
                     </IconButton>
-                    
+
                 </th>
-            </tr> 
+            </tr>
     );
   }
 
