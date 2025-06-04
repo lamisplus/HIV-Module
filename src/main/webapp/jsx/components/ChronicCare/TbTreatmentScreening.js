@@ -487,7 +487,7 @@ const TbTreatmentScreening = (props) => {
                     { props.tbObj.clinicallyEvaulated === "Yes" &&
                         <div className="form-group mb-3 col-md-6">
                 <FormGroup>
-                  <Label>Chest X-Ray Done </Label>
+                  <Label>Chest X-ray Reviewed by Radiologist</Label>
                   <InputGroup>
                     <Input
                       type="select"
@@ -545,7 +545,7 @@ const TbTreatmentScreening = (props) => {
               {props.tbObj.chestXrayDone==='Yes' && (<>
                   <div className="form-group mb-3 col-md-6">
                    <FormGroup>
-                  <Label>Chest X-ray Result </Label>
+                  <Label>Result of Chest X-ray Reviewed </Label>
                   <InputGroup>
                     <Input
                       type="select"
@@ -573,7 +573,7 @@ const TbTreatmentScreening = (props) => {
                 </div>
                  <div className="form-group mb-3 col-md-6">
                   <FormGroup>
-                  <Label>Date of Chest X-ray </Label>
+                  <Label>Date of Chest X-ray Review </Label>
                   <InputGroup>
                     <Input
                       type="date"

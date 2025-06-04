@@ -98,7 +98,6 @@ const RecentHistory = (props) => {
         })
         .then((response) => {
           setLoading(false);
-          // console.log(response.data)
           setPatientStatus(response.data)
 
         })

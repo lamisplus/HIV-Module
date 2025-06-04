@@ -636,7 +636,7 @@ const Laboratory = (props) => {
                                         <FormGroup>
                                             <Label for="encounterDate">
                                                 Date Result Received{" "}
-                                                {tests.result !== "" ? (
+                                                {tests?.dateResultReceived !== "" ? (
                                                     <span style={{color: "red"}}> *</span>
                                                 ) : (
                                                     ""

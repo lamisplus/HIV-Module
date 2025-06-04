@@ -157,7 +157,7 @@ const Laboratory = (props) => {
     useEffect(() => {
         const fetchTestResult = (sampleNumber) => {
             if (!sampleNumber) return;
-            const modifiedSampleNumber = sampleNumber.replace(/\//g, "_");
+            const modifiedSampleNumber = sampleNumber.replace(/\//g, "-");
             axios.get(`${baseUrl}lims/sample/result/${modifiedSampleNumber}`, {
             headers: { Authorization: `Bearer ${token}` },
         })
@@ -180,7 +180,6 @@ const Laboratory = (props) => {
         setShowResult(true)
         fetchTestResult(props.activeContent.obj.sampleNumber);
     }
-    // console.log("Active Content Object:", props.activeContent?.obj);
 }, [props.activeContent]);
 
 
@@ -349,8 +348,6 @@ const Laboratory = (props) => {
         props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', id:row.id, activeTab:"history", actionType:"", obj:{}})
      }
 
-     console.log(" active content in view viral load", tests)
-  
   return (      
       <div >
 

@@ -2269,56 +2269,56 @@ const ClinicVisit = (props) => {
                           </Input>
                         </FormGroup>
                       </div>
-                      {/* This section is if the patient is Female */}
+                      {/*SWO-FEATURE */}
 
-                      <div className=" mb-3 col-md-6">
-                        <FormGroup>
-                          <FormLabelName>Family Planing ?</FormLabelName>
-                          <Input
-                            type="select"
-                            name="familyPlaning"
-                            id="familyPlaning"
-                            value={objValues.familyPlaning}
-                            onChange={handleInputChange}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            disabled={!enableUpdate}
-                          >
-                            <option value="select">Select </option>
-                            <option value="Yes">Yes </option>
-                            <option value="No">No </option>
-                          </Input>
-                        </FormGroup>
-                      </div>
-                      {objValues.familyPlaning === "Yes" && (
-                        <div className=" mb-3 col-md-6">
-                          <FormGroup>
-                            <FormLabelName>On Family Planing </FormLabelName>
-                            <Input
-                              type="select"
-                              name="onFamilyPlaning"
-                              id="onFamilyPlaning"
-                              value={objValues.onFamilyPlaning}
-                              onChange={handleInputChange}
-                              style={{
-                                border: "1px solid #014D88",
-                                borderRadius: "0.25rem",
-                              }}
-                              disabled={!enableUpdate}
-                            >
-                              <option value="select">Select </option>
+                      {/*<div className=" mb-3 col-md-6">*/}
+                      {/*  <FormGroup>*/}
+                      {/*    <FormLabelName>Family Planing ?</FormLabelName>*/}
+                      {/*    <Input*/}
+                      {/*      type="select"*/}
+                      {/*      name="familyPlaning"*/}
+                      {/*      id="familyPlaning"*/}
+                      {/*      value={objValues.familyPlaning}*/}
+                      {/*      onChange={handleInputChange}*/}
+                      {/*      style={{*/}
+                      {/*        border: "1px solid #014D88",*/}
+                      {/*        borderRadius: "0.25rem",*/}
+                      {/*      }}*/}
+                      {/*      disabled={!enableUpdate}*/}
+                      {/*    >*/}
+                      {/*      <option value="select">Select </option>*/}
+                      {/*      <option value="Yes">Yes </option>*/}
+                      {/*      <option value="No">No </option>*/}
+                      {/*    </Input>*/}
+                      {/*  </FormGroup>*/}
+                      {/*</div>*/}
+                      {/*{objValues.familyPlaning === "Yes" && (*/}
+                      {/*  <div className=" mb-3 col-md-6">*/}
+                      {/*    <FormGroup>*/}
+                      {/*      <FormLabelName>On Family Planing </FormLabelName>*/}
+                      {/*      <Input*/}
+                      {/*        type="select"*/}
+                      {/*        name="onFamilyPlaning"*/}
+                      {/*        id="onFamilyPlaning"*/}
+                      {/*        value={objValues.onFamilyPlaning}*/}
+                      {/*        onChange={handleInputChange}*/}
+                      {/*        style={{*/}
+                      {/*          border: "1px solid #014D88",*/}
+                      {/*          borderRadius: "0.25rem",*/}
+                      {/*        }}*/}
+                      {/*        disabled={!enableUpdate}*/}
+                      {/*      >*/}
+                      {/*        <option value="select">Select </option>*/}
 
-                              {familyPlaining.map((value) => (
-                                <option key={value.code} value={value.code}>
-                                  {value.display}
-                                </option>
-                              ))}
-                            </Input>
-                          </FormGroup>
-                        </div>
-                      )}
+                      {/*        {familyPlaining.map((value) => (*/}
+                      {/*          <option key={value.code} value={value.code}>*/}
+                      {/*            {value.display}*/}
+                      {/*          </option>*/}
+                      {/*        ))}*/}
+                      {/*      </Input>*/}
+                      {/*    </FormGroup>*/}
+                      {/*  </div>*/}
+                      {/*)}*/}
                     </div>
                     <br />
                     <Label

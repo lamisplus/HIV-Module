@@ -972,6 +972,13 @@ const Pharmacy = (props) => {
     };
 
     const addDrugOI = (e) => {
+        // Validate the visitType field
+        if (iptEligibilty.IPTEligibility && !objValues.iptType) {
+            toast.error("Visit Type is required", {
+                position: toast.POSITION.BOTTOM_CENTER,
+            });
+            return;
+        }
         if (validateDrugDispense()) {
             setRegimenDrugList([...regimenDrugList, ...regimenDrug]);
             const drugObj = [
@@ -1031,7 +1038,13 @@ const Pharmacy = (props) => {
         );
 
         if (observeDate) {
-            //if(iptEligibilty.IPTEligibility!==true && objValues.visitType===""){
+            if (iptEligibilty.IPTEligibility && !objValues.iptType) {
+                toast.error("Visit Type is required", {
+                    position: toast.POSITION.BOTTOM_CENTER,
+                });
+                setSaving(false)
+                return;
+            }
             objValues.adverseDrugReactions = selectedOptionAdr;
             objValues.personId = props.patientObj.id;
             objValues.extra["regimens"] = regimenDrugList;
@@ -1907,11 +1920,10 @@ const Pharmacy = (props) => {
                                     </FormGroup>
                                 </div>
 
-                                {iptEligibilty.IPTEligibility === true && ( //iptEligibilty check to display Visit type
+                                {iptEligibilty.IPTEligibility === true && (
                                     <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                                         <FormGroup>
-                                            <Label>Visit Type</Label>
-
+                                            <Label>Visit Type <span style={{color: "red"}}> *</span>{" "}</Label>
                                             <Input
                                                 type="select"
                                                 name="iptType"
