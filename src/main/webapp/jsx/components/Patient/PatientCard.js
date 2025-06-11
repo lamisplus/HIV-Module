@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import {withStyles} from "@material-ui/core/styles";
 //import classNames from 'classnames';
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
-//import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 
 import {Link} from "react-router-dom";
@@ -111,54 +110,84 @@ function PatientCard(props) {
     }
 
     useEffect(() => {
-        const fetchLaboratoryHistory = () => {
-            axios
-                .get(
+        const fetchLaboratoryHistory = async () => {
+            try {
+                const response = await axios.get(
                     `${baseUrl}laboratory/rde-all-orders/patients/${props.patientObj.id}`,
                     {headers: {Authorization: `Bearer ${token}`}}
-                )
-                .then((response) => {
-                    const { labTestName, sampleNumber, result, } = response.data[0]
-                    setResultCheck({ labTestName, sampleNumber, result: "" })
+                );
 
-                    //add lims endpoint
-                    const improvedSampleNumber = sampleNumber.replace(/\//g, "-")
-                   axios.get(`${baseUrl}lims/sample/result/${improvedSampleNumber}`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }).then((data) => {
-                       if (data.data === null || data.data === "") {
-                       }else {
-                           const { testResult } = data.data;
-                           setResultCheck({ labTestName, sampleNumber, result: testResult })
-                       }
-                   }).catch((error) => {
-                       console.log("err",error)
-                   })
+                if (!Array.isArray(response.data)) {
+                    setViralLoadIsPresent(false);
+                    setResultCheck(null);
+                    return;
+                }
 
-                    if (response.data && Array.isArray(response.data)) {
-                        const viralLoadResults = response.data.filter(
-                            (item) =>
-                                item.labTestName === "Viral Load"
+                const viralLoadResults = response.data.filter(
+                    item => item.labTestName === "Viral Load"
+                );
+
+                if (viralLoadResults.length === 0) {
+                    setViralLoadIsPresent(false);
+                    setResultCheck(null);
+                    return;
+                }
+
+                const resultsWithDetails = [];
+
+                for (const item of viralLoadResults) {
+                    let improvedSampleNumber = item.sampleNumber
+                        ? item.sampleNumber.replace(/\//g, "-")
+                        : "unknown"; // fallback if sampleNumber is null/missing
+
+                    let fullResult = {...item};
+
+                    try {
+                        const limsResponse = await axios.get(
+                            `${baseUrl}lims/sample/result/${improvedSampleNumber}`,
+                            {headers: {Authorization: `Bearer ${token}`}}
                         );
 
-                        if (viralLoadResults.length > 0) {
-                            const mostRecent = viralLoadResults[0];
-                            if (mostRecent.result != null && mostRecent.result.trim() !== "") {
-                                setViralLoadIsPresent(true);
-                            } else {
-                                setViralLoadIsPresent(false);
-                            }
-                        } else {
-                            setViralLoadIsPresent(false);
+                        if (limsResponse.data && limsResponse.data.testResult) {
+                            fullResult.result = limsResponse.data.testResult;
+                            fullResult.approvalDate = limsResponse.data.approvalDate;
                         }
-                    } else {
-                        setViralLoadIsPresent(false);
+                    } catch (error) {
+                        console.log("Error fetching LIMS data:", error);
                     }
-                })
-                .catch((error) => {
-                    setViralLoadIsPresent(false);
-                    console.log(error);
+
+                    // Add to array if result exists or at least has date info
+                    if (fullResult.result?.trim() !== "" || fullResult.dateResultReceived) {
+                        resultsWithDetails.push(fullResult);
+                    }
+                }
+
+                // Sort by latest date (prefer approvalDate if available)
+                resultsWithDetails.sort((a, b) => {
+                    const dateA = a.approvalDate ? new Date(a.approvalDate) : new Date(a.dateResultReceived);
+                    const dateB = b.approvalDate ? new Date(b.approvalDate) : new Date(b.dateResultReceived);
+                    return dateB - dateA; // Descending order
                 });
+
+                const mostRecent = resultsWithDetails[0];
+
+                if (mostRecent && mostRecent.result?.trim()) {
+                    setViralLoadIsPresent(true);
+                    setResultCheck({
+                        labTestName: mostRecent.labTestName,
+                        sampleNumber: mostRecent.sampleNumber,
+                        result: mostRecent.result
+                    });
+                } else {
+                    setViralLoadIsPresent(false);
+                    setResultCheck(null);
+                }
+
+            } catch (error) {
+                console.error("Error fetching lab history:", error);
+                setViralLoadIsPresent(false);
+                setResultCheck(null);
+            }
         };
 
         fetchLaboratoryHistory();
@@ -168,6 +197,33 @@ function PatientCard(props) {
         fetchPatientFlags(id);
         fetchPatientMlReport();
     }, []);
+
+    const extractViralLoadValue = (result) => {
+        if (!result) return null;
+        const normalized = result.toString().trim().toLowerCase();
+        if (normalized.includes("notdetected")) {
+            return 0; // Consider as fully suppressed
+        }
+
+        // Match numbers in various formats like:
+        // "< 30detected", ">30", "1,200 copies"
+        const match = normalized.match(/([<>\s]*)(\d[\d\.\,]*)/);
+
+        if (match && match[2]) {
+            const rawNumber = match[2];
+            const numericValue = parseFloat(rawNumber.replace(/,/g, ""));
+
+            return isNaN(numericValue) ? null : numericValue;
+        }
+
+        return null;
+    };
+
+    const isSuppressed = (value) => {
+        if (value === null) return null;
+        return value < 1000;
+    };
+
 
     return (
         <Sticky>
@@ -389,85 +445,85 @@ function PatientCard(props) {
                                                 </div>}
 
                                             </Col>
-                                            <Col
-                                                md={4}
-                                                className={classes.root2}
-                                                style={{marginBottom: "6px"}}
-                                            >
-                                                <Typography variant="caption">
-                                                    <Label
-                                                        size={"medium"}
-                                                        style={{
-                                                            width: "300px",
-                                                            height: "90",
-                                                            justifyContent: "space-between",
-                                                            alignItems: "left",
-                                                        }}
-                                                    >
-                                                        {patientFlag.vlSurpression ===
-                                                        "LOW SURPRESSION RATE" ? (
-                                                            <span>
-                                                                VIRAL LOAD RESULT{" "}
-                                                                <Badge
-                                                                    style={{
-                                                                        backgroundColor: "blue",
-                                                                        fontSize: "14px",
-                                                                    }}
-                                                                >
-                                                                    {" "}
-                                                                    {patientFlag.currentViralLoadResult}
-                                                                </Badge>{" "}
-                                                            </span>
-                                                        ) : patientFlag.vlSurpression ===
-                                                        "HIGH SURPRESSION RATE" ? (
-                                                            <span>
-                                                                VIRAL LOAD RESULT{" "}
-                                                                <Badge
-                                                                    style={{
-                                                                        backgroundColor: "red",
-                                                                        fontSize: "14px",
-                                                                    }}
-                                                                >
-                                                                    {" "}
-                                                                    {patientFlag.currentViralLoadResult}
 
-                                                                </Badge>{" "}
-                                                            </span>
-                                                        ) : viralLoadIsPresent ?
 
-                                                            <span>
+                                            <Col xs={12} sm={6} md={4} className={classes.root2} style={{ marginBottom: "6px" }}>
+    <Typography variant="caption">
+        <Label
+            size={"medium"}
+            style={{
+                width: "100%",
+                height: "auto",
+                justifyContent: "space-between",
+                alignItems: "left"
+            }}
+        >
+            {viralLoadIsPresent ? (
+                <span>
+                    {(() => {
+                        const rawResult = resultCheck?.result || "";
+                        const viralLoadValue = extractViralLoadValue(rawResult);
+                        const isSuppressed = viralLoadValue !== null && viralLoadValue < 1000;
 
-                                                                <Badge
-                                                                    style={{
-                                                                        backgroundColor: "seagreen",
-                                                                        fontSize: "14px",
-                                                                    }}
-                                                                >
-                                                                    {" "}
-                                                                    VIRAL LOAD RESULT AVAILABLE
-                                                                </Badge>{" "}
-                                                            </span>
-                                                            : resultCheck !== null && resultCheck.labTestName === "Viral Load" && resultCheck.result !== "" ?
-                                                                <span>
+                        let displayText = rawResult;
+                        if (rawResult.toLowerCase().includes("notdetected")) {
+                            displayText = "NOT DETECTED";
+                        }
 
-                                                                    <Badge
-                                                                        style={{
-                                                                        backgroundColor: "seagreen",
-                                                                        fontSize: "14px",
-                                                                    }}
-                                                                    >
-                                                                        {" "}
-                                                                        LATEST VIRAL LOAD RESULT AVAILABLE
-                                                                    </Badge>{" "}
-                                                                </span>
-                                                            :
-                                                            (
-                                                                <span>NO VIRAL LOAD RESULT </span>
-                                                            )
-                                                        }
-                                                    </Label>
-                                                </Typography>
-                                            </Col>
+                        return (
+                            <Badge
+                                style={{
+                                    backgroundColor: isSuppressed ? "seagreen" : "red",
+                                    fontSize: "14px",
+                                    whiteSpace: "normal",
+                                    textAlign: "left",
+                                    color: "white",
+                                    padding: "8px"
+                                }}
+                            >
+                                CURRENT VIRAL LOAD RESULT:{" "}
+                                <strong>{displayText}</strong>
+                            </Badge>
+                        );
+                    })()}
+                </span>
+            ) : resultCheck !== null &&
+            resultCheck.labTestName === "Viral Load" &&
+            resultCheck.result !== "" ? (
+                <span>
+                    {(() => {
+                        const rawResult = resultCheck.result;
+                        const viralLoadValue = extractViralLoadValue(rawResult);
+                        const isSuppressed = viralLoadValue !== null && viralLoadValue <= 999;
+
+                        let displayText = rawResult;
+                        if (rawResult?.toLowerCase().includes("notdetected")) {
+                            displayText = "NOT DETECTED";
+                        }
+
+                        return (
+                            <Badge
+                                style={{
+                                    backgroundColor: isSuppressed ? "seagreen" : "red",
+                                    fontSize: "14px",
+                                    whiteSpace: "normal",
+                                    textAlign: "left",
+                                    color: "white",
+                                    padding: "8px"
+                                }}
+                            >
+                                LATEST VIRAL LOAD RESULT:{" "}
+                                <strong>{displayText}</strong>
+                            </Badge>
+                        );
+                    })()}
+                </span>
+            ) : (
+                <span>NO VIRAL LOAD RESULT</span>
+            )}
+        </Label>
+    </Typography>
+</Col>
                                             <Col md={12}>
                                                 <div>
                                                     <Typography variant="caption">
