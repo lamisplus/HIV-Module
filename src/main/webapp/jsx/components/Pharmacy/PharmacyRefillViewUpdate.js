@@ -25,6 +25,8 @@ import { toast } from "react-toastify";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 //import { Icon,Button, } from 'semantic-ui-react'
 import { calculate_age_to_number } from "../../../utils";
+
+import useCodesets from "../../../hooks/useCodesets";
 const useStyles = makeStyles((theme) => ({
   button: {
     margin: theme.spacing(1),
@@ -68,7 +70,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 let refillPeriodValue = null;
 
+const CODESET_KEYS = [
+  "IPT_TYPE",
+  "PREP_SIDE_EFFECTS",
+  "DSD_MODEL_FACILITY",
+  "DSD_MODEL_COMMUNITY",
+];
 const Pharmacy = (props) => {
+   const { getOptions } = useCodesets(CODESET_KEYS);
   const patientObj = props.patientObj;
   const [selectedCombinedRegimen, setSelectedCombinedRegimen] = useState([]);
   const enrollDate =
@@ -131,7 +140,7 @@ const Pharmacy = (props) => {
     visitId: 0,
     refill: "",
     refillType: "",
-    dsdModelType,
+    // dsdModelType,
     switch: "",
     substitute: "",
     iptType: "",
@@ -153,12 +162,12 @@ const Pharmacy = (props) => {
   const [disabledField, setDisabledField] = useState(false);
   useEffect(() => {
     RegimenLine();
-    PrepSideEffect();
+    // PrepSideEffect();
     VitalSigns();
     AdultRegimenLine();
     PharmacyRefillDetail();
     CheckEACStatus();
-    IPT_TYPE();
+    // IPT_TYPE();
     VitalSigns();
     ChildRegimenLine();
     OtherDrugs();
@@ -167,16 +176,16 @@ const Pharmacy = (props) => {
       setDisabledField(true);
     }
   }, [props.activeContent.obj, props.activeContent.id, objValues.dsdModelType]);
-  const IPT_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/IPT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setIPT_TYPE(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const IPT_TYPE = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/IPT_TYPE`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setIPT_TYPE(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   const GetIptEligibilty = () => {
     //GET IPT ELIGIBILITY
     axios
@@ -284,25 +293,25 @@ const Pharmacy = (props) => {
 
         setObjValues(data);
         setRegimenDrugList(data && data.extra ? data.extra.regimens : []);
-        DsdModelType(objValues.dsdModel);
-        objValues.dsdModelType = data.dsdModelType;
+        // DsdModelType(objValues.dsdModel);
+        // objValues.dsdModelType = data.dsdModelType;
         //}
       })
       .catch((error) => {});
   };
   //Get list of DSD Model Type
-  function DsdModelType(dsdmodel) {
-    const dsd =
-      dsdmodel === "Facility" ? "DSD_MODEL_FACILITY" : "DSD_MODEL_COMMUNITY";
-    axios
-      .get(`${baseUrl}application-codesets/v2/${dsd}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setDsdModelType(response.data);
-      })
-      .catch((error) => {});
-  }
+  // function DsdModelType(dsdmodel) {
+  //   const dsd =
+  //     dsdmodel === "Facility" ? "DSD_MODEL_FACILITY" : "DSD_MODEL_COMMUNITY";
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/${dsd}`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setDsdModelType(response.data);
+  //     })
+  //     .catch((error) => {});
+  // }
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
     axios
@@ -370,21 +379,21 @@ const Pharmacy = (props) => {
       .catch((error) => {});
   };
   //Get list of PrepSideEffect
-  const PrepSideEffect = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPrepSideEffect(
-          Object.entries(response.data).map(([key, value]) => ({
-            label: value.display,
-            value: value.id,
-          }))
-        );
-      })
-      .catch((error) => {});
-  };
+  // const PrepSideEffect = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setPrepSideEffect(
+  //         Object.entries(response.data).map(([key, value]) => ({
+  //           label: value.display,
+  //           value: value.id,
+  //         }))
+  //       );
+  //     })
+  //     .catch((error) => {});
+  // };
   function RegimenType(id) {
     async function getCharacters() {
       try {
@@ -591,7 +600,7 @@ const Pharmacy = (props) => {
   }
   const handleInputChange = (e) => {
     if (e.target.name === "dsdModel" && e.target.value !== "") {
-      DsdModelType(e.target.value);
+      // DsdModelType(e.target.value);
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     }
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -853,7 +862,7 @@ const Pharmacy = (props) => {
           refillType: "",
           switch: "",
           substitute: "",
-          dsdModelType: "",
+          // dsdModelType: "",
           iptType: "",
         });
         setRegimenDrugList([]);
@@ -1184,19 +1193,19 @@ const Pharmacy = (props) => {
                     <FormGroup>
                       <Label>
                         Refill Period(days){" "}
-                        <span style={{color: "red"}}> *</span>
+                        <span style={{ color: "red" }}> *</span>
                       </Label>
                       <Input
-                          type="select"
-                          name="refillPeriod"
-                          id="refillPeriod"
-                          value={objValues.refillPeriod}
-                          disabled={objValues.visitDate !== null ? false : true}
-                          onChange={handlRefillPeriod}
-                          style={{
-                            border: "1px solid #014D88",
-                            borderRadius: "0.25rem",
-                          }}
+                        type="select"
+                        name="refillPeriod"
+                        id="refillPeriod"
+                        value={objValues.refillPeriod}
+                        disabled={objValues.visitDate !== null ? false : true}
+                        onChange={handlRefillPeriod}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
                       >
                         <option value="">Select</option>
                         <option value="15">15</option>
@@ -1215,24 +1224,24 @@ const Pharmacy = (props) => {
                       <Label for="artDate">
                         {" "}
                         Date of Next Appointment{" "}
-                        <span style={{color: "red"}}> *</span>{" "}
+                        <span style={{ color: "red" }}> *</span>{" "}
                       </Label>
                       <Input
-                          type="date"
-                          name="nextAppointment"
-                          id="nextAppointment"
-                          min={enrollDate}
-                          disabled={
-                            objValues.refillPeriod !== null ? false : true
-                          }
-                          onChange={handleInputChange}
-                          value={objValues.nextAppointment}
-                          style={{
-                            border: "1px solid #014D88",
-                            borderRadius: "0.25rem",
-                          }}
-                          required
-                          onKeyPress={(e) => e.preventDefault()}
+                        type="date"
+                        name="nextAppointment"
+                        id="nextAppointment"
+                        min={enrollDate}
+                        disabled={
+                          objValues.refillPeriod !== null ? false : true
+                        }
+                        onChange={handleInputChange}
+                        value={objValues.nextAppointment}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        required
+                        onKeyPress={(e) => e.preventDefault()}
                       />
                     </FormGroup>
                   </div>
@@ -1240,11 +1249,11 @@ const Pharmacy = (props) => {
                     <FormGroup>
                       <Label for="">Client on DSD?</Label>
                       <Input
-                          type="select"
-                          name="clientDsdStatus"
-                          id="clientDsdStatus"
-                          disabled={true}
-                          value={clientDsdStatus}
+                        type="select"
+                        name="clientDsdStatus"
+                        id="clientDsdStatus"
+                        disabled={true}
+                        value={clientDsdStatus}
                       >
                         <option value="Yes">Yes</option>
                         // Add options for Yes and No
@@ -1253,23 +1262,23 @@ const Pharmacy = (props) => {
                     </FormGroup>
                   </div>
                   {showmmdType && (
-                      <div className="form-group mb-3 col-md-4">
-                        <FormGroup>
-                          <Label>MMD Type</Label>
-                          <Input
-                              type="text"
-                              name="mmdType"
-                              id="mmdType"
-                              disabled="true"
-                              value={mmdType}
-                              onChange={handleInputChange}
-                              style={{
-                                border: "1px solid #014D88",
-                                borderRadius: "0.25rem",
-                              }}
-                          />
-                        </FormGroup>
-                      </div>
+                    <div className="form-group mb-3 col-md-4">
+                      <FormGroup>
+                        <Label>MMD Type</Label>
+                        <Input
+                          type="text"
+                          name="mmdType"
+                          id="mmdType"
+                          disabled="true"
+                          value={mmdType}
+                          onChange={handleInputChange}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
+                        />
+                      </FormGroup>
+                    </div>
                   )}
                 </div>
                 {/*<div className="form-group mb-3 col-md-6">*/}
@@ -1288,8 +1297,16 @@ const Pharmacy = (props) => {
                 {/*      disabled={disabledField}*/}
                 {/*    >*/}
                 {/*      <option value="">Select </option>*/}
-                {/*      <option value="Facility">Facility </option>*/}
-                {/*      <option value="Community">Community </option>*/}
+                {/* {objValues.dsdModel &&
+                  getOptions(
+                    objValues.dsdModel === "Facility"
+                      ? "DSD_MODEL_FACILITY"
+                      : "DSD_MODEL_COMMUNITY"
+                  ).map((value) => (
+                    <option key={value.code} value={value.code}>
+                      {value.display}
+                    </option>
+                  ))} */}
                 {/*    </Input>*/}
                 {/*  </FormGroup>*/}
                 {/*</div>*/}
@@ -1309,15 +1326,21 @@ const Pharmacy = (props) => {
                 {/*      disabled={disabledField}*/}
                 {/*    >*/}
                 {/*      <option value="">Select </option>*/}
-                {/*      {dsdModelType.map((value) => (*/}
-                {/*        <option key={value.code} value={value.code}>*/}
-                {/*          {value.display}*/}
-                {/*        </option>*/}
+                {/* {objValues.dsdModel &&
+                  getOptions(
+                    objValues.dsdModel === "Facility"
+                      ? "DSD_MODEL_FACILITY"
+                      : "DSD_MODEL_COMMUNITY"
+                  ).map((value) => (
+                    <option key={value.code} value={value.code}>
+                      {value.display}
+                    </option>
+                  ))} */}
+                
                 {/*      ))}*/}
                 {/*    </Input>*/}
                 {/*  </FormGroup>*/}
                 {/*</div>*/}
-
                 {eacStatusObj &&
                   eacStatusObj.eacsession &&
                   eacStatusObj.eacsession !== "Default" && (
@@ -1416,7 +1439,6 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label>Regimen </Label>
@@ -1518,7 +1540,6 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-
                 <div className="form-group mb-3 col-md-6">
                   <FormGroup>
                     <Label>Drugs</Label>
@@ -1544,7 +1565,6 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-
                 {iptEligibilty.IPTEligibility === true && ( //iptEligibilty check to display Visit type
                   <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                     <FormGroup>
@@ -1563,7 +1583,7 @@ const Pharmacy = (props) => {
                       >
                         <option value="">Select </option>
 
-                        {iptType.map((value) => (
+                        {getOptions("IPT_TYPE").map((value) => (
                           <option key={value.id} value={value.code}>
                             {value.display}
                           </option>
@@ -1572,7 +1592,6 @@ const Pharmacy = (props) => {
                     </FormGroup>
                   </div>
                 )}
-
                 <LabelSui
                   as="a"
                   color="blue"
@@ -1704,7 +1723,6 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-
                 {regimenDrug && regimenDrug.length > 0 ? (
                   <>
                     <Card>

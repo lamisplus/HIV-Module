@@ -180,8 +180,7 @@ const columns = useMemo(
           <div>
          
             {permissions.canSeeEnrollButton &&
-              !isEnrolled &&
-              rowData.biometricStatus === true && (
+              !isEnrolled && (
                 <Link
                   to={{
                     pathname: "/enroll-patient",

@@ -27,6 +27,7 @@ import 'react-phone-input-2/lib/style.css'
 import { getValue } from "@syncfusion/ej2-base";
 import  './patient.css'
 // import Form from 'react-bootstrap/Form';
+import useCodesets from "../../../hooks/useCodesets";
 
 
 
@@ -92,7 +93,22 @@ const schema = yup.object().shape({
     ninNumber: yup.number().nullable(),
 });
 
+const CODESET_KEYS = [
+  "SEX",
+  "MARITAL_STATUS",
+  "EDUCATION",
+  "OCCUPATION",
+  "RELATIONSHIP",
+  "POINT_ENTRY",
+  "SOURCE_REFERRAL",
+  "HIV_STATUS_ENROL",
+  "ENROLLMENT_SETTING",
+  "TB_STATUS",
+  "KP_TYPE",
+  "PREGANACY_STATUS",
+];
 const UserRegistration = (props) => {
+    const { getOptions } = useCodesets(CODESET_KEYS);
     const { register, watch, setValue, getValues, setError, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(schema),
     });
@@ -106,11 +122,11 @@ const UserRegistration = (props) => {
     const [ageDisabled, setAgeDisabled] = useState(true);
     const [showRelative, setShowRelative] = useState(false);
     const [editRelative, setEditRelative] = useState(null);
-    const [genders, setGenders]= useState([]);
-    const [maritalStatusOptions, setMaritalStatusOptions]= useState([]);
-    const [educationOptions, setEducationOptions]= useState([]);
-    const [occupationOptions, setOccupationOptions]= useState([]);
-    const [relationshipOptions, setRelationshipOptions]= useState([]);
+    // const [genders, setGenders]= useState([]);
+    // const [maritalStatusOptions, setMaritalStatusOptions]= useState([]);
+    // const [educationOptions, setEducationOptions]= useState([]);
+    // const [occupationOptions, setOccupationOptions]= useState([]);
+    // const [relationshipOptions, setRelationshipOptions]= useState([]);
     const [topLevelUnitCountryOptions, settopLevelUnitCountryOptions]= useState([]);
     const [stateUnitOptions, setStateUnitOptions]= useState([]);
     const [districtUnitOptions, setDistrictUnitOptions]= useState([]);
@@ -345,56 +361,56 @@ const UserRegistration = (props) => {
         }, 500);
     };
 
-    const loadGenders = useCallback(async () => {
-        try {
-            const response = await axios.get(`${baseUrl}application-codesets/v2/SEX`, { headers: {"Authorization" : `Bearer ${token}`} });
-            setGenders(response.data);
-        } catch (e) {
-            toast.error("An error occured while fetching gender codesets !", {
-                position: toast.POSITION.TOP_RIGHT
-            });
-        }
-    }, []);
-    const loadMaritalStatus = useCallback(async () => {
-        try {
-            const response = await axios.get(`${baseUrl}application-codesets/v2/MARITAL_STATUS`, { headers: {"Authorization" : `Bearer ${token}`} });
-            setMaritalStatusOptions(response.data);
-        } catch (e) {
-            toast.error("An error occured while fetching marital codesets !", {
-                position: toast.POSITION.TOP_RIGHT
-            });
-        }
-    }, []);
-    const loadEducation = useCallback(async () => {
-        try {
-            const response = await axios.get(`${baseUrl}application-codesets/v2/EDUCATION`, { headers: {"Authorization" : `Bearer ${token}`} });
-            setEducationOptions(response.data);
-        } catch (e) {
-            toast.error("An error occured while fetching education codesets !", {
-                position: toast.POSITION.TOP_RIGHT
-            });
-        }
-    }, []);
-    const loadOccupation = useCallback(async () => {
-        try {
-            const response = await axios.get(`${baseUrl}application-codesets/v2/OCCUPATION`, { headers: {"Authorization" : `Bearer ${token}`} });
-            setOccupationOptions(response.data);
-        } catch (e) {
-            toast.error("An error occured while fetching occupation codesets !", {
-                position: toast.POSITION.TOP_RIGHT
-            });
-        }
-    }, []);
-    const loadRelationships = useCallback(async () => {
-      try {
-          const response = await axios.get(`${baseUrl}application-codesets/v2/RELATIONSHIP`, { headers: {"Authorization" : `Bearer ${token}`} });
-          setRelationshipOptions(response.data);
-      } catch (e) {
-          toast.error("An error occured while fetching relationship codesets !", {
-              position: toast.POSITION.TOP_RIGHT
-          });
-      }
-    }, []);
+    // const loadGenders = useCallback(async () => {
+    //     try {
+    //         const response = await axios.get(`${baseUrl}application-codesets/v2/SEX`, { headers: {"Authorization" : `Bearer ${token}`} });
+    //         setGenders(response.data);
+    //     } catch (e) {
+    //         toast.error("An error occured while fetching gender codesets !", {
+    //             position: toast.POSITION.TOP_RIGHT
+    //         });
+    //     }
+    // }, []);
+    // const loadMaritalStatus = useCallback(async () => {
+    //     try {
+    //         const response = await axios.get(`${baseUrl}application-codesets/v2/MARITAL_STATUS`, { headers: {"Authorization" : `Bearer ${token}`} });
+    //         setMaritalStatusOptions(response.data);
+    //     } catch (e) {
+    //         toast.error("An error occured while fetching marital codesets !", {
+    //             position: toast.POSITION.TOP_RIGHT
+    //         });
+    //     }
+    // }, []);
+    // const loadEducation = useCallback(async () => {
+    //     try {
+    //         const response = await axios.get(`${baseUrl}application-codesets/v2/EDUCATION`, { headers: {"Authorization" : `Bearer ${token}`} });
+    //         setEducationOptions(response.data);
+    //     } catch (e) {
+    //         toast.error("An error occured while fetching education codesets !", {
+    //             position: toast.POSITION.TOP_RIGHT
+    //         });
+    //     }
+    // }, []);
+    // const loadOccupation = useCallback(async () => {
+    //     try {
+    //         const response = await axios.get(`${baseUrl}application-codesets/v2/OCCUPATION`, { headers: {"Authorization" : `Bearer ${token}`} });
+    //         setOccupationOptions(response.data);
+    //     } catch (e) {
+    //         toast.error("An error occured while fetching occupation codesets !", {
+    //             position: toast.POSITION.TOP_RIGHT
+    //         });
+    //     }
+    // }, []);
+    // const loadRelationships = useCallback(async () => {
+    //   try {
+    //       const response = await axios.get(`${baseUrl}application-codesets/v2/RELATIONSHIP`, { headers: {"Authorization" : `Bearer ${token}`} });
+    //       setRelationshipOptions(response.data);
+    //   } catch (e) {
+    //       toast.error("An error occured while fetching relationship codesets !", {
+    //           position: toast.POSITION.TOP_RIGHT
+    //       });
+    //   }
+    // }, []);
     const loadTopLevelCountry = useCallback(async () => {
         const response = await axios.get(`${baseUrl}organisation-units/parent-organisation-units/0`, { headers: {"Authorization" : `Bearer ${token}`} });
         settopLevelUnitCountryOptions(response.data);
@@ -456,14 +472,14 @@ const UserRegistration = (props) => {
     }
 
     useEffect(() => {
-        loadGenders();
-        loadMaritalStatus();
-        loadEducation();
-        loadOccupation();
-        loadRelationships();
+        // loadGenders();
+        // loadMaritalStatus();
+        // loadEducation();
+        // loadOccupation();
+        // loadRelationships();
         loadTopLevelCountry();
         getPatient();
-    }, [loadGenders, loadMaritalStatus, loadEducation, loadOccupation, loadRelationships, loadTopLevelCountry, getPatient]);
+    }, [loadTopLevelCountry, getPatient]);
 
     let genderRows = null;
     let maritalStatusRows = null;
@@ -473,31 +489,51 @@ const UserRegistration = (props) => {
     let topLevelUnitCountryRows = null;
     let stateRows = null;
     let districtRows = null;
+
+    const genders = getOptions("SEX");
     if (genders && genders.length > 0) {
-        genderRows = genders.map((gender, index) => (
-            <option key={gender.id} value={gender.id}>{gender.display}</option>
-        ));
+      genderRows = genders.map((gender, index) => (
+        <option key={gender.id} value={gender.id}>
+          {gender.display}
+        </option>
+      ));
     }
-    if (maritalStatusOptions && maritalStatusOptions.length > 0) {
-        maritalStatusRows = maritalStatusOptions.map((maritalStatusOption, index) => (
-            <option key={maritalStatusOption.id} value={maritalStatusOption.id}>{maritalStatusOption.display}</option>
-        ));
-    }
-    if (educationOptions && educationOptions.length > 0) {
-        educationRows = educationOptions.map((educationOption, index) => (
-            <option key={educationOption.id} value={educationOption.id}>{educationOption.display}</option>
-        ));
-    }
-    if (occupationOptions && occupationOptions.length > 0) {
-        occupationRows = occupationOptions.map((occupationOption, index) => (
-            <option key={occupationOption.id} value={occupationOption.id}>{occupationOption.display}</option>
-        ));
-    }
-    if (relationshipOptions && relationshipOptions.length > 0) {
-        relationshipRows = relationshipOptions.map((relationshipOption, index) => (
-            <option key={relationshipOption.id} value={relationshipOption.id}>{relationshipOption.display}</option>
-        ));
-    }
+    const maritalStatusOptions = getOptions("MARITAL_STATUS");
+      if (maritalStatusOptions && maritalStatusOptions.length > 0) {
+        maritalStatusRows = maritalStatusOptions.map(
+          (maritalStatusOption, index) => (
+            <option key={maritalStatusOption.id} value={maritalStatusOption.id}>
+              {maritalStatusOption.display}
+            </option>
+          )
+        );
+      }
+   const educationOptions = getOptions("EDUCATION");
+   if (educationOptions && educationOptions.length > 0) {
+     educationRows = educationOptions.map((educationOption, index) => (
+       <option key={educationOption.id} value={educationOption.id}>
+         {educationOption.display}
+       </option>
+     ));
+   }
+       const occupationOptions = getOptions("OCCUPATION");
+       if (occupationOptions && occupationOptions.length > 0) {
+         occupationRows = occupationOptions.map((occupationOption, index) => (
+           <option key={occupationOption.id} value={occupationOption.id}>
+             {occupationOption.display}
+           </option>
+         ));
+       }
+     const relationshipOptions = getOptions("RELATIONSHIP");
+     if (relationshipOptions && relationshipOptions.length > 0) {
+       relationshipRows = relationshipOptions.map(
+         (relationshipOption, index) => (
+           <option key={relationshipOption.id} value={relationshipOption.id}>
+             {relationshipOption.display}
+           </option>
+         )
+       );
+     }
     if (topLevelUnitCountryOptions && topLevelUnitCountryOptions.length > 0) {
         topLevelUnitCountryRows = topLevelUnitCountryOptions.map((topLevelUnitCountryOption, index) => (
             <option key={topLevelUnitCountryOption.id} value={topLevelUnitCountryOption.id}>{topLevelUnitCountryOption.name}</option>
@@ -553,121 +589,121 @@ const UserRegistration = (props) => {
     //Input fields to hidden base on some conditions
     const [hideTargetGroup, setHideTargetGroup]= useState("false");
 
-    useEffect(() => {         
-        CareEntryPoint();
-        SourceReferral();
-        HivStatus();
-        EnrollmentSetting();
-        TBStatus();
-        KP();
-        PregnancyStatus();
+    // useEffect(() => {         
+    //     CareEntryPoint();
+    //     SourceReferral();
+    //     HivStatus();
+    //     EnrollmentSetting();
+    //     TBStatus();
+    //     KP();
+    //     PregnancyStatus();
         
-    }, []);
+    // }, []);
     //Get list of CareEntryPoint
-    const CareEntryPoint =()=>{
-            axios
-                .get(`${baseUrl}application-codesets/v2/POINT_ENTRY`,
-                    { headers: {"Authorization" : `Bearer ${token}`} }
-                )
-                .then((response) => {
+    // const CareEntryPoint =()=>{
+    //         axios
+    //             .get(`${baseUrl}application-codesets/v2/POINT_ENTRY`,
+    //                 { headers: {"Authorization" : `Bearer ${token}`} }
+    //             )
+    //             .then((response) => {
                     
-                    setCarePoints(response.data);
-                })
-                .catch((error) => {
+    //                 setCarePoints(response.data);
+    //             })
+    //             .catch((error) => {
                 
-                });
+    //             });
             
-    }
+    // }
     //Get list of Source of Referral
-    const SourceReferral =()=>{
-            axios
-            .get(`${baseUrl}application-codesets/v2/SOURCE_REFERRAL`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
+    // const SourceReferral =()=>{
+    //         axios
+    //         .get(`${baseUrl}application-codesets/v2/SOURCE_REFERRAL`,
+    //             { headers: {"Authorization" : `Bearer ${token}`} }
+    //         )
+    //         .then((response) => {
                 
-                setSourceReferral(response.data);
-            })
-            .catch((error) => {
+    //             setSourceReferral(response.data);
+    //         })
+    //         .catch((error) => {
             
-            });
+    //         });
         
-    }
+    // }
     //Get list of HIV STATUS ENROLLMENT
-    const HivStatus =()=>{
-        axios
-        .get(`${baseUrl}application-codesets/v2/HIV_STATUS_ENROL`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
+    // const HivStatus =()=>{
+    //     axios
+    //     .get(`${baseUrl}application-codesets/v2/HIV_STATUS_ENROL`,
+    //         { headers: {"Authorization" : `Bearer ${token}`} }
+    //     )
+    //     .then((response) => {
             
-            setHivStatus(response.data);
-        })
-        .catch((error) => {
+    //         setHivStatus(response.data);
+    //     })
+    //     .catch((error) => {
         
-        });
+    //     });
     
-    }
+    // }
     //Get list of HIV STATUS ENROLLMENT
-    const EnrollmentSetting =()=>{
-        axios
-        .get(`${baseUrl}application-codesets/v2/ENROLLMENT_SETTING`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
+    // const EnrollmentSetting =()=>{
+    //     axios
+    //     .get(`${baseUrl}application-codesets/v2/ENROLLMENT_SETTING`,
+    //         { headers: {"Authorization" : `Bearer ${token}`} }
+    //     )
+    //     .then((response) => {
             
-            setEnrollSetting(response.data);
-        })
-        .catch((error) => {
+    //         setEnrollSetting(response.data);
+    //     })
+    //     .catch((error) => {
         
-        });
+    //     });
     
-    }
+    // }
     //Get list of HIV STATUS ENROLLMENT
-    const TBStatus =()=>{
-        axios
-        .get(`${baseUrl}application-codesets/v2/TB_STATUS`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
+    // const TBStatus =()=>{
+    //     axios
+    //     .get(`${baseUrl}application-codesets/v2/TB_STATUS`,
+    //         { headers: {"Authorization" : `Bearer ${token}`} }
+    //     )
+    //     .then((response) => {
             
-            setTbStatus(response.data);
-        })
-        .catch((error) => {
+    //         setTbStatus(response.data);
+    //     })
+    //     .catch((error) => {
         
-        });
+    //     });
     
-    }
+    // }
     //Get list of KP
-    const KP =()=>{
-        axios
-        .get(`${baseUrl}application-codesets/v2/KP_TYPE`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
+    // const KP =()=>{
+    //     axios
+    //     .get(`${baseUrl}application-codesets/v2/KP_TYPE`,
+    //         { headers: {"Authorization" : `Bearer ${token}`} }
+    //     )
+    //     .then((response) => {
             
-            setKP(response.data);
-        })
-        .catch((error) => {
+    //         setKP(response.data);
+    //     })
+    //     .catch((error) => {
         
-        });
+    //     });
     
-    }
+    // }
     //Get list of KP
-    const PregnancyStatus =()=>{
-        axios
-        .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
+    // const PregnancyStatus =()=>{
+    //     axios
+    //     .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`,
+    //         { headers: {"Authorization" : `Bearer ${token}`} }
+    //     )
+    //     .then((response) => {
             
-            setPregnancyStatus(response.data);
-        })
-        .catch((error) => {
+    //         setPregnancyStatus(response.data);
+    //     })
+    //     .catch((error) => {
         
-        });
+    //     });
     
-    }
+    // }
     const handleInputChange = e => {
         
         setObjValues ({...objValues,  [e.target.name]: e.target.value});
@@ -693,287 +729,381 @@ const UserRegistration = (props) => {
 
 
     return (
-        <>
-            <ToastContainer autoClose={3000} hideProgressBar />
-            <Card className={classes.cardBottom}>
-                <CardContent>
-                    <Link
-                        to={{
-                            pathname: "/",
-                            state: 'users'
-                        }}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            className=" float-end ms-1"
-                            style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
-                            startIcon={<TiArrowBack />}
-                        >
-                            <span style={{ textTransform: "capitalize", color:'#fff' }}>Back </span>
-                        </Button>
-                    </Link>
-                    <br />
-                    <br />
-                    <div className="col-xl-12 col-lg-12">
-                        <Form onSubmit={handleSubmit(onSubmit, onError)}>
-                            <div className="card">
-                                <div className="card-header" style={{backgroundColor:"#014d88",color:'#fff',fontWeight:'bolder',  borderRadius:"0.2rem"}}>
-                                    <h5 className="card-title" style={{color:'#fff'}}>{userDetail===null ? "Basic Information" : "Edit User Information"}</h5>
-                                </div>
+      <>
+        <ToastContainer autoClose={3000} hideProgressBar />
+        <Card className={classes.cardBottom}>
+          <CardContent>
+            <Link
+              to={{
+                pathname: "/",
+                state: "users",
+              }}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                className=" float-end ms-1"
+                style={{ backgroundColor: "#014d88", fontWeight: "bolder" }}
+                startIcon={<TiArrowBack />}
+              >
+                <span style={{ textTransform: "capitalize", color: "#fff" }}>
+                  Back{" "}
+                </span>
+              </Button>
+            </Link>
+            <br />
+            <br />
+            <div className="col-xl-12 col-lg-12">
+              <Form onSubmit={handleSubmit(onSubmit, onError)}>
+                <div className="card">
+                  <div
+                    className="card-header"
+                    style={{
+                      backgroundColor: "#014d88",
+                      color: "#fff",
+                      fontWeight: "bolder",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <h5 className="card-title" style={{ color: "#fff" }}>
+                      {userDetail === null
+                        ? "Basic Information"
+                        : "Edit User Information"}
+                    </h5>
+                  </div>
 
-                                <div className="card-body">
-                                    <div className="basic-form">
-                                        <div className="row">
-                                            <div className="form-group mb-3 col-md-4">
-                                                <FormGroup>
-                                                    <Label for="dateOfRegistration">Date of Registration* </Label>
-                                                    <Input
-                                                        className="form-control"
-                                                        type="date"
-                                                        name="dateOfRegistration"
-                                                        id="dateOfRegistration"
-                                                        max={today}
-                                                        {...register("dateOfRegistration")}
-                                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    />
-                                                    {errors.dateOfRegistration && <p>{errors.dateOfRegistration.message}</p>}
-                                                </FormGroup>
-                                            </div>
-                                            
-                                            <div className="form-group mb-3 col-md-4">
-                                                <FormGroup>
-                                                    <Label for="patientId">Hospital Number* </Label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        name="hospitalNumber"
-                                                        id="hospitalNumber"
-                                                        {...register("hospitalNumber")}
-                                                        style={{border: "1px solid #014D88",borderRadius:"0.2rem"}}
-                                                    />
-                                                    {errors.hospitalNumber && <p>{errors.hospitalNumber.message}</p>}
-                                                </FormGroup>
-                                            </div>
-                                        </div>
+                  <div className="card-body">
+                    <div className="basic-form">
+                      <div className="row">
+                        <div className="form-group mb-3 col-md-4">
+                          <FormGroup>
+                            <Label for="dateOfRegistration">
+                              Date of Registration*{" "}
+                            </Label>
+                            <Input
+                              className="form-control"
+                              type="date"
+                              name="dateOfRegistration"
+                              id="dateOfRegistration"
+                              max={today}
+                              {...register("dateOfRegistration")}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            />
+                            {errors.dateOfRegistration && (
+                              <p>{errors.dateOfRegistration.message}</p>
+                            )}
+                          </FormGroup>
+                        </div>
 
-                                        <div className="row">
-                                            <div className="form-group mb-3 col-md-4">
-                                                <FormGroup>
-                                                    <Label for="firstName">First Names *</Label>
-                                                    <Input
-                                                        className="form-control"
-                                                        type="text"
-                                                        name="firstName"
-                                                        id="firstName"
-                                                        {...register("firstName",{
-                                                            onChange:(e)=>{alphabetOnly(e,'firstName')}
-                                                        })}
-                                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    />
-                                                    {errors.firstName && <p>{errors.firstName.message}</p>}
-                                                </FormGroup>
-                                            </div>
+                        <div className="form-group mb-3 col-md-4">
+                          <FormGroup>
+                            <Label for="patientId">Hospital Number* </Label>
+                            <input
+                              className="form-control"
+                              type="text"
+                              name="hospitalNumber"
+                              id="hospitalNumber"
+                              {...register("hospitalNumber")}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            />
+                            {errors.hospitalNumber && (
+                              <p>{errors.hospitalNumber.message}</p>
+                            )}
+                          </FormGroup>
+                        </div>
+                      </div>
 
-                                            <div className="form-group mb-3 col-md-4">
-                                                <FormGroup>
-                                                    <Label>Middle Name</Label>
-                                                    <Input
-                                                        className="form-control"
-                                                        type="text"
-                                                        name="middleName"
-                                                        id="middleName"
-                                                        {...register("middleName",{
-                                                            onChange:(e)=>{alphabetOnly(e,'middleName')}
-                                                        })}
-                                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    />
-                                                    {errors.middleName && <p>{errors.middleName.message}</p>}
-                                                </FormGroup>
-                                            </div>
+                      <div className="row">
+                        <div className="form-group mb-3 col-md-4">
+                          <FormGroup>
+                            <Label for="firstName">First Names *</Label>
+                            <Input
+                              className="form-control"
+                              type="text"
+                              name="firstName"
+                              id="firstName"
+                              {...register("firstName", {
+                                onChange: (e) => {
+                                  alphabetOnly(e, "firstName");
+                                },
+                              })}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            />
+                            {errors.firstName && (
+                              <p>{errors.firstName.message}</p>
+                            )}
+                          </FormGroup>
+                        </div>
 
-                                            <div className="form-group mb-3 col-md-4">
-                                                <FormGroup>
-                                                    <Label>Last Name *</Label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="text"
-                                                        name="lastName"
-                                                        id="lastName"
-                                                        {...register("lastName",{
-                                                            onChange:(e)=>{alphabetOnly(e,'lastName')}
-                                                        })}
-                                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    />
-                                                    {errors.lastName && <p>{errors.lastName.message}</p>}
-                                                </FormGroup>
-                                            </div>
-                                        </div>
+                        <div className="form-group mb-3 col-md-4">
+                          <FormGroup>
+                            <Label>Middle Name</Label>
+                            <Input
+                              className="form-control"
+                              type="text"
+                              name="middleName"
+                              id="middleName"
+                              {...register("middleName", {
+                                onChange: (e) => {
+                                  alphabetOnly(e, "middleName");
+                                },
+                              })}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            />
+                            {errors.middleName && (
+                              <p>{errors.middleName.message}</p>
+                            )}
+                          </FormGroup>
+                        </div>
 
-                                        <div className="row">
-                                            <div className="form-group  col-md-4">
-                                                <FormGroup>
-                                                    <Label>Sex *</Label>
-                                                    <select
-                                                            className="form-control"
-                                                            name="sex"
-                                                            id="sex"
-                                                            {...register("sex")}
-                                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                        >
-                                                            <option value={""}></option>
-                                                            {genderRows}
-                                                        </select>
-                                                        {errors.sex && <p>{errors.sex.message}</p>}
-                                                </FormGroup>
-                                            </div>
-                                            <div className="form-group mb-2 col-md-2">
-                                                <FormGroup>
-                                                    <Label>Date Of Birth</Label>
-                                                    <div className="radio">
-                                                        <label>
-                                                            <input
-                                                                type="radio"
-                                                                value="Actual"
-                                                                name="dateOfBirth"
-                                                                defaultChecked
-                                                                {...register("dateOfBirth")}
-                                                                onChange={(e) => handleDateOfBirthChange(e)}
-                                                                style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                            /> Actual
-                                                        </label>
-                                                    </div>
-                                                    <div className="radio">
-                                                        <label>
-                                                            <input
-                                                                type="radio"
-                                                                value="Estimated"
-                                                                name="dateOfBirth"
-                                                                {...register("dateOfBirth")}
-                                                                onChange={(e) => handleDateOfBirthChange(e)}
-                                                                style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                            /> Estimated
-                                                        </label>
-                                                    </div>
-                                                </FormGroup>
-                                            </div>
+                        <div className="form-group mb-3 col-md-4">
+                          <FormGroup>
+                            <Label>Last Name *</Label>
+                            <input
+                              className="form-control"
+                              type="text"
+                              name="lastName"
+                              id="lastName"
+                              {...register("lastName", {
+                                onChange: (e) => {
+                                  alphabetOnly(e, "lastName");
+                                },
+                              })}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            />
+                            {errors.lastName && (
+                              <p>{errors.lastName.message}</p>
+                            )}
+                          </FormGroup>
+                        </div>
+                      </div>
 
-                                            <div className="form-group mb-3 col-md-3">
-                                                <FormGroup>
-                                                    <Label>Date</Label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="date"
-                                                        name="dob"
-                                                        id="dob"
-                                                        max={today}
-                                                        {...register("dob")}
-                                                        onChange={(e) => handleDobChange(e)}
-                                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    />
-                                                    {errors.dob && <p>{errors.dob.message}</p>}
-                                                </FormGroup>
-                                            </div>
+                      <div className="row">
+                        <div className="form-group  col-md-4">
+                          <FormGroup>
+                            <Label>Sex *</Label>
+                            <select
+                              className="form-control"
+                              name="sex"
+                              id="sex"
+                              {...register("sex")}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            >
+                              <option value={""}></option>
+                              {genderRows}
+                            </select>
+                            {errors.sex && <p>{errors.sex.message}</p>}
+                          </FormGroup>
+                        </div>
+                        <div className="form-group mb-2 col-md-2">
+                          <FormGroup>
+                            <Label>Date Of Birth</Label>
+                            <div className="radio">
+                              <label>
+                                <input
+                                  type="radio"
+                                  value="Actual"
+                                  name="dateOfBirth"
+                                  defaultChecked
+                                  {...register("dateOfBirth")}
+                                  onChange={(e) => handleDateOfBirthChange(e)}
+                                  style={{
+                                    border: "1px solid #014D88",
+                                    borderRadius: "0.2rem",
+                                  }}
+                                />{" "}
+                                Actual
+                              </label>
+                            </div>
+                            <div className="radio">
+                              <label>
+                                <input
+                                  type="radio"
+                                  value="Estimated"
+                                  name="dateOfBirth"
+                                  {...register("dateOfBirth")}
+                                  onChange={(e) => handleDateOfBirthChange(e)}
+                                  style={{
+                                    border: "1px solid #014D88",
+                                    borderRadius: "0.2rem",
+                                  }}
+                                />{" "}
+                                Estimated
+                              </label>
+                            </div>
+                          </FormGroup>
+                        </div>
 
-                                            <div className="form-group mb-3 col-md-3">
-                                                <FormGroup>
-                                                    <Label>Age</Label>
-                                                    <input
-                                                        className="form-control"
-                                                        type="number"
-                                                        name="age"
-                                                        id="age"
-                                                        {...register("age")}
-                                                        disabled={ageDisabled}
-                                                        onChange={(e) => handleAgeChange(e)}
-                                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    />
-                                                </FormGroup>
-                                            </div>
-                                        </div>
+                        <div className="form-group mb-3 col-md-3">
+                          <FormGroup>
+                            <Label>Date</Label>
+                            <input
+                              className="form-control"
+                              type="date"
+                              name="dob"
+                              id="dob"
+                              max={today}
+                              {...register("dob")}
+                              onChange={(e) => handleDobChange(e)}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            />
+                            {errors.dob && <p>{errors.dob.message}</p>}
+                          </FormGroup>
+                        </div>
 
-                                        <div className={"row"}>
-{/*                                            {watchShowAge >=0 &&
+                        <div className="form-group mb-3 col-md-3">
+                          <FormGroup>
+                            <Label>Age</Label>
+                            <input
+                              className="form-control"
+                              type="number"
+                              name="age"
+                              id="age"
+                              {...register("age")}
+                              disabled={ageDisabled}
+                              onChange={(e) => handleAgeChange(e)}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            />
+                          </FormGroup>
+                        </div>
+                      </div>
+
+                      <div className={"row"}>
+                        {/*                                            {watchShowAge >=0 &&
                                             <>*/}
-                                                <div className="form-group mb-3 col-md-3">
-                                                    <FormGroup>
-                                                        <Label>Marital Status</Label>
-                                                        <select
-                                                            className="form-control"
-                                                            name="maritalStatus"
-                                                            id="maritalStatus"
-                                                            {...register("maritalStatus")}
-                                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                        >
-                                                            <option value={""}></option>
-                                                            {maritalStatusRows}
-                                                        </select>
-                                                        {errors.maritalStatus && <p>{errors.maritalStatus.message}</p>}
-                                                    </FormGroup>
-                                                </div>
+                        <div className="form-group mb-3 col-md-3">
+                          <FormGroup>
+                            <Label>Marital Status</Label>
+                            <select
+                              className="form-control"
+                              name="maritalStatus"
+                              id="maritalStatus"
+                              {...register("maritalStatus")}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            >
+                              <option value={""}></option>
+                              {maritalStatusRows}
+                            </select>
+                            {errors.maritalStatus && (
+                              <p>{errors.maritalStatus.message}</p>
+                            )}
+                          </FormGroup>
+                        </div>
 
-                                                <div className="form-group  col-md-4">
-                                                    <FormGroup>
-                                                        <Label>Employment Status *</Label>
-                                                        <select
-                                                            className="form-control"
-                                                            name="employmentStatus"
-                                                            id="employmentStatus"
-                                                            {...register("employmentStatus")}
-                                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                        >
-                                                            <option value={""}></option>
-                                                            {occupationRows}
-                                                        </select>
-                                                        {errors.lastName && <p>{errors.lastName.message}</p>}
-                                                    </FormGroup>
-                                                </div>
-{/*
+                        <div className="form-group  col-md-4">
+                          <FormGroup>
+                            <Label>Employment Status *</Label>
+                            <select
+                              className="form-control"
+                              name="employmentStatus"
+                              id="employmentStatus"
+                              {...register("employmentStatus")}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            >
+                              <option value={""}></option>
+                              {occupationRows}
+                            </select>
+                            {errors.lastName && (
+                              <p>{errors.lastName.message}</p>
+                            )}
+                          </FormGroup>
+                        </div>
+                        {/*
                                             </>
                                             }
 */}
 
+                        <div className="form-group  col-md-4">
+                          <FormGroup>
+                            <Label>Education Level *</Label>
+                            <select
+                              className="form-control"
+                              name="highestQualification"
+                              id="highestQualification"
+                              {...register("highestQualification")}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            >
+                              <option value={""}></option>
+                              {educationRows}
+                            </select>
+                            {errors.highestQualification && (
+                              <p>{errors.highestQualification.message}</p>
+                            )}
+                          </FormGroup>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                                            <div className="form-group  col-md-4">
-                                                <FormGroup>
-                                                    <Label>Education Level *</Label>
-                                                    <select
-                                                        className="form-control"
-                                                        name="highestQualification"
-                                                        id="highestQualification"
-                                                        {...register("highestQualification")}
-                                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    >
-                                                        <option value={""}></option>
-                                                        {educationRows}
-                                                    </select>
-                                                    {errors.highestQualification && <p>{errors.highestQualification.message}</p>}
-                                                </FormGroup>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                <div className="card">
+                  <div
+                    className="card-header"
+                    style={{
+                      backgroundColor: "#014d88",
+                      color: "#fff",
+                      fontWeight: "bolder",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <h5 className="card-title" style={{ color: "#fff" }}>
+                      Contact Details
+                    </h5>
+                  </div>
 
-                            <div className="card">
-                                <div className="card-header" style={{backgroundColor:"#014d88",color:'#fff',fontWeight:'bolder',  borderRadius:"0.2rem"}}>
-                                    <h5 className="card-title" style={{color:'#fff'}}>Contact Details</h5>
-                                </div>
+                  <div className="card-body">
+                    <div className={"row"}>
+                      <div className="form-group  col-md-4">
+                        <FormGroup>
+                          <Label>Phone Number *</Label>
+                          <PhoneInput
+                            containerStyle={{
+                              width: "100%",
+                              border: "1px solid #014D88",
+                            }}
+                            inputStyle={{ width: "100%", borderRadius: "0px" }}
+                            country={"ng"}
+                            placeholder="(234)7099999999"
+                            value={getValues("pnumber")}
+                            onChange={(e) => {
+                              checkPhoneNumber(e, "pnumber");
+                            }}
+                          />
 
-                                <div className="card-body">
-                                    <div className={"row"}>
-                                        <div className="form-group  col-md-4">
-                                            <FormGroup>
-                                                <Label>Phone Number *</Label>
-                                                <PhoneInput
-                                                    containerStyle={{width:'100%',border: "1px solid #014D88"}}
-                                                    inputStyle={{width:'100%',borderRadius:'0px'}}
-                                                    country={'ng'}
-                                                    placeholder="(234)7099999999"
-                                                    value={getValues('pnumber')}
-                                                    onChange={(e)=>{checkPhoneNumber(e,'pnumber')}}
-                                                />
-
-{/*                                                <input
+                          {/*                                                <input
                                                     className="form-control"
                                                     type="tel"
                                                     name="pnumber"
@@ -984,22 +1114,27 @@ const UserRegistration = (props) => {
                                                     placeholder="(234)7099999999"
                                                     style={{border: "1px solid #014D88"}}
                                                 />*/}
-                                                {errors.pnumber && <p>{errors.pnumber.message}</p>}
-                                            </FormGroup>
-                                        </div>
+                          {errors.pnumber && <p>{errors.pnumber.message}</p>}
+                        </FormGroup>
+                      </div>
 
-                                        <div className="form-group col-md-4">
-                                            <FormGroup>
-                                                <Label>Alt. Phone Number</Label>
-                                                <PhoneInput
-                                                    containerStyle={{width:'100%',border: "1px solid #014D88"}}
-                                                    inputStyle={{width:'100%',borderRadius:'0px'}}
-                                                    country={'ng'}
-                                                    placeholder="(234)7099999999"
-                                                    value={getValues('altPhonenumber')}
-                                                    onChange={(e)=>{checkPhoneNumber(e,'altPhonenumber')}}
-                                                />
-{/*                                                <input
+                      <div className="form-group col-md-4">
+                        <FormGroup>
+                          <Label>Alt. Phone Number</Label>
+                          <PhoneInput
+                            containerStyle={{
+                              width: "100%",
+                              border: "1px solid #014D88",
+                            }}
+                            inputStyle={{ width: "100%", borderRadius: "0px" }}
+                            country={"ng"}
+                            placeholder="(234)7099999999"
+                            value={getValues("altPhonenumber")}
+                            onChange={(e) => {
+                              checkPhoneNumber(e, "altPhonenumber");
+                            }}
+                          />
+                          {/*                                                <input
                                                     className="form-control"
                                                     type="tel"
                                                     name="altPhoneNumber"
@@ -1010,249 +1145,332 @@ const UserRegistration = (props) => {
                                                     placeholder="(234)7099999999"
                                                     style={{border: "1px solid #014D88"}}
                                                 />*/}
-                                                {errors.altPhonenumber && <p>{errors.altPhonenumber.message}</p>}
-                                            </FormGroup>
-                                        </div>
+                          {errors.altPhonenumber && (
+                            <p>{errors.altPhonenumber.message}</p>
+                          )}
+                        </FormGroup>
+                      </div>
 
-                                        <div className="form-group col-md-4">
-                                            <FormGroup>
-                                                <Label>Email</Label>
-                                                <input
-                                                    className="form-control"
-                                                    type="email"
-                                                    name="email"
-                                                    id="email"
-                                                    {...register("email")}
-                                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                />
-                                                {errors.email && <p>{errors.email.message}</p>}
-                                            </FormGroup>
-                                        </div>
-                                    </div>
+                      <div className="form-group col-md-4">
+                        <FormGroup>
+                          <Label>Email</Label>
+                          <input
+                            className="form-control"
+                            type="email"
+                            name="email"
+                            id="email"
+                            {...register("email")}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                          />
+                          {errors.email && <p>{errors.email.message}</p>}
+                        </FormGroup>
+                      </div>
+                    </div>
 
-                                    <div className="row">
-                                        <div className="form-group  col-md-4">
-                                            <FormGroup>
-                                                <Label>Country *</Label>
-                                                <select
-                                                    className="form-control"
-                                                    type="text"
-                                                    name="country"
-                                                    id="country"
-                                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    {...register("countryId")}
-                                                    onChange={(e) => onCountryChange(e)}>
-                                                    <option value={""}></option>
-                                                    {topLevelUnitCountryRows}
-                                                </select>
-                                                {errors.country && <p>{errors.country.message}</p>}
-                                            </FormGroup>
-                                        </div>
+                    <div className="row">
+                      <div className="form-group  col-md-4">
+                        <FormGroup>
+                          <Label>Country *</Label>
+                          <select
+                            className="form-control"
+                            type="text"
+                            name="country"
+                            id="country"
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            {...register("countryId")}
+                            onChange={(e) => onCountryChange(e)}
+                          >
+                            <option value={""}></option>
+                            {topLevelUnitCountryRows}
+                          </select>
+                          {errors.country && <p>{errors.country.message}</p>}
+                        </FormGroup>
+                      </div>
 
-                                        <div className="form-group  col-md-4">
-                                            <FormGroup>
-                                                <Label>State *</Label>
-                                                <select
-                                                    className="form-control"
-                                                    type="text"
-                                                    name="stateId"
-                                                    id="stateId"
-                                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    {...register("stateId")}
-                                                    onChange={(e) => onStateChange(e)}>
-                                                    <option value={""}></option>
-                                                    {stateRows}
-                                                </select>
-                                            </FormGroup>
-                                        </div>
+                      <div className="form-group  col-md-4">
+                        <FormGroup>
+                          <Label>State *</Label>
+                          <select
+                            className="form-control"
+                            type="text"
+                            name="stateId"
+                            id="stateId"
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            {...register("stateId")}
+                            onChange={(e) => onStateChange(e)}
+                          >
+                            <option value={""}></option>
+                            {stateRows}
+                          </select>
+                        </FormGroup>
+                      </div>
 
-                                        <div className="form-group  col-md-4">
-                                            <FormGroup>
-                                                <Label>Province/District/LGA *</Label>
-                                                <select
-                                                    className="form-control"
-                                                    type="text"
-                                                    name="district"
-                                                    id="district"
-                                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    {...register("district")}>
-                                                    <option value={""}></option>
-                                                    {districtRows}
-                                                </select>
-                                            </FormGroup>
-                                        </div>
-                                    </div>
+                      <div className="form-group  col-md-4">
+                        <FormGroup>
+                          <Label>Province/District/LGA *</Label>
+                          <select
+                            className="form-control"
+                            type="text"
+                            name="district"
+                            id="district"
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            {...register("district")}
+                          >
+                            <option value={""}></option>
+                            {districtRows}
+                          </select>
+                        </FormGroup>
+                      </div>
+                    </div>
 
-                                    <div className={"row"}>
-                                        <div className="form-group  col-md-4">
-                                            <FormGroup>
-                                                <Label>Street Address</Label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                    name="address"
-                                                    id="address"
-                                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    {...register("address")}
-                                                />
-                                                {errors.address && <p>{errors.address.message}</p>}
-                                            </FormGroup>
-                                        </div>
+                    <div className={"row"}>
+                      <div className="form-group  col-md-4">
+                        <FormGroup>
+                          <Label>Street Address</Label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            name="address"
+                            id="address"
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            {...register("address")}
+                          />
+                          {errors.address && <p>{errors.address.message}</p>}
+                        </FormGroup>
+                      </div>
 
-                                        <div className="form-group  col-md-4">
-                                            <FormGroup>
-                                                <Label>Landmark</Label>
-                                                <input
-                                                    className="form-control"
-                                                    type="text"
-                                                    name="landmark"
-                                                    id="landmark"
-                                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                    {...register("landmark")}
-                                                />
-                                                {errors.landmark && <p>{errors.landmark.message}</p>}
-                                            </FormGroup>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                      <div className="form-group  col-md-4">
+                        <FormGroup>
+                          <Label>Landmark</Label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            name="landmark"
+                            id="landmark"
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            {...register("landmark")}
+                          />
+                          {errors.landmark && <p>{errors.landmark.message}</p>}
+                        </FormGroup>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                            <div className="card">
-                                <div className="card-header" style={{backgroundColor:"#014d88",color:'#fff',fontWeight:'bolder',  borderRadius:"0.2rem"}}>
-                                    <h5 className="card-title" style={{color:'#fff'}}>Relationship / Next Of Kin</h5>
-                                </div>
-                                <div className="card-body">
-                                    <div className="row">
-                                        {
-                                            contacts && contacts.length > 0 && (
-                                                <div className="col-xl-12 col-lg-12">
-                                                    <table style={{ width: '100%' }}>
-                                                        <thead>
-                                                        <tr>
-                                                            <th>Relationship Type</th>
-                                                            <th>Name</th>
-                                                            <th>Phone</th>
-                                                            <th>Address</th>
-                                                            <th>Actions</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        {contacts.map((item, index) => {
-                                                            return (
-                                                                <tr key={item.index}>
-                                                                    <td>{ getRelationship(item.relationshipId) }</td>
-                                                                    <td>{ getNames(item) }</td>
-                                                                    <td>{ getPhoneContactPoint(item.contactPoint) }</td>
-                                                                    <td>{ getAddress(item.address) }</td>
-                                                                    <td>
-                                                                        <button type="button"
-                                                                                className="btn btn-default btn-light btn-sm editRow"
-                                                                                onClick={(e) => handleEditRelative(item, index)}>
-                                                                            <FontAwesomeIcon icon="edit" />
-                                                                        </button>
-                                                                        &nbsp;&nbsp;
-                                                                        <button
-                                                                            type="button"
-                                                                            className="btn btn-danger btn-sm removeRow"
-                                                                            onClick={(e) => handleDeleteRelative(index)}>
-                                                                            <FontAwesomeIcon icon="trash" />
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            )
+                <div className="card">
+                  <div
+                    className="card-header"
+                    style={{
+                      backgroundColor: "#014d88",
+                      color: "#fff",
+                      fontWeight: "bolder",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <h5 className="card-title" style={{ color: "#fff" }}>
+                      Relationship / Next Of Kin
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    <div className="row">
+                      {contacts && contacts.length > 0 && (
+                        <div className="col-xl-12 col-lg-12">
+                          <table style={{ width: "100%" }}>
+                            <thead>
+                              <tr>
+                                <th>Relationship Type</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {contacts.map((item, index) => {
+                                return (
+                                  <tr key={item.index}>
+                                    <td>
+                                      {getRelationship(item.relationshipId)}
+                                    </td>
+                                    <td>{getNames(item)}</td>
+                                    <td>
+                                      {getPhoneContactPoint(item.contactPoint)}
+                                    </td>
+                                    <td>{getAddress(item.address)}</td>
+                                    <td>
+                                      <button
+                                        type="button"
+                                        className="btn btn-default btn-light btn-sm editRow"
+                                        onClick={(e) =>
+                                          handleEditRelative(item, index)
                                         }
-                                        <div className="col-xl-12 col-lg-12">
-                                            {
-                                                showRelative && (
-                                                    <div className="card">
-                                                        <div className="card-body">
-                                                            <div className="row">
-                                                                <div className="form-group mb-3 col-md-3">
-                                                                    <FormGroup>
-                                                                        <Label for="relationshipType">Relationship Type *</Label>
-                                                                        <select
-                                                                            className="form-control"
-                                                                            name="relationshipType"
-                                                                            id="relationshipType"
-                                                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                                            {...register("relationshipType")}>
-                                                                            <option value={""}></option>
-                                                                            {relationshipRows}
-                                                                        </select>
-                                                                        {errors.relationshipType && <p>{errors.relationshipType.message}</p>}
-                                                                    </FormGroup>
-                                                                </div>
+                                      >
+                                        <FontAwesomeIcon icon="edit" />
+                                      </button>
+                                      &nbsp;&nbsp;
+                                      <button
+                                        type="button"
+                                        className="btn btn-danger btn-sm removeRow"
+                                        onClick={(e) =>
+                                          handleDeleteRelative(index)
+                                        }
+                                      >
+                                        <FontAwesomeIcon icon="trash" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                      <div className="col-xl-12 col-lg-12">
+                        {showRelative && (
+                          <div className="card">
+                            <div className="card-body">
+                              <div className="row">
+                                <div className="form-group mb-3 col-md-3">
+                                  <FormGroup>
+                                    <Label for="relationshipType">
+                                      Relationship Type *
+                                    </Label>
+                                    <select
+                                      className="form-control"
+                                      name="relationshipType"
+                                      id="relationshipType"
+                                      style={{
+                                        border: "1px solid #014D88",
+                                        borderRadius: "0.2rem",
+                                      }}
+                                      {...register("relationshipType")}
+                                    >
+                                      <option value={""}></option>
+                                      {relationshipRows}
+                                    </select>
+                                    {errors.relationshipType && (
+                                      <p>{errors.relationshipType.message}</p>
+                                    )}
+                                  </FormGroup>
+                                </div>
 
-                                                                <div className="form-group mb-3 col-md-3">
-                                                                    <FormGroup>
-                                                                        <Label for="cfirstName">First Name *</Label>
-                                                                        <input
-                                                                            className="form-control"
-                                                                            type="text"
-                                                                            name="cfirstName"
-                                                                            id="cfirstName"
-                                                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                                            {...register("cfirstName",{
-                                                                                onChange:(e)=>{alphabetOnly(e,'cfirstName')}
-                                                                            })}
-                                                                        />
-                                                                        {errors.cfirstName && <p>{errors.cfirstName.message}</p>}
-                                                                    </FormGroup>
-                                                                </div>
+                                <div className="form-group mb-3 col-md-3">
+                                  <FormGroup>
+                                    <Label for="cfirstName">First Name *</Label>
+                                    <input
+                                      className="form-control"
+                                      type="text"
+                                      name="cfirstName"
+                                      id="cfirstName"
+                                      style={{
+                                        border: "1px solid #014D88",
+                                        borderRadius: "0.2rem",
+                                      }}
+                                      {...register("cfirstName", {
+                                        onChange: (e) => {
+                                          alphabetOnly(e, "cfirstName");
+                                        },
+                                      })}
+                                    />
+                                    {errors.cfirstName && (
+                                      <p>{errors.cfirstName.message}</p>
+                                    )}
+                                  </FormGroup>
+                                </div>
 
-                                                                <div className="form-group mb-3 col-md-3">
-                                                                    <FormGroup>
-                                                                        <Label>Middle Name</Label>
-                                                                        <input
-                                                                            className="form-control"
-                                                                            type="text"
-                                                                            name="cmiddleName"
-                                                                            id="cmiddleName"
-                                                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                                            {...register("cmiddleName",{
-                                                                                onChange:(e)=>{alphabetOnly(e,'cmiddleName')}
-                                                                            })}
-                                                                        />
-                                                                        {errors.cmiddleName && <p>{errors.cmiddleName.message}</p>}
-                                                                    </FormGroup>
-                                                                </div>
+                                <div className="form-group mb-3 col-md-3">
+                                  <FormGroup>
+                                    <Label>Middle Name</Label>
+                                    <input
+                                      className="form-control"
+                                      type="text"
+                                      name="cmiddleName"
+                                      id="cmiddleName"
+                                      style={{
+                                        border: "1px solid #014D88",
+                                        borderRadius: "0.2rem",
+                                      }}
+                                      {...register("cmiddleName", {
+                                        onChange: (e) => {
+                                          alphabetOnly(e, "cmiddleName");
+                                        },
+                                      })}
+                                    />
+                                    {errors.cmiddleName && (
+                                      <p>{errors.cmiddleName.message}</p>
+                                    )}
+                                  </FormGroup>
+                                </div>
 
-                                                                <div className="form-group mb-3 col-md-3">
-                                                                    <FormGroup>
-                                                                        <Label>Last Name *</Label>
-                                                                        <input
-                                                                            className="form-control"
-                                                                            type="text"
-                                                                            name="clastName"
-                                                                            id="clastName"
-                                                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                                            {...register("clastName",{
-                                                                                onChange:(e)=>{alphabetOnly(e,'clastName')}
-                                                                            })}
-                                                                        />
-                                                                        {errors.clastName && <p>{errors.clastName.message}</p>}
-                                                                    </FormGroup>
-                                                                </div>
-                                                            </div>
+                                <div className="form-group mb-3 col-md-3">
+                                  <FormGroup>
+                                    <Label>Last Name *</Label>
+                                    <input
+                                      className="form-control"
+                                      type="text"
+                                      name="clastName"
+                                      id="clastName"
+                                      style={{
+                                        border: "1px solid #014D88",
+                                        borderRadius: "0.2rem",
+                                      }}
+                                      {...register("clastName", {
+                                        onChange: (e) => {
+                                          alphabetOnly(e, "clastName");
+                                        },
+                                      })}
+                                    />
+                                    {errors.clastName && (
+                                      <p>{errors.clastName.message}</p>
+                                    )}
+                                  </FormGroup>
+                                </div>
+                              </div>
 
-                                                            <div className="row">
-                                                                <div className="form-group mb-3 col-md-3">
-                                                                    <FormGroup>
-                                                                        <Label for="contactPhoneNumber">Phone Number</Label>
-                                                                        <PhoneInput
-                                                                            containerStyle={{width:'100%',border: "1px solid #014D88"}}
-                                                                            inputStyle={{width:'100%',borderRadius:'0px'}}
-                                                                            country={'ng'}
-                                                                            placeholder="(234)7099999999"
-                                                                            value={getValues('contactPhoneNumber')}
-                                                                            onChange={(e)=>{checkPhoneNumber(e,'contactPhoneNumber')}}
-                                                                        />
-{/*                                                                        <input
+                              <div className="row">
+                                <div className="form-group mb-3 col-md-3">
+                                  <FormGroup>
+                                    <Label for="contactPhoneNumber">
+                                      Phone Number
+                                    </Label>
+                                    <PhoneInput
+                                      containerStyle={{
+                                        width: "100%",
+                                        border: "1px solid #014D88",
+                                      }}
+                                      inputStyle={{
+                                        width: "100%",
+                                        borderRadius: "0px",
+                                      }}
+                                      country={"ng"}
+                                      placeholder="(234)7099999999"
+                                      value={getValues("contactPhoneNumber")}
+                                      onChange={(e) => {
+                                        checkPhoneNumber(
+                                          e,
+                                          "contactPhoneNumber"
+                                        );
+                                      }}
+                                    />
+                                    {/*                                                                        <input
                                                                             className="form-control"
                                                                             type="text"
                                                                             name="contactPhoneNumber"
@@ -1262,439 +1480,496 @@ const UserRegistration = (props) => {
                                                                                 onChange:(e)=>{checkPhoneNumber(e,'contactPhoneNumber')}
                                                                             })}
                                                                         />*/}
-                                                                        {errors.contactPhoneNumber && <p>{errors.contactPhoneNumber.message}</p>}
-                                                                    </FormGroup>
-                                                                </div>
-
-                                                                <div className="form-group mb-3 col-md-3">
-                                                                    <FormGroup>
-                                                                        <Label for="contactEmail">Email</Label>
-                                                                        <input
-                                                                            className="form-control"
-                                                                            type="text"
-                                                                            name="contactEmail"
-                                                                            id="contactEmail"
-                                                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                                            {...register("contactEmail",{
-                                                                                onChange:(e)=>{checkPhoneNumber(e,'contactEmail')}
-                                                                            })}
-                                                                        />
-                                                                        {errors.contactEmail && <p>{errors.contactEmail.message}</p>}
-                                                                    </FormGroup>
-                                                                </div>
-
-                                                                <div className="form-group mb-3 col-md-3">
-                                                                    <FormGroup>
-                                                                        <Label for="contactAddress">Address</Label>
-                                                                        <input
-                                                                            className="form-control"
-                                                                            type="text"
-                                                                            name="contactAddress"
-                                                                            id="contactAddress"
-                                                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                                                            {...register("contactAddress")}
-                                                                        />
-                                                                        {errors.contactAddress && <p>{errors.contactAddress.message}</p>}
-                                                                    </FormGroup>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="row">
-                                                                <div className="">
-                                                                    <MatButton
-                                                                        type="button"
-                                                                        variant="contained"
-                                                                        color="primary"
-                                                                        className={classes.button}
-                                                                        onClick={handleSaveRelationship}
-                                                                    >
-                                                                        Add
-                                                                    </MatButton>
-                                                                </div>
-
-                                                                <div className="">
-                                                                    <MatButton
-                                                                        type="button"
-                                                                        variant="contained"
-                                                                        color="secondary"
-                                                                        className={classes.button}
-                                                                        onClick={handleCancelSaveRelationship}
-                                                                    >
-                                                                        Cancel
-                                                                    </MatButton>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            }
-                                        </div>
-                                    </div>
-
-                                    <div className="row"></div>
-                                        <MatButton
-                                            type="button"
-                                            variant="contained"
-                                            color="primary"
-                                            className={classes.button}
-                                            startIcon={<AddIcon />}
-                                            onClick={handleAddRelative}
-                                            style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
-                                        >
-                                            Add a Relative/Next Of Kin
-                                        </MatButton>
-                                    {/* </div> */}
-                                </div>
-                            </div>
-                            {/* Adding HIV ENROLLEMENT FORM HERE */}
-                            <div className="card">
-                                <div className="card-header" style={{backgroundColor:"#014d88",color:'#fff',fontWeight:'bolder', borderRadius:"0.2rem"}}>
-                                    <h5 className="card-title"  style={{color:'#fff'}}>HIV Enrollment</h5>
+                                    {errors.contactPhoneNumber && (
+                                      <p>{errors.contactPhoneNumber.message}</p>
+                                    )}
+                                  </FormGroup>
                                 </div>
 
-                                <div className="card-body">
-                                <div className="row">
-                                
-                                <div className="form-group mb-3 col-md-6">
-                                    <FormGroup>
-                                    <Label for="uniqueId">Unique ID No  * </Label>
-                                    <Input
-                                        type="text"
-                                        name="uniqueId"
-                                        id="uniqueId"
-                                        onChange={handleInputChange}
-                                        value={objValues.uniqueId}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        required
-                                    />
-                                    </FormGroup>
-                                </div>
-                                <div className="form-group mb-3 col-md-6">
-                                    <FormGroup>
-                                    <Label for="dateOfRegistration">Date of Enrollment * </Label>
-                                    <Input
-                                        type="date"
-                                        name="dateOfRegistration"
-                                        id="dateOfRegistration"
-                                        max={today}
-                                        onChange={handleInputChange}
-                                        value={objValues.dateOfRegistration}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        required
-                                    />
-                                    </FormGroup>
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label for="entryPointId">Care Entry Point</Label>
-                                <Input
-                                    type="select"
-                                    name="entryPointId"
-                                    id="entryPointId"
-                                    onChange={handleInputChange}
-                                    value={objValues.entryPointId}
-                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                    required
-                                >
-                                <option value=""> </option>                  
-                                {carePoints.map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                        {value.display}
-                                    </option>
-                                ))}
-                                </Input>
-                                </FormGroup>
-                                
-                                </div>
-                                <div className="form-group mb-3 col-md-6">
-                                {transferIn===true ? 
-                                    (
-                                        <FormGroup>
-                                        <Label >Facility Name</Label>
-                                        <Input
-                                            type="text"
-                                            name="facilityName"
-                                            id="facilityName"
-                                            onChange={handleInputChange}
-                                            value={objValues.facilityName}  
-                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        />
-                                        </FormGroup>
-                                    ):""}
-                                </div>
-                                
-                                <div className="form-group mb-3 col-md-6">
-                                <FormGroup>
-                                <Label >HIV Status at Registration</Label>
-                                <Input
-                                    type="select"
-                                    name="statusAtRegistrationId"
-                                    id="statusAtRegistrationId"
-                                    onChange={handleInputChange}
-                                    value={objValues.statusAtRegistrationId}
-                                    style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                    required
-                                >
-                                <option value=""> Select</option>                  
-                                {hivStatus.map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                        {value.display}
-                                    </option>
-                                ))}
-                                </Input>
-                                </FormGroup>
-                                </div>
-
-                                <div className="form-group mb-3 col-md-6">
-                                    <FormGroup>
-                                    <Label >Date of Confirmed HIV Test *</Label>
-                                    <Input
-                                        type="date"
-                                        name="dateConfirmedHiv"
-                                        id="dateConfirmedHiv"
-                                        max={today}
-                                        onChange={handleInputChange}
-                                        value={objValues.dateConfirmedHiv}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        required
-                                    />  
-                                    </FormGroup>
-                                </div>
-                                <div className="form-group mb-3 col-md-6">
-                                    <FormGroup>
-                                    <Label >Source of Referral</Label>
-                                    <Input
-                                        type="select"
-                                        name="sourceOfReferrer"
-                                        id="sourceOfReferrer"
-                                        value={objValues.sourceOfReferrer}
-                                        onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        required
-                                    >
-                                        <option value="">Select </option>                 
-                                            {sourceReferral.map((value) => (
-                                                <option key={value.id} value={value.id}>
-                                                    {value.display}
-                                                </option>
-                                            ))}
-                                    </Input>
-                                    </FormGroup>
-                                </div>
-                                
-                                <div className="form-group mb-3 col-md-6">
-                                    <FormGroup>
-                                    <Label >Enrollment Setting</Label>
-                                    <Input
-                                        type="select"
-                                        name="enrollmentSettingId"
-                                        id="enrollmentSettingId"
-                                        value={objValues.enrollmentSettingId}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        onChange={handleInputChange}
-                                        required
-                                        >
-                                        <option value=""> Select</option>
-
-                                            {enrollSetting.map((value) => (
-                                                <option key={value.id} value={value.id}>
-                                                    {value.display}
-                                                </option>
-                                            ))}
-                                    </Input>
-                                    </FormGroup>
-                                </div>
-                                {getValues('sex')==='3' || getValues('sex')==='4' ? (
-                                    <>
-                                    <div className = "form-group mb-3 col-md-6" >
-                                    <FormGroup>
-                                    <Label> Pregnancy </Label>
-                                    <Input
-                                        type = "select"
-                                        name = "pregnancyStatusId"
-                                        id = "pregnancyStatusId"
-                                        value = {objValues.pregnancyStatusId}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        onChange = {handleInputChange}                                        
-                                    >
-                                    < option value = "" >Select </option>
-                                        {
-                                            pregnancyStatus.map((value) => (
-                                            < option key = {value.id} value = {value.id} >
-                                                {value.display}
-                                            </option>
-                                        ))
-                                        }
-                                    </Input>                                                                        
-                                </FormGroup>  
-                                </div>
-
-                                <div className="form-group mb-3 col-md-6">
-                                    <FormGroup>
-                                    <Label >Date of LMP </Label>                                    
-                                    <Input
-                                        type="date"
-                                        name="dateOfLpm"
-                                        id="dateOfLpm"
-                                        max={today}
-                                        onChange={handleInputChange}
-                                        value={objValues.dateOfLpm}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        required
-                                    />  
-                                        
-                                    </FormGroup>
-                                </div>
-                                </>
-                                )
-                                :
-                                ""
-                                }
-                                <div className="form-group mb-3 col-md-6">
-                                    <FormGroup>
-                                    <Label >TB Status</Label>
-                                    <Input
-                                        type="select"
-                                        name="tbStatusId"
-                                        id="tbStatusId"
-                                        value={objValues.tbStatusId}
-                                        onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        required
-                                        >
-                                        <option value=""> </option>
-
-                                            {tbStatus.map((value) => (
-                                                <option key={value.id} value={value.id}>
-                                                    {value.display}
-                                                </option>
-                                            ))}
-                                    </Input>
-                                
-                                    </FormGroup>
-                                </div>
                                 <div className="form-group mb-3 col-md-3">
-                                    
-                                    <div className="form-check custom-checkbox ml-1 ">
-                                        <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        name="ovc_enrolled"
-                                        id="ovc_enrolled"
-                                        
-                                        onChange={handleCheckBox}
-                                        />
-                                        <label
-                                        className="form-check-label"
-                                        htmlFor="basic_checkbox_1"
-                                        >
-                                        Enrolled into OVC?###
-                                        </label>
-                                    </div>
+                                  <FormGroup>
+                                    <Label for="contactEmail">Email</Label>
+                                    <input
+                                      className="form-control"
+                                      type="text"
+                                      name="contactEmail"
+                                      id="contactEmail"
+                                      style={{
+                                        border: "1px solid #014D88",
+                                        borderRadius: "0.2rem",
+                                      }}
+                                      {...register("contactEmail", {
+                                        onChange: (e) => {
+                                          checkPhoneNumber(e, "contactEmail");
+                                        },
+                                      })}
+                                    />
+                                    {errors.contactEmail && (
+                                      <p>{errors.contactEmail.message}</p>
+                                    )}
+                                  </FormGroup>
                                 </div>
+
                                 <div className="form-group mb-3 col-md-3">
-                                    {ovcEnrolled===true ? 
-                                        (
-                                        <FormGroup>
-                                        <Label >OVC Number</Label>
-                                        <Input
-                                            type="text"
-                                            name="ovcNumber"
-                                            id="ovcNumber"
-                                            required={ovcEnrolled}
-                                            onChange={handleInputChange}
-                                            style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                            value={objValues.ovcNumber}
-                                            
-                                        />
-                                        </FormGroup>
-                                        )
-                                        :
-                                        ""
-                                    }
+                                  <FormGroup>
+                                    <Label for="contactAddress">Address</Label>
+                                    <input
+                                      className="form-control"
+                                      type="text"
+                                      name="contactAddress"
+                                      id="contactAddress"
+                                      style={{
+                                        border: "1px solid #014D88",
+                                        borderRadius: "0.2rem",
+                                      }}
+                                      {...register("contactAddress")}
+                                    />
+                                    {errors.contactAddress && (
+                                      <p>{errors.contactAddress.message}</p>
+                                    )}
+                                  </FormGroup>
                                 </div>
-                                {hideTargetGroup==="false" ? (
-                                <div className="form-group mb-3 col-md-6">
-                                    <FormGroup>
-                                    <Label >Target Group</Label>
-                                    <Input
-                                        type="select"
-                                        name="targetGroupId"
-                                        id="targetGroupId"
-                                        value={objValues.targetGroupId}
-                                        onChange={handleInputChange}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.2rem"}}
-                                        >
-                                        <option value=""> Select</option>                    
-                                                {kP.map((value) => (
-                                                    <option key={value.id} value={value.id}>
-                                                        {value.display}
-                                                    </option>
-                                                ))}
-                                    </Input>
-                                    
-                                    </FormGroup>
-                                </div>
-                                ) : ""}
-                            
-                            </div>
-                                </div>
-                            </div>
-                            {/* END OF HIV ENROLLEMENT FORM */}
-                            {saving ? <Spinner /> : ""}
+                              </div>
 
-                            <br />
+                              <div className="row">
+                                <div className="">
+                                  <MatButton
+                                    type="button"
+                                    variant="contained"
+                                    color="primary"
+                                    className={classes.button}
+                                    onClick={handleSaveRelationship}
+                                  >
+                                    Add
+                                  </MatButton>
+                                </div>
 
-                            {userDetail ===null ? (
-                                    <MatButton
-                                        type="submit"
-                                        variant="contained"
-                                        color="primary"
-                                        className={classes.button}
-                                        startIcon={<SaveIcon />}
-                                        style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
-                                    >
-                                        {!saving ? (
-                                            <span style={{ textTransform: "capitalize" }}>Save</span>
-                                        ) : (
-                                            <span style={{ textTransform: "capitalize" }}>Saving...</span>
-                                        )}
-                                    </MatButton>
-                                )
-                                :
-                                (
-                                    <MatButton
-                                        type="submit"
-                                        variant="contained"
-                                        color="primary"
-                                        className={classes.button}
-                                        startIcon={<SaveIcon />}
-                                        style={{backgroundColor:'#014d88',fontWeight:"bolder"}}
-                                    >
-                                        {!saving ? (
-                                            <span style={{ textTransform: "capitalize" }}>Save</span>
-                                        ) : (
-                                            <span style={{ textTransform: "capitalize" }}>Saving...</span>
-                                        )}
-                                    </MatButton>
-                                )
-                            }
-                            <MatButton
-                                variant="contained"
-                                className={classes.button}
-                                startIcon={<CancelIcon style={{color:'#fff'}}/>}  
-                                style={{backgroundColor:'#992E62'}} 
-                                onClick={handleCancel}
-                            >
-                                <span style={{ textTransform: "capitalize" }}>Cancel</span>
-                            </MatButton>
-                        </Form>
+                                <div className="">
+                                  <MatButton
+                                    type="button"
+                                    variant="contained"
+                                    color="secondary"
+                                    className={classes.button}
+                                    onClick={handleCancelSaveRelationship}
+                                  >
+                                    Cancel
+                                  </MatButton>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                </CardContent>
-            </Card>
-        </>
+
+                    <div className="row"></div>
+                    <MatButton
+                      type="button"
+                      variant="contained"
+                      color="primary"
+                      className={classes.button}
+                      startIcon={<AddIcon />}
+                      onClick={handleAddRelative}
+                      style={{
+                        backgroundColor: "#014d88",
+                        fontWeight: "bolder",
+                      }}
+                    >
+                      Add a Relative/Next Of Kin
+                    </MatButton>
+                    {/* </div> */}
+                  </div>
+                </div>
+                {/* Adding HIV ENROLLEMENT FORM HERE */}
+                <div className="card">
+                  <div
+                    className="card-header"
+                    style={{
+                      backgroundColor: "#014d88",
+                      color: "#fff",
+                      fontWeight: "bolder",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <h5 className="card-title" style={{ color: "#fff" }}>
+                      HIV Enrollment
+                    </h5>
+                  </div>
+
+                  <div className="card-body">
+                    <div className="row">
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label for="uniqueId">Unique ID No * </Label>
+                          <Input
+                            type="text"
+                            name="uniqueId"
+                            id="uniqueId"
+                            onChange={handleInputChange}
+                            value={objValues.uniqueId}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            required
+                          />
+                        </FormGroup>
+                      </div>
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label for="dateOfRegistration">
+                            Date of Enrollment *{" "}
+                          </Label>
+                          <Input
+                            type="date"
+                            name="dateOfRegistration"
+                            id="dateOfRegistration"
+                            max={today}
+                            onChange={handleInputChange}
+                            value={objValues.dateOfRegistration}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            required
+                          />
+                        </FormGroup>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label for="entryPointId">Care Entry Point</Label>
+                          <Input
+                            type="select"
+                            name="entryPointId"
+                            id="entryPointId"
+                            onChange={handleInputChange}
+                            value={objValues.entryPointId}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            required
+                          >
+                            <option value=""> </option>
+                            {getOptions("POINT_ENTRY").map((value) => (
+                              <option key={value.id} value={value.id}>
+                                {value.display}
+                              </option>
+                            ))}
+                          </Input>
+                        </FormGroup>
+                      </div>
+                      <div className="form-group mb-3 col-md-6">
+                        {transferIn === true ? (
+                          <FormGroup>
+                            <Label>Facility Name</Label>
+                            <Input
+                              type="text"
+                              name="facilityName"
+                              id="facilityName"
+                              onChange={handleInputChange}
+                              value={objValues.facilityName}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            />
+                          </FormGroup>
+                        ) : (
+                          ""
+                        )}
+                      </div>
+
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>HIV Status at Registration</Label>
+                          <Input
+                            type="select"
+                            name="statusAtRegistrationId"
+                            id="statusAtRegistrationId"
+                            onChange={handleInputChange}
+                            value={objValues.statusAtRegistrationId}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            required
+                          >
+                            <option value=""> Select</option>
+                            {getOptions("HIV_STATUS_ENROL").map((value) => (
+                              <option key={value.id} value={value.id}>
+                                {value.display}
+                              </option>
+                            ))}
+                          </Input>
+                        </FormGroup>
+                      </div>
+
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>Date of Confirmed HIV Test *</Label>
+                          <Input
+                            type="date"
+                            name="dateConfirmedHiv"
+                            id="dateConfirmedHiv"
+                            max={today}
+                            onChange={handleInputChange}
+                            value={objValues.dateConfirmedHiv}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            required
+                          />
+                        </FormGroup>
+                      </div>
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>Source of Referral</Label>
+                          <Input
+                            type="select"
+                            name="sourceOfReferrer"
+                            id="sourceOfReferrer"
+                            value={objValues.sourceOfReferrer}
+                            onChange={handleInputChange}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            required
+                          >
+                            <option value="">Select </option>
+                            {getOptions("SOURCE_REFERRAL").map((value) => (
+                              <option key={value.id} value={value.id}>
+                                {value.display}
+                              </option>
+                            ))}
+                          </Input>
+                        </FormGroup>
+                      </div>
+
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>Enrollment Setting</Label>
+                          <Input
+                            type="select"
+                            name="enrollmentSettingId"
+                            id="enrollmentSettingId"
+                            value={objValues.enrollmentSettingId}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            onChange={handleInputChange}
+                            required
+                          >
+                            <option value=""> Select</option>
+
+                            {getOptions("ENROLLMENT_SETTING").map((value) => (
+                              <option key={value.id} value={value.id}>
+                                {value.display}
+                              </option>
+                            ))}
+                          </Input>
+                        </FormGroup>
+                      </div>
+                      {getValues("sex") === "3" || getValues("sex") === "4" ? (
+                        <>
+                          <div className="form-group mb-3 col-md-6">
+                            <FormGroup>
+                              <Label> Pregnancy </Label>
+                              <Input
+                                type="select"
+                                name="pregnancyStatusId"
+                                id="pregnancyStatusId"
+                                value={objValues.pregnancyStatusId}
+                                style={{
+                                  border: "1px solid #014D88",
+                                  borderRadius: "0.2rem",
+                                }}
+                                onChange={handleInputChange}
+                              >
+                                <option value="">Select </option>
+                                {getOptions("PREGANACY_STATUS").map((value) => (
+                                  <option key={value.id} value={value.id}>
+                                    {value.display}
+                                  </option>
+                                ))}
+                              </Input>
+                            </FormGroup>
+                          </div>
+
+                          <div className="form-group mb-3 col-md-6">
+                            <FormGroup>
+                              <Label>Date of LMP </Label>
+                              <Input
+                                type="date"
+                                name="dateOfLpm"
+                                id="dateOfLpm"
+                                max={today}
+                                onChange={handleInputChange}
+                                value={objValues.dateOfLpm}
+                                style={{
+                                  border: "1px solid #014D88",
+                                  borderRadius: "0.2rem",
+                                }}
+                                required
+                              />
+                            </FormGroup>
+                          </div>
+                        </>
+                      ) : (
+                        ""
+                      )}
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>TB Status</Label>
+                          <Input
+                            type="select"
+                            name="tbStatusId"
+                            id="tbStatusId"
+                            value={objValues.tbStatusId}
+                            onChange={handleInputChange}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                            required
+                          >
+                            <option value=""> </option>
+
+                            {getOptions("TB_STATUS").map((value) => (
+                              <option key={value.id} value={value.id}>
+                                {value.display}
+                              </option>
+                            ))}
+                          </Input>
+                        </FormGroup>
+                      </div>
+                      <div className="form-group mb-3 col-md-3">
+                        <div className="form-check custom-checkbox ml-1 ">
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            name="ovc_enrolled"
+                            id="ovc_enrolled"
+                            onChange={handleCheckBox}
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor="basic_checkbox_1"
+                          >
+                            Enrolled into OVC?###
+                          </label>
+                        </div>
+                      </div>
+                      <div className="form-group mb-3 col-md-3">
+                        {ovcEnrolled === true ? (
+                          <FormGroup>
+                            <Label>OVC Number</Label>
+                            <Input
+                              type="text"
+                              name="ovcNumber"
+                              id="ovcNumber"
+                              required={ovcEnrolled}
+                              onChange={handleInputChange}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                              value={objValues.ovcNumber}
+                            />
+                          </FormGroup>
+                        ) : (
+                          ""
+                        )}
+                      </div>
+                      {hideTargetGroup === "false" ? (
+                        <div className="form-group mb-3 col-md-6">
+                          <FormGroup>
+                            <Label>Target Group</Label>
+                            <Input
+                              type="select"
+                              name="targetGroupId"
+                              id="targetGroupId"
+                              value={objValues.targetGroupId}
+                              onChange={handleInputChange}
+                              style={{
+                                border: "1px solid #014D88",
+                                borderRadius: "0.2rem",
+                              }}
+                            >
+                              <option value=""> Select</option>
+                              {getOptions("KP_TYPE").map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.display}
+                                </option>
+                              ))}
+                            </Input>
+                          </FormGroup>
+                        </div>
+                      ) : (
+                        ""
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* END OF HIV ENROLLEMENT FORM */}
+                {saving ? <Spinner /> : ""}
+
+                <br />
+
+                {userDetail === null ? (
+                  <MatButton
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    className={classes.button}
+                    startIcon={<SaveIcon />}
+                    style={{ backgroundColor: "#014d88", fontWeight: "bolder" }}
+                  >
+                    {!saving ? (
+                      <span style={{ textTransform: "capitalize" }}>Save</span>
+                    ) : (
+                      <span style={{ textTransform: "capitalize" }}>
+                        Saving...
+                      </span>
+                    )}
+                  </MatButton>
+                ) : (
+                  <MatButton
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    className={classes.button}
+                    startIcon={<SaveIcon />}
+                    style={{ backgroundColor: "#014d88", fontWeight: "bolder" }}
+                  >
+                    {!saving ? (
+                      <span style={{ textTransform: "capitalize" }}>Save</span>
+                    ) : (
+                      <span style={{ textTransform: "capitalize" }}>
+                        Saving...
+                      </span>
+                    )}
+                  </MatButton>
+                )}
+                <MatButton
+                  variant="contained"
+                  className={classes.button}
+                  startIcon={<CancelIcon style={{ color: "#fff" }} />}
+                  style={{ backgroundColor: "#992E62" }}
+                  onClick={handleCancel}
+                >
+                  <span style={{ textTransform: "capitalize" }}>Cancel</span>
+                </MatButton>
+              </Form>
+            </div>
+          </CardContent>
+        </Card>
+      </>
     );
 };
 

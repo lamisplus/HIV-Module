@@ -34,6 +34,7 @@ import "./patient.css";
 import { Modal } from "react-bootstrap";
 import { Label as LabelSui } from "semantic-ui-react";
 import { Icon } from "semantic-ui-react";
+import useCodesets from "../../../hooks/useCodesets";
 
 library.add(faCheckSquare, faCoffee, faEdit, faTrash);
 
@@ -101,7 +102,18 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
+const CODESET_KEYS = [
+  "POINT_ENTRY",
+  "SOURCE_REFERRAL",
+  "HIV_STATUS_ENROL",
+  "ENROLLMENT_SETTING",
+  "TB_STATUS",
+  "TARGET_GROUP",
+  "PREGNANCY_STATUS",
+];
 const UserRegistration = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   const history = useHistory();
   const location = useLocation();
@@ -166,13 +178,13 @@ const UserRegistration = (props) => {
   const [basicInfo, setBasicInfo] = useState(patientObj);
   //objValues.uniqueId=basicInfo.hospitalNumber
   useEffect(() => {
-    CareEntryPoint();
-    SourceReferral();
-    HivStatus();
-    EnrollmentSetting();
-    TBStatus();
-    KP();
-    PregnancyStatus();
+    // CareEntryPoint();
+    // SourceReferral();
+    // HivStatus();
+    // EnrollmentSetting();
+    // TBStatus();
+    // KP();
+    // PregnancyStatus();
     if (basicInfo.dateOfRegistration < basicInfo.dob) {
       alert("Date of registration can not be earlier than date of birth");
     }
@@ -273,82 +285,82 @@ const UserRegistration = (props) => {
     return result;
   };
 
-  const CareEntryPoint = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/POINT_ENTRY`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setCarePoints(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const CareEntryPoint = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/POINT_ENTRY`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setCarePoints(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //Get list of Source of Referral
-  const SourceReferral = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/SOURCE_REFERRAL`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setSourceReferral(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const SourceReferral = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/SOURCE_REFERRAL`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setSourceReferral(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //Get list of HIV STATUS ENROLLMENT
-  const HivStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/HIV_STATUS_ENROL`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setHivStatus(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const HivStatus = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/HIV_STATUS_ENROL`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setHivStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //Get list of HIV STATUS ENROLLMENT
-  const EnrollmentSetting = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/ENROLLMENT_SETTING`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setEnrollSetting(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const EnrollmentSetting = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/ENROLLMENT_SETTING`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setEnrollSetting(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //Get list of HIV STATUS ENROLLMENT
-  const TBStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbStatus(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const TBStatus = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setTbStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //Get list of KP
-  const KP = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TARGET_GROUP`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setKP(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const KP = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/TARGET_GROUP`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setKP(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //Get list of KP
-  const PregnancyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPregnancyStatus(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const PregnancyStatus = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setPregnancyStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   const handleInputChange = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -767,7 +779,7 @@ const UserRegistration = (props) => {
                           }}
                         >
                           <option value=""> </option>
-                          {carePoints.map((value) => (
+                          {getOptions("POINT_ENTRY").map((value) => (
                             <option key={value.id} value={value.id}>
                               {value.display}
                             </option>
@@ -839,7 +851,7 @@ const UserRegistration = (props) => {
                           }}
                         >
                           <option value=""> Select</option>
-                          {hivStatus.map((value) => (
+                          {getOptions("HIV_STATUS_ENROL").map((value) => (
                             <option key={value.id} value={value.id}>
                               {value.display}
                             </option>
@@ -902,7 +914,7 @@ const UserRegistration = (props) => {
                           required
                         >
                           <option value="">Select </option>
-                          {sourceReferral.map((value) => (
+                          {getOptions("SOURCE_REFERRAL").map((value) => (
                             <option key={value.id} value={value.id}>
                               {value.display}
                             </option>
@@ -958,7 +970,7 @@ const UserRegistration = (props) => {
                         >
                           <option value=""> Select</option>
 
-                          {enrollSetting.map((value) => (
+                          {getOptions("ENROLLMENT_SETTING").map((value) => (
                             <option key={value.id} value={value.id}>
                               {value.display}
                             </option>
@@ -993,7 +1005,7 @@ const UserRegistration = (props) => {
                               onChange={handleInputChange}
                             >
                               <option value="">Select </option>
-                              {pregnancyStatus.map((value) => (
+                              {getOptions("PREGNANCY_STATUS").map((value) => (
                                 <option key={value.id} value={value.id}>
                                   {value.display}
                                 </option>
@@ -1050,7 +1062,7 @@ const UserRegistration = (props) => {
                           required
                         >
                           <option value=""> Select</option>
-                          {tbStatus.map((value) => (
+                          {getOptions("TB_STATUS").map((value) => (
                             <option key={value.id} value={value.id}>
                               {value.display}
                             </option>
@@ -1087,7 +1099,7 @@ const UserRegistration = (props) => {
                             {(basicInfo.sex === "Female" ||
                               basicInfo.sex === "female") && (
                               <>
-                                {kP
+                                {getOptions("TARGET_GROUP")
                                   .filter((x) => x.display !== "MSM")
                                   .map((value) => (
                                     <option key={value.id} value={value.id}>
@@ -1099,7 +1111,7 @@ const UserRegistration = (props) => {
                             {(basicInfo.sex === "Male" ||
                               basicInfo.sex === "male") && (
                               <>
-                                {kP
+                                {getOptions("TARGET_GROUP")
                                   .filter((x) => x.display !== "FSW")
                                   .map((value) => (
                                     <option key={value.id} value={value.id}>

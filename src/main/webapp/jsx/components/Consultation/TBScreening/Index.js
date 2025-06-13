@@ -3,6 +3,7 @@ import { Input, Label, FormGroup } from "reactstrap";
 import { makeStyles } from "@material-ui/core/styles";
 import { token, url as baseUrl } from "./../../../../api";
 import axios from "axios";
+import useCodesets from "../../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -77,7 +78,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = ["TB_STATUS"];
 const TBScreeningForm = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   const [tbStatus, setTbStatus] = useState([]);
   // useEffect(() => {
@@ -115,25 +118,25 @@ const TBScreeningForm = (props) => {
   //   }
   // }, [props.tbObj,props.careSupportTb]);
 
-  useEffect(() => {
-    TBStatus()
-  }, []);
+  // useEffect(() => {
+  //   TBStatus()
+  // }, []);
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
-  const TBStatus = () => {
-    axios
-        .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
+  // const TBStatus = () => {
+  //   axios
+  //       .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       })
+  //       .then((response) => {
 
-          setTbStatus(response.data);
+  //         setTbStatus(response.data);
 
-        })
-        .catch((error) => {
+  //       })
+  //       .catch((error) => {
 
-        });
-  };
+  //       });
+  // };
 
   const handleInputChange = (e) => {
     props.setTbObj({ ...props.tbObj, [e.target.name]: e.target.value });
@@ -142,36 +145,35 @@ const TBScreeningForm = (props) => {
 
 
   return (
-      <div>
-        <div className="row">
-          <div className="form-group mb-3 col-md-6">
-            <FormGroup>
-              <Label>Patient TB Status</Label>
-              <Input
-                  type="select"
-                  name="tbStatusId"
-                  id="tbStatusId"
-                  // value={props.tbObj.tbStatusId}
-                  onChange={handleInputChange}
-                  style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
-                  // required
-              >
-                <option value="">Select </option>
-                {tbStatus &&
-                    tbStatus.map((tb) => (
-                        <option key={tb.id} value={tb.id}>
-                          {tb.display}
-                        </option>
-                    ))}
-              </Input>
-            </FormGroup>
-            {props.errors.tbStatusId !== "" ? (
-                <span className={classes.error}>{props.errors.tbStatusId}</span>
-            ) : (
-                ""
-            )}
-          </div>
-          {/* <div className="form-group mb-3 col-md-6">
+    <div>
+      <div className="row">
+        <div className="form-group mb-3 col-md-6">
+          <FormGroup>
+            <Label>Patient TB Status</Label>
+            <Input
+              type="select"
+              name="tbStatusId"
+              id="tbStatusId"
+              // value={props.tbObj.tbStatusId}
+              onChange={handleInputChange}
+              style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+              // required
+            >
+              <option value="">Select </option>
+              {getOptions("TB_STATUS").map((tb) => (
+                <option key={tb.id} value={tb.id}>
+                  {tb.display}
+                </option>
+              ))}
+            </Input>
+          </FormGroup>
+          {props.errors.tbStatusId !== "" ? (
+            <span className={classes.error}>{props.errors.tbStatusId}</span>
+          ) : (
+            ""
+          )}
+        </div>
+        {/* <div className="form-group mb-3 col-md-6">
           <FormGroup>
             <Label>Patient on Anti TB Drugs?</Label>
             <Input
@@ -399,8 +401,8 @@ const TBScreeningForm = (props) => {
             ""
           )}
         </div> */}
-        </div>
       </div>
+    </div>
   );
 };
 

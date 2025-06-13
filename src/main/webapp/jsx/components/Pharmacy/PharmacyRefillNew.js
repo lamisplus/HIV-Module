@@ -25,6 +25,7 @@ import { toast } from "react-toastify";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 //import { Icon,Button, } from 'semantic-ui-react'
 import { calculate_age_to_number } from "../../../utils";
+import useCodesets from "../../../hooks/useCodesets";
 const useStyles = makeStyles((theme) => ({
   button: {
     margin: theme.spacing(1),
@@ -68,7 +69,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 let refillPeriodValue = null;
 
+const CODESET_KEYS = [
+  "IPT_TYPE",
+  "PREP_SIDE_EFFECTS",
+  "DSD_MODEL_FACILITY",
+  "DSD_MODEL_COMMUNITY",
+];
 const Pharmacy = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const patientObj = props.patientObj;
   const [selectedCombinedRegimen, setSelectedCombinedRegimen] = useState([]);
   const [enrollDate, setEnrollDate] = useState("");
@@ -163,10 +171,10 @@ const Pharmacy = (props) => {
   });
   useEffect(() => {
     RegimenLine();
-    PrepSideEffect();
+    // PrepSideEffect();
     VitalSigns();
     AdultRegimenLine();
-    IPT_TYPE();
+    // IPT_TYPE();
     PatientCurrentRegimen();
     OtherDrugs();
     setRegimenList(
@@ -356,16 +364,16 @@ const Pharmacy = (props) => {
     }
   };
 
-  const IPT_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/IPT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setIPT_TYPE(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const IPT_TYPE = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/IPT_TYPE`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setIPT_TYPE(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //IPT_TYPE
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
@@ -431,34 +439,34 @@ const Pharmacy = (props) => {
       .catch((error) => {});
   };
   //Get list of PrepSideEffect
-  const PrepSideEffect = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPrepSideEffect(
-          Object.entries(response.data).map(([key, value]) => ({
-            label: value.display,
-            value: value.id,
-          }))
-        );
-      })
-      .catch((error) => {});
-  };
+  // const PrepSideEffect = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setPrepSideEffect(
+  //         Object.entries(response.data).map(([key, value]) => ({
+  //           label: value.display,
+  //           value: value.id,
+  //         }))
+  //       );
+  //     })
+  //     .catch((error) => {});
+  // };
   //Get list of DSD Model Type
-  function DsdModelType(dsdmodel) {
-    const dsd =
-      dsdmodel === "Facility" ? "DSD_MODEL_FACILITY" : "DSD_MODEL_COMMUNITY";
-    axios
-      .get(`${baseUrl}application-codesets/v2/${dsd}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setDsdModelType(response.data);
-      })
-      .catch((error) => {});
-  }
+  // function DsdModelType(dsdmodel) {
+  //   const dsd =
+  //     dsdmodel === "Facility" ? "DSD_MODEL_FACILITY" : "DSD_MODEL_COMMUNITY";
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/${dsd}`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setDsdModelType(response.data);
+  //     })
+  //     .catch((error) => {});
+  // }
   function RegimenType(id) {
     async function getCharacters() {
       try {
@@ -675,7 +683,7 @@ const Pharmacy = (props) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === "dsdModel" && value !== "") {
-      DsdModelType(value);
+      // DsdModelType(value);
       setObjValues({ ...objValues, [name]: value });
     }
     // Check if the input field being changed is the encounter date field
@@ -1285,7 +1293,6 @@ const Pharmacy = (props) => {
                         type="date"
                         name="visitDate"
                         id="visitDate"
-
                         onChange={handleInputChange}
                         value={objValues.visitDate}
                         min={enrollDate !== "" ? enrollDate : ""}
@@ -1375,16 +1382,16 @@ const Pharmacy = (props) => {
                     <FormGroup>
                       <Label>Refill Period(days) *</Label>
                       <Input
-                          type="select"
-                          name="refillPeriod"
-                          id="refillPeriod"
-                          value={objValues.refillPeriod}
-                          disabled={objValues.visitDate !== null ? false : true}
-                          onChange={handlRefillPeriod}
-                          style={{
-                            border: "1px solid #014D88",
-                            borderRadius: "0.25rem",
-                          }}
+                        type="select"
+                        name="refillPeriod"
+                        id="refillPeriod"
+                        value={objValues.refillPeriod}
+                        disabled={objValues.visitDate !== null ? false : true}
+                        onChange={handlRefillPeriod}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
                       >
                         <option value="">Select</option>
                         <option value="15">15</option>
@@ -1402,24 +1409,24 @@ const Pharmacy = (props) => {
                       <Label for="artDate">
                         {" "}
                         Date of Next Appointment{" "}
-                        <span style={{color: "red"}}> *</span>{" "}
+                        <span style={{ color: "red" }}> *</span>{" "}
                       </Label>
                       <Input
-                          type="date"
-                          name="nextAppointment"
-                          id="nextAppointment"
-                          min={enrollDate}
-                          disabled={
-                            objValues.refillPeriod !== null ? false : true
-                          }
-                          onChange={handleInputChange}
-                          value={objValues.nextAppointment}
-                          style={{
-                            border: "1px solid #014D88",
-                            borderRadius: "0.25rem",
-                          }}
-                          onKeyPress={(e) => e.preventDefault()}
-                          required
+                        type="date"
+                        name="nextAppointment"
+                        id="nextAppointment"
+                        min={enrollDate}
+                        disabled={
+                          objValues.refillPeriod !== null ? false : true
+                        }
+                        onChange={handleInputChange}
+                        value={objValues.nextAppointment}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        onKeyPress={(e) => e.preventDefault()}
+                        required
                       />
                     </FormGroup>
                   </div>
@@ -1427,39 +1434,38 @@ const Pharmacy = (props) => {
                     <FormGroup>
                       <Label for="">Client on DSD?</Label>
                       <Input
-                          type="select"
-                          name="clientDsdStatus"
-                          id="clientDsdStatus"
-                          disabled={true}
-                          value={clientDsdStatus}
+                        type="select"
+                        name="clientDsdStatus"
+                        id="clientDsdStatus"
+                        disabled={true}
+                        value={clientDsdStatus}
                       >
                         <option value="Yes">Yes</option>
-                        // Add options for Yes and No
+                 
                         <option value="No">No</option>
                       </Input>
                     </FormGroup>
                   </div>
                   {showmmdType && (
-                      <div className="form-group mb-3 col-md-4">
-                        <FormGroup>
-                          <Label>MMD Type</Label>
-                          <Input
-                              type="text"
-                              name="mmdType"
-                              id="mmdType"
-                              disabled="true"
-                              value={mmdType}
-                              onChange={handleInputChange}
-                              style={{
-                                border: "1px solid #014D88",
-                                borderRadius: "0.25rem",
-                              }}
-                          />
-                        </FormGroup>
-                      </div>
+                    <div className="form-group mb-3 col-md-4">
+                      <FormGroup>
+                        <Label>MMD Type</Label>
+                        <Input
+                          type="text"
+                          name="mmdType"
+                          id="mmdType"
+                          disabled="true"
+                          value={mmdType}
+                          onChange={handleInputChange}
+                          style={{
+                            border: "1px solid #014D88",
+                            borderRadius: "0.25rem",
+                          }}
+                        />
+                      </FormGroup>
+                    </div>
                   )}
                 </div>
-
                 {/*<div className="form-group mb-3 col-md-6">*/}
                 {/*  <FormGroup>*/}
                 {/*    <Label>DSD Model</Label>*/}
@@ -1494,16 +1500,20 @@ const Pharmacy = (props) => {
                 {/*        borderRadius: "0.25rem",*/}
                 {/*      }}*/}
                 {/*    >*/}
-                {/*      <option value="">Select </option>*/}
-                {/*      {dsdModelType.map((value) => (*/}
-                {/*        <option key={value.code} value={value.code}>*/}
-                {/*          {value.display}*/}
-                {/*        </option>*/}
-                {/*      ))}*/}
+                {/* <option value="">Select </option>
+                {objValues.dsdModel &&
+                  getOptions(
+                    objValues.dsdModel === "Facility"
+                      ? "DSD_MODEL_FACILITY"
+                      : "DSD_MODEL_COMMUNITY"
+                  ).map((value) => (
+                    <option key={value.code} value={value.code}>
+                      {value.display}
+                    </option>
+                  ))} */}
                 {/*    </Input>*/}
                 {/*  </FormGroup>*/}
                 {/*</div>*/}
-
                 {eacStatusObj &&
                   eacStatusObj.eacsession &&
                   eacStatusObj.eacsession !== "Default" && ( //This is to display current EAC of a patient if they have a session that is currently opened
@@ -1606,7 +1616,6 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-
                 <div className="form-group mb-3 col-xs-5 col-sm-5 col-md-5 col-lg-5">
                   <FormGroup>
                     <Label>Regimen </Label>
@@ -1633,7 +1642,6 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-
                 {/* List of Regimen Drug selected  */}
                 {showRegimen ? (
                   <>
@@ -1913,7 +1921,6 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-
                 <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                   <FormGroup>
                     <Label>Drugs</Label>
@@ -1939,7 +1946,6 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-
                 {iptEligibilty.IPTEligibility === true && ( //iptEligibilty check to display Visit type
                   <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                     <FormGroup>
@@ -1958,7 +1964,7 @@ const Pharmacy = (props) => {
                       >
                         <option value="">Select </option>
 
-                        {iptType.map((value) => (
+                        {getOptions("IPT_TYPE").map((value) => (
                           <option key={value.id} value={value.code}>
                             {value.display}
                           </option>
@@ -2172,7 +2178,6 @@ const Pharmacy = (props) => {
                   ""
                 )}
                 {/* End of List of OI Drug selected  */}
-
                 <LabelSui
                   as="a"
                   color="blue"
@@ -2448,7 +2453,6 @@ const Pharmacy = (props) => {
                 ) : (
                   ""
                 )}
-
                 <LabelSui
                   as="a"
                   color="blue"
@@ -2508,7 +2512,6 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-
                 {showRegimenOthers && regimenDrug && regimenDrug.length > 0 ? (
                   <>
                     <Card>
@@ -2713,7 +2716,6 @@ const Pharmacy = (props) => {
                   ""
                 )}
                 {/* End of List of Regimen Drug selected  */}
-
                 {regimenDrugList.length > 0 ? (
                   <List>
                     <Table striped responsive>

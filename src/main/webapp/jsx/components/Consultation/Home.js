@@ -37,6 +37,7 @@ import Select from "react-select";
 import { calculate_age_to_number } from "../../../utils";
 import TBScreeningForm from "./TBScreening/Index";
 import DualListBox from "react-dual-listbox";
+import useCodesets from "../../../hooks/useCodesets";
 // import { resetForm } from "../../../utils/formUtils";
 
 const useStyles = makeStyles((theme) => ({
@@ -112,7 +113,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "CRYPTOCOCCAL_SCREENING_STATUS",
+  "CERVICAL_CANCER_SCREENING_STATUS",
+  "CERVICAL_CANCER_TREATMENT",
+  "HEPATITIS_SCREENING_RESULT",
+  "FAMILY_PLANNING_METHOD",
+  "PREGNANCY_STATUS",
+  "VIRAL_LOAD_INDICATION",
+  "CLINICAL_STAGE",
+  "TB_STATUS",
+  "FUNCTIONAL _STATUS",
+  "PrEP_LEVEL_OF_ADHERENCE",
+];
 const ClinicVisit = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   let visitId = "";
   let patientObj = props.patientObj ? props.patientObj : {};
 
@@ -408,23 +423,22 @@ const ClinicVisit = (props) => {
     /**major duallist imported end here */
   }
   useEffect(() => {
-    FunctionalStatus();
-    WhoStaging();
-    AdherenceLevel();
-    TBStatus();
+    // FunctionalStatus();
+    // WhoStaging();
+    // AdherenceLevel();
+    // TBStatus();
     VitalSigns();
     PatientDetailId();
-    ViraLoadIndication();
+    // ViraLoadIndication();
     TestGroup();
     AdultRegimenLine();
     ChildRegimenLine();
-    CRYPTOCOCCAL_SCREENING_STATUS();
-    CERVICAL_CANCER_SCREENING_STATUS();
-    CERVICAL_CANCER_TREATMENT();
-    HEPATITIS_SCREENING_RESULT();
-    // PREGANACY_STATUS();
-    PREGNANCY_STATUS();
-    FAMILY_PLANNING_METHOD();
+    // CRYPTOCOCCAL_SCREENING_STATUS();
+    // CERVICAL_CANCER_SCREENING_STATUS();
+    // CERVICAL_CANCER_TREATMENT();
+    // HEPATITIS_SCREENING_RESULT();
+    // PREGNANCY_STATUS();
+    // FAMILY_PLANNING_METHOD();
     GetPatientDTOObj();
     PatientCurrentRegimen();
     GetCareSupport();
@@ -477,99 +491,89 @@ const ClinicVisit = (props) => {
   };
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
   // CRYPTOCOCCAL_SCREENING_STATUS
-  const CRYPTOCOCCAL_SCREENING_STATUS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CRYPTOCOCCAL_SCREENING_STATUS	`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setCryptococcal(response.data);
-      })
-      .catch((error) => {});
-  };
-  // CERVICAL_CANCER_SCREENING_STATUS
-  const CERVICAL_CANCER_SCREENING_STATUS = () => {
-    axios
-      .get(
-        `${baseUrl}application-codesets/v2/CERVICAL_CANCER_SCREENING_STATUS	`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((response) => {
-        setCervicalStatus(response.data);
-      })
-      .catch((error) => {});
-  };
-  // CERVICAL_CANCER_TREATMENT
-  const CERVICAL_CANCER_TREATMENT = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CERVICAL_CANCER_TREATMENT	`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setCervicalTreatment(response.data);
-      })
-      .catch((error) => {});
-  };
-  // HEPATITIS_SCREENING_RESULT
-  const HEPATITIS_SCREENING_RESULT = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/HEPATITIS_SCREENING_RESULT	`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setHepatitis(response.data);
-      })
-      .catch((error) => {});
-  };
-  // FAMILY_PLANNING_METHOD
-  const FAMILY_PLANNING_METHOD = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FAMILY_PLANNING_METHOD	`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setFamilyPlaining(response.data);
-      })
-      .catch((error) => {});
-  };
-  // PREGANACY_STATUS
-  // const PREGANACY_STATUS = () => {
+  // const CRYPTOCOCCAL_SCREENING_STATUS = () => {
   //   axios
-  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS	`, {
+  //     .get(`${baseUrl}application-codesets/v2/CRYPTOCOCCAL_SCREENING_STATUS	`, {
   //       headers: { Authorization: `Bearer ${token}` },
   //     })
   //     .then((response) => {
-  //       setPregnancyStatus(response.data);
+  //       setCryptococcal(response.data);
   //     })
   //     .catch((error) => {});
   // };
-  const PREGNANCY_STATUS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        // Filter out "Post Partum" from the response.data array
-        const filteredData = response.data.filter(
-          (status) => status.display !== "Post Partum"
-        );
-        setPregnancyStatus(filteredData);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  };
+  // CERVICAL_CANCER_SCREENING_STATUS
+  // const CERVICAL_CANCER_SCREENING_STATUS = () => {
+  //   axios
+  //     .get(
+  //       `${baseUrl}application-codesets/v2/CERVICAL_CANCER_SCREENING_STATUS`,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     )
+  //     .then((response) => {
+  //       setCervicalStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
+  // CERVICAL_CANCER_TREATMENT
+  // const CERVICAL_CANCER_TREATMENT = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/CERVICAL_CANCER_TREATMENT	`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setCervicalTreatment(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
+  // HEPATITIS_SCREENING_RESULT
+  // const HEPATITIS_SCREENING_RESULT = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/HEPATITIS_SCREENING_RESULT	`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setHepatitis(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
+  // FAMILY_PLANNING_METHOD
+  // const FAMILY_PLANNING_METHOD = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/FAMILY_PLANNING_METHOD	`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setFamilyPlaining(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
+  // PREGANACY_STATUS
+  // const PREGNANCY_STATUS = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       // Filter out "Post Partum" from the response.data array
+  //       const filteredData = response.data.filter(
+  //         (status) => status.display !== "Post Partum"
+  //       );
+  //       setPregnancyStatus(filteredData);
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //     });
+  // };
   //GET VIRAL LOAD INDICATION
-  const ViraLoadIndication = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setVLIndication(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const ViraLoadIndication = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setVLIndication(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
     axios
@@ -672,51 +676,51 @@ const ClinicVisit = (props) => {
   };
 
   //Get list of WhoStaging
-  const WhoStaging = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setClinicalStage(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const WhoStaging = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setClinicalStage(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
-  const TBStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbStatus(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const TBStatus = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setTbStatus(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
 
-  async function FunctionalStatus() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setFunctionalStatus(response.data);
-        //setValues(response.data)
-      })
-      .catch((error) => {});
-  }
+  // async function FunctionalStatus() {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setFunctionalStatus(response.data);
+  //       //setValues(response.data)
+  //     })
+  //     .catch((error) => {});
+  // }
   ///Level of Adherence
-  async function AdherenceLevel() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setAdherenceLevel(response.data);
-      })
-      .catch((error) => {});
-  }
+  // async function AdherenceLevel() {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setAdherenceLevel(response.data);
+  //     })
+  //     .catch((error) => {});
+  // }
   const handleInputChange = (e) => {
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
     if (e.target.name === "whoStagingId") {
@@ -1023,8 +1027,6 @@ const ClinicVisit = (props) => {
     setErrors({ ...temp, [e.target.name]: "" }); //reset the error message to empty once the field as value
     setTests({ ...tests, [e.target.name]: e.target.value });
   };
-
-
 
   /**** Submit Button Processing  */
   const handleSubmit = (e) => {
@@ -1364,7 +1366,7 @@ const ClinicVisit = (props) => {
                                             paddingTop: "10px",
                                           }}
                                         >
-                                          Blood Pressure{" "}
+                                          Blood Pressure {" "}
                                           <span className="float-end">
                                             <b
                                               style={{
@@ -2125,7 +2127,7 @@ const ClinicVisit = (props) => {
                       onChange={handleWho}
                     >
                       <option value=""> Select</option>
-                      {clinicalStage.map((value) => (
+                      {getOptions("CLINICAL_STAGE").map((value) => (
                         <option key={value.id} value={value.id}>
                           {value.display}
                         </option>
@@ -2214,7 +2216,7 @@ const ClinicVisit = (props) => {
                   >
                     <option value="select">Select </option>
 
-                    {functionalStatus.map((value) => (
+                    {getOptions("FUNCTIONAL _STATUS").map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -2246,7 +2248,7 @@ const ClinicVisit = (props) => {
                   >
                     <option value="select">Select </option>
 
-                    {adherenceLevel.map((value) => (
+                    {getOptions("PrEP_LEVEL_OF_ADHERENCE").map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -2278,11 +2280,13 @@ const ClinicVisit = (props) => {
                   >
                     <option value="select">Select </option>
 
-                    {cryptococcal.map((value) => (
-                      <option key={value.code} value={value.code}>
-                        {value.display}
-                      </option>
-                    ))}
+                    {getOptions("CRYPTOCOCCAL_SCREENING_STATUS").map(
+                      (value) => (
+                        <option key={value.code} value={value.code}>
+                          {value.display}
+                        </option>
+                      )
+                    )}
                   </Input>
                 </FormGroup>
               </div>
@@ -2299,7 +2303,7 @@ const ClinicVisit = (props) => {
                       required
                       >
                       <option value=""> Select</option>
-                          {tbStatus.map((value) => (
+                          {getOptions("TB_STATUS").map((value) => (
                               <option key={value.id} value={value.id}>
                                   {value.display}
                               </option>
@@ -2328,7 +2332,7 @@ const ClinicVisit = (props) => {
                   >
                     <option value="select">Select </option>
 
-                    {hepatitis.map((value) => (
+                    {getOptions("HEPATITIS_SCREENING_RESULT").map((value) => (
                       <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
@@ -2362,11 +2366,15 @@ const ClinicVisit = (props) => {
                         >
                           <option value="select">Select </option>
 
-                          {pregnancyStatus.map((value) => (
-                            <option key={value.code} value={value.display}>
-                              {value.display}
-                            </option>
-                          ))}
+                          {getOptions("PREGNANCY_STATUS")
+                            .filter(
+                              (status) => status.display !== "Post Partum"
+                            )
+                            .map((value) => (
+                              <option key={value.code} value={value.display}>
+                                {value.display}
+                              </option>
+                            ))}
                         </Input>
                         {errors.pregnancyStatus !== "" ? (
                           <span className={classes.error}>
@@ -2396,11 +2404,13 @@ const ClinicVisit = (props) => {
                         >
                           <option value="select">Select </option>
 
-                          {cervicalStatus.map((value) => (
-                            <option key={value.code} value={value.code}>
-                              {value.display}
-                            </option>
-                          ))}
+                          {getOptions("CERVICAL_CANCER_SCREENING_STATUS").map(
+                            (value) => (
+                              <option key={value.code} value={value.code}>
+                                {value.display}
+                              </option>
+                            )
+                          )}
                         </Input>
                       </FormGroup>
                     </div>
@@ -2423,11 +2433,13 @@ const ClinicVisit = (props) => {
                         >
                           <option value="select">Select </option>
 
-                          {cervicalTreatment.map((value) => (
-                            <option key={value.code} value={value.code}>
-                              {value.display}
-                            </option>
-                          ))}
+                          {getOptions("CERVICAL_CANCER_TREATMENT").map(
+                            (value) => (
+                              <option key={value.code} value={value.code}>
+                                {value.display}
+                              </option>
+                            )
+                          )}
                         </Input>
                       </FormGroup>
                     </div>
@@ -2472,7 +2484,7 @@ const ClinicVisit = (props) => {
                     >
                       <option value="select">Select </option>
 
-                      {familyPlaining.map((value) => (
+                      {getOptions("FAMILY_PLANNING_METHOD").map((value) => (
                         <option key={value.code} value={value.code}>
                           {value.display}
                         </option>
@@ -2794,7 +2806,7 @@ const ClinicVisit = (props) => {
                     >
                       <option value="">Select </option>
 
-                      {vLIndication.map((value) => (
+                      {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
                         <option key={value.id} value={value.id}>
                           {value.display}
                         </option>

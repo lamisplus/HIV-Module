@@ -24,6 +24,7 @@ import MatButton from "@material-ui/core/Button";
 import SaveIcon from "@material-ui/icons/Save";
 import DualListBox from "react-dual-listbox";
 import { getFacilityId } from "../../../utils/localstorage";
+import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -107,7 +108,14 @@ function getStyles(name, selectedOptions, theme) {
   };
 }
 
+
+const CODESET_KEYS = [
+  "DSD_MODEL_FACILITY",
+  "DSD_MODEL_COMMUNITY",
+  "EAC_INTERVENTIONS_SERVICE",
+];
 const DsdServiceForm = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const theme = useTheme();
   const patientObj = props.patientObj;
   const [errors, setErrors] = useState({});
@@ -205,7 +213,7 @@ const DsdServiceForm = (props) => {
     setOrganizationUnitId(facId);
     getFacilitySopke(organizationUnitId, payload.dsdType);
   }, [payload.dsdType]);
-    
+
   useEffect(() => {
     if (props.activeContent.id) {
       axios
@@ -215,9 +223,7 @@ const DsdServiceForm = (props) => {
         .then((response) => {
           setPayLoad(response.data);
         })
-        .catch((error) => {
-      
-        });
+        .catch((error) => {});
       // setSelectedServiceProvided(Object.values(payload.serviceProvided));
       setIsUpdateState(true);
     } else {
@@ -226,18 +232,18 @@ const DsdServiceForm = (props) => {
     }
   }, [props.activeContent.id, allStates]);
   // get dsd model type
-  function DsdModelType(dsdmodel) {
-    const dsd =
-      dsdmodel === "Facility" ? "DSD_MODEL_FACILITY" : "DSD_MODEL_COMMUNITY";
-    axios
-      .get(`${baseUrl}application-codesets/v2/${dsd}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setDsdModelType(response.data);
-      })
-      .catch((error) => {});
-  }
+  // function DsdModelType(dsdmodel) {
+  //   const dsd =
+  //     dsdmodel === "Facility" ? "DSD_MODEL_FACILITY" : "DSD_MODEL_COMMUNITY";
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/${dsd}`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setDsdModelType(response.data);
+  //     })
+  //     .catch((error) => {});
+  // }
 
   useEffect(() => {
     if (payload.dsdModel) {
@@ -248,7 +254,7 @@ const DsdServiceForm = (props) => {
       if (payload.dsdModel === "Community") {
         setIsClientReturnToSite(false);
       }
-      DsdModelType(payload.dsdModel);
+      // DsdModelType(payload.dsdModel);
     }
   }, [payload.dsdModel]);
 
@@ -377,7 +383,6 @@ const DsdServiceForm = (props) => {
       payload.serviceProvided = Object.assign({}, selectedServiceProvided);
       submitAssessmentForm(payload);
       // setSaving(true);
-  
     } else {
       window.scroll(0, 0);
     }
@@ -392,7 +397,6 @@ const DsdServiceForm = (props) => {
         }
       )
       .then((response) => {
-     
         setPatientDsdRecords(response.data);
       })
       .catch((error) => {
@@ -426,22 +430,22 @@ const DsdServiceForm = (props) => {
     getPatientDsdRecords();
   }, [props.patientObj.id]);
 
-  const getServicesProvided = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/EAC_INTERVENTIONS_SERVICE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        const transformedData = response.data.map((item) => {
-          const displayValue = item.display.replace(/["']/g, "").trim();
-          return { value: displayValue, label: displayValue };
-        });
-        setServiceProvided(transformedData);
-      })
-      .catch((error) => {
-        // console.error('Error fetching services provided:', error);
-      });
-  };
+  // const getServicesProvided = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/EAC_INTERVENTIONS_SERVICE`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       const transformedData = response.data.map((item) => {
+  //         const displayValue = item.display.replace(/["']/g, "").trim();
+  //         return { value: displayValue, label: displayValue };
+  //       });
+  //       setServiceProvided(transformedData);
+  //     })
+  //     .catch((error) => {
+  //       // console.error('Error fetching services provided:', error);
+  //     });
+  // };
 
   const getFacilitySopke = (organizationUnitId, dsdType) => {
     axios
@@ -452,7 +456,6 @@ const DsdServiceForm = (props) => {
         }
       )
       .then((response) => {
-        
         setFacilitySpoke(response.data);
         const spokeOptions = response.data.map((facility) => (
           <option key={facility.id} value={facility.spokeName}>
@@ -464,9 +467,9 @@ const DsdServiceForm = (props) => {
       .catch((error) => {});
   };
 
-  useEffect(() => {
-    getServicesProvided();
-  }, []);
+  // useEffect(() => {
+  //   getServicesProvided();
+  // }, []);
 
   /*****  Validation  */
   const validate = () => {
@@ -1226,7 +1229,11 @@ const DsdServiceForm = (props) => {
                     disabled={isDisabled}
                   >
                     <option value="">Select</option>
-                    {dsdModelType.map((value) => (
+                    {getOptions(
+                      payload.dsdModel === "Facility"
+                        ? "DSD_MODEL_FACILITY"
+                        : "DSD_MODEL_COMMUNITY"
+                    ).map((value) => (
                       <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
@@ -1344,7 +1351,12 @@ const DsdServiceForm = (props) => {
                       </Label>
                       <DualListBox
                         //canFilter
-                        options={serviceProvided}
+                        options={getOptions("EAC_INTERVENTIONS_SERVICE").map(
+                          (item) => ({
+                            value: item.display.replace(/["']/g, "").trim(),
+                            label: item.display.replace(/["']/g, "").trim(),
+                          })
+                        )}
                         onChange={onServiceProvidedSelected}
                         selected={selectedServiceProvided}
                       />

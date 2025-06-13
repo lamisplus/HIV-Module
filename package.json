@@ -132,7 +132,7 @@
   "scripts": {
     "start": "cross-env react-scripts --openssl-legacy-provider start",
     "jsreport": "jsreport-start",
-    "build": "cross-env react-scripts --openssl-legacy-provider build && xcopy /s /y build src\\main\\resources\\views\\static\\hiv",
+    "build": "cross-env react-scripts --openssl-legacy-provider build && cp -r build/* src/main/resources/views/static/hiv/",
     "serve": "serve -s build",
     "run-build": "react-scripts build && serve",
     "test": "react-scripts test --env=jsdom",

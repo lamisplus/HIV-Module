@@ -16,6 +16,7 @@ import axios from "axios";
 import { url as baseUrl } from "./../../../api";
 import { token as token } from "./../../../api";
 import CustomFormGroup from "./CustomFormGroup";
+import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -87,20 +88,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = ["OTZ_OUTCOME"];
 const EditServiceForm = (props) => {
+   const { getOptions } = useCodesets(CODESET_KEYS);
   const [saving, setSavings] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
   const [otzOutcomesArray, setOtzOutcomes] = useState([]);
 
-  const getOtzOutomes = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/OTZ_OUTCOME`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setOtzOutcomes(response.data);
-      });
-  };
+  // const getOtzOutomes = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/OTZ_OUTCOME`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setOtzOutcomes(response.data);
+  //     });
+  // };
 
   const updateOldRecord = (values) => {
     const observation = {
@@ -195,7 +198,7 @@ const EditServiceForm = (props) => {
 
   useEffect(() => {
     getOldRecordIfExists();
-    getOtzOutomes();
+    // getOtzOutomes();
   }, []);
 
   const classes = useStyles();
@@ -824,7 +827,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                     
                                       name="maMonth1LiteracyTreatmentDate"
                                       id="maMonth1LiteracyTreatmentDate"
                                       value={
@@ -936,7 +938,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                     
                                       name="maMonth1AdolescentsParticipationDate"
                                       id="maMonth1AdolescentsParticipationDate"
                                       value={
@@ -1048,7 +1049,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                   
                                       name="maMonth1leadershipTrainingDate"
                                       id="maMonth1leadershipTrainingDate"
                                       value={
@@ -1154,7 +1154,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                     
                                       name="maMonth1PeerToPeerDate"
                                       id="maMonth1PeerToPeerDate"
                                       value={
@@ -1254,7 +1253,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                      
                                       name="maMonth1RoleOfOtzDate"
                                       id="maMonth1RoleOfOtzDate"
                                       value={
@@ -1361,7 +1359,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                      
                                       name="maMonth1OtzChampionOrientationDate"
                                       id="maMonth1OtzChampionOrientationDate"
                                       value={
@@ -1399,35 +1396,34 @@ const EditServiceForm = (props) => {
                     </div>
 
                     {!isViewActionType && (
-                    <div className="d-flex justify-content-end">
-                      <MatButton
-                        type="button"
-                        variant="contained"
-                        color="primary"
-                        className={classes.button}
-                        style={{ backgroundColor: "#014d88" }}
-                        startIcon={<SaveIcon />}
-                        disabled={saving}
-                        onClick={() =>
-                          handleSubmitAdherence(formik.values, {
-                            reroute: false,
-                            monthOfData: 1,
-                          })
-                        }
-                      >
-                        {!saving ? (
-                          <span style={{ textTransform: "capitalize" }}>
-                            Submit month 1
-                          </span>
-                        ) : (
-                          <span style={{ textTransform: "capitalize" }}>
-                            Submitting...
-                          </span>
-                        )}
-                      </MatButton>
-                    </div>
-)}
-
+                      <div className="d-flex justify-content-end">
+                        <MatButton
+                          type="button"
+                          variant="contained"
+                          color="primary"
+                          className={classes.button}
+                          style={{ backgroundColor: "#014d88" }}
+                          startIcon={<SaveIcon />}
+                          disabled={saving}
+                          onClick={() =>
+                            handleSubmitAdherence(formik.values, {
+                              reroute: false,
+                              monthOfData: 1,
+                            })
+                          }
+                        >
+                          {!saving ? (
+                            <span style={{ textTransform: "capitalize" }}>
+                              Submit month 1
+                            </span>
+                          ) : (
+                            <span style={{ textTransform: "capitalize" }}>
+                              Submitting...
+                            </span>
+                          )}
+                        </MatButton>
+                      </div>
+                    )}
                   </div>
 
                   {formik?.values?.acMonth1EacDate1 &&
@@ -1547,7 +1543,6 @@ const EditServiceForm = (props) => {
                                                 "YYYY-MM-DD"
                                               ),
                                             }}
-                                            
                                             name="acMonth2EacDate1"
                                             id="acMonth2EacDate1"
                                             value={
@@ -1600,7 +1595,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="acMonth2EacDate2"
                                               id="acMonth2EacDate2"
                                               value={
@@ -1654,7 +1648,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               className="form-control"
                                               name="acMonth2EacDate3"
                                               id="acMonth2EacDate3"
@@ -1712,7 +1705,6 @@ const EditServiceForm = (props) => {
                                                     new Date()
                                                   ).format("YYYY-MM-DD"),
                                                 }}
-                                               
                                                 name="dateViralLoadAssesmentMonth2"
                                                 id="dateViralLoadAssesmentMonth2"
                                                 value={
@@ -1949,7 +1941,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth2PositiveLivingDate"
                                               id="maMonth2PositiveLivingDate"
                                               value={
@@ -2062,7 +2053,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                              
                                               name="maMonth2LiteracyTreatmentDate"
                                               id="maMonth2LiteracyTreatmentDate"
                                               value={
@@ -2175,7 +2165,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth2AdolescentsParticipationDate"
                                               id="maMonth2AdolescentsParticipationDate"
                                               value={
@@ -2288,7 +2277,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth2leadershipTrainingDate"
                                               id="maMonth2leadershipTrainingDate"
                                               value={
@@ -2400,7 +2388,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth2PeerToPeerDate"
                                               id="maMonth2PeerToPeerDate"
                                               value={
@@ -2511,7 +2498,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth2RoleOfOtzDate"
                                               id="maMonth2RoleOfOtzDate"
                                               value={
@@ -2623,7 +2609,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth2OtzChampionOrientationDate"
                                               id="maMonth2OtzChampionOrientationDate"
                                               value={
@@ -2661,33 +2646,33 @@ const EditServiceForm = (props) => {
                             </div>
                           )}
                         {!isViewActionType && (
-                        <div className="d-flex justify-content-end">
-                          <MatButton
-                            type="button"
-                            variant="contained"
-                            color="primary"
-                            className={classes.button}
-                            style={{ backgroundColor: "#014d88" }}
-                            startIcon={<SaveIcon />}
-                            disabled={saving}
-                            onClick={() =>
-                              handleSubmitAdherence(formik.values, {
-                                reroute: false,
-                                monthOfData: 2,
-                              })
-                            }
-                          >
-                            {!saving ? (
-                              <span style={{ textTransform: "capitalize" }}>
-                                Submit month 2
-                              </span>
-                            ) : (
-                              <span style={{ textTransform: "capitalize" }}>
-                                Submitting...
-                              </span>
-                            )}
-                          </MatButton>
-                        </div>
+                          <div className="d-flex justify-content-end">
+                            <MatButton
+                              type="button"
+                              variant="contained"
+                              color="primary"
+                              className={classes.button}
+                              style={{ backgroundColor: "#014d88" }}
+                              startIcon={<SaveIcon />}
+                              disabled={saving}
+                              onClick={() =>
+                                handleSubmitAdherence(formik.values, {
+                                  reroute: false,
+                                  monthOfData: 2,
+                                })
+                              }
+                            >
+                              {!saving ? (
+                                <span style={{ textTransform: "capitalize" }}>
+                                  Submit month 2
+                                </span>
+                              ) : (
+                                <span style={{ textTransform: "capitalize" }}>
+                                  Submitting...
+                                </span>
+                              )}
+                            </MatButton>
+                          </div>
                         )}
                       </div>
                     )}
@@ -2810,7 +2795,6 @@ const EditServiceForm = (props) => {
                                                 "YYYY-MM-DD"
                                               ),
                                             }}
-                                            
                                             name="acMonth3EacDate1"
                                             id="acMonth3EacDate1"
                                             value={
@@ -2864,7 +2848,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                              
                                               name="acMonth3EacDate2"
                                               id="acMonth3EacDate2"
                                               value={
@@ -2918,7 +2901,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                            
                                               className="form-control"
                                               name="acMonth3EacDate3"
                                               id="acMonth3EacDate3"
@@ -2976,7 +2958,6 @@ const EditServiceForm = (props) => {
                                                     new Date()
                                                   ).format("YYYY-MM-DD"),
                                                 }}
-                                              
                                                 name="dateViralLoadAssesmentMonth3"
                                                 id="dateViralLoadAssesmentMonth3"
                                                 value={
@@ -3211,7 +3192,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth3PositiveLivingDate"
                                               id="maMonth3PositiveLivingDate"
                                               value={
@@ -3324,7 +3304,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth3LiteracyTreatmentDate"
                                               id="maMonth3LiteracyTreatmentDate"
                                               value={
@@ -3437,7 +3416,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth3AdolescentsParticipationDate"
                                               id="maMonth3AdolescentsParticipationDate"
                                               value={
@@ -3550,7 +3528,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth3leadershipTrainingDate"
                                               id="maMonth3leadershipTrainingDate"
                                               value={
@@ -3661,7 +3638,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth3PeerToPeerDate"
                                               id="maMonth3PeerToPeerDate"
                                               value={
@@ -3771,7 +3747,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth3RoleOfOtzDate"
                                               id="maMonth3RoleOfOtzDate"
                                               value={
@@ -3883,7 +3858,6 @@ const EditServiceForm = (props) => {
                                                   "YYYY-MM-DD"
                                                 ),
                                               }}
-                                             
                                               name="maMonth3OtzChampionOrientationDate"
                                               id="maMonth3OtzChampionOrientationDate"
                                               value={
@@ -3921,34 +3895,34 @@ const EditServiceForm = (props) => {
                             </div>
                           )}
                         {!isViewActionType && (
-                        <div className="d-flex justify-content-end">
-                          <MatButton
-                            type="button"
-                            variant="contained"
-                            color="primary"
-                            className={classes.button}
-                            style={{ backgroundColor: "#014d88" }}
-                            startIcon={<SaveIcon />}
-                            disabled={saving}
-                            onClick={() =>
-                              handleSubmitAdherence(formik.values, {
-                                reroute: false,
-                                monthOfData: 3,
-                              })
-                            }
-                          >
-                            {!saving ? (
-                              <span style={{ textTransform: "capitalize" }}>
-                                Submit month 3
-                              </span>
-                            ) : (
-                              <span style={{ textTransform: "capitalize" }}>
-                                Submitting...
-                              </span>
-                            )}
-                          </MatButton>
-                        </div>
-                      )}
+                          <div className="d-flex justify-content-end">
+                            <MatButton
+                              type="button"
+                              variant="contained"
+                              color="primary"
+                              className={classes.button}
+                              style={{ backgroundColor: "#014d88" }}
+                              startIcon={<SaveIcon />}
+                              disabled={saving}
+                              onClick={() =>
+                                handleSubmitAdherence(formik.values, {
+                                  reroute: false,
+                                  monthOfData: 3,
+                                })
+                              }
+                            >
+                              {!saving ? (
+                                <span style={{ textTransform: "capitalize" }}>
+                                  Submit month 3
+                                </span>
+                              ) : (
+                                <span style={{ textTransform: "capitalize" }}>
+                                  Submitting...
+                                </span>
+                              )}
+                            </MatButton>
+                          </div>
+                        )}
                       </div>
                     )}
                 </div>
@@ -4108,7 +4082,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                     
                                       name="maMonth1PositiveLivingDate"
                                       id="maMonth1PositiveLivingDate"
                                       value={
@@ -4217,7 +4190,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                     
                                       name="maMonth1LiteracyTreatmentDate"
                                       id="maMonth1LiteracyTreatmentDate"
                                       value={
@@ -4329,7 +4301,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                    
                                       name="maMonth1AdolescentsParticipationDate"
                                       id="maMonth1AdolescentsParticipationDate"
                                       value={
@@ -4440,7 +4411,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                     
                                       name="maMonth1leadershipTrainingDate"
                                       id="maMonth1leadershipTrainingDate"
                                       value={
@@ -4545,7 +4515,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                      
                                       name="maMonth1PeerToPeerDate"
                                       id="maMonth1PeerToPeerDate"
                                       value={
@@ -4645,7 +4614,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                    
                                       name="maMonth1RoleOfOtzDate"
                                       id="maMonth1RoleOfOtzDate"
                                       value={
@@ -4752,7 +4720,6 @@ const EditServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                      
                                       name="maMonth1OtzChampionOrientationDate"
                                       id="maMonth1OtzChampionOrientationDate"
                                       value={
@@ -4933,7 +4900,6 @@ const EditServiceForm = (props) => {
                                             "YYYY-MM-DD"
                                           ),
                                         }}
-                                      
                                         name="maMonth2PositiveLivingDate"
                                         id="maMonth2PositiveLivingDate"
                                         value={
@@ -5045,7 +5011,6 @@ const EditServiceForm = (props) => {
                                             "YYYY-MM-DD"
                                           ),
                                         }}
-                                       
                                         name="maMonth2LiteracyTreatmentDate"
                                         id="maMonth2LiteracyTreatmentDate"
                                         value={
@@ -5158,7 +5123,6 @@ const EditServiceForm = (props) => {
                                             "YYYY-MM-DD"
                                           ),
                                         }}
-                                       
                                         name="maMonth2AdolescentsParticipationDate"
                                         id="maMonth2AdolescentsParticipationDate"
                                         value={
@@ -5271,7 +5235,6 @@ const EditServiceForm = (props) => {
                                             "YYYY-MM-DD"
                                           ),
                                         }}
-                                       
                                         name="maMonth2leadershipTrainingDate"
                                         id="maMonth2leadershipTrainingDate"
                                         value={
@@ -5378,7 +5341,6 @@ const EditServiceForm = (props) => {
                                             "YYYY-MM-DD"
                                           ),
                                         }}
-                                       
                                         name="maMonth2PeerToPeerDate"
                                         id="maMonth2PeerToPeerDate"
                                         value={
@@ -5479,7 +5441,6 @@ const EditServiceForm = (props) => {
                                             "YYYY-MM-DD"
                                           ),
                                         }}
-                                      
                                         name="maMonth2RoleOfOtzDate"
                                         id="maMonth2RoleOfOtzDate"
                                         value={
@@ -5586,7 +5547,6 @@ const EditServiceForm = (props) => {
                                             "YYYY-MM-DD"
                                           ),
                                         }}
-                                     
                                         name="maMonth2OtzChampionOrientationDate"
                                         id="maMonth2OtzChampionOrientationDate"
                                         value={
@@ -5768,7 +5728,6 @@ const EditServiceForm = (props) => {
                                               "YYYY-MM-DD"
                                             ),
                                           }}
-                                         
                                           name="maMonth3PositiveLivingDate"
                                           id="maMonth3PositiveLivingDate"
                                           value={
@@ -5880,7 +5839,6 @@ const EditServiceForm = (props) => {
                                               "YYYY-MM-DD"
                                             ),
                                           }}
-                                        
                                           name="maMonth3LiteracyTreatmentDate"
                                           id="maMonth3LiteracyTreatmentDate"
                                           value={
@@ -5993,7 +5951,6 @@ const EditServiceForm = (props) => {
                                               "YYYY-MM-DD"
                                             ),
                                           }}
-                                        
                                           name="maMonth3AdolescentsParticipationDate"
                                           id="maMonth3AdolescentsParticipationDate"
                                           value={
@@ -6106,7 +6063,6 @@ const EditServiceForm = (props) => {
                                               "YYYY-MM-DD"
                                             ),
                                           }}
-                                        
                                           name="maMonth3leadershipTrainingDate"
                                           id="maMonth3leadershipTrainingDate"
                                           value={
@@ -6214,7 +6170,6 @@ const EditServiceForm = (props) => {
                                               "YYYY-MM-DD"
                                             ),
                                           }}
-                                         
                                           name="maMonth3PeerToPeerDate"
                                           id="maMonth3PeerToPeerDate"
                                           value={
@@ -6322,7 +6277,6 @@ const EditServiceForm = (props) => {
                                               "YYYY-MM-DD"
                                             ),
                                           }}
-                                         
                                           name="maMonth3RoleOfOtzDate"
                                           id="maMonth3RoleOfOtzDate"
                                           value={
@@ -6433,7 +6387,6 @@ const EditServiceForm = (props) => {
                                               "YYYY-MM-DD"
                                             ),
                                           }}
-                                        
                                           name="maMonth3OtzChampionOrientationDate"
                                           id="maMonth3OtzChampionOrientationDate"
                                           value={
@@ -6607,7 +6560,6 @@ const EditServiceForm = (props) => {
                                         "YYYY-MM-DD"
                                       ),
                                     }}
-                                  
                                     name="sixMonthsDate"
                                     id="sixMonthsDate"
                                     value={formik.values.sixMonthsDate}
@@ -6747,7 +6699,6 @@ const EditServiceForm = (props) => {
                                         "YYYY-MM-DD"
                                       ),
                                     }}
-                                   
                                     name="twelveMonthsDate"
                                     id="twelveMonthsDate"
                                     value={formik.values.twelveMonthsDate}
@@ -6888,7 +6839,6 @@ const EditServiceForm = (props) => {
                                         "YYYY-MM-DD"
                                       ),
                                     }}
-                                  
                                     name="eighteenMonthsDate"
                                     id="eighteenMonthsDate"
                                     value={formik.values.eighteenMonthsDate}
@@ -7030,7 +6980,6 @@ const EditServiceForm = (props) => {
                                         "YYYY-MM-DD"
                                       ),
                                     }}
-                                    
                                     name="twentyFourMonthsDate"
                                     id="twentyFourMonthsDate"
                                     value={formik.values.twentyFourMonthsDate}
@@ -7170,7 +7119,6 @@ const EditServiceForm = (props) => {
                                         "YYYY-MM-DD"
                                       ),
                                     }}
-                                  
                                     name="thirtyMonthsDate"
                                     id="thirtyMonthsDate"
                                     value={formik.values.thirtyMonthsDate}
@@ -7311,7 +7259,6 @@ const EditServiceForm = (props) => {
                                         "YYYY-MM-DD"
                                       ),
                                     }}
-                                
                                     name="thirtySixMonthsDate"
                                     id="thirtySixMonthsDate"
                                     value={formik.values.thirtySixMonthsDate}
@@ -7388,9 +7335,11 @@ const EditServiceForm = (props) => {
                           }}
                         >
                           <option value="">Select</option>
-                          {otzOutcomesArray?.map?.((item, index) => (
+                          {getOptions("OTZ_OUTCOME")?.map?.((item, index) => (
                             <>
-                              <option value={item?.id} key={item?.id}>{item?.display}</option>
+                              <option value={item?.id} key={item?.id}>
+                                {item?.display}
+                              </option>
                             </>
                           ))}
                         </Input>
@@ -7567,7 +7516,6 @@ const EditServiceForm = (props) => {
                               {...{
                                 max: moment(new Date()).format("YYYY-MM-DD"),
                               }}
-                           
                               name="exitedByDate"
                               id="exitedByDate"
                               value={formik.values.exitedByDate}
@@ -7649,7 +7597,6 @@ const EditServiceForm = (props) => {
                               {...{
                                 max: moment(new Date()).format("YYYY-MM-DD"),
                               }}
-                            
                               name="dateOfAssessmentDone"
                               id="dateOfAssessmentDone"
                               value={formik.values.dateOfAssessmentDone}
@@ -7694,7 +7641,6 @@ const EditServiceForm = (props) => {
                             {...{
                               max: moment(new Date()).format("YYYY-MM-DD"),
                             }}
-                           
                             name="transitionDate"
                             id="transitionDate"
                             value={formik.values.transitionDate}

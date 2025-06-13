@@ -23,6 +23,7 @@ import { toast } from "react-toastify";
 import Select from "react-select";
 import { TiArrowBack } from "react-icons/ti";
 import Button from "@material-ui/core/Button";
+import useCodesets from "../../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -66,7 +67,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = ["VIRAL_LOAD_INDICATION"];
 const Laboratory = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   let visitId = "";
   const patientObj = props.patientObj;
   const [enrollDate, setEnrollDate] = useState("");
@@ -109,7 +112,7 @@ const Laboratory = (props) => {
   });
   useEffect(() => {
     TestGroup();
-    ViraLoadIndication();
+    // ViraLoadIndication();
     CheckEACStatus();
     GetPatientDTOObj();
     LabNumbers();
@@ -203,16 +206,17 @@ const Laboratory = (props) => {
       .catch((error) => {});
   };
 
-  const ViraLoadIndication = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setVLIndication(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const ViraLoadIndication = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setVLIndication(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
+
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" }); //reset the error message to empty once the field as value
     setTests({ ...tests, [e.target.name]: e.target.value });
@@ -1251,11 +1255,13 @@ const Laboratory = (props) => {
                           >
                             <option value="">Select </option>
 
-                            {vLIndication.map((value) => (
-                              <option key={value.id} value={value.id}>
-                                {value.display}
-                              </option>
-                            ))}
+                            {getOptions("VIRAL_LOAD_INDICATION").map(
+                              (value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.display}
+                                </option>
+                              )
+                            )}
                           </Input>
                           {errors.viralLoadIndication !== "" ? (
                             <span className={classes.error}>
@@ -1426,17 +1432,17 @@ const Laboratory = (props) => {
                     <FormGroup>
                       <Label for="priority">Comment</Label>
                       <Input
-                          type="textarea"
-                          name="comments"
-                          id="comments"
-                          value={tests.comments}
-                          onChange={handleInputChange}
-                          disabled={fieldHidden}
-                          style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                      >
-
-                      </Input>
-
+                        type="textarea"
+                        name="comments"
+                        id="comments"
+                        value={tests.comments}
+                        onChange={handleInputChange}
+                        disabled={fieldHidden}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                      ></Input>
                     </FormGroup>
                   </Col>
                 </Row>

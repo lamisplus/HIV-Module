@@ -16,6 +16,7 @@ import axios from "axios";
 import { url as baseUrl } from "./../../../api";
 import { token as token } from "./../../../api";
 import CustomFormGroup from "./CustomFormGroup";
+import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -87,7 +88,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = ["OTZ_OUTCOME"];
 const CreateServiceForm = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [saving, setSavings] = useState(false);
   const [otzOutcomesArray, setOtzOutcomes] = useState([]);
   const [currentRecord, setCurrentRecord] = useState({});
@@ -128,15 +131,15 @@ const CreateServiceForm = (props) => {
       });
   };
 
-  const getOtzOutomes = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/OTZ_OUTCOME`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setOtzOutcomes(response.data);
-      });
-  };
+  // const getOtzOutomes = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/OTZ_OUTCOME`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setOtzOutcomes(response.data);
+  //     });
+  // };
 
   const handleSubmit = async () => {
     Object.keys(formik?.initialValues).forEach((fieldName) => {
@@ -201,7 +204,7 @@ const CreateServiceForm = (props) => {
 
   useEffect(() => {
     getOldRecordIfExists();
-    getOtzOutomes();
+    // getOtzOutomes();
   }, []);
 
   const classes = useStyles();
@@ -367,7 +370,6 @@ const CreateServiceForm = (props) => {
                                         "YYYY-MM-DD"
                                       ),
                                     }}
-                                    
                                     name="acMonth1EacDate1"
                                     id="acMonth1EacDate1"
                                     value={formik?.values?.acMonth1EacDate1}
@@ -417,7 +419,6 @@ const CreateServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                      
                                       name="acMonth1EacDate2"
                                       id="acMonth1EacDate2"
                                       value={formik.values.acMonth1EacDate2}
@@ -463,7 +464,6 @@ const CreateServiceForm = (props) => {
                                           "YYYY-MM-DD"
                                         ),
                                       }}
-                                    
                                       className="form-control"
                                       name="acMonth1EacDate3"
                                       id="acMonth1EacDate3"
@@ -518,7 +518,6 @@ const CreateServiceForm = (props) => {
                                             "YYYY-MM-DD"
                                           ),
                                         }}
-                                       
                                         name="dateViralLoadAssesmentMonth1"
                                         id="dateViralLoadAssesmentMonth1"
                                         value={
@@ -7462,9 +7461,11 @@ const CreateServiceForm = (props) => {
                           }}
                         >
                           <option value="">Select</option>
-                          {otzOutcomesArray?.map?.((item, index) => (
+                          {getOptions("OTZ_OUTCOME")?.map?.((item, index) => (
                             <>
-                              <option value={item?.id} key={item.id}>{item?.display}</option>
+                              <option value={item?.id} key={item.id}>
+                                {item?.display}
+                              </option>
                             </>
                           ))}
                         </Input>

@@ -17,6 +17,7 @@ import { Spinner } from "reactstrap";
 import {Icon, List, Label as LabelSui} from 'semantic-ui-react'
 import DualListBox from "react-dual-listbox";
 import 'react-dual-listbox/lib/react-dual-listbox.css';
+import useCodesets from '../../../hooks/useCodesets';
 
 const useStyles = makeStyles(theme => ({
     card: {
@@ -80,7 +81,9 @@ const useStyles = makeStyles(theme => ({
       },
 }))
 
+const CODESET_KEYS = ["GENERAL_FEELING", "CALL_OUTCOME", "PREP_SIDE_EFFECTS"];
 const Tracking = (props) => {
+    const { getOptions } = useCodesets(CODESET_KEYS);
     const patientObj = props.patientObj;
     const [errors, setErrors] = useState({});
     let temp = { ...errors }
@@ -111,9 +114,9 @@ const Tracking = (props) => {
     const [attemptList, setAttemptList] = useState([])  
     const [prepSideEffect, setPrepSideEffect] = useState([]);
     useEffect(() => {
-        GENERAL_FEELING();
-        CALL_OUTCOME();
-        PrepSideEffect();
+        // GENERAL_FEELING();
+        // CALL_OUTCOME();
+        // PrepSideEffect();
         GetPatientDTOObj();
         GetFormDetail()
     }, [props.patientObj.id]);
@@ -150,48 +153,48 @@ const Tracking = (props) => {
            });
        
     } 
-    const GENERAL_FEELING =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/GENERAL_FEELING`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setOptionsForSelection(response.data);
-            })
-            .catch((error) => {
+    // const GENERAL_FEELING =()=>{
+    //     axios
+    //         .get(`${baseUrl}application-codesets/v2/GENERAL_FEELING`,
+    //             { headers: {"Authorization" : `Bearer ${token}`} }
+    //         )
+    //         .then((response) => {
+    //             setOptionsForSelection(response.data);
+    //         })
+    //         .catch((error) => {
             
-            });        
-    }
-    const CALL_OUTCOME =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/CALL_OUTCOME`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setOptionsForCallOutCome(response.data);
-            })
-            .catch((error) => {
+    //         });        
+    // }
+    // const CALL_OUTCOME =()=>{
+    //     axios
+    //         .get(`${baseUrl}application-codesets/v2/CALL_OUTCOME`,
+    //             { headers: {"Authorization" : `Bearer ${token}`} }
+    //         )
+    //         .then((response) => {
+    //             setOptionsForCallOutCome(response.data);
+    //         })
+    //         .catch((error) => {
             
-            });        
-    }  
+    //         });        
+    // }  
     //Get list of PrepSideEffect
-    const PrepSideEffect =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
+    // const PrepSideEffect =()=>{
+    //     axios
+    //         .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
+    //             { headers: {"Authorization" : `Bearer ${token}`} }
+    //         )
+    //         .then((response) => {
 
-                setPrepSideEffect(Object.entries(response.data).map(([key, value]) => ({
-                    label: value.display,
-                    value: value.display,
-                })));
-            })
-            .catch((error) => {
+    //             setPrepSideEffect(Object.entries(response.data).map(([key, value]) => ({
+    //                 label: value.display,
+    //                 value: value.display,
+    //             })));
+    //         })
+    //         .catch((error) => {
             
-            });
+    //         });
         
-        }     
+    //     }     
     const handleInputChangeAttempt = e => {
         
         setErrors({...temp, [e.target.name]:""})
@@ -278,251 +281,301 @@ const Tracking = (props) => {
        
     }
 
-  return (      
-        <div>                   
-            <Card className={classes.root}>
-                <CardBody>
-                <form >
-                    <div className="row">
-                    <h2>Intensive Follow Up Form</h2>
-                        <br/>
-                        <br/>
-                        <div className="row">
-                        <div className="form-group mb-3 col-md-4">        
-                            <FormGroup>
-                                <Label >Date of Observation <span style={{ color:"red"}}> *</span></Label>
-                                <Input
-                                    type="date"
-                                    name="dateOfObservation"
-                                    id="dateOfObservation"
-                                    value={observation.dateOfObservation}
-                                    min={enrollDate}
-                                    onChange={handleInputChange}
-                                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                    max= {moment(new Date()).format("YYYY-MM-DD") }
-                                    onKeyPress={(e) => e.preventDefault()}
-                                    > 
-                                </Input>
-                                {errors.dateOfObservation !=="" ? (
-                                    <span className={classes.error}>{errors.dateOfObservation}</span>
-                                ) : "" }
-                                </FormGroup> 
-                        </div>
-                        </div>
-                        <div className="row">
-                        <hr/>
-                        <h3>Attempted to Contact</h3>
-                        <div className="form-group mb-3 col-md-4">        
-                            <FormGroup>
-                                <Label >Date of call</Label>
-                                <Input
-                                    type="date"
-                                    name="callDate"
-                                    id="callDate"
-                                    value={attempt.callDate}
-                                    min={enrollDate!=='' ? enrollDate : ""}
-                                    onChange={handleInputChangeAttempt}
-                                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                    max= {moment(new Date()).format("YYYY-MM-DD") }
-                                    onKeyPress={(e) => e.preventDefault()}
-                                    > 
-                                </Input>
-                                {errors.callDate !=="" ? (
-                                    <span className={classes.error}>{errors.callDate}</span>
-                                ) : "" }
-                                </FormGroup> 
-                            </div>
-                            <div className="form-group mb-3 col-md-4">
-                                <FormGroup>
-                                <Label >How do you feel generally?</Label>
-                                <Input
-                                    type="select"
-                                    name="howDoYouFeelGenerally"
-                                    id="howDoYouFeelGenerally"
-                                    value={attempt.howDoYouFeelGenerally}
-                                    onChange={handleInputChangeAttempt}
-                                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                    
-                                >
-                                    <option value="">Select</option> 
-                                    {optionsForSelection.map((value) => (
-                                        <option key={value.code} value={value.display}>
-                                            {value.display}
-                                        </option>
-                                    ))}
-                                </Input> 
-                                {errors.howDoYouFeelGenerally !=="" ? (
-                                    <span className={classes.error}>{errors.howDoYouFeelGenerally}</span>
-                                ) : "" }   
-                                </FormGroup>
-                            </div>
-                            
-                            <div className="form-group mb-3 col-md-12">
-                                <FormGroup>
-                                <Label >Do you have any of the following</Label>
-                                <DualListBox
-                                //canFilter
-                                    options={prepSideEffect}
-                                    onChange={onSelect}
-                                    selected={selected}
-                                /> 
-                                
-                                {errors.anyOfTheFollowing !=="" ? (
-                                    <span className={classes.error}>{errors.anyOfTheFollowing}</span>
-                                ) : "" }   
-                                </FormGroup>
-                            </div>
-                            <div className="row">
-                                <div className="form-group mb-3 col-md-4">
-                                    <FormGroup>
-                                    <Label >Have you missed any doses of your medications in the past 7 days</Label>
-                                    <Input
-                                        type="select"
-                                        name="missedMedication"
-                                        id="missedMedication"
-                                        value={attempt.missedMedication}
-                                        onChange={handleInputChangeAttempt}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                        
-                                    >
-                                    <option value="">Select</option> 
-                                    <option value="Yes">Yes</option> 
-                                    <option value="No">No</option> 
-                                    </Input> 
-                                    {errors.missedMedication !=="" ? (
-                                        <span className={classes.error}>{errors.missedMedication}</span>
-                                    ) : "" }   
-                                    </FormGroup>
-                                </div>
-                                <div className="form-group mb-3 col-md-4">
-                                    <FormGroup>
-                                    <Label >Comment </Label>
-                                    <Input
-                                        type="text"
-                                        name="comment"
-                                        id="comment"
-                                        value={attempt.comment}
-                                        onChange={handleInputChangeAttempt}
-                                        style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                        
-                                    />
-                                    {errors.comment !=="" ? (
-                                    <span className={classes.error}>{errors.comment}</span>
-                                    ) : "" }
-                                    </FormGroup>
-                                </div>
-                                <div className="form-group mb-3 col-md-4">
-                                <FormGroup>
-                                <Label for="">Outcome of the call </Label>
+  return (
+    <div>
+      <Card className={classes.root}>
+        <CardBody>
+          <form>
+            <div className="row">
+              <h2>Intensive Follow Up Form</h2>
+              <br />
+              <br />
+              <div className="row">
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>
+                      Date of Observation{" "}
+                      <span style={{ color: "red" }}> *</span>
+                    </Label>
+                    <Input
+                      type="date"
+                      name="dateOfObservation"
+                      id="dateOfObservation"
+                      value={observation.dateOfObservation}
+                      min={enrollDate}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      onKeyPress={(e) => e.preventDefault()}
+                    ></Input>
+                    {errors.dateOfObservation !== "" ? (
+                      <span className={classes.error}>
+                        {errors.dateOfObservation}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+              </div>
+              <div className="row">
+                <hr />
+                <h3>Attempted to Contact</h3>
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Date of call</Label>
+                    <Input
+                      type="date"
+                      name="callDate"
+                      id="callDate"
+                      value={attempt.callDate}
+                      min={enrollDate !== "" ? enrollDate : ""}
+                      onChange={handleInputChangeAttempt}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      onKeyPress={(e) => e.preventDefault()}
+                    ></Input>
+                    {errors.callDate !== "" ? (
+                      <span className={classes.error}>{errors.callDate}</span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>How do you feel generally?</Label>
+                    <Input
+                      type="select"
+                      name="howDoYouFeelGenerally"
+                      id="howDoYouFeelGenerally"
+                      value={attempt.howDoYouFeelGenerally}
+                      onChange={handleInputChangeAttempt}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                    >
+                      <option value="">Select</option>
+                      {getOptions("GENERAL_FEELING").map((value) => (
+                        <option key={value.code} value={value.display}>
+                          {value.display}
+                        </option>
+                      ))}
+                    </Input>
+                    {errors.howDoYouFeelGenerally !== "" ? (
+                      <span className={classes.error}>
+                        {errors.howDoYouFeelGenerally}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
 
-                                    <Input 
-                                        type="select"
-                                        name="callOutcome"
-                                        id="callOutcome"
-                                        onChange={handleInputChangeAttempt}
-                                        value={attempt.callOutcome}  
-                                    >
-                                        <option value="">Select</option>
-                                        {optionsForCallOutCome.map((value) => (
-                                        <option key={value.code} value={value.display}>
-                                            {value.display}
-                                        </option>
-                                    ))}
-                                    </Input>
-                                    {errors.callOutcome !=="" ? (
-                                    <span className={classes.error}>{errors.callOutcome}</span>
-                                    ) : "" }
-                                </FormGroup>
-                                </div>
-                            </div>
-                            <div className="form-group mb-3 col-md-4">
-                                <FormGroup>
-                                <Label >Initials of the caller </Label>
-                                <Input
-                                    type="text"
-                                    name="caller"
-                                    id="caller"
-                                    value={attempt.caller}
-                                    onChange={handleInputChangeAttempt}
-                                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                    
-                                />
-                                {errors.caller !=="" ? (
-                                <span className={classes.error}>{errors.caller}</span>
-                                ) : "" }
-                                </FormGroup>
-                            </div>
-                            <div className="form-group mb-3 col-md-2 float-end">
-                            <LabelSui as='a' color='black'  onClick={addAttempt}  size='tiny' style={{ marginTop:35}}>
-                                <Icon name='plus' /> Add
-                            </LabelSui>
-                            </div>
+                <div className="form-group mb-3 col-md-12">
+                  <FormGroup>
+                    <Label>Do you have any of the following</Label>
+                    <DualListBox
+                      //canFilter
+                      options={getOptions("PREP_SIDE_EFFECTS").map((item) => ({
+                        label: item.display,
+                        value: item.display,
+                      }))}
+                      onChange={onSelect}
+                      selected={selected}
+                    />
 
-                            {attemptList.length >0 
-                            ?
-                                <List>
-                                <Table  striped responsive>
-                                    <thead >
-                                        <tr>
-                                            <th>call Date</th>
-                                            <th>How Do you Fell</th>
-                                            <th>Do you have any of the following</th>
-                                            <th>Missed medication in the last 7days</th>
-                                            <th>comment</th>
-                                            <th>call outcome</th>
-                                            <th>Initial call Name</th>
-                                            <th ></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    {attemptList.map((attemptObj, index) => (
+                    {errors.anyOfTheFollowing !== "" ? (
+                      <span className={classes.error}>
+                        {errors.anyOfTheFollowing}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+                <div className="row">
+                  <div className="form-group mb-3 col-md-4">
+                    <FormGroup>
+                      <Label>
+                        Have you missed any doses of your medications in the
+                        past 7 days
+                      </Label>
+                      <Input
+                        type="select"
+                        name="missedMedication"
+                        id="missedMedication"
+                        value={attempt.missedMedication}
+                        onChange={handleInputChangeAttempt}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                      >
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </Input>
+                      {errors.missedMedication !== "" ? (
+                        <span className={classes.error}>
+                          {errors.missedMedication}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-4">
+                    <FormGroup>
+                      <Label>Comment </Label>
+                      <Input
+                        type="text"
+                        name="comment"
+                        id="comment"
+                        value={attempt.comment}
+                        onChange={handleInputChangeAttempt}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                      />
+                      {errors.comment !== "" ? (
+                        <span className={classes.error}>{errors.comment}</span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-4">
+                    <FormGroup>
+                      <Label for="">Outcome of the call </Label>
 
-                                    <AttemptedLists
-                                        key={index}
-                                        index={index}
-                                        attemptObj={attemptObj}
-                                        removeAttempt={removeAttempt}
-                                    />
-                                    ))}
-                                    </tbody>
-                                </Table>
-                                </List>
-                                :
-                                ""
-                            }       
-                        <hr/>
-                        </div>
-                        
+                      <Input
+                        type="select"
+                        name="callOutcome"
+                        id="callOutcome"
+                        onChange={handleInputChangeAttempt}
+                        value={attempt.callOutcome}
+                      >
+                        <option value="">Select</option>
+                        {getOptions("CALL_OUTCOME").map((value) => (
+                          <option key={value.code} value={value.display}>
+                            {value.display}
+                          </option>
+                        ))}
+                      </Input>
+                      {errors.callOutcome !== "" ? (
+                        <span className={classes.error}>
+                          {errors.callOutcome}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+                </div>
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label>Initials of the caller </Label>
+                    <Input
+                      type="text"
+                      name="caller"
+                      id="caller"
+                      value={attempt.caller}
+                      onChange={handleInputChangeAttempt}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                    />
+                    {errors.caller !== "" ? (
+                      <span className={classes.error}>{errors.caller}</span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+                <div className="form-group mb-3 col-md-2 float-end">
+                  <LabelSui
+                    as="a"
+                    color="black"
+                    onClick={addAttempt}
+                    size="tiny"
+                    style={{ marginTop: 35 }}
+                  >
+                    <Icon name="plus" /> Add
+                  </LabelSui>
+                </div>
 
-                    </div>
-                    
-                    {saving ? <Spinner /> : ""}
-                    <br />
-                    {props.activeContent.actionType ==='update' ?
-                        (
-                        <MatButton
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        className={classes.button}
-                        startIcon={<SaveIcon />}
-                        onClick={handleSubmit}
-                        style={{backgroundColor:"#014d88"}}
-                        disabled={attemptList.length <=0 && !saving  ? true : false}
-                        >
-                        {!saving ? (
-                        <span style={{ textTransform: "capitalize" }}>Update</span>
-                        ) : (
-                        <span style={{ textTransform: "capitalize" }}>Updating...</span>
-                        )}
-                        </MatButton>
-                        )
-                    :""
-                    }
-                    </form>
-                </CardBody>
-            </Card>                    
-        </div>
+                {attemptList.length > 0 ? (
+                  <List>
+                    <Table striped responsive>
+                      <thead>
+                        <tr>
+                          <th>call Date</th>
+                          <th>How Do you Fell</th>
+                          <th>Do you have any of the following</th>
+                          <th>Missed medication in the last 7days</th>
+                          <th>comment</th>
+                          <th>call outcome</th>
+                          <th>Initial call Name</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {attemptList.map((attemptObj, index) => (
+                          <AttemptedLists
+                            key={index}
+                            index={index}
+                            attemptObj={attemptObj}
+                            removeAttempt={removeAttempt}
+                          />
+                        ))}
+                      </tbody>
+                    </Table>
+                  </List>
+                ) : (
+                  ""
+                )}
+                <hr />
+              </div>
+            </div>
+
+            {saving ? <Spinner /> : ""}
+            <br />
+            {props.activeContent.actionType === "update" ? (
+              <MatButton
+                type="submit"
+                variant="contained"
+                color="primary"
+                className={classes.button}
+                startIcon={<SaveIcon />}
+                onClick={handleSubmit}
+                style={{ backgroundColor: "#014d88" }}
+                disabled={attemptList.length <= 0 && !saving ? true : false}
+              >
+                {!saving ? (
+                  <span style={{ textTransform: "capitalize" }}>Update</span>
+                ) : (
+                  <span style={{ textTransform: "capitalize" }}>
+                    Updating...
+                  </span>
+                )}
+              </MatButton>
+            ) : (
+              ""
+            )}
+          </form>
+        </CardBody>
+      </Card>
+    </div>
   );
 }
 

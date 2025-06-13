@@ -14,6 +14,7 @@ import axios from "axios";
 import { url as baseUrl } from "./../../../api";
 import { token as token } from "./../../../api";
 import CustomFormGroup from "./CustomFormGroup";
+import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -85,7 +86,10 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = ["OTZ_OUTCOME"];
+
 const EnrollmentOtz = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [saving, setSavings] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
   const [otzOutcomesArray, setOtzOutcomes] = useState([]);
@@ -127,15 +131,15 @@ const EnrollmentOtz = (props) => {
       });
   };
 
-  const getOtzOutomes = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/OTZ_OUTCOME`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setOtzOutcomes(response.data);
-      });
-  };
+  // const getOtzOutomes = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/OTZ_OUTCOME`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setOtzOutcomes(response.data);
+  //     });
+  // };
 
   const handleSubmit = async () => {
     const artStartDate = props?.activeContent?.artCommence?.visitDate;
@@ -177,7 +181,7 @@ const EnrollmentOtz = (props) => {
   const { formik } = useServiceFormValidationSchema(handleSubmit);
 
   useEffect(() => {
-    getOtzOutomes();
+    // getOtzOutomes();
 
     formik.setValues({
       ...formik?.values,
