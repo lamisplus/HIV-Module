@@ -928,7 +928,7 @@ const ArtCommencement = (props) => {
                         name="pregnancyStatus"
                         id="pregnancyStatus"
                         onChange={handleInputChange}
-                        value={objValues.pregnancyStatus}
+                        value={objValues.pregnancyStatus || ""}
                         disabled={disabledField}
                         style={{
                           border: "1px solid #014D88",

@@ -205,10 +205,14 @@ const ArtCommencement = (props) => {
         setPatientObject(response.data);
         objValues.pregnancyStatus = response.data.enrollment.pregnancyStatusId;
 
-        setObjValues({
-          ...objValues,
-          pregnancyStatus: response.data.enrollment.pregnancyStatusId,
-        });
+         setObjValues((prevValues) => {
+           const newValues = {
+             ...prevValues,
+             pregnancyStatus: response.data.enrollment.pregnancyStatusId,
+           };
+       
+           return newValues;
+         });
       })
       .catch((error) => {});
   };
@@ -318,6 +322,7 @@ const ArtCommencement = (props) => {
 
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
+    
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
     if (e.target.name === "isViralLoadAtStartOfArt" && e.target.value !== "") {
       if (e.target.value === "true") {
@@ -499,12 +504,12 @@ const ArtCommencement = (props) => {
       objValues.vitalSignDto = vital;
       objValues.hivEnrollmentId = patientObject && patientObject.enrollment.id;
       objValues.clinicalStageId = objValues.whoStagingId;
-      if (objValues.pregnancyStatus !== null) {
-        const pregnancyDisplay = getOptions("PREGNANCY_STATUS").find(
-          (x) => x.id === parseInt(objValues.pregnancyStatus)
-        );
-        objValues.pregnancyStatus = pregnancyDisplay.display;
-      }
+      // if (objValues.pregnancyStatus !== null) {
+      //   const pregnancyDisplay = getOptions("PREGNANCY_STATUS").find(
+      //     (x) => x.id === parseInt(objValues.pregnancyStatus)
+      //   );
+      //   objValues.pregnancyStatus = pregnancyDisplay.display;
+      // }
       // else{
       //     objValues.pregnancyStatus = objValues.pregnancyStatus
       // }
@@ -512,6 +517,7 @@ const ArtCommencement = (props) => {
       if (objValues.cd4Type === "Flow Cyteometry") {
         objValues.cd4 = objValues.cd4Count;
       }
+      
       setSaving(true);
       axios
         .post(`${baseUrl}hiv/art/commencement/`, objValues, {
@@ -964,7 +970,7 @@ const ArtCommencement = (props) => {
                         name="pregnancyStatus"
                         id="pregnancyStatus"
                         onChange={handleInputChange}
-                        value={objValues.pregnancyStatus}
+                        value={objValues.pregnancyStatus || ""}
                         style={{
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
