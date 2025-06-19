@@ -266,7 +266,7 @@ const ClinicVisit = (props) => {
     // CERVICAL_CANCER_SCREENING_STATUS();
     // CERVICAL_CANCER_TREATMENT();
     // HEPATITIS_SCREENING_RESULT();
-    // PREGANACY_STATUS();
+    // PREGNANCY_STATUS();
     // PREGNANCY_STATUS();
     // FAMILY_PLANNING_METHOD();
     TestGroup();
@@ -1068,7 +1068,7 @@ const ClinicVisit = (props) => {
     // CERVICAL_CANCER_SCREENING_STATUS();
     // CERVICAL_CANCER_TREATMENT();
     // HEPATITIS_SCREENING_RESULT();
-    // PREGANACY_STATUS();
+    // PREGNANCY_STATUS();
     // PREGNANCY_STATUS();
     // FAMILY_PLANNING_METHOD();
     GetPatientDTOObj();

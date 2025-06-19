@@ -95,7 +95,7 @@ const useStyles = makeStyles((theme) => ({
 
 const CODESET_KEYS = [
   "CLINICAL_STAGE",
-  "PREGANACY_STATUS",
+  "PREGNANCY_STATUS",
   "FUNCTIONAL _STATUS",
   "TB_STATUS",
 ];
@@ -293,7 +293,7 @@ const ArtCommencement = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of PREGANACY_STATUS
+  //Get list of PREGNANCY_STATUS
   // const PreganacyStatus = () => {
   //   axios
   //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
@@ -937,7 +937,7 @@ const ArtCommencement = (props) => {
                       >
                         <option value=""> Select</option>
 
-                        {getOptions("PREGANACY_STATUS").map((value) => (
+                        {getOptions("PREGNANCY_STATUS").map((value) => (
                           <option key={value.id} value={value.id}>
                             {value.display}
                           </option>
@@ -1462,7 +1462,7 @@ const ArtCommencement = (props) => {
                         >
                           <option value=""> Select</option>
 
-                          {pregnancyStatus.map((value) => (
+                          {getOptions("PREGNANCY_STATUS").map((value) => (
                             <option key={value.id} value={value.id}>
                               {value.display}
                             </option>

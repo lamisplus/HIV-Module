@@ -546,7 +546,7 @@ const ClinicVisit = (props) => {
   //     })
   //     .catch((error) => {});
   // };
-  // PREGANACY_STATUS
+  // PREGNANCY_STATUS
   // const PREGNANCY_STATUS = () => {
   //   axios
   //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
@@ -1366,7 +1366,7 @@ const ClinicVisit = (props) => {
                                             paddingTop: "10px",
                                           }}
                                         >
-                                          Blood Pressure {" "}
+                                          Blood Pressure{" "}
                                           <span className="float-end">
                                             <b
                                               style={{

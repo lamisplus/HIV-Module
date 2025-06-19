@@ -95,7 +95,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 const CODESET_KEYS = [
   "CLINICAL_STAGE",
-  "PREGANACY_STATUS",
+  "PREGNANCY_STATUS",
   "FUNCTIONAL _STATUS",
 ];
 
@@ -292,7 +292,7 @@ const ArtCommencement = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of PREGANACY_STATUS
+  //Get list of PREGNANCY_STATUS
   // const PreganacyStatus = () => {
   //   axios
   //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
@@ -500,7 +500,7 @@ const ArtCommencement = (props) => {
       objValues.hivEnrollmentId = patientObject && patientObject.enrollment.id;
       objValues.clinicalStageId = objValues.whoStagingId;
       if (objValues.pregnancyStatus !== null) {
-        const pregnancyDisplay = pregnancyStatus.find(
+        const pregnancyDisplay = getOptions("PREGNANCY_STATUS").find(
           (x) => x.id === parseInt(objValues.pregnancyStatus)
         );
         objValues.pregnancyStatus = pregnancyDisplay.display;
@@ -522,7 +522,7 @@ const ArtCommencement = (props) => {
           //props.setArt(true)
           props.patientObj.commenced = true;
           toast.success("Record save successful");
-          localStorage.setItem("artCommencement", "true")
+          localStorage.setItem("artCommencement", "true");
           props.setActiveContent({
             ...props.activeContent,
             route: "recent-history",
@@ -972,7 +972,7 @@ const ArtCommencement = (props) => {
                         //disabled
                       >
                         <option value=""> Select</option>
-                        {getOptions("PREGANACY_STATUS").map((value) => (
+                        {getOptions("PREGNANCY_STATUS").map((value) => (
                           <option key={value.id} value={value.id}>
                             {value.display}
                           </option>

@@ -75,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
 
 const CODESET_KEYS = [
   "CLINICAL_STAGE",
-  "PREGANACY_STATUS",
+  "PREGNANCY_STATUS",
   "FUNCTIONAL _STATUS",
   "TB_STATUS",
 ];
@@ -96,17 +96,17 @@ const ArtCommencement = (props) => {
   const [heightValue, setHeightValue] = useState("cm");
 
   const classes = useStyles();
-//   const [clinicalStage, setClinicalStage] = useState([]);
+  //   const [clinicalStage, setClinicalStage] = useState([]);
   const [values, setValues] = useState([]);
   const [saving, setSaving] = useState(false);
   const [viraLoadStart, setViraLoadStart] = useState(false);
   const [errors, setErrors] = useState({});
   let temp = { ...errors };
-//   const [tbStatus, setTbStatus] = useState([]);
+  //   const [tbStatus, setTbStatus] = useState([]);
   const [regimenLine, setRegimenLine] = useState([]);
   const [regimenType, setRegimenType] = useState([]);
-//   const [pregancyStatus, setPregancyStatus] = useState([]);
-//   const [functionalStatus, setFunctionalStatus] = useState([]);
+  //   const [pregancyStatus, setPregancyStatus] = useState([]);
+  //   const [functionalStatus, setFunctionalStatus] = useState([]);
   const [objValues, setObjValues] = useState({
     personId: props.patientObj.id,
     visitDate: null,
@@ -190,10 +190,10 @@ const ArtCommencement = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of PREGANACY_STATUS
+  //Get list of PREGNANCY_STATUS
   //   const PreganacyStatus = () => {
   //     axios
-  //       .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`, {
+  //       .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
   //         headers: { Authorization: `Bearer ${token}` },
   //       })
   //       .then((response) => {
@@ -690,7 +690,7 @@ const ArtCommencement = (props) => {
                           >
                             <option value=""> Select</option>
 
-                            {getOptions("PREGANACY_STATUS").map((value) => (
+                            {getOptions("PREGNANCY_STATUS").map((value) => (
                               <option key={value.id} value={value.id}>
                                 {value.display}
                               </option>
