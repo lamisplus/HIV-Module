@@ -618,12 +618,9 @@ const ClinicVisit = (props) => {
     getCharacters();
   }
 
-  console.log("pa", props.patientObj);
   //Validations of the forms
   const validate = () => {
-    // Initialize temp object
     const temp = {};
-    // Validate encounter date
     temp.encounterDate =
       objValues.visitDate === ""
         ? vital.encounterDate
@@ -645,27 +642,16 @@ const ClinicVisit = (props) => {
         ? ""
         : "This field is required";
     } else {
-      // Optional: delete the key or explicitly set to empty string
       temp.pregnancyStatus = "";
     }
-
-    // Functional status
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
 
-    // Height & Weight
     temp.height = vital.height ? "" : "This field is required";
     temp.bodyWeight = vital.bodyWeight ? "" : "This field is required";
-
-    // TB Status
     temp.tbStatusId = tbObj.tbStatusId ? "" : "This field is required";
-
-    // Update errors state
     setErrors({ ...temp });
-
-    console.log("temp in update care card", temp);
-
     // Return true if all values are empty (i.e., no errors)
     return Object.values(temp).every((x) => x === "");
   };
