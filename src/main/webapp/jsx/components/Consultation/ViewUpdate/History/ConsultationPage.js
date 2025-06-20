@@ -32,6 +32,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import Select from "react-select";
 import { calculate_age_to_number } from "../../../../../utils";
 import DualListBox from "react-dual-listbox";
+import { TenMp } from "@mui/icons-material";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -386,7 +387,7 @@ const ClinicVisit = (props) => {
       })
       .then((response) => {
         setChildRegimenLine(
-          response.data.filter((x) => x.id === 3 || x.id === 4 ||  x.id === 16)
+          response.data.filter((x) => x.id === 3 || x.id === 4 || x.id === 16)
         );
       })
       .catch((error) => {});
@@ -616,38 +617,59 @@ const ClinicVisit = (props) => {
     }
     getCharacters();
   }
+
+  console.log("pa", props.patientObj);
   //Validations of the forms
   const validate = () => {
-    objValues.visitDate === "" &&
-      (temp.encounterDate = vital.encounterDate
-        ? ""
-        : "This field is required");
+    // Initialize temp object
+    const temp = {};
+    // Validate encounter date
+    temp.encounterDate =
+      objValues.visitDate === ""
+        ? vital.encounterDate
+          ? ""
+          : "This field is required"
+        : "";
+
+    // Next appointment
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
-    temp.pregnancyStatus = objValues.pregnancyStatus
-      ? ""
-      : "This field is required";
+
+    // WHO Staging
     temp.whoStagingId = objValues.whoStagingId ? "" : "This field is required";
-    {
-      patientAge >= 10 &&
-        patientObj.sex === "Female" &&
-        (temp.pregnancyStatus = objValues.pregnancyStatus
-          ? ""
-          : "This field is required");
+
+    // Pregnancy Status - Conditional Validation
+    if (patientAge >= 10 && patientObj.sex === "Female") {
+      temp.pregnancyStatus = objValues.pregnancyStatus
+        ? ""
+        : "This field is required";
+    } else {
+      // Optional: delete the key or explicitly set to empty string
+      temp.pregnancyStatus = "";
     }
+
+    // Functional status
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
+
+    // Height & Weight
     temp.height = vital.height ? "" : "This field is required";
     temp.bodyWeight = vital.bodyWeight ? "" : "This field is required";
-    //TB VALIDATION
+
+    // TB Status
     temp.tbStatusId = tbObj.tbStatusId ? "" : "This field is required";
-    setErrors({
-      ...temp,
-    });
-    return Object.values(temp).every((x) => x == "");
+
+    // Update errors state
+    setErrors({ ...temp });
+
+    console.log("temp in update care card", temp);
+
+    // Return true if all values are empty (i.e., no errors)
+    return Object.values(temp).every((x) => x === "");
   };
+
   const handleInputChangeObject = (e) => {
     setSelectedOption(e);
     tests.labTestGroupId = e.testGroupId;
@@ -664,6 +686,7 @@ const ClinicVisit = (props) => {
     setErrors({
       ...temp,
     });
+    console.log("temp", temp);
     return Object.values(temp).every((x) => x == "");
   };
   //Validations of the ARV DRUG Load
@@ -2376,7 +2399,7 @@ const ClinicVisit = (props) => {
                       errors={errors}
                       setErrors={setErrors}
                       enebleUpdate={enableUpdate}
-                      setEnableUpdate = {setEnableUpdate}
+                      setEnableUpdate={setEnableUpdate}
                     />
 
                     <br />
