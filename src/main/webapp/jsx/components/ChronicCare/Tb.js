@@ -234,7 +234,6 @@ const TbScreening = (props) => {
         losingWeight: "",
         historyWithAdults: "",
         poorWeightGain: "",
-
         specimentSent: "",
         tbTestResult: "",
         specimenType: "",
@@ -300,7 +299,6 @@ const TbScreening = (props) => {
         historyWithAdults: "",
         poorWeightGain: "",
         status: "",
-
         specimentSent: "",
         tbTestResult: "",
         specimenType: "",
@@ -575,8 +573,6 @@ const TbScreening = (props) => {
     }
   }, [props.tbObj.outcome]);
 
-  console.log("tpb props", props.tbObj);
-  console.log("tpt props", props.tpt);
 
   useEffect(() => {
     const updatedTbObj = { ...props.tbObj };
@@ -596,7 +592,8 @@ const TbScreening = (props) => {
       // Case 2: Symptom screen only - No symptoms for Adult
       if (
         props.tbObj.tbTreatment === "No" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)"
+        props.tbObj.tbScreeningType === "Symptom screen (alone)" && 
+        patientAge > 14
       ) {
         const noSymptoms =
           props.tbObj.coughing === "No" &&
@@ -627,7 +624,7 @@ const TbScreening = (props) => {
 
         if (noSymptoms) {
           updatedTbObj.outcome = "Not Presumptive";
-          updatedTbObj.status = "Confirmed TB";
+          updatedTbObj.status = "No signs or symptoms of TB";
           updatedTbObj.eligibleForTPT = "";
         }
       }
@@ -647,15 +644,16 @@ const TbScreening = (props) => {
           props.tbObj.poorWeightGain === "Yes";
 
         if (noSymptoms) {
-          updatedTbObj.outcome = "Presumptive";
-          updatedTbObj.status = "Confirmed TB";
+          updatedTbObj.outcome = "Presumptive TB";
+          updatedTbObj.status = "Presumptive TB";
           updatedTbObj.eligibleForTPT = "No";
         }
       }
       // Case 3: Symptom screen only - Has symptom
       if (
         props.tbObj.tbTreatment === "No" &&
-        props.tbObj.tbScreeningType === "Symptom screen (alone)"
+        props.tbObj.tbScreeningType === "Symptom screen (alone)" &&
+        patientAge > 14
       ) {
         const hasSymptom =
           props.tbObj.coughing === "Yes" ||
@@ -675,7 +673,7 @@ const TbScreening = (props) => {
         props.tbObj.tbTreatment === "No" &&
         props.tbObj.cadScore !== "" &&
         props.tbObj.tbScreeningType ===
-          "Chest X-Ray with CAD and/or Symptom screening"
+          "Chest X-Ray with CAD and/or Symptom screening" 
       ) {
         if (props.tbObj.chestXrayResult === "Not suggestive of TB") {
           updatedTbObj.cadOutcome = "Not Presumptive";
@@ -741,12 +739,12 @@ const TbScreening = (props) => {
         updatedTbObj.status = "";
       }
 
-      if (hasSymptom && !updatedTbObj.outcome) {
+      if (hasSymptom && !updatedTbObj.outcome && patientAge > 14) {
         updatedTbObj.outcome = "Presumptive TB";
         updatedTbObj.status = "";
       }
 
-      if (noSymptoms && !updatedTbObj.outcome) {
+      if (noSymptoms && !updatedTbObj.outcome && patientAge > 14 ) {
         updatedTbObj.outcome = "Not Presumptive";
         updatedTbObj.status = "";
       }
@@ -914,10 +912,6 @@ const TbScreening = (props) => {
     props.tbObj.tbScreeningType,
     props.tbObj.chestXrayResult,
     props.tbObj.cadScore,
-    props.tbObj.coughing,
-    props.tbObj.fever,
-    props.tbObj.nightSweats,
-    props.tbObj.losingWeight,
     props.tbObj.outcome,
     props.tbObj.tbTestResult,
     props.tbObj.diagnosticTestType,
@@ -933,6 +927,7 @@ const TbScreening = (props) => {
     props.tbObj.losingWeight,
     props.tbObj.historyWithAdults,
     props.tbObj.poorWeightGain,
+    props.tbObj.historyWithAdults
   ]);
 
   const shouldShowTbTreatment = (tbObj) => {
