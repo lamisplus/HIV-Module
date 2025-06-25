@@ -835,6 +835,7 @@ const ClinicVisit = (props) => {
       });
     }
   };
+  
   const getVisitDetail = (e) => {
     if (e.id) {
       setEnableUpdateButton(true);
