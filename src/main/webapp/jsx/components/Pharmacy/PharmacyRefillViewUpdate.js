@@ -789,14 +789,6 @@ const Pharmacy = (props) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setSaving(true);
-
-    // if (dsdDevolvement === null) {
-    //   toast.error("No recent DSD, unable to proceed", {
-    //     position: toast.POSITION.BOTTOM_CENTER,
-    //   });
-    //   setSaving(false);
-    //   return;
-    // }
     objValues.adverseDrugReactions = selectedOptionAdr;
     objValues.personId = props.patientObj.id;
     objValues.extra["regimens"] = regimenDrugList;
@@ -812,8 +804,6 @@ const Pharmacy = (props) => {
       )
       .then((response) => {
         setSaving(false);
-        //props.PharmacyList();
-        //props.PatientCurrentObject();
         toast.success("Pharmacy drug refill successful", {
           position: toast.POSITION.BOTTOM_CENTER,
         });

@@ -32,6 +32,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import Select from "react-select";
 import { calculate_age_to_number } from "../../../../../utils";
 import DualListBox from "react-dual-listbox";
+import { TenMp } from "@mui/icons-material";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -616,38 +617,45 @@ const ClinicVisit = (props) => {
     }
     getCharacters();
   }
+
   //Validations of the forms
   const validate = () => {
-    objValues.visitDate === "" &&
-      (temp.encounterDate = vital.encounterDate
-        ? ""
-        : "This field is required");
+    const temp = {};
+    temp.encounterDate =
+      objValues.visitDate === ""
+        ? vital.encounterDate
+          ? ""
+          : "This field is required"
+        : "";
+
+    // Next appointment
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
-    temp.pregnancyStatus = objValues.pregnancyStatus
-      ? ""
-      : "This field is required";
+
+    // WHO Staging
     temp.whoStagingId = objValues.whoStagingId ? "" : "This field is required";
-    {
-      patientAge >= 10 &&
-        patientObj.sex === "Female" &&
-        (temp.pregnancyStatus = objValues.pregnancyStatus
-          ? ""
-          : "This field is required");
+
+    // Pregnancy Status - Conditional Validation
+    if (patientAge >= 10 && patientObj.sex === "Female") {
+      temp.pregnancyStatus = objValues.pregnancyStatus
+        ? ""
+        : "This field is required";
+    } else {
+      temp.pregnancyStatus = "";
     }
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
+
     temp.height = vital.height ? "" : "This field is required";
     temp.bodyWeight = vital.bodyWeight ? "" : "This field is required";
-    //TB VALIDATION
     temp.tbStatusId = tbObj.tbStatusId ? "" : "This field is required";
-    setErrors({
-      ...temp,
-    });
-    return Object.values(temp).every((x) => x == "");
+    setErrors({ ...temp });
+    // Return true if all values are empty (i.e., no errors)
+    return Object.values(temp).every((x) => x === "");
   };
+
   const handleInputChangeObject = (e) => {
     setSelectedOption(e);
     tests.labTestGroupId = e.testGroupId;
@@ -664,6 +672,7 @@ const ClinicVisit = (props) => {
     setErrors({
       ...temp,
     });
+    console.log("temp", temp);
     return Object.values(temp).every((x) => x == "");
   };
   //Validations of the ARV DRUG Load
@@ -826,6 +835,7 @@ const ClinicVisit = (props) => {
       });
     }
   };
+  
   const getVisitDetail = (e) => {
     if (e.id) {
       setEnableUpdateButton(true);
