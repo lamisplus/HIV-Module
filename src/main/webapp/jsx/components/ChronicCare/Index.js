@@ -440,8 +440,11 @@ const ChronicCare = (props) => {
             tbObj.tbTestResult==='Negative')
 
     ){
-      temp.chestXrayDone = tbObj.chestXrayDone ? '' : "This field is required.";
+      // temp.chestXrayDone = tbObj.chestXrayDone ? '' : "This field is required.";
       temp.clinicallyEvaulated = tbObj.clinicallyEvaulated ? '' : "This field is required.";
+    }
+    if(tbObj.clinicallyEvaulated ==='Yes'){
+     temp.chestXrayDone = tbObj.chestXrayDone ? '' : "This field is required.";
     }
     if(tbObj.chestXrayDone==='Yes'){
       temp.chestXrayResultTest = tbObj.chestXrayResultTest ? '' : "This field is required.";
@@ -722,58 +725,7 @@ const ChronicCare = (props) => {
                   />
                 )}
               </div>
-              {/* End TB & IPT  Screening  */}
-              {/* TPT MONITORING */}
-              {/*{tbObj.outcome!=='' && (<>*/}
-              {/*  <div className="card">*/}
-              {/*  <div*/}
-              {/*    className="card-header"*/}
-              {/*    style={{*/}
-              {/*      backgroundColor: "#014d88",*/}
-              {/*      color: "#fff",*/}
-              {/*      fontWeight: "bolder",*/}
-              {/*      borderRadius: "0.2rem",*/}
-              {/*    }}*/}
-              {/*  >*/}
-              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
-              {/*    TPT Prevention/Monitoring*/}
-              {/*    </h5>*/}
-              {/*    {showTpt === false ? (*/}
-              {/*      <>*/}
-              {/*        <span*/}
-              {/*          className="float-end"*/}
-              {/*          style={{ cursor: "pointer" }}*/}
-              {/*          onClick={onClickTpt}*/}
-              {/*        >*/}
-              {/*          <FaPlus />*/}
-              {/*        </span>*/}
-              {/*      </>*/}
-              {/*    ) : (*/}
-              {/*      <>*/}
-              {/*        <span*/}
-              {/*          className="float-end"*/}
-              {/*          style={{ cursor: "pointer" }}*/}
-              {/*          onClick={onClickTpt}*/}
-              {/*        >*/}
-              {/*          <FaAngleDown />*/}
-              {/*        </span>{" "}*/}
-              {/*      </>*/}
-              {/*    )}*/}
-              {/*  </div>*/}
-              {/*  {showTpt && (*/}
-              {/*    <Tpt*/}
-              {/*      setTpt={setTpt}*/}
-              {/*      tpt={tpt}*/}
-              {/*      tbObj={tbObj}*/}
-              {/*      setTbObj={setTbObj}*/}
-              {/*      setErrors={setErrors}*/}
-              {/*      errors={errors}*/}
-              {/*      encounterDate={observation.dateOfObservation}*/}
-              {/*      patientObj={patientObj}*/}
-              {/*    />*/}
-              {/*  )}*/}
-              {/*</div>*/}
-              {/*</>)}*/}
+          
 
               {
                   (tbObj.tbEvaulationOutcome === 'TB Not Diagnosed' ||
