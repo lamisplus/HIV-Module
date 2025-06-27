@@ -209,7 +209,7 @@ public class ArtPharmacyService {
 				.filter(regimen -> regimen.getRegimenName().contains("Ison"))
 				.findFirst();
 		artPharmacy.setPerson(person);
-		processAndSetIpt(dto.getIptType(), isoniazid, dto.getVisitDate(), artPharmacy);
+		// processAndSetIpt(dto.getIptType(), isoniazid, dto.getVisitDate(), artPharmacy);
 		artPharmacy.setRegimens(regimenList);
 		artPharmacy.setFacilityId(organizationUtil.getCurrentUserOrganization());
 		artPharmacy.setLatitude(dto.getLatitude());
@@ -223,6 +223,7 @@ public class ArtPharmacyService {
 			Optional<RegimenRequestDto> isoniazid,
 			LocalDate visitDate,
 	      ArtPharmacy artPharmacy){
+		String  dateCompleted = null;
 		if(iptType != null && isoniazid.isPresent()) {
 			ObjectMapper mapper = new ObjectMapper();
 			RegimenRequestDto regimenRequestDto = isoniazid.get();
@@ -232,18 +233,18 @@ public class ArtPharmacyService {
 					.build();
 			Integer duration = regimenRequestDto.getDispense();
 			if(iptType.contains("INITIATION") &&  duration >= 168) {
-				LocalDate  dateCompleted = visitDate.plusDays(168);
-				iptDto.setDateCompleted(dateCompleted.toString());
+				// LocalDate  dateCompleted = visitDate.plusDays(168);
+				iptDto.setDateCompleted(dateCompleted);
 			}
 			if(iptType.contains("REFILL")){
-				LocalDate  dateCompleted = visitDate.plusDays(duration);
-				iptDto.setDateCompleted(dateCompleted.toString());
+				// LocalDate  dateCompleted = visitDate.plusDays(duration);
+				iptDto.setDateCompleted(dateCompleted);
 				Optional<ArtPharmacy> initialIptPharmacy =
 						artPharmacyRepository.getInitialIPTWithoutCompletionDate(artPharmacy.getPerson().getUuid());
 				if(initialIptPharmacy.isPresent()) {
 					ArtPharmacy artPharmacy1 = initialIptPharmacy.get();
 					JsonNode ipt = artPharmacy1.getIpt();
-					((ObjectNode) ipt).put("dateCompleted", dateCompleted.toString());
+					((ObjectNode) ipt).put("dateCompleted", dateCompleted);
 					artPharmacy1.setIpt(ipt);
 					artPharmacyRepository.save(artPharmacy1);
 					
