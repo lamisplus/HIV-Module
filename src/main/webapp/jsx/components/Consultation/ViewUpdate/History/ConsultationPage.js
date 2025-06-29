@@ -882,9 +882,35 @@ const ClinicVisit = (props) => {
         })
         .then((response) => {
           const e = response.data;
+
+          // Sanitize who object
+      const sanitizedWho = {
+        ...e.who,
+        stage1ValueOption: Array.isArray(e.who.stage1ValueOption)
+          ? e.who.stage1ValueOption
+          : e.who.stage1ValueOption
+          ? [e.who.stage1ValueOption]
+          : [],
+        stage2ValueOption: Array.isArray(e.who.stage2ValueOption)
+          ? e.who.stage2ValueOption
+          : e.who.stage2ValueOption
+          ? [e.who.stage2ValueOption]
+          : [],
+        stage3ValueOption: Array.isArray(e.who.stage3ValueOption)
+          ? e.who.stage3ValueOption
+          : e.who.stage3ValueOption
+          ? [e.who.stage3ValueOption]
+          : [],
+        stage4ValueOption: Array.isArray(e.who.stage4ValueOption)
+          ? e.who.stage4ValueOption
+          : e.who.stage4ValueOption
+          ? [e.who.stage4ValueOption]
+          : [],
+      };
+          setWho(sanitizedWho)
           setObjValues(e);
           // setWho(e.who);
-          setWho({ ...e.who });
+          // setWho({ ...e.who });
           setVitalSignDto({ ...vital, ...e.vitalSignDto });
           objValues.clinicalNote = e.clinicalNote;
           objValues.functionalStatusId = e.functionalStatusId;
@@ -932,13 +958,25 @@ const ClinicVisit = (props) => {
     ondateInfection: "",
   });
 
+  // const [who, setWho] = useState({
+  //   stage: "",
+  //   stage1ValueOption: [],
+  //   stage2ValueOption: [],
+  //   stage3ValueOption: [],
+  //   stage4ValueOption: [],
+  // });
+
   const [who, setWho] = useState({
-    stage: "",
-    stage1ValueOption: [],
-    stage2ValueOption: [],
-    stage3ValueOption: [],
-    stage4ValueOption: [],
-  });
+  stage: "",
+  stage1Value: "",
+  stage2Value: "",
+  stage3Value: "",
+  stage4Value: "",
+  stage1ValueOption: [],
+  stage2ValueOption: [],
+  stage3ValueOption: [],
+  stage4ValueOption: []
+});
 
   const [selectedOptions1, setSelectedOptions1] = useState([]);
   const [selectedOptions2, setSelectedOptions2] = useState([]);
@@ -1331,6 +1369,8 @@ const ClinicVisit = (props) => {
       <Message size="mini" color="blue" content="Overweight/Obese" />;
     }
   }
+
+
   //end of update fix
   return (
     <div className={classes.root}>
@@ -2005,14 +2045,21 @@ const ClinicVisit = (props) => {
                         <div className="form-group mb-3 col-md-12">
                           <FormGroup>
                             <Label>Stage 1 options</Label>
-                            <DualListBox
+                            {/* <DualListBox
                               options={options1}
                               onChange={onSelectedOption1}
                               selected={
                                 who?.stage1ValueOption ?? selectedOptions1
                               }
                               disabled={!enableUpdate}
-                            />
+                            /> */}
+
+                            <DualListBox
+  options={options1}
+  onChange={onSelectedOption1}
+  selected={who?.stage1ValueOption ?? selectedOptions1}
+  disabled={!enableUpdate}
+/>
                           </FormGroup>
                         </div>
                       )}
@@ -2025,9 +2072,7 @@ const ClinicVisit = (props) => {
                             <DualListBox
                               options={options2}
                               onChange={onSelectedOption2}
-                              selected={
-                                who?.stage2ValueOption ?? selectedOptions2
-                              }
+                             selected={who?.stage2ValueOption ?? selectedOptions2}
                               disabled={!enableUpdate}
                             />
                           </FormGroup>
@@ -2042,9 +2087,7 @@ const ClinicVisit = (props) => {
                             <DualListBox
                               options={options3}
                               onChange={onSelectedOption3}
-                              selected={
-                                who?.stage3ValueOption ?? selectedOptions3
-                              }
+                              selected={who?.stage3ValueOption ?? selectedOptions3}
                               disabled={!enableUpdate}
                             />
                           </FormGroup>
@@ -2059,9 +2102,7 @@ const ClinicVisit = (props) => {
                             <DualListBox
                               options={options4}
                               onChange={onSelectedOption4}
-                              selected={
-                                who?.stage4ValueOption ?? selectedOptions4
-                              }
+                              selected={who?.stage4ValueOption ?? selectedOptions4}
                               disabled={!enableUpdate}
                             />
                           </FormGroup>
