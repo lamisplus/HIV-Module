@@ -209,7 +209,7 @@ public class ArtPharmacyService {
 				.filter(regimen -> regimen.getRegimenName().contains("Ison"))
 				.findFirst();
 		artPharmacy.setPerson(person);
-		// processAndSetIpt(dto.getIptType(), isoniazid, dto.getVisitDate(), artPharmacy);
+		processAndSetIpt(dto.getIptType(), isoniazid, dto.getVisitDate(), artPharmacy);
 		artPharmacy.setRegimens(regimenList);
 		artPharmacy.setFacilityId(organizationUtil.getCurrentUserOrganization());
 		artPharmacy.setLatitude(dto.getLatitude());

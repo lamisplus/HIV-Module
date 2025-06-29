@@ -189,14 +189,10 @@ const ChronicCare = (props) => {
     referredForServices: "",
     adherence: "",
     rash: "",
-    // neurologicSymptoms: "",g
     hepatitisSymptoms: "",
     tbSymptoms: "",
     resonForStoppingIpt: "",
     outComeOfIpt: "",
-    // tbTreatmentStartDate: "",
- 
-    //TPT prevention
     everCompletedTpt:"",
     eligibilityTpt:"",
     tptPreventionOutcome:"",
@@ -243,7 +239,6 @@ const ChronicCare = (props) => {
     eligibleForTPT: "",
     chestXrayResult:"",
     isTbTestConfirmed:"",
-    //This is section for TB Treament Variable
     specimentCollectedStatus: "",
     specimenType: "",
     dateSpecimenSent: "",
@@ -269,16 +264,8 @@ const ChronicCare = (props) => {
     treatmentCompletionStatus: "",
     completedTbTreatment: "",
     currentWeight:"",
-    //CAD VARIABLES FOR ADULT
     cadScore:"",
-    cadOutcome:"",
-    // cadCoughing:"",
-    // cadFever:"",
-    // cadLosingWeight:"",
-    // cadNightSweats: "",
-    //ADDITIONAL CAD VARIABLES FOR PEDIATRIC
-    // cadPoorWeightGain:"",
-    // cadHistoryWithAdults: ""
+    cadOutcome:""
 
   });
   const [observationObj, setObservationObj] = useState({
@@ -415,14 +402,7 @@ const ChronicCare = (props) => {
       temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
     }
 
-    // if ( tbObj.tbTreatment === "No" &&
-    //     tbObj.cadScore !== '' &&
-    //     tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening") {
-    //   temp.coughing = tbObj.coughing ? '' : "This field is required.";
-    //   temp.fever = tbObj.fever ? '': "This field is required. ";
-    //   temp.nightSweats= tbObj.nightSweats ? '' : "This field is required.";
-    //   temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
-    // }
+    
 
     if(tbObj.specimentCollectedStatus === "Yes"){
       temp.specimentSent = tbObj.specimentSent ? '' : "This field is required.";
