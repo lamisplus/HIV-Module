@@ -243,45 +243,32 @@ const ClinicVisit = (props) => {
     AdherenceLevel();
     TBStatus();
     VitalSigns();
-
-    //ClinicVisitListHistory();
     AdultRegimenLine();
     ChildRegimenLine();
     CRYPTOCOCCAL_SCREENING_STATUS();
     CERVICAL_CANCER_SCREENING_STATUS();
     CERVICAL_CANCER_TREATMENT();
     HEPATITIS_SCREENING_RESULT();
-    // PREGANACY_STATUS();
     PREGNANCY_STATUS();
     FAMILY_PLANNING_METHOD();
     TestGroup();
+
+    // Fetch patient and visit data if activeContent.id is available
     if (props.activeContent.id !== "") {
       GetPatientObj();
       GetVisitById(props.activeContent.id);
       setVisitId(props.activeContent.id);
     }
-    if (props.activeContent && props.activeContent.actionType === "view") {
-      setDisabledField(true);
+
+    // Set who.stage from objValues.whoStagingId after data is loaded
+    if (objValues.whoStagingId) {
+      setWho((prev) => ({
+        ...prev,
+        stage: objValues.whoStagingId,
+      }));
     }
-    if (
-      objValues.adherenceLevel !== null &&
-      objValues.adherenceLevel === "Good"
-    ) {
-      objValues.levelOfAdherence = 354;
-    } else if (
-      objValues.adherenceLevel !== null &&
-      objValues.adherenceLevel === "Fair"
-    ) {
-      objValues.levelOfAdherence = 355;
-    } else if (
-      objValues.adherenceLevel !== null &&
-      objValues.adherenceLevel === "Poor"
-    ) {
-      objValues.levelOfAdherence = 356;
-    } else {
-      objValues.levelOfAdherence = objValues.levelOfAdherence;
-    }
-  }, [patientObj.id, props.activeContent.id, objValues.adherenceLevel]); // objValues.viralLoadOrder
+  }, [props.activeContent.id, objValues.whoStagingId]);
+
   const patientAge = calculate_age_to_number(patientObj.dateOfBirth);
   //Get list of Test Group
   const TestGroup = () => {
@@ -466,16 +453,24 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   }
+
   const handleInputChange = (e) => {
-    setObjValues({ ...objValues, [e.target.name]: e.target.value });
-    if (e.target.name === "whoStagingId") {
-      if (e.target.value === "NO") {
-        setTBForms(true);
-      } else {
-        setTBForms(false);
-      }
+    const { name, value } = e.target;
+
+    // Update objValues
+    setObjValues((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (name === "whoStagingId") {
+      setWho((prev) => ({
+        ...prev,
+        stage: value,
+      }));
     }
   };
+
   const handleInputChangeVitalSignDto = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
     setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
@@ -672,9 +667,9 @@ const ClinicVisit = (props) => {
     setErrors({
       ...temp,
     });
-    console.log("temp", temp);
     return Object.values(temp).every((x) => x == "");
   };
+
   //Validations of the ARV DRUG Load
   const validateArvDrug = () => {
     temp.regimenLine = arvDrugObj.regimenLine ? "" : "This field is required";
@@ -688,6 +683,7 @@ const ClinicVisit = (props) => {
     });
     return Object.values(temp).every((x) => x == "");
   };
+
   const addOrder = (e) => {
     if (validateLabOrder()) {
       tests.visitId = visitId;
@@ -752,37 +748,67 @@ const ClinicVisit = (props) => {
     setTests({ ...tests, [e.target.name]: e.target.value });
   };
 
-  /**** Submit Button Processing  */
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (validate()) {
       setSaving(true);
+
+      // Sync visit date from vital sign or objValues
       objValues.visitDate =
-        vital && vital.encounterDate
+        vital.encounterDate && vital.encounterDate !== ""
           ? vital.encounterDate
           : objValues.visitDate;
-      vital["captureDate"] =
-        vital && vital.encounterDate
+
+      // Set captureDate for vital signs
+      vital.captureDate =
+        vital.encounterDate && vital.encounterDate !== ""
           ? vital.encounterDate
           : objValues.visitDate;
-      if (vital && !vital.encounterDate) {
-        vital["encounterDate"] =
-          vital && vital.encounterDate
-            ? vital.encounterDate
-            : objValues.visitDate;
+
+      // Ensure vital.encounterDate is not empty
+      if (!vital.encounterDate) {
+        vital.encounterDate = objValues.visitDate;
       }
 
+      // Assign additional values
       objValues.adverseDrugReactions = adrList;
-      objValues.artStatusId = getPatientObj.artCommence.id;
-      objValues.hivEnrollmentId = getPatientObj.enrollment.id;
+      objValues.artStatusId = getPatientObj.artCommence?.id || "";
+      objValues.hivEnrollmentId = getPatientObj.enrollment?.id || "";
       objValues.opportunisticInfections = infectionList;
       objValues.tbScreen = tbObj;
-      objValues.tbStatus = tbObj.tbStatusId;
+      objValues.tbStatus = tbObj.tbStatusId || "";
       objValues.viralLoadOrder = testOrderList;
       objValues.arvdrugsRegimen = arvDrugOrderList;
-      objValues["vitalSignDto"] = vital;
+      objValues.vitalSignDto = vital;
 
+      // --- Clean up WHO object before submitting ---
+      const cleanedWho = { ...who };
+
+      // Remove all stage options first
+      delete cleanedWho.stage1ValueOption;
+      delete cleanedWho.stage2ValueOption;
+      delete cleanedWho.stage3ValueOption;
+      delete cleanedWho.stage4ValueOption;
+
+      // Only add back the relevant one based on who.stage
+      if (who.stage === "119") {
+        cleanedWho.stage1ValueOption = who.stage1ValueOption;
+      } else if (who.stage === "120") {
+        cleanedWho.stage2ValueOption = who.stage2ValueOption;
+      } else if (who.stage === "121") {
+        cleanedWho.stage3ValueOption = who.stage3ValueOption;
+      } else if (who.stage === "122") {
+        cleanedWho.stage4ValueOption = who.stage4ValueOption;
+      }
+
+      // Sync whoStagingId with who.stage
+      objValues.whoStagingId = who.stage;
+
+      // Include only the cleaned WHO object
+      objValues.who = cleanedWho;
+
+      // Submit the updated clinic visit data
       axios
         .put(`${baseUrl}hiv/art/clinic-visit/${objValues.id}`, objValues, {
           headers: { Authorization: `Bearer ${token}` },
@@ -790,10 +816,14 @@ const ClinicVisit = (props) => {
         .then((response) => {
           setSaving(false);
           props.ClinicVisitListHistory();
-          toast.success("Clinic Visit(Care card) updated successful", {
+          toast.success("Clinic Visit (Care card) updated successfully", {
             position: toast.POSITION.BOTTOM_CENTER,
           });
+
+          // Refresh the current visit data
           GetVisitById(objValues.id);
+
+          // Navigate back to history tab
           props.setActiveContent({
             ...props.activeContent,
             route: "recent-history",
@@ -802,40 +832,37 @@ const ClinicVisit = (props) => {
         })
         .catch((error) => {
           setSaving(false);
+
+          // Handle API errors
           if (error.response && error.response.data) {
+            const apiError = error.response.data.apierror || {};
             let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
+              apiError.message || "Something went wrong, please try again.";
+
             if (
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== "" &&
-              error.response.data.apierror &&
-              error.response.data.apierror.subErrors[0].message !== ""
+              apiError.subErrors &&
+              apiError.subErrors.length > 0 &&
+              apiError.subErrors[0].message
             ) {
-              toast.error(
-                error.response.data.apierror.message +
-                  " : " +
-                  error.response.data.apierror.subErrors[0].field +
-                  " " +
-                  error.response.data.apierror.subErrors[0].message,
-                { position: toast.POSITION.BOTTOM_CENTER }
-              );
-            } else {
-              toast.error(errorMessage, {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
+              errorMessage = `${apiError.message}: ${apiError.subErrors[0].field} ${apiError.subErrors[0].message}`;
             }
+
+            toast.error(errorMessage, {
+              position: toast.POSITION.BOTTOM_CENTER,
+            });
+          } else {
+            toast.error("An unexpected error occurred.", {
+              position: toast.POSITION.BOTTOM_CENTER,
+            });
           }
         });
     } else {
-      toast.error("All field are required", {
+      toast.error("All required fields must be filled out.", {
         position: toast.POSITION.BOTTOM_CENTER,
       });
     }
   };
-  
+
   const getVisitDetail = (e) => {
     if (e.id) {
       setEnableUpdateButton(true);
@@ -855,8 +882,9 @@ const ClinicVisit = (props) => {
         })
         .then((response) => {
           const e = response.data;
-          setWho(e.who);
           setObjValues(e);
+          // setWho(e.who);
+          setWho({ ...e.who });
           setVitalSignDto({ ...vital, ...e.vitalSignDto });
           objValues.clinicalNote = e.clinicalNote;
           objValues.functionalStatusId = e.functionalStatusId;
@@ -903,16 +931,13 @@ const ClinicVisit = (props) => {
     illnessInfection: "",
     ondateInfection: "",
   });
+
   const [who, setWho] = useState({
     stage: "",
-    stage1Value: "",
-    stage2Value: "",
-    stage3Value: "",
-    stage4Value: "",
-    stage1ValueOption: "",
-    stage2ValueOption: "",
-    stage3ValueOption: "",
-    stage4ValueOption: "",
+    stage1ValueOption: [],
+    stage2ValueOption: [],
+    stage3ValueOption: [],
+    stage4ValueOption: [],
   });
 
   const [selectedOptions1, setSelectedOptions1] = useState([]);
@@ -1168,6 +1193,8 @@ const ClinicVisit = (props) => {
       })
       .catch((error) => {});
   }
+
+
   ///Level of Adherence
   async function AdherenceLevel() {
     axios
@@ -1319,6 +1346,7 @@ const ClinicVisit = (props) => {
                 Clinic Visits
               </h4>
             </div>
+
             <div className="card-body">
               <PerfectScrollbar
                 style={{ height: "370px" }}
@@ -1947,11 +1975,7 @@ const ClinicVisit = (props) => {
                             type="select"
                             name="whoStagingId"
                             id="whoStagingId"
-                            value={
-                              objValues.clinicalStageId !== null
-                                ? objValues.clinicalStageId
-                                : objValues.whoStagingId
-                            }
+                            value={objValues.whoStagingId || ""}
                             onChange={handleInputChange}
                             style={{
                               border: "1px solid #014D88",
@@ -1959,8 +1983,7 @@ const ClinicVisit = (props) => {
                             }}
                             disabled={!enableUpdate}
                           >
-                            <option value="select">Select </option>
-
+                            <option value="">Select</option>
                             {clinicalStage.map((value) => (
                               <option key={value.id} value={value.id}>
                                 {value.display}
@@ -1976,84 +1999,76 @@ const ClinicVisit = (props) => {
                           )}
                         </FormGroup>
                       </div>
-                      {(who?.stage === "119" ||
-                        objValues.whoStagingId === "119") && (
+
+                      {/* Stage 1 Options */}
+                      {who?.stage === "119" && (
                         <div className="form-group mb-3 col-md-12">
                           <FormGroup>
                             <Label>Stage 1 options</Label>
                             <DualListBox
-                              //canFilter
                               options={options1}
                               onChange={onSelectedOption1}
                               selected={
-                                who?.stage1ValueOption.length
-                                  ? who?.stage1ValueOption
-                                  : selectedOptions1
+                                who?.stage1ValueOption ?? selectedOptions1
                               }
                               disabled={!enableUpdate}
                             />
                           </FormGroup>
                         </div>
                       )}
-                      {(who?.stage === "120" ||
-                        objValues.whoStagingId === "120") && (
+
+                      {/* Stage 2 Options */}
+                      {who?.stage === "120" && (
                         <div className="form-group mb-3 col-md-12">
                           <FormGroup>
                             <Label>Stage 2 options</Label>
                             <DualListBox
-                              //canFilter
                               options={options2}
                               onChange={onSelectedOption2}
                               selected={
-                                who?.stage2ValueOption.length
-                                  ? who?.stage2ValueOption
-                                  : selectedOptions2
+                                who?.stage2ValueOption ?? selectedOptions2
                               }
                               disabled={!enableUpdate}
                             />
                           </FormGroup>
                         </div>
                       )}
-                      {(who?.stage === "121" ||
-                        objValues.whoStagingId === "121") && (
-                        <>
-                          <div className="form-group mb-3 col-md-12">
-                            <FormGroup>
-                              <Label>Stage 3 options</Label>
-                              <DualListBox
-                                //canFilter
-                                options={options3}
-                                onChange={onSelectedOption3}
-                                selected={
-                                  who?.stage3ValueOption.length
-                                    ? who?.stage3ValueOption
-                                    : selectedOptions3
-                                }
-                                disabled={!enableUpdate}
-                              />
-                            </FormGroup>
-                          </div>
-                        </>
+
+                      {/* Stage 3 Options */}
+                      {who?.stage === "121" && (
+                        <div className="form-group mb-3 col-md-12">
+                          <FormGroup>
+                            <Label>Stage 3 options</Label>
+                            <DualListBox
+                              options={options3}
+                              onChange={onSelectedOption3}
+                              selected={
+                                who?.stage3ValueOption ?? selectedOptions3
+                              }
+                              disabled={!enableUpdate}
+                            />
+                          </FormGroup>
+                        </div>
                       )}
-                      {who?.stage === "122" ||
-                        (objValues.whoStagingId === "122" && (
-                          <div className="form-group mb-3 col-md-12">
-                            <FormGroup>
-                              <Label>Stage 4 options</Label>
-                              <DualListBox
-                                //canFilter
-                                options={options4}
-                                onChange={onSelectedOption4}
-                                selected={
-                                  who?.stage4ValueOption.length
-                                    ? who?.stage4ValueOption
-                                    : selectedOptions4
-                                }
-                                disabled={!enableUpdate}
-                              />
-                            </FormGroup>
-                          </div>
-                        ))}
+
+                      {/* Stage 4 Options */}
+                      {who?.stage === "122" && (
+                        <div className="form-group mb-3 col-md-12">
+                          <FormGroup>
+                            <Label>Stage 4 options</Label>
+                            <DualListBox
+                              options={options4}
+                              onChange={onSelectedOption4}
+                              selected={
+                                who?.stage4ValueOption ?? selectedOptions4
+                              }
+                              disabled={!enableUpdate}
+                            />
+                          </FormGroup>
+                        </div>
+                      )}
+
+                      {/* Functional Status Field */}
                       <div className=" mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>
@@ -2072,8 +2087,7 @@ const ClinicVisit = (props) => {
                             }}
                             disabled={!enableUpdate}
                           >
-                            <option value="select">Select </option>
-
+                            <option value="">Select</option>
                             {functionalStatus.map((value) => (
                               <option key={value.id} value={value.id}>
                                 {value.display}
@@ -2090,9 +2104,10 @@ const ClinicVisit = (props) => {
                         </FormGroup>
                       </div>
 
+                      {/* Level of Adherence Field */}
                       <div className=" mb-3 col-md-6">
                         <FormGroup>
-                          <FormLabelName>Level of Adherence </FormLabelName>
+                          <FormLabelName>Level of Adherence</FormLabelName>
                           <Input
                             type="select"
                             name="levelOfAdherence"
@@ -2105,8 +2120,7 @@ const ClinicVisit = (props) => {
                             }}
                             disabled={!enableUpdate}
                           >
-                            <option value="select">Select </option>
-
+                            <option value="">Select</option>
                             {adherenceLevel.map((value) => (
                               <option key={value.id} value={value.id}>
                                 {value.display}
@@ -2122,6 +2136,8 @@ const ClinicVisit = (props) => {
                           )}
                         </FormGroup>
                       </div>
+
+                      {/* Cryptococcal Screening Status Field */}
                       <div className=" mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>
@@ -2139,8 +2155,7 @@ const ClinicVisit = (props) => {
                             }}
                             disabled={!enableUpdate}
                           >
-                            <option value="select">Select </option>
-
+                            <option value="">Select</option>
                             {cryptococcal.map((value) => (
                               <option key={value.code} value={value.code}>
                                 {value.display}
@@ -2149,11 +2164,14 @@ const ClinicVisit = (props) => {
                           </Input>
                         </FormGroup>
                       </div>
+
+                      {/* Conditional Fields for Female Patients Age >= 10 */}
                       {patientAge >= 10 &&
-                        (patientObj.sex === "Female" ||
-                          patientObj.sex === "FEMALE" ||
-                          patientObj.sex === "female") && (
+                        ["Female", "FEMALE", "female"].includes(
+                          patientObj.sex
+                        ) && (
                           <>
+                            {/* Cervical Cancer Screening Status */}
                             <div className=" mb-3 col-md-6">
                               <FormGroup>
                                 <FormLabelName>
@@ -2173,8 +2191,7 @@ const ClinicVisit = (props) => {
                                   }}
                                   disabled={!enableUpdate}
                                 >
-                                  <option value="select">Select </option>
-
+                                  <option value="">Select</option>
                                   {cervicalStatus.map((value) => (
                                     <option key={value.code} value={value.code}>
                                       {value.display}
@@ -2183,6 +2200,8 @@ const ClinicVisit = (props) => {
                                 </Input>
                               </FormGroup>
                             </div>
+
+                            {/* Cervical Cancer Treatment Provided */}
                             <div className=" mb-3 col-md-6">
                               <FormGroup>
                                 <FormLabelName>
@@ -2202,8 +2221,7 @@ const ClinicVisit = (props) => {
                                   }}
                                   disabled={!enableUpdate}
                                 >
-                                  <option value="select">Select </option>
-
+                                  <option value="">Select</option>
                                   {cervicalTreatment.map((value) => (
                                     <option key={value.code} value={value.code}>
                                       {value.display}
@@ -2212,6 +2230,8 @@ const ClinicVisit = (props) => {
                                 </Input>
                               </FormGroup>
                             </div>
+
+                            {/* Pregnancy Status */}
                             <div className=" mb-3 col-md-6">
                               <FormGroup>
                                 <FormLabelName>
@@ -2230,8 +2250,7 @@ const ClinicVisit = (props) => {
                                   }}
                                   disabled={!enableUpdate}
                                 >
-                                  <option value="select">Select </option>
-
+                                  <option value="">Select</option>
                                   {pregnancyStatus.map((value) => (
                                     <option
                                       key={value.code}
@@ -2252,6 +2271,8 @@ const ClinicVisit = (props) => {
                             </div>
                           </>
                         )}
+
+                      {/* Hepatitis Screening Result Field */}
                       <div className=" mb-3 col-md-6">
                         <FormGroup>
                           <FormLabelName>
@@ -2269,8 +2290,7 @@ const ClinicVisit = (props) => {
                             }}
                             disabled={!enableUpdate}
                           >
-                            <option value="select">Select </option>
-
+                            <option value="">Select</option>
                             {hepatitis.map((value) => (
                               <option key={value.code} value={value.code}>
                                 {value.display}
@@ -2279,56 +2299,6 @@ const ClinicVisit = (props) => {
                           </Input>
                         </FormGroup>
                       </div>
-                      {/*SWO-FEATURE */}
-
-                      {/*<div className=" mb-3 col-md-6">*/}
-                      {/*  <FormGroup>*/}
-                      {/*    <FormLabelName>Family Planing ?</FormLabelName>*/}
-                      {/*    <Input*/}
-                      {/*      type="select"*/}
-                      {/*      name="familyPlaning"*/}
-                      {/*      id="familyPlaning"*/}
-                      {/*      value={objValues.familyPlaning}*/}
-                      {/*      onChange={handleInputChange}*/}
-                      {/*      style={{*/}
-                      {/*        border: "1px solid #014D88",*/}
-                      {/*        borderRadius: "0.25rem",*/}
-                      {/*      }}*/}
-                      {/*      disabled={!enableUpdate}*/}
-                      {/*    >*/}
-                      {/*      <option value="select">Select </option>*/}
-                      {/*      <option value="Yes">Yes </option>*/}
-                      {/*      <option value="No">No </option>*/}
-                      {/*    </Input>*/}
-                      {/*  </FormGroup>*/}
-                      {/*</div>*/}
-                      {/*{objValues.familyPlaning === "Yes" && (*/}
-                      {/*  <div className=" mb-3 col-md-6">*/}
-                      {/*    <FormGroup>*/}
-                      {/*      <FormLabelName>On Family Planing </FormLabelName>*/}
-                      {/*      <Input*/}
-                      {/*        type="select"*/}
-                      {/*        name="onFamilyPlaning"*/}
-                      {/*        id="onFamilyPlaning"*/}
-                      {/*        value={objValues.onFamilyPlaning}*/}
-                      {/*        onChange={handleInputChange}*/}
-                      {/*        style={{*/}
-                      {/*          border: "1px solid #014D88",*/}
-                      {/*          borderRadius: "0.25rem",*/}
-                      {/*        }}*/}
-                      {/*        disabled={!enableUpdate}*/}
-                      {/*      >*/}
-                      {/*        <option value="select">Select </option>*/}
-
-                      {/*        {familyPlaining.map((value) => (*/}
-                      {/*          <option key={value.code} value={value.code}>*/}
-                      {/*            {value.display}*/}
-                      {/*          </option>*/}
-                      {/*        ))}*/}
-                      {/*      </Input>*/}
-                      {/*    </FormGroup>*/}
-                      {/*  </div>*/}
-                      {/*)}*/}
                     </div>
                     <br />
                     <Label
