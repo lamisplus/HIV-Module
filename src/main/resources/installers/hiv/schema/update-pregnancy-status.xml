@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet id="20250715-01" author="Taiwo Gboyegun">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+        </preConditions>
+
+        <sql>
+            UPDATE hiv_art_clinical
+            SET pregnancy_status = 'PREGNANCY_STATUS_PREGNANT'
+            WHERE pregnancy_status = 'Pregnant' OR pregnancy_status = 'pregnant';
+        </sql>
+
+        <sql>
+            UPDATE hiv_art_clinical
+            SET pregnancy_status = 'PREGNANCY_STATUS_BREASTFEEDING'
+            WHERE pregnancy_status ILIKE '%Breastfeeding%';
+        </sql>
+
+        <sql>
+            UPDATE hiv_art_clinical
+            SET pregnancy_status = 'PREGNANCY_STATUS_NOT_PREGNANT'
+            WHERE pregnancy_status IN ('Not Pregnant', 'Not pregnant');
+        </sql>
+        <sql>
+            UPDATE hiv_art_clinical
+            SET pregnancy_status = 'PREGNANCY_STATUS_POST_PARTUM'
+            WHERE pregnancy_status = 'Post Partum';
+        </sql>
+    </changeSet>
+
+
+</databaseChangeLog>
