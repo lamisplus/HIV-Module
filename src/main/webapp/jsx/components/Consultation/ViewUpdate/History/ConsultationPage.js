@@ -2295,7 +2295,7 @@ const ClinicVisit = (props) => {
                                   {pregnancyStatus.map((value) => (
                                     <option
                                       key={value.code}
-                                      value={value.display}
+                                      value={value.code}
                                     >
                                       {value.display}
                                     </option>

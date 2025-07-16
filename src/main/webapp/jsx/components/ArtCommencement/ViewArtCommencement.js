@@ -907,7 +907,7 @@ const ArtCommencement = (props) => {
                         <option value=""> Select</option>
 
                         {pregnancyStatus.map((value) => (
-                          <option key={value.id} value={value.display}>
+                          <option key={value.id} value={value.code}>
                             {value.display}
                           </option>
                         ))}
@@ -1432,7 +1432,7 @@ const ArtCommencement = (props) => {
                           <option value=""> Select</option>
 
                           {pregnancyStatus.map((value) => (
-                            <option key={value.id} value={value.id}>
+                            <option key={value.id} value={value.code}>
                               {value.display}
                             </option>
                           ))}

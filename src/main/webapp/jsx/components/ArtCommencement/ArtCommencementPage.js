@@ -467,10 +467,11 @@ const ArtCommencement = (props) => {
     objValues.hivEnrollmentId = patientObject?.enrollment.id;
     objValues.clinicalStageId = objValues.whoStagingId;
     if (objValues.pregnancyStatus !== null) {
+      console.log("objValues.pregnancyStatus", objValues.pregnancyStatus)
       const pregnancyDisplay = pregnancyStatus.find(
           (x) => x.id === parseInt(objValues.pregnancyStatus)
       );
-      objValues.pregnancyStatus = pregnancyDisplay.display;
+      objValues.pregnancyStatus = pregnancyDisplay.code;
     }
     if (objValues.cd4Type === "Flow Cyteometry") {
       objValues.cd4 = objValues.cd4Count;
