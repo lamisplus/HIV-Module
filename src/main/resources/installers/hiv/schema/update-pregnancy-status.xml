@@ -13,27 +13,28 @@
 
         <sql>
             UPDATE hiv_art_clinical
-            SET pregnancy_status = 'PREGNANCY_STATUS_PREGNANT'
+            SET pregnancy_status= 'PREGANACY_STATUS_PREGNANT'
             WHERE pregnancy_status = 'Pregnant' OR pregnancy_status = 'pregnant';
         </sql>
 
         <sql>
             UPDATE hiv_art_clinical
-            SET pregnancy_status = 'PREGNANCY_STATUS_BREASTFEEDING'
+            SET pregnancy_status= 'PREGANACY_STATUS_BREASTFEEDING'
             WHERE pregnancy_status ILIKE '%Breastfeeding%';
         </sql>
 
         <sql>
             UPDATE hiv_art_clinical
-            SET pregnancy_status = 'PREGNANCY_STATUS_NOT_PREGNANT'
+            SET pregnancy_status= 'PREGANACY_STATUS_NOT_PREGNANT'
             WHERE pregnancy_status IN ('Not Pregnant', 'Not pregnant');
         </sql>
         <sql>
             UPDATE hiv_art_clinical
-            SET pregnancy_status = 'PREGNANCY_STATUS_POST_PARTUM'
+            SET pregnancy_status= 'PREGANACY_STATUS_POST_PARTUM'
             WHERE pregnancy_status = 'Post Partum';
         </sql>
     </changeSet>
 
 
 </databaseChangeLog>
+x
