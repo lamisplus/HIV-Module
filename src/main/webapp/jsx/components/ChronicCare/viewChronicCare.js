@@ -334,7 +334,7 @@ const ViewChronicCare = (props) => {
         observationObj.peproductive = response.data.peproductive;
         observationObj.tbIptScreening = response.data.tbIptScreening;
         observationObj.tptMonitoring = response.data.tptMonitoring;
-        setObservation(response.data);
+        setObservation({...response.data, clinicalNote: response?.data?.data?.clinicalNote});
         setObservationObj(response.data.data);
         setTpt({ ...tpt, ...response.data.data.tptMonitoring });
         setTbObj({ ...tbObj, ...response.data.data.tbIptScreening });
@@ -355,6 +355,7 @@ const ViewChronicCare = (props) => {
       })
       .catch((error) => {});
   };
+
   const GetChronicCareData = () => {
     //function to get chronic care data check if record exist using date for validation
     axios
@@ -369,6 +370,7 @@ const ViewChronicCare = (props) => {
       })
       .catch((error) => {});
   };
+
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
     setObservation({ ...observation, [e.target.name]: e.target.value });
@@ -449,7 +451,8 @@ const ViewChronicCare = (props) => {
     observationObj.peproductive = reproductive;
     observationObj.tbIptScreening = tbObj;
     observationObj.tptMonitoring = tpt;
-    observation.data = observationObj;
+    observation.data = { ...observationObj, clinicalNote: observation?.clinicalNote };
+    
 
     try {
       let response;
@@ -919,7 +922,34 @@ const ViewChronicCare = (props) => {
                 )}
               </div>
               {/* End Positive Health Dignity and Prevention */}
-
+              
+              <div className="form-group mb-3 col-md-12">
+                <FormGroup>
+                  <Label>Clinical Note</Label>
+                  <textarea
+                    name="clinicalNote"
+                    id="clinicalNote"
+                    value={observation.clinicalNote}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                      height: 200,
+                      width: "100%"
+                    }}
+                    disabled={
+                      props.activeContent.actionType === "view" ? true : false
+                    }
+                  />
+                </FormGroup>
+                {errors.clinicalNote !== "" ? (
+                  <span className={classes.error}>
+                    {errors.clinicalNote}
+                  </span>
+                ) : (
+                  ""
+                )}
+              </div>
               {/* End Reproductive Intentions */}
               {saving ? <Spinner /> : ""}
 
