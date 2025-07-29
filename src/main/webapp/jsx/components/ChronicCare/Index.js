@@ -1078,7 +1078,8 @@ const ChronicCare = (props) => {
                       border: "1px solid #014D88",
                       borderRadius: "0.25rem",
                       height: 200,
-                      width: "100%"
+                      width: "100%",
+                      padding: 10
                     }}
                   />
                 </FormGroup>
