@@ -346,6 +346,7 @@ const ChronicCare = (props) => {
       .then((response) => {
         const DateObj = response.data.filter((x) => x.type === "Chronic Care");
         if (response.data) {
+          console.log("Chronic care data", DateObj)
           setChronicDateExist(DateObj);
         }
       })
@@ -695,6 +696,7 @@ const ChronicCare = (props) => {
                   <Tb
                     setTbObj={setTbObj}
                     tbObj={tbObj}
+                    chronicCareRecords={chronicDateExist}
                     setErrors={setErrors}
                     errors={errors}
                     encounterDate={observation.dateOfObservation}
@@ -710,11 +712,7 @@ const ChronicCare = (props) => {
               {
                 (tbObj.tbEvaulationOutcome === 'TB Not Diagnosed' ||
                   tbObj.status === 'No signs or symptoms of TB' ||
-                  tbObj.status === 'Currently on TB treatment'
-                  // || tbObj.tbTreatment === "No"
-                )
-                &&
-                (
+                  tbObj.status === 'Currently on TB treatment') && (
                   <div className="card">
                     <div
                       className="card-header"
@@ -728,29 +726,21 @@ const ChronicCare = (props) => {
                       <h5 className="card-title" style={{ color: "#fff" }}>
                         TPT Prevention/Monitoring
                       </h5>
-                      {showTpt === false ? (
-                        <span
-                          className="float-end"
-                          style={{ cursor: "pointer" }}
-                          onClick={onClickTpt}
-                        >
-                          <FaPlus />
-                        </span>
-                      ) : (
-                        <span
-                          className="float-end"
-                          style={{ cursor: "pointer" }}
-                          onClick={onClickTpt}
-                        >
-                          <FaAngleDown />
-                        </span>
-                      )}
+                      <span
+                        className="float-end"
+                        style={{ cursor: "pointer" }}
+                        onClick={onClickTpt}
+                      >
+                        {showTpt ? <FaAngleDown /> : <FaPlus />}
+                      </span>
                     </div>
+
                     {showTpt && (
                       <Tpt
                         setTpt={setTpt}
                         tpt={tpt}
                         tbObj={tbObj}
+                        chronicCareRecords={chronicDateExist}
                         setTbObj={setTbObj}
                         setErrors={setErrors}
                         errors={errors}
