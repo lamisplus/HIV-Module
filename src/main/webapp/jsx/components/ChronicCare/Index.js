@@ -1084,13 +1084,6 @@ const ChronicCare = (props) => {
                     }}
                   />
                 </FormGroup>
-                {errors.comment !== "" ? (
-                  <span className={classes.error}>
-                    {errors.comment}
-                  </span>
-                ) : (
-                  ""
-                )}
               </div>
 
 

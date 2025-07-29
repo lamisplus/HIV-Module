@@ -944,13 +944,7 @@ const ViewChronicCare = (props) => {
                     }
                   />
                 </FormGroup>
-                {errors.comment !== "" ? (
-                  <span className={classes.error}>
-                    {errors.comment}
-                  </span>
-                ) : (
-                  ""
-                )}
+                
               </div>
               {/* End Reproductive Intentions */}
               {saving ? <Spinner /> : ""}
