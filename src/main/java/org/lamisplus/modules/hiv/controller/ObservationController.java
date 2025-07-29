@@ -80,4 +80,10 @@ public class ObservationController {
         return tbClientWithoutCompletionDate.isPresent() ? ResponseEntity.ok(tbClientWithoutCompletionDate.get()) : ResponseEntity.ok(false);
     }
 
+    @GetMapping("/current-tb-status")
+    public ResponseEntity<String> getCurrentTbStatus(@RequestParam String personUuid) {
+        Optional<String> currentTbStatus = observationRepository.findCurrentTbStatus(personUuid);
+        return currentTbStatus.isPresent() ? ResponseEntity.ok(currentTbStatus.get()) : ResponseEntity.ok("");
+    }
+
 }
