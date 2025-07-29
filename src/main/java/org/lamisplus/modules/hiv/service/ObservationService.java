@@ -217,6 +217,7 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
         existingObservation.setType(observationDto.getType());
         existingObservation.setDateOfObservation(observationDto.getDateOfObservation());
         existingObservation.setData(observationDto.getData());
+        existingObservation.setComment(observationDto.getComment());
         processAndUpdateIptFromPharmacy(observationDto, existingObservation.getPerson());
         Observation saveObservation = observationRepository.save(existingObservation);
         observationDto.setId(saveObservation.getId());
@@ -260,6 +261,7 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
                 .type(observation.getType())
                 .visitId(observation.getVisit().getId())
                 .id(observation.getId())
+                .comment(observation.getComment())
                 .build();
     }
 
