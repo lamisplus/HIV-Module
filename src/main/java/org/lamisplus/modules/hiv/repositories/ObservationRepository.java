@@ -309,4 +309,46 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             nativeQuery = true)
     Optional<Observation> findMostRecentTransferOut(@Param("personUuid") String personUuid);
 
+    @Query(value = "WITH tbImpl AS (\n" +
+            "SELECT he.person_uuid FROM hiv_enrollment he WHERE archived = 0\n" +
+            "),\n" +
+            "tbStartDate AS (\n" +
+            "SELECT person_uuid, tbTreatmentStartDate, status, status_date, CAST(tbTreatmentStartDate + INTERVAL '6 Month' AS DATE) AS intervalDate,\n" +
+            "(CASE WHEN NOW() >= CAST(tbTreatmentStartDate + INTERVAL '6 Month' AS DATE) THEN TRUE ELSE FALSE END) AS pass6Month\n" +
+            "FROM (\n" +
+            "SELECT ho.person_uuid, ho.date_of_observation visitDate,  NULLIF(CAST(NULLIF(ho.data->'tbIptScreening'->>'tbTreatmentStartDate', '') AS DATE), NULL) tbTreatmentStartDate, \n" +
+            "ho.data->'tbIptScreening'->>'completionDate' tbCompletionDate, currentArtStatus.status, currentArtStatus.status_date,\n" +
+            "ROW_NUMBER() OVER (PARTITION BY ho.person_uuid ORDER BY ho.date_of_observation DESC) rnkk FROM hiv_observation ho\n" +
+            "LEFT JOIN (\n" +
+            "SELECT person_uuid, (CASE WHEN hiv_status ILIKE '%DEATH%' OR hiv_status ILIKE '%Died%' THEN 'Died' WHEN(status_date > visit_date AND (hiv_status ILIKE '%stop%' OR hiv_status ILIKE '%out%' OR hiv_status ILIKE '%Invalid %' OR hiv_status ILIKE '%ART Transfer In%'))  THEN hiv_status ELSE artStatus END) AS status,\n" +
+            "(CASE WHEN hiv_status ILIKE '%DEATH%' OR hiv_status ILIKE '%Died%'  THEN status_date WHEN(status_date > visit_date AND (hiv_status ILIKE '%stop%' OR hiv_status ILIKE '%out%' OR hiv_status ILIKE '%Invalid %' OR hiv_status ILIKE '%ART Transfer In%')) THEN status_date ELSE visit_date END ) AS status_date\n" +
+            "FROM (SELECT person_uuid, (CASE WHEN pharmacy.visitDate + pharmacy.refill_period + INTERVAL '29 day' <= NOW() THEN 'IIT' ELSE 'Active' END ) artStatus,\n" +
+            "(CASE WHEN CAST(pharmacy.visitDate + pharmacy.refill_period + INTERVAL '29 day' AS DATE) <= NOW() THEN CAST(pharmacy.visitDate + pharmacy.refill_period + INTERVAL '29 day' AS DATE) ELSE pharmacy.visitDate END) AS visit_date, stat.status_date,stat.hiv_status\n" +
+            "FROM (\n" +
+            "SELECT hap.person_uuid, CAST(hap.visit_date AS DATE) visitDate, refill_period, ROW_NUMBER() OVER (PARTITION BY hap.person_uuid ORDER BY hap.visit_date DESC) as rnk\n" +
+            "FROM public.hiv_art_pharmacy hap \n" +
+            "INNER JOIN public.hiv_art_pharmacy_regimens pr ON pr.art_pharmacy_id = hap.id \n" +
+            "INNER JOIN hiv_enrollment h ON h.person_uuid = hap.person_uuid AND h.archived = 0 \n" +
+            "INNER JOIN public.hiv_regimen r on r.id = pr.regimens_id \n" +
+            "INNER JOIN public.hiv_regimen_type rt on rt.id = r.regimen_type_id \n" +
+            "WHERE r.regimen_type_id in (1,2,3,4,14, 16) \n" +
+            "AND hap.archived = 0  \n" +
+            "AND hap.visit_date BETWEEN CAST('1901-01-01' AS DATE) AND CAST(NOW() AS DATE)\n" +
+            ") pharmacy\n" +
+            "LEFT JOIN (\n" +
+            "SELECT * FROM (SELECT DISTINCT (person_id) person_id, status_date,\n" +
+            "hiv_status, ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY status_date DESC)\n" +
+            "FROM hiv_status_tracker WHERE archived=0 AND status_date BETWEEN CAST('1901-01-01' AS DATE) AND CAST(NOW() AS DATE) )s\n" +
+            "WHERE s.row_number=1\n" +
+            ")stat ON stat.person_id = pharmacy.person_uuid\n" +
+            "WHERE pharmacy.rnk = 1\n" +
+            ") completeArtStatus\n" +
+            ") currentArtStatus ON currentArtStatus.person_uuid = ho.person_uuid\n" +
+            "WHERE archived = 0 AND data->'tbIptScreening'->>'tbTreatmentStartDate' IS NOT NULL AND data->'tbIptScreening'->>'tbTreatmentStartDate' <> ''\n" +
+            "AND data->'tbIptScreening'->>'completionDate' ='') subQ WHERE rnkk = 1\n" +
+            ")\n" +
+            "SELECT tbStart.pass6Month FROM tbImpl\n" +
+            "LEFT JOIN tbStartDate tbStart ON tbImpl.person_uuid = tbStart.person_uuid\n" +
+            "WHERE tbStart.status IN ('Active') AND tbImpl.person_uuid = ?1", nativeQuery = true)
+    Optional<Boolean> findTbClientWithoutCompletionDate(String personUuid);
 }
