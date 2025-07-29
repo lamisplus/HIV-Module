@@ -291,6 +291,7 @@ const ViewChronicCare = (props) => {
     personId: 0,
     type: "Chronic Care",
     visitId: null,
+    comment: ""
   });
   useEffect(() => {
     GetChronicCareData();
@@ -927,9 +928,9 @@ const ViewChronicCare = (props) => {
                 <FormGroup>
                   <Label>Clinical Note</Label>
                   <textarea
-                    name="clinicalNote"
-                    id="clinicalNote"
-                    value={observation.clinicalNote}
+                    name="comment"
+                    id="comment"
+                    value={observation.comment}
                     onChange={handleInputChange}
                     style={{
                       border: "1px solid #014D88",
@@ -943,13 +944,7 @@ const ViewChronicCare = (props) => {
                     }
                   />
                 </FormGroup>
-                {errors.clinicalNote !== "" ? (
-                  <span className={classes.error}>
-                    {errors.clinicalNote}
-                  </span>
-                ) : (
-                  ""
-                )}
+                
               </div>
               {/* End Reproductive Intentions */}
               {saving ? <Spinner /> : ""}
