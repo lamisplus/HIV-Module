@@ -158,6 +158,38 @@ const TbScreening = (props) => {
       .catch((error) => {});
   };
 
+  const getActiveTbTreatmentStartDate = (observations) => {
+    if (!Array.isArray(observations) || observations.length === 0) return "";
+
+    // Sort descending by date
+    const sorted = [...observations].sort(
+        (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
+    );
+
+    const latest = sorted[0];
+    const latestScreening = latest?.data?.tbIptScreening;
+    // BLOCK auto-fill if latest visit has completionDate
+    if (latestScreening?.completionDate && latestScreening.completionDate.trim() !== "") {
+      return "";
+    }
+
+    // Only now search for the most recent active treatment
+    for (const obs of sorted) {
+      const screening = obs.data?.tbIptScreening;
+      if (!screening) continue;
+
+      const tbTreatmentStarted = screening.tbTreatmentStarted === "Yes";
+      const hasValidStartDate = screening.tbTreatmentStartDate && screening.tbTreatmentStartDate.trim() !== "";
+      const hasCompletionDate = screening.completionDate && screening.completionDate.trim() !== "";
+
+      if (tbTreatmentStarted && hasValidStartDate && !hasCompletionDate) {
+        return screening.tbTreatmentStartDate;
+      }
+    }
+
+    return "";
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -213,77 +245,232 @@ const TbScreening = (props) => {
       };
     }
     // Handle specific fields and their related state resets
-    if (name === "tbTreatment") {
-      updateObj = {
-        ...updateObj,
-        tbTreatmentStartDate: "",
-        tbScreeningType: "",
-        cadScore: "",
-        cadOutcome: "",
-        completedTbTreatment: "",
-        specimentCollectedStatus: "",
-        diagnosticTestType: "",
-        tbEvaulationOutcome: "",
-        chestXrayResult: "",
-        outcome: "",
-        status: "",
-        tbType: "",
-        coughing: "",
-        fever: "",
-        nightSweats: "",
-        losingWeight: "",
-        historyWithAdults: "",
-        poorWeightGain: "",
-        specimentSent: "",
-        tbTestResult: "",
-        specimenType: "",
-        poorTreatmentAdherence: "",
-        chestXrayDone: "",
-        clinicallyEvaulated: "",
-        DateDiagnosticTestResultReceived: "",
-        dateOfChestXrayResultTestDone: "",
-        dateOfDiagnosticTest: "",
-        dateSpecimenSent: "",
-        diagnosticTestDone: "",
-        tbTreeatmentStarted: "",
-        chestXrayResultTest: "",
-      };
+    // if (name === "tbTreatment") {
+    //   updateObj = {
+    //     ...updateObj,
+    //     tbTreatmentStartDate: "",
+    //     tbScreeningType: "",
+    //     cadScore: "",
+    //     cadOutcome: "",
+    //     completedTbTreatment: "",
+    //     specimentCollectedStatus: "",
+    //     diagnosticTestType: "",
+    //     tbEvaulationOutcome: "",
+    //     chestXrayResult: "",
+    //     outcome: "",
+    //     status: "",
+    //     tbType: "",
+    //     coughing: "",
+    //     fever: "",
+    //     nightSweats: "",
+    //     losingWeight: "",
+    //     historyWithAdults: "",
+    //     poorWeightGain: "",
+    //     specimentSent: "",
+    //     tbTestResult: "",
+    //     specimenType: "",
+    //     poorTreatmentAdherence: "",
+    //     chestXrayDone: "",
+    //     clinicallyEvaulated: "",
+    //     DateDiagnosticTestResultReceived: "",
+    //     dateOfChestXrayResultTestDone: "",
+    //     dateOfDiagnosticTest: "",
+    //     dateSpecimenSent: "",
+    //     diagnosticTestDone: "",
+    //     tbTreeatmentStarted: "",
+    //     chestXrayResultTest: "",
+    //   };
+    //
+    //   updatedTpt = {
+    //     ...updatedTpt,
+    //     weight: "",
+    //     referredForServices: "",
+    //     adherence: "",
+    //     rash: "",
+    //     hepatitisSymptoms: "",
+    //     tbSymptoms: "",
+    //     resonForStoppingIpt: "",
+    //     outComeOfIpt: "",
+    //     everCompletedTpt: "",
+    //     eligibilityTpt: "",
+    //     tptPreventionOutcome: "",
+    //     currentlyOnTpt: "",
+    //     contractionForTpt: "",
+    //     liverSymptoms: "",
+    //     chronicAlcohol: "",
+    //     neurologicSymptoms: "",
+    //     dateTptStarted: "",
+    //     tptRegimen: "",
+    //     endedTpt: "",
+    //     dateOfTptCompleted: "",
+    //     dateTptEnded: "",
+    //     tbSideEffect: "",
+    //     giUpsetEffect: "",
+    //     hepatotoxicityEffect: "",
+    //     neurologicSymptomsEffect: "",
+    //     giUpsetEffectSeverity: "",
+    //     hypersensitivityReactionEffect: "",
+    //     hypersensitivityReactionEffectSeverity: "",
+    //     neurologicSymptomsEffectSeverity: "",
+    //     hepatotoxicityEffectSeverity: "",
+    //     enrolledOnTpt: "",
+    //   };
+    // }
 
-      updatedTpt = {
-        ...updatedTpt,
-        weight: "",
-        referredForServices: "",
-        adherence: "",
-        rash: "",
-        hepatitisSymptoms: "",
-        tbSymptoms: "",
-        resonForStoppingIpt: "",
-        outComeOfIpt: "",
-        everCompletedTpt: "",
-        eligibilityTpt: "",
-        tptPreventionOutcome: "",
-        currentlyOnTpt: "",
-        contractionForTpt: "",
-        liverSymptoms: "",
-        chronicAlcohol: "",
-        neurologicSymptoms: "",
-        dateTptStarted: "",
-        tptRegimen: "",
-        endedTpt: "",
-        dateOfTptCompleted: "",
-        dateTptEnded: "",
-        tbSideEffect: "",
-        giUpsetEffect: "",
-        hepatotoxicityEffect: "",
-        neurologicSymptomsEffect: "",
-        giUpsetEffectSeverity: "",
-        hypersensitivityReactionEffect: "",
-        hypersensitivityReactionEffectSeverity: "",
-        neurologicSymptomsEffectSeverity: "",
-        hepatotoxicityEffectSeverity: "",
-        enrolledOnTpt: "",
-      };
-    } else if (name === "tbScreeningType" || value === "") {
+    if (name === "tbTreatment") {
+      if (value === "Yes") {
+        // Auto-populate tbTreatmentStartDate from most recent active treatment
+        const autoDate = getActiveTbTreatmentStartDate(props.chronicCareRecords);
+
+        updateObj = {
+          ...props.tbObj,
+          tbTreatment: "Yes",
+          tbTreatmentStartDate: autoDate, // Auto-fill if available
+          // Reset other fields as before
+          tbScreeningType: "",
+          cadScore: "",
+          cadOutcome: "",
+          completedTbTreatment: "",
+          specimentCollectedStatus: "",
+          diagnosticTestType: "",
+          tbEvaulationOutcome: "",
+          chestXrayResult: "",
+          outcome: "",
+          status: "",
+          tbType: "",
+          coughing: "",
+          fever: "",
+          nightSweats: "",
+          losingWeight: "",
+          historyWithAdults: "",
+          poorWeightGain: "",
+          specimentSent: "",
+          tbTestResult: "",
+          specimenType: "",
+          poorTreatmentAdherence: "",
+          chestXrayDone: "",
+          clinicallyEvaulated: "",
+          DateDiagnosticTestResultReceived: "",
+          dateOfChestXrayResultTestDone: "",
+          dateOfDiagnosticTest: "",
+          dateSpecimenSent: "",
+          diagnosticTestDone: "",
+          tbTreeatmentStarted: "",
+          chestXrayResultTest: "",
+        };
+
+        // Also reset TPT fields
+        updatedTpt = {
+          ...updatedTpt,
+          weight: "",
+          referredForServices: "",
+          adherence: "",
+          rash: "",
+          hepatitisSymptoms: "",
+          tbSymptoms: "",
+          resonForStoppingIpt: "",
+          outComeOfIpt: "",
+          everCompletedTpt: "",
+          eligibilityTpt: "",
+          tptPreventionOutcome: "",
+          currentlyOnTpt: "",
+          contractionForTpt: "",
+          liverSymptoms: "",
+          chronicAlcohol: "",
+          neurologicSymptoms: "",
+          dateTptStarted: "",
+          tptRegimen: "",
+          endedTpt: "",
+          dateOfTptCompleted: "",
+          dateTptEnded: "",
+          tbSideEffect: "",
+          giUpsetEffect: "",
+          hepatotoxicityEffect: "",
+          neurologicSymptomsEffect: "",
+          giUpsetEffectSeverity: "",
+          hypersensitivityReactionEffect: "",
+          hypersensitivityReactionEffectSeverity: "",
+          neurologicSymptomsEffectSeverity: "",
+          hepatotoxicityEffectSeverity: "",
+          enrolledOnTpt: "",
+        };
+
+      } else {
+        // If "No" or empty
+        updateObj = {
+          ...props.tbObj,
+          tbTreatment: value,
+          tbTreatmentStartDate: "",
+          // Reset all related fields (your existing reset logic)
+          tbScreeningType: "",
+          cadScore: "",
+          cadOutcome: "",
+          completedTbTreatment: "",
+          specimentCollectedStatus: "",
+          diagnosticTestType: "",
+          tbEvaulationOutcome: "",
+          chestXrayResult: "",
+          outcome: "",
+          status: "",
+          tbType: "",
+          coughing: "",
+          fever: "",
+          nightSweats: "",
+          losingWeight: "",
+          historyWithAdults: "",
+          poorWeightGain: "",
+          specimentSent: "",
+          tbTestResult: "",
+          specimenType: "",
+          poorTreatmentAdherence: "",
+          chestXrayDone: "",
+          clinicallyEvaulated: "",
+          DateDiagnosticTestResultReceived: "",
+          dateOfChestXrayResultTestDone: "",
+          dateOfDiagnosticTest: "",
+          dateSpecimenSent: "",
+          diagnosticTestDone: "",
+          tbTreeatmentStarted: "",
+          chestXrayResultTest: "",
+        };
+        updatedTpt = {
+          ...updatedTpt,
+          weight: "",
+          referredForServices: "",
+          adherence: "",
+          rash: "",
+          hepatitisSymptoms: "",
+          tbSymptoms: "",
+          resonForStoppingIpt: "",
+          outComeOfIpt: "",
+          everCompletedTpt: "",
+          eligibilityTpt: "",
+          tptPreventionOutcome: "",
+          currentlyOnTpt: "",
+          contractionForTpt: "",
+          liverSymptoms: "",
+          chronicAlcohol: "",
+          neurologicSymptoms: "",
+          dateTptStarted: "",
+          tptRegimen: "",
+          endedTpt: "",
+          dateOfTptCompleted: "",
+          dateTptEnded: "",
+          tbSideEffect: "",
+          giUpsetEffect: "",
+          hepatotoxicityEffect: "",
+          neurologicSymptomsEffect: "",
+          giUpsetEffectSeverity: "",
+          hypersensitivityReactionEffect: "",
+          hypersensitivityReactionEffectSeverity: "",
+          neurologicSymptomsEffectSeverity: "",
+          hepatotoxicityEffectSeverity: "",
+          enrolledOnTpt: "",
+        };
+      }
+    }
+
+    else if (name === "tbScreeningType" || value === "") {
       updateObj = {
         ...updateObj,
         chestXray: "",
@@ -573,6 +760,7 @@ const TbScreening = (props) => {
     }
   }, [props.tbObj.outcome]);
 
+  // console.log("tbObject in TB", props.tbObj)
 
   useEffect(() => {
     const updatedTbObj = { ...props.tbObj };
@@ -992,7 +1180,6 @@ const TbScreening = (props) => {
                           id="tbTreatmentStartDate"
                           onChange={handleInputChange}
                           value={props.tbObj.tbTreatmentStartDate}
-                          // min={props.encounterDate}
                           min={props.patientObj.dateOfBirth}
                           max={moment(new Date()).format("YYYY-MM-DD")}
                           disabled={props.action === "view" ? true : false}

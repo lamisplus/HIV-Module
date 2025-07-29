@@ -346,6 +346,7 @@ const ChronicCare = (props) => {
       .then((response) => {
         const DateObj = response.data.filter((x) => x.type === "Chronic Care");
         if (response.data) {
+          console.log("Chronic care data", DateObj)
           setChronicDateExist(DateObj);
         }
       })
@@ -695,6 +696,7 @@ const ChronicCare = (props) => {
                   <Tb
                     setTbObj={setTbObj}
                     tbObj={tbObj}
+                    chronicCareRecords={chronicDateExist}
                     setErrors={setErrors}
                     errors={errors}
                     encounterDate={observation.dateOfObservation}
@@ -751,6 +753,7 @@ const ChronicCare = (props) => {
                                 setTpt={setTpt}
                                 tpt={tpt}
                                 tbObj={tbObj}
+                                chronicCareRecords={chronicDateExist}
                                 setTbObj={setTbObj}
                                 setErrors={setErrors}
                                 errors={errors}
