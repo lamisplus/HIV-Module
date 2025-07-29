@@ -193,29 +193,29 @@ const ChronicCare = (props) => {
     tbSymptoms: "",
     resonForStoppingIpt: "",
     outComeOfIpt: "",
-    everCompletedTpt:"",
-    eligibilityTpt:"",
-    tptPreventionOutcome:"",
-    currentlyOnTpt:"",
-    contractionForTpt:"",
-    liverSymptoms:"",
-    chronicAlcohol:"",
-    neurologicSymptoms:"",
-    dateTptStarted:"",
-    tptRegimen:"",
-    endedTpt:"",
-    dateOfTptCompleted:"",
-    dateTptEnded:"",
-    tbSideEffect:"",
-    giUpsetEffect:"",
-    hepatotoxicityEffect:"",
-    neurologicSymptomsEffect:"",
-    giUpsetEffectSeverity:"",
-    hypersensitivityReactionEffect:"",
-    hypersensitivityReactionEffectSeverity:"",
-    neurologicSymptomsEffectSeverity:"",
-    hepatotoxicityEffectSeverity:'',
-    enrolledOnTpt:""
+    everCompletedTpt: "",
+    eligibilityTpt: "",
+    tptPreventionOutcome: "",
+    currentlyOnTpt: "",
+    contractionForTpt: "",
+    liverSymptoms: "",
+    chronicAlcohol: "",
+    neurologicSymptoms: "",
+    dateTptStarted: "",
+    tptRegimen: "",
+    endedTpt: "",
+    dateOfTptCompleted: "",
+    dateTptEnded: "",
+    tbSideEffect: "",
+    giUpsetEffect: "",
+    hepatotoxicityEffect: "",
+    neurologicSymptomsEffect: "",
+    giUpsetEffectSeverity: "",
+    hypersensitivityReactionEffect: "",
+    hypersensitivityReactionEffectSeverity: "",
+    neurologicSymptomsEffectSeverity: "",
+    hepatotoxicityEffectSeverity: '',
+    enrolledOnTpt: ""
   });
   const [tbObj, setTbObj] = useState({
     //TB and IPT Screening Object
@@ -237,8 +237,8 @@ const ChronicCare = (props) => {
     activeTb: false,
     contraindications: "",
     eligibleForTPT: "",
-    chestXrayResult:"",
-    isTbTestConfirmed:"",
+    chestXrayResult: "",
+    isTbTestConfirmed: "",
     specimentCollectedStatus: "",
     specimenType: "",
     dateSpecimenSent: "",
@@ -252,20 +252,20 @@ const ChronicCare = (props) => {
     tbType: "",
     tbTreatmentStarted: "",
     tbTreatmentStartDate: "",
-    dateOfDiagnosticTest:"",
-    chestXrayResultTest:"",
-    dateOfChestXrayResultTestDone:"",
-    DateDiagnosticTestResultReceived:"",
-    resultOfClinicalEvaluation:"",
-    careCardPatientTbStatus:"",
+    dateOfDiagnosticTest: "",
+    chestXrayResultTest: "",
+    dateOfChestXrayResultTestDone: "",
+    DateDiagnosticTestResultReceived: "",
+    resultOfClinicalEvaluation: "",
+    careCardPatientTbStatus: "",
     treatmentType: "",
     treatmentOutcome: "",
     completionDate: "",
     treatmentCompletionStatus: "",
     completedTbTreatment: "",
-    currentWeight:"",
-    cadScore:"",
-    cadOutcome:""
+    currentWeight: "",
+    cadScore: "",
+    cadOutcome: ""
 
   });
   const [observationObj, setObservationObj] = useState({
@@ -302,7 +302,7 @@ const ChronicCare = (props) => {
     setIsUpdate(
       props.activeContent && props.activeContent.actionType === "update"
     );
-  }, [props.activeContent.id,props.tbObj]);
+  }, [props.activeContent.id, props.tbObj]);
   //GET  Patients
   async function PatientCurrentObject() {
     axios
@@ -313,7 +313,7 @@ const ChronicCare = (props) => {
         setEnrollDate(response.data.enrollment.dateOfRegistration);
         //setPatientObject(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   }
 
 
@@ -350,7 +350,7 @@ const ChronicCare = (props) => {
           setChronicDateExist(DateObj);
         }
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
 
   const handleInputChange = (e) => {
@@ -362,29 +362,29 @@ const ChronicCare = (props) => {
   const validate = () => {
     // tpt.outComeOfIpt !== "" &&
     //   (temp.outcomeDate = tpt.date ? "" : "This field is required");
-      temp.tbTreatment = tbObj.tbTreatment ? '' : "This field is required.";
-      if(tbObj.tbTreatment === "Yes"){
-        temp.tbTreatmentStartDate = tbObj.tbTreatmentStartDate ? '' : "This field is required.";
-        temp.completedTbTreatment = tbObj. completedTbTreatment ? '' : "This field is required.";
-        // temp.currentWeight = tbObj.currentWeight ? '' : "This field is required.";
-        temp.currentWeight = tbObj.currentWeight ? (tbObj.currentWeight > 200 ? "Current Weight cannot be greater than 200." : '') : "This field is required.";
-      }
-    if(tbObj.completedTbTreatment === "Yes"){
-      temp.completionDate = tbObj.completionDate ? '' : "This field is required.";
-      temp.treatmentOutcome = tbObj.treatmentOutcome? '' : "This field is required.";
+    temp.tbTreatment = tbObj.tbTreatment ? '' : "This field is required.";
+    if (tbObj.tbTreatment === "Yes") {
+      temp.tbTreatmentStartDate = tbObj.tbTreatmentStartDate ? '' : "This field is required.";
+      temp.completedTbTreatment = tbObj.completedTbTreatment ? '' : "This field is required.";
+      // temp.currentWeight = tbObj.currentWeight ? '' : "This field is required.";
+      temp.currentWeight = tbObj.currentWeight ? (tbObj.currentWeight > 200 ? "Current Weight cannot be greater than 200." : '') : "This field is required.";
     }
-    if(tbObj.tbTreatment === "No"){
+    if (tbObj.completedTbTreatment === "Yes") {
+      temp.completionDate = tbObj.completionDate ? '' : "This field is required.";
+      temp.treatmentOutcome = tbObj.treatmentOutcome ? '' : "This field is required.";
+    }
+    if (tbObj.tbTreatment === "No") {
       temp.tbScreeningType = tbObj.tbScreeningType ? '' : "This field is required.";
     }
-    if(tbObj.tbTreatment === "No" && tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening"){
+    if (tbObj.tbTreatment === "No" && tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening") {
       temp.cadScore = tbObj.cadScore ? '' : "This field is required.";
     }
 
-    if(tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-ray'){
+    if (tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-ray') {
       temp.chestXray = tbObj.chestXray ? '' : "This field is required.";
       temp.isTbTestConfirmed = tbObj.isTbTestConfirmed ? '' : "This field is required.";
     }
-    if(tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening'){
+    if (tbObj.tbScreeningType !== '' && tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening') {
       temp.chestXrayResult = tbObj.chestXrayResult ? '' : "This field is required.";
     }
     if (tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
@@ -393,52 +393,52 @@ const ChronicCare = (props) => {
     if (tbObj.tbScreeningType === 'Chest X-Ray with CAD and/or Symptom screening' || tbObj.tbScreeningType === 'Chest X-ray without CAD') {
       temp.chestXrayResult = tbObj.chestXrayResult ? '' : "This field is required.";
     }
-    if(tbObj.tbTreatment ==="No" && tbObj.outcome === "Presumptive TB" ){
+    if (tbObj.tbTreatment === "No" && tbObj.outcome === "Presumptive TB") {
       temp.specimentCollectedStatus = tbObj.specimentCollectedStatus ? '' : "This field is required.";
     }
     if (tbObj.tbScreeningType === 'Symptom screen (alone)') {
       temp.coughing = tbObj.coughing ? '' : "This field is required.";
-      temp.fever = tbObj.fever ? '': "This field is required. ";
-      temp.nightSweats= tbObj.nightSweats ? '' : "This field is required.";
-      temp.losingWeight = tbObj.losingWeight ? '': "This field is required. ";
+      temp.fever = tbObj.fever ? '' : "This field is required. ";
+      temp.nightSweats = tbObj.nightSweats ? '' : "This field is required.";
+      temp.losingWeight = tbObj.losingWeight ? '' : "This field is required. ";
     }
 
-    
 
-    if(tbObj.specimentCollectedStatus === "Yes"){
+
+    if (tbObj.specimentCollectedStatus === "Yes") {
       temp.specimentSent = tbObj.specimentSent ? '' : "This field is required.";
     }
-    if(tbObj.diagnosticTestDone==='Yes'){
+    if (tbObj.diagnosticTestDone === 'Yes') {
       temp.dateOfDiagnosticTest = tbObj.dateOfDiagnosticTest ? '' : "This field is required.";
       temp.diagnosticTestType = tbObj.diagnosticTestType ? '' : "This field is required.";
     }
-    if((tbObj.diagnosticTestType==='GeneXpert'
-            || tbObj.diagnosticTestType==='Truenat'
-            || tbObj.diagnosticTestType==='Cobas'
-            || tbObj.diagnosticTestType==='TB-LAMP'
-            || tbObj.diagnosticTestType==='Smear Microscopy') &&
-        (tbObj.tbTestResult==='MTB not detected' ||
-            tbObj.tbTestResult==='Negative')
+    if ((tbObj.diagnosticTestType === 'GeneXpert'
+      || tbObj.diagnosticTestType === 'Truenat'
+      || tbObj.diagnosticTestType === 'Cobas'
+      || tbObj.diagnosticTestType === 'TB-LAMP'
+      || tbObj.diagnosticTestType === 'Smear Microscopy') &&
+      (tbObj.tbTestResult === 'MTB not detected' ||
+        tbObj.tbTestResult === 'Negative')
 
-    ){
+    ) {
       // temp.chestXrayDone = tbObj.chestXrayDone ? '' : "This field is required.";
       temp.clinicallyEvaulated = tbObj.clinicallyEvaulated ? '' : "This field is required.";
     }
-    if(tbObj.clinicallyEvaulated ==='Yes'){
-     temp.chestXrayDone = tbObj.chestXrayDone ? '' : "This field is required.";
+    if (tbObj.clinicallyEvaulated === 'Yes') {
+      temp.chestXrayDone = tbObj.chestXrayDone ? '' : "This field is required.";
     }
-    if(tbObj.chestXrayDone==='Yes'){
+    if (tbObj.chestXrayDone === 'Yes') {
       temp.chestXrayResultTest = tbObj.chestXrayResultTest ? '' : "This field is required.";
       temp.dateOfChestXrayResultTestDone = tbObj.dateOfChestXrayResultTestDone ? '' : "This field is required.";
     }
-    if(
-        tbObj.tbTestResult==='MTB detected RIF detected' ||
-        tbObj.tbTestResult==='MTB detected RIF&INH detected' ||
-       tbObj.tbTestResult=== 'MTB detected RR detected' ||
-       tbObj.tbTestResult ==='MTB detected RR not detected' ||
-        tbObj.tbTestResult ==='MTB trace RR indeterminate' ||
-        tbObj.chestXrayResultTest ==='Suggestive of TB'
-    ){
+    if (
+      tbObj.tbTestResult === 'MTB detected RIF detected' ||
+      tbObj.tbTestResult === 'MTB detected RIF&INH detected' ||
+      tbObj.tbTestResult === 'MTB detected RR detected' ||
+      tbObj.tbTestResult === 'MTB detected RR not detected' ||
+      tbObj.tbTestResult === 'MTB trace RR indeterminate' ||
+      tbObj.chestXrayResultTest === 'Suggestive of TB'
+    ) {
       temp.tbType = tbObj.tbType ? '' : "This field is required.";
       temp.tbTreatmentStarted = tbObj.tbTreatmentStarted ? '' : "This field is required.";
       temp.tbTreatmentStartDate = tbObj.tbTreatmentStartDate ? '' : "This field is required.";
@@ -491,8 +491,8 @@ const ChronicCare = (props) => {
     ) {
       showErrorMessage(
         "Chronic Care visit date " +
-          observation.dateOfObservation +
-          " already exists."
+        observation.dateOfObservation +
+        " already exists."
       );
       setSaving(false);
       return;
@@ -502,13 +502,13 @@ const ChronicCare = (props) => {
     try {
       const response = isUpdate
         ? await axios.put(
-            `${baseUrl}observation/${props.activeContent.id}`,
-            observation,
-            { headers: { Authorization: `Bearer ${token}` } }
-          )
+          `${baseUrl}observation/${props.activeContent.id}`,
+          observation,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
         : await axios.post(`${baseUrl}observation`, observation, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
       setSaving(false);
       showSuccessMessage("Chronic Care Save successful");
@@ -521,7 +521,7 @@ const ChronicCare = (props) => {
       if (error.response && error.response.data) {
         const errorMessage =
           error.response.data.apierror &&
-          error.response.data.apierror.message !== ""
+            error.response.data.apierror.message !== ""
             ? error.response.data.apierror.message
             : "Something went wrong. Please try again...";
         showErrorMessage(errorMessage);
@@ -668,7 +668,7 @@ const ChronicCare = (props) => {
                   }}
                 >
                   <h5 className="card-title" style={{ color: "#fff" }}>
-                  TB Screening/Monitoring{" "}
+                    TB Screening/Monitoring{" "}
                   </h5>
                   {showTb === false ? (
                     <>
@@ -707,64 +707,51 @@ const ChronicCare = (props) => {
                   />
                 )}
               </div>
-          
+
 
               {
-                  (tbObj.tbEvaulationOutcome === 'TB Not Diagnosed' ||
-                       tbObj.status === 'No signs or symptoms of TB' ||
-                       tbObj.status === 'Currently on TB treatment'
-                  // || tbObj.tbTreatment === "No"
-                  )
-                  &&
-                  (
-                      <div className="card">
-                        <div
-                            className="card-header"
-                            style={{
-                              backgroundColor: "#014d88",
-                              color: "#fff",
-                              fontWeight: "bolder",
-                              borderRadius: "0.2rem",
-                            }}
-                        >
-                          <h5 className="card-title" style={{ color: "#fff" }}>
-                            TPT Prevention/Monitoring
-                          </h5>
-                          {showTpt === false ? (
-                              <span
-                                  className="float-end"
-                                  style={{ cursor: "pointer" }}
-                                  onClick={onClickTpt}
-                              >
-            <FaPlus />
-          </span>
-                          ) : (
-                              <span
-                                  className="float-end"
-                                  style={{ cursor: "pointer" }}
-                                  onClick={onClickTpt}
-                              >
-            <FaAngleDown />
-          </span>
-                          )}
-                        </div>
-                        {showTpt && (
-                            <Tpt
-                                setTpt={setTpt}
-                                tpt={tpt}
-                                tbObj={tbObj}
-                                chronicCareRecords={chronicDateExist}
-                                setTbObj={setTbObj}
-                                setErrors={setErrors}
-                                errors={errors}
-                                encounterDate={observation.dateOfObservation}
-                                patientObj={patientObj}
-                            />
-                        )}
-                      </div>
-                  )
+                (tbObj.tbEvaulationOutcome === 'TB Not Diagnosed' ||
+                  tbObj.status === 'No signs or symptoms of TB' ||
+                  tbObj.status === 'Currently on TB treatment') && (
+                  <div className="card">
+                    <div
+                      className="card-header"
+                      style={{
+                        backgroundColor: "#014d88",
+                        color: "#fff",
+                        fontWeight: "bolder",
+                        borderRadius: "0.2rem",
+                      }}
+                    >
+                      <h5 className="card-title" style={{ color: "#fff" }}>
+                        TPT Prevention/Monitoring
+                      </h5>
+                      <span
+                        className="float-end"
+                        style={{ cursor: "pointer" }}
+                        onClick={onClickTpt}
+                      >
+                        {showTpt ? <FaAngleDown /> : <FaPlus />}
+                      </span>
+                    </div>
+
+                    {showTpt && (
+                      <Tpt
+                        setTpt={setTpt}
+                        tpt={tpt}
+                        tbObj={tbObj}
+                        chronicCareRecords={chronicDateExist}
+                        setTbObj={setTbObj}
+                        setErrors={setErrors}
+                        errors={errors}
+                        encounterDate={observation.dateOfObservation}
+                        patientObj={patientObj}
+                      />
+                    )}
+                  </div>
+                )
               }
-              
+
               {/* End TPT MONITORING */}
               {/* End Nutritional Status Assessment */}
               <div className="card">
@@ -867,7 +854,7 @@ const ChronicCare = (props) => {
                   </div>
                 )}
               </div>
-               {/*End Gender Based Violence Screening*/}
+              {/*End Gender Based Violence Screening*/}
               {/* End Screening for Chronic Conditions */}
               <div className="card">
                 <div
@@ -1078,6 +1065,34 @@ const ChronicCare = (props) => {
               {/*  )}*/}
               {/*</div> */}
               {/* End Reproductive Intentions */}
+
+              <div className="form-group mb-3 col-md-12">
+                <FormGroup>
+                  <Label>Clinical Note</Label>
+                  <textarea
+                    name="clinicalNote"
+                    id="clinicalNote"
+                    value={observation.clinicalNote}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                      height: 200,
+                      width: "100%",
+                      padding: 10
+                    }}
+                  />
+                </FormGroup>
+                {errors.clinicalNote !== "" ? (
+                  <span className={classes.error}>
+                    {errors.clinicalNote}
+                  </span>
+                ) : (
+                  ""
+                )}
+              </div>
+
+
               {saving ? <Spinner /> : ""}
 
               <br />
