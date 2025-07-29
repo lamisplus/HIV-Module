@@ -290,6 +290,7 @@ const ChronicCare = (props) => {
     personId: 0,
     type: "Chronic Care",
     visitId: null,
+    comment: ""
   });
 
   const hideModal = () => {
@@ -1079,9 +1080,9 @@ const ChronicCare = (props) => {
                 <FormGroup>
                   <Label>Clinical Note</Label>
                   <textarea
-                    name="clinicalNote"
-                    id="clinicalNote"
-                    value={observation.clinicalNote}
+                    name="comment"
+                    id="comment"
+                    value={observation.comment}
                     onChange={handleInputChange}
                     style={{
                       border: "1px solid #014D88",
@@ -1092,13 +1093,6 @@ const ChronicCare = (props) => {
                     }}
                   />
                 </FormGroup>
-                {errors.clinicalNote !== "" ? (
-                  <span className={classes.error}>
-                    {errors.clinicalNote}
-                  </span>
-                ) : (
-                  ""
-                )}
               </div>
 
 

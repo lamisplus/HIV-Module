@@ -74,5 +74,10 @@ public class ObservationController {
         return tptCompletionDate.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.ok(""));
     }
+    @GetMapping("/tb-completion-date")
+    public ResponseEntity<Boolean> getTbPrompt(@RequestParam String personUuid) {
+        Optional<Boolean> tbClientWithoutCompletionDate = observationRepository.findTbClientWithoutCompletionDate(personUuid);
+        return tbClientWithoutCompletionDate.isPresent() ? ResponseEntity.ok(tbClientWithoutCompletionDate.get()) : ResponseEntity.ok(false);
+    }
 
 }
