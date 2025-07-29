@@ -456,6 +456,8 @@ const TPT = (props) => {
         PATIENT_ENCOUNTER();
     }, []);
 
+    console.log("tpt in TPT", props.tpt)
+
     return (
         <>
             <Card className={classes.root}>
