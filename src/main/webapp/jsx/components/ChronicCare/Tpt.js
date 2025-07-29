@@ -793,7 +793,7 @@ const TPT = (props) => {
                                         {props.tpt.outComeOfIpt === "Treatment Completed" &&
                                             <div className="form-group mb-3 col-md-6">
                                                 <FormGroup>
-                                                    <Label>Date TPT Ended </Label>
+                                                    <Label>Date of TPT Outcome</Label>
                                                     <InputGroup>
                                                         <Input
                                                             type="date"
