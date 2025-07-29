@@ -472,8 +472,8 @@ const ChronicCare = (props) => {
     observationObj.peproductive = reproductive;
     observationObj.tbIptScreening = tbObj;
     observationObj.tptMonitoring = tpt;
-    observation.data = { ...observationObj, clinicalNote: observation?.clinicalNote };
-  
+    observation.data = observationObj;
+
     // Validate form
     if (!validate()) {
       showErrorMessage("All fields are required");

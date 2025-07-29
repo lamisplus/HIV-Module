@@ -317,7 +317,7 @@ const ViewChronicCare = (props) => {
         setEnrollDate(response.data.enrollment.dateOfRegistration);
         //setPatientObject(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   }
   const GetChronicCare = () => {
     //function to get chronic care data for edit
@@ -334,7 +334,7 @@ const ViewChronicCare = (props) => {
         observationObj.peproductive = response.data.peproductive;
         observationObj.tbIptScreening = response.data.tbIptScreening;
         observationObj.tptMonitoring = response.data.tptMonitoring;
-        setObservation({...response.data, clinicalNote: response?.data?.data?.clinicalNote});
+        setObservation(response.data);
         setObservationObj(response.data.data);
         setTpt({ ...tpt, ...response.data.data.tptMonitoring });
         setTbObj({ ...tbObj, ...response.data.data.tbIptScreening });
@@ -351,9 +351,9 @@ const ViewChronicCare = (props) => {
           ...response.data.data.peproductive,
         });
         setTpt({ ...tpt, ...response.data.data.tptMonitoring });
-        setlastDateOfObservation(response.data.dateOfObservation); //set the date of onservation into this variable
+        setlastDateOfObservation(response.data.dateOfObservation);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
 
   const GetChronicCareData = () => {
@@ -368,7 +368,7 @@ const ViewChronicCare = (props) => {
           setChronicDateExist(DateObj);
         }
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
 
   const handleInputChange = (e) => {
@@ -451,8 +451,8 @@ const ViewChronicCare = (props) => {
     observationObj.peproductive = reproductive;
     observationObj.tbIptScreening = tbObj;
     observationObj.tptMonitoring = tpt;
-    observation.data = { ...observationObj, clinicalNote: observation?.clinicalNote };
-    
+    observation.data = observationObj;
+
 
     try {
       let response;
@@ -472,7 +472,7 @@ const ViewChronicCare = (props) => {
       if (error.response && error.response.data) {
         const errorMessage =
           error.response.data.apierror &&
-          error.response.data.apierror.message !== ""
+            error.response.data.apierror.message !== ""
             ? error.response.data.apierror.message
             : "Something went wrong. Please try again...";
         showErrorMessage(errorMessage);
@@ -664,54 +664,54 @@ const ViewChronicCare = (props) => {
               {(tbObj.tbEvaulationOutcome === "TB Not Diagnosed" ||
                 tbObj.status === "No signs or symptoms of TB" ||
                 tbObj.status === "Currently on TB treatment") && (
-                <div className="card">
-                  <div
-                    className="card-header"
-                    style={{
-                      backgroundColor: "#014d88",
-                      color: "#fff",
-                      fontWeight: "bolder",
-                      borderRadius: "0.2rem",
-                    }}
-                  >
-                    <h5 className="card-title" style={{ color: "#fff" }}>
-                      TPT Prevention/Monitoring
-                    </h5>
-                    {showTpt === false ? (
-                      <>
-                        <span
-                          className="float-end"
-                          style={{ cursor: "pointer" }}
-                          onClick={onClickTpt}
-                        >
-                          <FaPlus />
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span
-                          className="float-end"
-                          style={{ cursor: "pointer" }}
-                          onClick={onClickTpt}
-                        >
-                          <FaAngleDown />
-                        </span>{" "}
-                      </>
+                  <div className="card">
+                    <div
+                      className="card-header"
+                      style={{
+                        backgroundColor: "#014d88",
+                        color: "#fff",
+                        fontWeight: "bolder",
+                        borderRadius: "0.2rem",
+                      }}
+                    >
+                      <h5 className="card-title" style={{ color: "#fff" }}>
+                        TPT Prevention/Monitoring
+                      </h5>
+                      {showTpt === false ? (
+                        <>
+                          <span
+                            className="float-end"
+                            style={{ cursor: "pointer" }}
+                            onClick={onClickTpt}
+                          >
+                            <FaPlus />
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span
+                            className="float-end"
+                            style={{ cursor: "pointer" }}
+                            onClick={onClickTpt}
+                          >
+                            <FaAngleDown />
+                          </span>{" "}
+                        </>
+                      )}
+                    </div>
+                    {showTpt && (
+                      <Tpt
+                        setTpt={setTpt}
+                        tpt={tpt}
+                        setErrors={setErrors}
+                        errors={errors}
+                        encounterDate={observation.dateOfObservation}
+                        patientObj={patientObj}
+                        action={props.activeContent.actionType}
+                      />
                     )}
                   </div>
-                  {showTpt && (
-                    <Tpt
-                      setTpt={setTpt}
-                      tpt={tpt}
-                      setErrors={setErrors}
-                      errors={errors}
-                      encounterDate={observation.dateOfObservation}
-                      patientObj={patientObj}
-                      action={props.activeContent.actionType}
-                    />
-                  )}
-                </div>
-              )}
+                )}
               {/* End TPT MONITORING */}
               {/* End Nutritional Status Assessment */}
               <div className="card">
@@ -922,7 +922,7 @@ const ViewChronicCare = (props) => {
                 )}
               </div>
               {/* End Positive Health Dignity and Prevention */}
-              
+
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
                   <Label>Clinical Note</Label>
