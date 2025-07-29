@@ -60,7 +60,6 @@ public class Observation extends HivAuditEntity  implements Persistable<Long> {
     @Column(name = "latitude")
     private  String latitude;
 
-    @Basic
     @Column(name = "comment")
     private String comment;
 
