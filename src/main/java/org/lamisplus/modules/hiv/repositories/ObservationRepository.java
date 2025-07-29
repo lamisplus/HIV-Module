@@ -351,4 +351,21 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "LEFT JOIN tbStartDate tbStart ON tbImpl.person_uuid = tbStart.person_uuid\n" +
             "WHERE tbStart.status IN ('Active') AND tbImpl.person_uuid = ?1", nativeQuery = true)
     Optional<Boolean> findTbClientWithoutCompletionDate(String personUuid);
+
+
+    @Query(value = "WITH tbStatusImpl AS (\n" +
+            "SELECT he.person_uuid FROM hiv_enrollment he WHERE archived = 0),\n" +
+            "tbStatus AS (\n" +
+            "SELECT * FROM (\n" +
+            "SELECT person_uuid, (CASE WHEN data->'tbIptScreening'->>'status' = 'Presumptive TB and referred for evaluation' THEN 'Presumptive TB'\n" +
+            "ELSE data->'tbIptScreening'->>'status' END) tbStatus, date_of_observation,\n" +
+            "ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY date_of_observation DESC) rankkk\n" +
+            "FROM hiv_observation\n" +
+            "WHERE archived = 0 AND type = 'Chronic Care' AND data->'tbIptScreening'->>'status' !=''\n" +
+            ") subQ WHERE rankkk = 1\n" +
+            ")\n" +
+            "SELECT tbStat.tbStatus FROM tbStatusImpl tbImpl\n" +
+            "LEFT JOIN tbStatus tbStat ON tbImpl.person_uuid = tbStat.person_uuid\n" +
+            "WHERE tbImpl.person_uuid = ?1", nativeQuery = true)
+    Optional<String> findCurrentTbStatus(String personUuid);
 }
