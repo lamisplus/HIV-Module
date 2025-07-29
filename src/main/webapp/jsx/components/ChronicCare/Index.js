@@ -23,6 +23,8 @@ import ReproductiveIntentions from "./ReproductiveIntentions";
 import Tb from "./Tb";
 import Tpt from "./Tpt";
 import ChronicConditionsTwo from "./ChronicConditionsTwo";
+import {Modal} from "react-bootstrap";
+import {Button} from "semantic-ui-react";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -115,6 +117,8 @@ const ChronicCare = (props) => {
   const [lastDateOfObservation, setlastDateOfObservation] = useState(null);
   const [isUpdate, setIsUpdate] = useState(false);
   const [isHypertensive, setHypertensive] = useState("");
+  const [showModal, setShowModal] = useState({ show: true, message: "" });
+
   //GenderBase Object
   const [genderBase, setGenderBase] = useState({
     partnerEverPhysically: "",
@@ -287,6 +291,11 @@ const ChronicCare = (props) => {
     type: "Chronic Care",
     visitId: null,
   });
+
+  const hideModal = () => {
+    setShowModal({ show: false, message: "" });
+  };
+
   useEffect(() => {
     // GetChronicCare();
     GetChronicCareData();
@@ -1116,6 +1125,33 @@ const ChronicCare = (props) => {
           </div>
         </CardContent>
       </Card>
+
+      {showModal.show && (
+          <Modal
+              show={showModal.show}
+              className="fade"
+              size="sm"
+              aria-labelledby="contained-modal-title-vcenter"
+              centered
+          >
+            <Modal.Header>
+              <Modal.Title id="contained-modal-title-vcenter">
+                Update TPT Completion Status
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <h4>{showModal.message}</h4>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                  style={{ backgroundColor: "#014d88", color: "#fff" }}
+                  onClick={hideModal}
+              >
+                Cancel
+              </Button>
+            </Modal.Footer>
+          </Modal>
+      )}
     </>
   );
 };
