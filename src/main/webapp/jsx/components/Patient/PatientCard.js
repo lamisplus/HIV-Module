@@ -67,6 +67,7 @@ function PatientCard(props) {
     const [patientFlag, setPatientFlag] = useState({});
     const [patientMlValue, setPatientMlValue] = useState({"iit": null, "chance": null});
     const [resultCheck, setResultCheck] = useState({})
+    const [currentTbStatus, setCurrentTBStatus] = useState("")
     const getPhoneNumber = (identifier) => {
         const phoneNumber = identifier?.contactPoint?.find(
             (obj) => obj.type === "phone"
@@ -93,6 +94,51 @@ function PatientCard(props) {
             .catch((error) => {
                 console.error("Error fetching patient flag:", error);
             });
+    };
+
+
+    const getPatientCurrentTBStatus = () => {
+        if (!patientObject?.personUuid) {
+            return;
+        }
+
+        axios
+            .get(`${baseUrl}observation/current-tb-status`, {
+                params: {
+                    personUuid: patientObject.personUuid,
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            .then((response) => {
+                if (typeof response.data === 'string') {
+                    setCurrentTBStatus(response.data);
+                } else {
+                    setCurrentTBStatus("");
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching TB current status", error);
+                setCurrentTBStatus("");
+            });
+    };
+
+
+    const getTbColor = (status) => {
+        switch (status) {
+            case "Presumptive TB":
+                return "orange";
+            case "Confirmed TB":
+            case "Currently on TB treatment":
+                return "red";
+            case "No sign & Symptoms":
+            case "Currently on TPT":
+            case "TB Treatment completed":
+                return "green";
+            default:
+                return "grey";
+        }
     };
 
     const fetchPatientMlReport = () => {
@@ -196,7 +242,8 @@ function PatientCard(props) {
     useEffect(() => {
         fetchPatientFlags(id);
         fetchPatientMlReport();
-    }, []);
+        getPatientCurrentTBStatus()
+    }, [id, patientObject?.personUuid]);
 
     const extractViralLoadValue = (result) => {
         if (!result) return null;
@@ -544,7 +591,7 @@ function PatientCard(props) {
                                                             }
                                                             size={"mini"}
                                                         >
-                                                            Biometric Status
+                                                            Biometric Status :
                                                             <Label.Detail>
                                                                 {patientObject.biometricStatus === true
                                                                     ? "Captured"
@@ -554,6 +601,16 @@ function PatientCard(props) {
                                                     </Typography>
                                                 </div>
                                             </Col>
+                                            <Col md={12}>
+                                                <div>
+                                                    <Typography variant="caption">
+                                                        <Label color={getTbColor(currentTbStatus)} size="mini">
+                                                            TB Status :
+                                                            <Label.Detail>{currentTbStatus || ""}</Label.Detail>
+                                                        </Label>
+                                                    </Typography>
+                                                </div>
+                                             </Col>
                                         </>
                                     ) : (
                                         <p>Loading Please wait...</p>
