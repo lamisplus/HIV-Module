@@ -23,6 +23,8 @@ import ReproductiveIntentions from "./ReproductiveIntentions";
 import Tb from "./Tb";
 import Tpt from "./Tpt";
 import ChronicConditionsTwo from "./ChronicConditionsTwo";
+import {Modal} from "react-bootstrap";
+import {Button} from "semantic-ui-react";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -92,6 +94,49 @@ const useStyles = makeStyles((theme) => ({
     color: "#4BB543 ",
     fontSize: "11px",
   },
+  // --- NEW: Modal Styles ---
+  modalTitle: {
+    fontSize: "1.25rem", // Larger title
+    fontWeight: 600,
+    color: "#014d88",
+  },
+  modalMessage: {
+    fontSize: "1.5rem",
+    lineHeight: 1.6,
+    color: "#333",
+    marginTop: theme.spacing(1),
+  },
+  modalHeader: {
+    borderBottom: "2px solid #dee2e6",
+    padding: "1rem 1.5rem",
+  },
+  modalBody: {
+    padding: "1.5rem",
+    textAlign: "left",
+  },
+  modalFooter: {
+    borderTop: "1px solid #dee2e6",
+    padding: "1rem 1.5rem",
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: theme.spacing(1),
+  },
+  cancelButton: {
+    backgroundColor: "#f8f9fa",
+    color: "#333",
+    borderColor: "#dee2e6",
+    "&:hover": {
+      backgroundColor: "#e9ecef",
+    },
+  },
+  actionButton: {
+    backgroundColor: "#014d88",
+    color: "#fff",
+    "&:hover": {
+      backgroundColor: "#003a6a",
+    },
+  },
+
 }));
 
 const ChronicCare = (props) => {
@@ -115,6 +160,9 @@ const ChronicCare = (props) => {
   const [lastDateOfObservation, setlastDateOfObservation] = useState(null);
   const [isUpdate, setIsUpdate] = useState(false);
   const [isHypertensive, setHypertensive] = useState("");
+  const [showModal, setShowModal] = useState({ show: true, message: "" });
+  const [tbTreatmentCompleted, setTbTreatmentCompleted] = useState(false);
+
   //GenderBase Object
   const [genderBase, setGenderBase] = useState({
     partnerEverPhysically: "",
@@ -288,11 +336,13 @@ const ChronicCare = (props) => {
     visitId: null,
     comment: ""
   });
+
   useEffect(() => {
     // GetChronicCare();
     GetChronicCareData();
     PatientCurrentObject();
     getIsHypertensive();
+    getPatientCurrentTBStatus();
     if (
       props.activeContent.id &&
       props.activeContent.id !== "" &&
@@ -336,7 +386,33 @@ const ChronicCare = (props) => {
     }
   };
 
+  const getPatientCurrentTBStatus = () => {
+    if (!patientObj?.personUuid) {
+      setTbTreatmentCompleted(false);
+      return;
+    }
 
+    axios
+        .get(`${baseUrl}observation/tb-completion-date`, {
+          params: {
+            personUuid: patientObj.personUuid,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          if (typeof response.data === 'boolean') {
+            setTbTreatmentCompleted(response.data);
+          } else {
+            setTbTreatmentCompleted(false);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching TB completion status", error);
+          setTbTreatmentCompleted(false);
+        });
+  };
 
   const GetChronicCareData = () => {
     //function to get chronic care data check if record exist using date for validation
@@ -347,7 +423,6 @@ const ChronicCare = (props) => {
       .then((response) => {
         const DateObj = response.data.filter((x) => x.type === "Chronic Care");
         if (response.data) {
-          console.log("Chronic care data", DateObj)
           setChronicDateExist(DateObj);
         }
       })
@@ -555,13 +630,27 @@ const ChronicCare = (props) => {
   const onClickReproductive = () => {
     setShowReproductive(!showReproductive);
   };
+
+  const hideModal = () => {
+    setShowModal({ show: false, message: "" });
+  };
+
+
+  useEffect(() => {
+    if (tbTreatmentCompleted === true) {
+      setShowModal({
+        show: true,
+        message: "Action Required: TB treatment completion status is overdue. Please document patient's TB outcome.",
+      });
+    } else {
+      setShowModal({ show: false, message: "" });
+    }
+  }, [tbTreatmentCompleted]);
+
   const onClickTpt = () => {
     setShowTpt(!showTpt);
   };
 
-  const handleCancel = () => {
-    //history.push({ pathname: '/' });
-  };
   return (
     <>
       <ToastContainer autoClose={3000} hideProgressBar />
@@ -1012,61 +1101,6 @@ const ChronicCare = (props) => {
                   </div>
                 )}
               </div>
-              {/* End Positive Health Dignity and Prevention */}
-              {/*SWO-FEATURE */}
-              {/* Reproductive Intentions */}
-              {/*<div className="card">*/}
-              {/*  <div*/}
-              {/*    className="card-header"*/}
-              {/*    style={{*/}
-              {/*      backgroundColor: "#014d88",*/}
-              {/*      color: "#fff",*/}
-              {/*      fontWeight: "bolder",*/}
-              {/*      borderRadius: "0.2rem",*/}
-              {/*    }}*/}
-              {/*  >*/}
-              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
-              {/*      Reproductive Intentions{" "}*/}
-              {/*    </h5>*/}
-              {/*    {showReproductive === false ? (*/}
-              {/*      <>*/}
-              {/*        <span*/}
-              {/*          className="float-end"*/}
-              {/*          style={{ cursor: "pointer" }}*/}
-              {/*          onClick={onClickReproductive}*/}
-              {/*        >*/}
-              {/*          <FaPlus />*/}
-              {/*        </span>*/}
-              {/*      </>*/}
-              {/*    ) : (*/}
-              {/*      <>*/}
-              {/*        <span*/}
-              {/*          className="float-end"*/}
-              {/*          style={{ cursor: "pointer" }}*/}
-              {/*          onClick={onClickReproductive}*/}
-              {/*        >*/}
-              {/*          <FaAngleDown />*/}
-              {/*        </span>{" "}*/}
-              {/*      </>*/}
-              {/*    )}*/}
-              {/*  </div>*/}
-              {/*  {showReproductive && (*/}
-              {/*    <div className="card-body">*/}
-              {/*      <div className="row">*/}
-              {/*        <ReproductiveIntentions*/}
-              {/*          setReproductive={setReproductive}*/}
-              {/*          reproductive={reproductive}*/}
-              {/*          setErrors={setErrors}*/}
-              {/*          errors={errors}*/}
-              {/*          encounterDate={observation.dateOfObservation}*/}
-              {/*          patientObj={patientObj}*/}
-              {/*        />*/}
-              {/*      </div>*/}
-              {/*    </div>*/}
-              {/*  )}*/}
-              {/*</div> */}
-              {/* End Reproductive Intentions */}
-
               <div className="form-group mb-3 col-md-12">
                 <FormGroup>
                   <Label>Clinical Note</Label>
@@ -1085,8 +1119,6 @@ const ChronicCare = (props) => {
                   />
                 </FormGroup>
               </div>
-
-
               {saving ? <Spinner /> : ""}
 
               <br />
@@ -1110,6 +1142,45 @@ const ChronicCare = (props) => {
           </div>
         </CardContent>
       </Card>
+
+      {showModal.show && (
+          <>
+          <style>
+            {`
+              .custom-modal-width .modal-dialog {
+                max-width: 800px;
+                width: 90%;
+              }
+            `}
+          </style>
+
+            <Modal
+                show={showModal.show}
+                className="fade"
+                dialogClassName="custom-modal-width"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered
+            >
+              <Modal.Header>
+                <Modal.Title>
+                  <span role="img" aria-label="warning">⚠️</span>{" "}
+                  <span className={classes.modalTitle}>Update TB Treatment Status</span>
+                </Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <h4>{showModal.message}</h4>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button
+                    style={{ backgroundColor: "#014d88", color: "#fff" }}
+                    onClick={hideModal}
+                >
+                  Cancel
+                </Button>
+              </Modal.Footer>
+            </Modal>
+          </>
+      )}
     </>
   );
 };
