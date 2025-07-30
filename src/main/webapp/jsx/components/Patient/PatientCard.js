@@ -112,7 +112,6 @@ function PatientCard(props) {
                 },
             })
             .then((response) => {
-                console.log(response.data)
                 if (typeof response.data === 'string') {
                     setCurrentTBStatus(response.data);
                 } else {
