@@ -924,9 +924,11 @@ const ViewChronicCare = (props) => {
               </div>
               {/* End Positive Health Dignity and Prevention */}
 
-              <div className="form-group mb-3 col-md-12">
+              <div className="">
                 <FormGroup>
-                  <Label>Clinical Note</Label>
+                  <h5 className="card-title" style={{ color: "#014d87" }}>
+                    Clinical Note
+                  </h5>
                   <textarea
                     name="comment"
                     id="comment"
@@ -944,7 +946,7 @@ const ViewChronicCare = (props) => {
                     }
                   />
                 </FormGroup>
-                
+
               </div>
               {/* End Reproductive Intentions */}
               {saving ? <Spinner /> : ""}
