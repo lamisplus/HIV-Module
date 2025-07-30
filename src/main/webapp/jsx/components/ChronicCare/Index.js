@@ -640,7 +640,7 @@ const ChronicCare = (props) => {
     if (tbTreatmentCompleted === true) {
       setShowModal({
         show: true,
-        message: "Action Required: TB treatment completion status is overdue. Please document patient's TB outcome.",
+        message: "Patient is due for TB treatment outcome documentation. Please follow up with the patient to confirm treatment outcome status and document",
       });
     } else {
       setShowModal({ show: false, message: "" });
