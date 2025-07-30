@@ -23,8 +23,8 @@ import ReproductiveIntentions from "./ReproductiveIntentions";
 import Tb from "./Tb";
 import Tpt from "./Tpt";
 import ChronicConditionsTwo from "./ChronicConditionsTwo";
-import {Modal} from "react-bootstrap";
-import {Button} from "semantic-ui-react";
+import { Modal } from "react-bootstrap";
+import { Button } from "semantic-ui-react";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -393,25 +393,25 @@ const ChronicCare = (props) => {
     }
 
     axios
-        .get(`${baseUrl}observation/tb-completion-date`, {
-          params: {
-            personUuid: patientObj.personUuid,
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          if (typeof response.data === 'boolean') {
-            setTbTreatmentCompleted(response.data);
-          } else {
-            setTbTreatmentCompleted(false);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching TB completion status", error);
+      .get(`${baseUrl}observation/tb-completion-date`, {
+        params: {
+          personUuid: patientObj.personUuid,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        if (typeof response.data === 'boolean') {
+          setTbTreatmentCompleted(response.data);
+        } else {
           setTbTreatmentCompleted(false);
-        });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching TB completion status", error);
+        setTbTreatmentCompleted(false);
+      });
   };
 
   const GetChronicCareData = () => {
@@ -1101,9 +1101,11 @@ const ChronicCare = (props) => {
                   </div>
                 )}
               </div>
-              <div className="form-group mb-3 col-md-12">
+              <div className="">
                 <FormGroup>
-                  <Label>Clinical Note</Label>
+                  <h5 className="card-title" style={{ color: "#014d87" }}>
+                    Clinical Note
+                  </h5>
                   <textarea
                     name="comment"
                     id="comment"
@@ -1144,7 +1146,7 @@ const ChronicCare = (props) => {
       </Card>
 
       {showModal.show && (
-          <>
+        <>
           <style>
             {`
               .custom-modal-width .modal-dialog {
@@ -1154,32 +1156,32 @@ const ChronicCare = (props) => {
             `}
           </style>
 
-            <Modal
-                show={showModal.show}
-                className="fade"
-                dialogClassName="custom-modal-width"
-                aria-labelledby="contained-modal-title-vcenter"
-                centered
-            >
-              <Modal.Header>
-                <Modal.Title>
-                  <span role="img" aria-label="warning">⚠️</span>{" "}
-                  <span className={classes.modalTitle}>Update TB Treatment Status</span>
-                </Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                <h4>{showModal.message}</h4>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button
-                    style={{ backgroundColor: "#014d88", color: "#fff" }}
-                    onClick={hideModal}
-                >
-                  Cancel
-                </Button>
-              </Modal.Footer>
-            </Modal>
-          </>
+          <Modal
+            show={showModal.show}
+            className="fade"
+            dialogClassName="custom-modal-width"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered
+          >
+            <Modal.Header>
+              <Modal.Title>
+                <span role="img" aria-label="warning">⚠️</span>{" "}
+                <span className={classes.modalTitle}>Update TB Treatment Status</span>
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <h4>{showModal.message}</h4>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                style={{ backgroundColor: "#014d88", color: "#fff" }}
+                onClick={hideModal}
+              >
+                Cancel
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        </>
       )}
     </>
   );
