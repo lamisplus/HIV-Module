@@ -517,13 +517,15 @@ const ChronicCare = (props) => {
     ) {
       temp.tbType = tbObj.tbType ? '' : "This field is required.";
       temp.tbTreatmentStarted = tbObj.tbTreatmentStarted ? '' : "This field is required.";
+
+    }
+    if(tbObj.tbTreatmentStarted === 'Yes'){
       temp.tbTreatmentStartDate = tbObj.tbTreatmentStartDate ? '' : "This field is required.";
     }
     temp.dateOfObservation = observation.dateOfObservation ? "" : "This field is required";
     setErrors({
       ...temp,
     });
-    // console.log("temp error", temp)
     return Object.values(temp).every((x) => x === "");
   };
 

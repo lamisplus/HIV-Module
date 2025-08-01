@@ -160,20 +160,31 @@ const TbScreening = (props) => {
 
   const getActiveTbTreatmentStartDate = (observations) => {
     if (!Array.isArray(observations) || observations.length === 0) return "";
-
-    // Sort descending by date
     const sorted = [...observations].sort(
         (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
     );
 
     const latest = sorted[0];
     const latestScreening = latest?.data?.tbIptScreening;
-    // BLOCK auto-fill if latest visit has completionDate
+
     if (latestScreening?.completionDate && latestScreening.completionDate.trim() !== "") {
       return "";
     }
 
-    // Only now search for the most recent active treatment
+    //  Only one observation, has tbTreatmentStartDate, and not marked as completed
+    if (sorted.length === 1) {
+      const screening = latestScreening;
+
+      const hasTbTreatmentStartDate = screening?.tbTreatmentStartDate && screening.tbTreatmentStartDate.trim() !== "";
+      const isCompleted = screening?.completedTbTreatment === "Yes"; // Explicitly completed
+
+      // If there's a start date and it's NOT marked as completed → treat as active
+      if (hasTbTreatmentStartDate && !isCompleted) {
+        return screening.tbTreatmentStartDate;
+      }
+    }
+
+    //   Look for the most recent valid active treatment (legacy logic)
     for (const obs of sorted) {
       const screening = obs.data?.tbIptScreening;
       if (!screening) continue;

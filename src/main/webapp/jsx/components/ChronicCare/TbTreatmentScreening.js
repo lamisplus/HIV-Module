@@ -390,7 +390,7 @@ const TbTreatmentScreening = (props) => {
                           >
                             <option value="">Select</option>
                             <option value="MTB not detected">
-                              MTB not detected
+                                MTB not detected
                             </option>
                             <option value="MTB detected RR not detected">
                               MTB detected RR not detected
