@@ -99,9 +99,10 @@
 
             INSERT INTO public.htsmodule_chart(
                 id, indicator_name, display_name, description, location, position, type, icon, query, created_date, created_by, last_modified_date, last_modified_by, archived
-            ) VALUES ('d43cffcf-8690-4b55-a7a4-d2c404fb0fe7', 'TOTAL_POSITIVE', 'Total Positive', 'Total Positive', 'core', 2,'card', 'fa-plus-square', 'SELECT COUNT (uuid) totalHTSCount FROM hts_client
+            ) VALUES ('d43cffcf-8690-4b55-a7a4-d2c404fb0fe7', 'TOTAL_POSITIVE', 'Total Positive', 'Total Positive', 'core', 2,'card', 'fa-plus-square',
+                      'SELECT COUNT (uuid) totalHTSCount FROM hts_client
                     WHERE archived = 0 AND person_uuid IS NOT NULL AND hiv_test_result IS NOT NULL
-                    AND hiv_test_result ILIKE "%Positive%"
+                    AND hiv_test_result ILIKE ''%Positive%''
                     AND facility_id=?facilityId
                 ', '2025-07-30 14:24:28.86492', 'Schema', '2025-07-30 14:24:28.86492', 'Schema', 0);
 
