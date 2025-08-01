@@ -125,7 +125,7 @@ const Laboratory = (props) => {
     resultReportedBy: "",
     sampleNumber: "",
   });
-
+ // console.log("test result", tests.result)
   const hideModal = () => {
     setShowModal({ show: false, message: "" });
   };
@@ -211,18 +211,21 @@ const Laboratory = (props) => {
         })
         .then((response) => {
           const data = response.data;
+          // console.log('response.data', response.data)
           const filteredRecords = data.filter(
               (item) =>
                   item.type === "Chronic Care" &&
-                  item.data?.tptMonitoring?.diagnosticTestType !== null &&
-                  item.data?.tptMonitoring?.diagnosticTestType !== ""
+                  item.data?.tbIptScreening?.diagnosticTestType !== null &&
+                  item.data?.tbIptScreening?.diagnosticTestType !== ""
           );
           if (filteredRecords.length > 0) {
             const mostRecentRecord = filteredRecords.sort(
                 (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
             )[0];
-            setTptMonitoring(mostRecentRecord.data.tptMonitoring)
-            const { diagnosticTestType, chestXrayDone } = mostRecentRecord.data.tptMonitoring;
+            setTptMonitoring(mostRecentRecord.data.tbIptScreening)
+            // console.log("TP MONITORING", tptMonitorng)
+            const { diagnosticTestType, chestXrayDone } = mostRecentRecord.data.tbIptScreening;
+            // console.log("diagnosisType", diagnosticTestType)
             setChestXrayDocumented(chestXrayDone)
             if (diagnosticTestType === "TB-LAMP") {
               setChronicCareTestResult("TB LAMP");
@@ -250,13 +253,14 @@ const Laboratory = (props) => {
   useEffect(() => {
     GetCareAndSupportDiagnosticTest();
   }, []);
-
-
+  // console.log("ChronicCareTestResult", chronicCareTestResult)
+  // console.log("tests.result", tests.result)
   useEffect(() => {
     if (chronicCareTestResult && !userHasChanged) {
       const matchedOption = labTestOptions.find(
           (option) => option.label === chronicCareTestResult
       );
+      // console.log("Matched options", matchedOption)
       if (matchedOption) {
         setSelectedOption(matchedOption);
         setTests((prevObject) => ({
@@ -270,6 +274,7 @@ const Laboratory = (props) => {
               : ""
         }));
       }
+      // console.log("test.reslt in useffect", tests.result)
     }
   }, [chronicCareTestResult, userHasChanged]);
 
@@ -1625,7 +1630,7 @@ const Laboratory = (props) => {
                                 {"MTB detected RIF resistance not detected"}
                              </option>
                              <option value="MTB detected RIF resistance detected">
-                              {"MTB detected RIF resistance detected"}
+                              {"MTB detected RIF resistance not detected"}
                              </option>
                              <option value="MTB trace RIF resistance indeterminate">
                               {"MTB trace RIF resistance indeterminate"}
