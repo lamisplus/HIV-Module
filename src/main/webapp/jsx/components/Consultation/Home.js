@@ -1004,7 +1004,6 @@ const ClinicVisit = (props) => {
     setErrors({
       ...temp,
     });
-    console.log("temp:", temp);
     return Object.values(temp).every((x) => x === "");
   };
   // console.log("temp", temp)

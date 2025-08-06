@@ -467,7 +467,6 @@ const ArtCommencement = (props) => {
     objValues.hivEnrollmentId = patientObject?.enrollment.id;
     objValues.clinicalStageId = objValues.whoStagingId;
     if (objValues.pregnancyStatus !== null) {
-      console.log("objValues.pregnancyStatus", objValues.pregnancyStatus)
       const pregnancyDisplay = pregnancyStatus.find(
           (x) => x.id === parseInt(objValues.pregnancyStatus)
       );

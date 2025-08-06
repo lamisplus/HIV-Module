@@ -197,7 +197,6 @@ const Eligibility = (props) => {
 
   
   
-    console.log("Eligibility ", lastCd4Result)
     const dateObject = new Date(inputDate);
       if (isNaN(dateObject)) {
         return ""; 
