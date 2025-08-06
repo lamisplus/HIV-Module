@@ -1,9 +1,6 @@
 package org.lamisplus.modules.hiv.repositories;
 
-import org.lamisplus.modules.hiv.domain.dto.LabReport;
-import org.lamisplus.modules.hiv.domain.dto.LatestLabResult;
-import org.lamisplus.modules.hiv.domain.dto.MedicationInfo;
-import org.lamisplus.modules.hiv.domain.dto.TransferPatientInfo;
+import org.lamisplus.modules.hiv.domain.dto.*;
 import org.lamisplus.modules.hiv.domain.entity.Observation;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -313,7 +310,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "SELECT he.person_uuid FROM hiv_enrollment he WHERE archived = 0\n" +
             "),\n" +
             "tbStartDate AS (\n" +
-            "SELECT person_uuid, tbTreatmentStartDate, status, status_date, CAST(tbTreatmentStartDate + INTERVAL '6 Month' AS DATE) AS intervalDate,\n" +
+            "SELECT person_uuid, visitDate, tbTreatmentStartDate, status, status_date, CAST(tbTreatmentStartDate + INTERVAL '6 Month' AS DATE) AS intervalDate,\n" +
             "(CASE WHEN NOW() >= CAST(tbTreatmentStartDate + INTERVAL '6 Month' AS DATE) THEN TRUE ELSE FALSE END) AS pass6Month\n" +
             "FROM (\n" +
             "SELECT ho.person_uuid, ho.date_of_observation visitDate,  NULLIF(CAST(NULLIF(ho.data->'tbIptScreening'->>'tbTreatmentStartDate', '') AS DATE), NULL) tbTreatmentStartDate, \n" +
@@ -333,24 +330,25 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "INNER JOIN public.hiv_regimen_type rt on rt.id = r.regimen_type_id \n" +
             "WHERE r.regimen_type_id in (1,2,3,4,14, 16) \n" +
             "AND hap.archived = 0  \n" +
-            "AND hap.visit_date BETWEEN CAST('1901-01-01' AS DATE) AND CAST(NOW() AS DATE)\n" +
+            "AND hap.visit_date <= CAST(NOW() AS DATE)\n" +
             ") pharmacy\n" +
             "LEFT JOIN (\n" +
             "SELECT * FROM (SELECT DISTINCT (person_id) person_id, status_date,\n" +
             "hiv_status, ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY status_date DESC)\n" +
-            "FROM hiv_status_tracker WHERE archived=0 AND status_date BETWEEN CAST('1901-01-01' AS DATE) AND CAST(NOW() AS DATE) )s\n" +
+            "FROM hiv_status_tracker WHERE archived=0 AND status_date <= CAST(NOW() AS DATE) )s\n" +
             "WHERE s.row_number=1\n" +
             ")stat ON stat.person_id = pharmacy.person_uuid\n" +
             "WHERE pharmacy.rnk = 1\n" +
             ") completeArtStatus\n" +
             ") currentArtStatus ON currentArtStatus.person_uuid = ho.person_uuid\n" +
-            "WHERE archived = 0 AND data->'tbIptScreening'->>'tbTreatmentStartDate' IS NOT NULL AND data->'tbIptScreening'->>'tbTreatmentStartDate' <> ''\n" +
+            "WHERE archived = 0\n" +
             "AND data->'tbIptScreening'->>'completionDate' ='') subQ WHERE rnkk = 1\n" +
             ")\n" +
-            "SELECT tbStart.pass6Month FROM tbImpl\n" +
+            "SELECT tbStart.pass6Month, tbStart.tbTreatmentStartDate, tbStart.visitDate FROM tbImpl\n" +
             "LEFT JOIN tbStartDate tbStart ON tbImpl.person_uuid = tbStart.person_uuid\n" +
-            "WHERE tbStart.status IN ('Active') AND tbImpl.person_uuid = ?1", nativeQuery = true)
-    Optional<Boolean> findTbClientWithoutCompletionDate(String personUuid);
+            "WHERE tbStart.status IN ('Active') \n" +
+            "AND tbImpl.person_uuid = ?1", nativeQuery = true)
+       TBCompletionStatusDTO findTbClientWithoutCompletionDate(String personUuid);
 
 
     @Query(value = "WITH tbStatusImpl AS (\n" +

@@ -160,8 +160,13 @@ const ChronicCare = (props) => {
   const [lastDateOfObservation, setlastDateOfObservation] = useState(null);
   const [isUpdate, setIsUpdate] = useState(false);
   const [isHypertensive, setHypertensive] = useState("");
-  const [showModal, setShowModal] = useState({ show: true, message: "" });
+  const [showModal, setShowModal] = useState({ show: true, message: ""});
   const [tbTreatmentCompleted, setTbTreatmentCompleted] = useState(false);
+  const [tbCompletionTemplate, setTbCompletionTemplate] = useState({
+    tbTreatmentStartDate: "",
+    pass6Month: false,
+    visitDate:""
+  });
 
   //GenderBase Object
   const [genderBase, setGenderBase] = useState({
@@ -402,11 +407,15 @@ const ChronicCare = (props) => {
         },
       })
       .then((response) => {
-        if (typeof response.data === 'boolean') {
-          setTbTreatmentCompleted(response.data);
-        } else {
-          setTbTreatmentCompleted(false);
-        }
+        // ✅ Response shape: { tbTreatmentStartDate: "2025-01-08", pass6Month: true }
+        const { tbTreatmentStartDate, pass6Month,  visitDate } = response.data;
+        // Update state
+        setTbCompletionTemplate({
+          tbTreatmentStartDate,
+          pass6Month,
+          visitDate,
+        });
+        setTbTreatmentCompleted(pass6Month);
       })
       .catch((error) => {
         console.error("Error fetching TB completion status", error);
@@ -634,7 +643,7 @@ const ChronicCare = (props) => {
   };
 
   const hideModal = () => {
-    setShowModal({ show: false, message: "" });
+    setShowModal({ show: false, message: ""});
   };
 
 
@@ -642,10 +651,10 @@ const ChronicCare = (props) => {
     if (tbTreatmentCompleted === true) {
       setShowModal({
         show: true,
-        message: "Patient is due for TB treatment outcome documentation. Please follow up with the patient to confirm treatment outcome status and document",
+        message: `Patient is due for TB treatment outcome documentation for the visit date ${tbCompletionTemplate.visitDate}. Please follow up with the patient to confirm treatment outcome status and document`
       });
     } else {
-      setShowModal({ show: false, message: "" });
+      setShowModal({ show: false, message: ""});
     }
   }, [tbTreatmentCompleted]);
 
