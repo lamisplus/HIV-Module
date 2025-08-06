@@ -158,49 +158,45 @@ const TbScreening = (props) => {
       .catch((error) => {});
   };
 
+
   const getActiveTbTreatmentStartDate = (observations) => {
     if (!Array.isArray(observations) || observations.length === 0) return "";
+
     const sorted = [...observations].sort(
         (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
     );
 
-    const latest = sorted[0];
-    const latestScreening = latest?.data?.tbIptScreening;
+    // BLOCK 1: If any visit has completion date is not null, do NOT auto-fill
+    const hasCompletedTreatment = sorted.some(obs => {
+      const screening = obs.data?.tbIptScreening;
+      return screening?.completionDate.trim() !== "";
+    });
 
+    if (hasCompletedTreatment) {
+      return "";
+    }
+
+    //  BLOCK 2: If most recent visit has completionDate, block
+    const latestScreening = sorted[0]?.data?.tbIptScreening;
     if (latestScreening?.completionDate && latestScreening.completionDate.trim() !== "") {
       return "";
     }
 
-    //  Only one observation, has tbTreatmentStartDate, and not marked as completed
-    if (sorted.length === 1) {
-      const screening = latestScreening;
-
-      const hasTbTreatmentStartDate = screening?.tbTreatmentStartDate && screening.tbTreatmentStartDate.trim() !== "";
-      const isCompleted = screening?.completedTbTreatment === "Yes"; // Explicitly completed
-
-      // If there's a start date and it's NOT marked as completed → treat as active
-      if (hasTbTreatmentStartDate && !isCompleted) {
-        return screening.tbTreatmentStartDate;
-      }
-    }
-
-    //   Look for the most recent valid active treatment (legacy logic)
+    //  Only now look for the most recent valid start date
     for (const obs of sorted) {
       const screening = obs.data?.tbIptScreening;
       if (!screening) continue;
 
-      const tbTreatmentStarted = screening.tbTreatmentStarted === "Yes";
       const hasValidStartDate = screening.tbTreatmentStartDate && screening.tbTreatmentStartDate.trim() !== "";
       const hasCompletionDate = screening.completionDate && screening.completionDate.trim() !== "";
 
-      if (tbTreatmentStarted && hasValidStartDate && !hasCompletionDate) {
+      if (hasValidStartDate && !hasCompletionDate) {
         return screening.tbTreatmentStartDate;
       }
     }
 
     return "";
   };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -697,7 +693,6 @@ const TbScreening = (props) => {
     }
   }, [props.tbObj.outcome]);
 
-  // console.log("tbObject in TB", props.tbObj)
 
   useEffect(() => {
     const updatedTbObj = { ...props.tbObj };
