@@ -3,7 +3,7 @@ import { Bar } from "react-chartjs-2";
 
 class VisitorActivity extends Component {
   render() {
-    var activityData = [
+    let activityData = [
       [35, 18, 15, 35, 40, 20, 30, 25, 22, 20, 45, 35],
 
       [50, 35, 10, 45, 40, 50, 60, 80, 10, 50, 34, 35],

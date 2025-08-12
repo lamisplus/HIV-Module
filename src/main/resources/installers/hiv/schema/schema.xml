@@ -834,4 +834,32 @@
             update hiv_eac_session set status = 'SIXTH EAC' where status = 'SIXTY EAC';
         </sql>
     </changeSet>
+    <changeSet failOnError="false" author="Taiwo Gboyegun" id="addSourceMobileQuery-001">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_enrollment" columnName="latitude" />
+                <columnExists tableName="hiv_enrollment" columnName="longitude" />
+                <columnExists tableName="hiv_enrollment" columnName="source" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE hiv_enrollment ADD COLUMN latitude varchar(255);
+            ALTER TABLE hiv_enrollment ADD COLUMN longitude varchar(255);
+            ALTER TABLE hiv_enrollment ADD COLUMN source varchar(255);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="false" author="Taiwo Gboyegun" id="addSourceMobileQuery-002">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_art_pharmacy" columnName="latitude" />
+                <columnExists tableName="hiv_art_pharmacy" columnName="longitude" />
+                <columnExists tableName="hiv_art_pharmacy" columnName="source" />
+            </not>
+        </preConditions>
+        <sql>
+            ALTER TABLE hiv_art_pharmacy ADD COLUMN latitude varchar(255);
+            ALTER TABLE hiv_art_pharmacy ADD COLUMN longitude varchar(255);
+            ALTER TABLE hiv_art_pharmacy ADD COLUMN source varchar(255);
+        </sql>
+    </changeSet>
 </databaseChangeLog>

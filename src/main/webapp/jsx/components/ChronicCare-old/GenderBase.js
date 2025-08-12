@@ -80,7 +80,7 @@ return (
         
             <Card >
                 <CardBody>   
-                <h2 style={{color:'#000'}}>Gender Base Violence Screening</h2>
+                <h2 style={{color:'#000'}}>Intimate Partner Violence Form</h2>
                 <br/>
                     <form >
                     <div className="row">

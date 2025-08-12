@@ -4,27 +4,21 @@ import {
   FormGroup,
   Label,
   CardBody,
-  Spinner,
   Input,
-  Form,
   InputGroup,
 } from "reactstrap";
 import * as moment from "moment";
 import { makeStyles } from "@material-ui/core/styles";
 import { Card } from "@material-ui/core";
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
-import { useHistory } from "react-router-dom";
-// import {TiArrowBack} from 'react-icons/ti'
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
 import "semantic-ui-css/semantic.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import "react-phone-input-2/lib/style.css";
-import { Button } from "semantic-ui-react";
-import useCodesets from "../../../hooks/useCodesets";
+
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -90,15 +84,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-
-const CODESET_KEYS = [
-  "TB_TREATMENT_TYPE",
-  "TB_TREATMENT_OUTCOME",
-  "CLINIC_VISIT_LEVEL_OF_ADHERENCE",
-];
-
 const TBMonitoring = (props) => {
-   const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   let errors = props.errors
   //const [errors, setErrors] = useState({});
@@ -106,49 +92,50 @@ const TBMonitoring = (props) => {
   const [tbTreatmentType, setTbTreatmentType] = useState([]);
     const [tbTreatmentOutCome, setTbTreatmentOutCome] = useState([]);
   
-    // const TB_TREATMENT_TYPE = () => {
-    //   axios
-    //     .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
-    //       headers: { Authorization: `Bearer ${token}` },
-    //     })
-    //     .then((response) => {
-    //       setTbTreatmentType(response.data);
-    //     })
-    //     .catch((error) => {});
-    // };
-    // const TB_TREATMENT_OUTCOME = () => {
-    //   axios
-    //     .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`, {
-    //       headers: { Authorization: `Bearer ${token}` },
-    //     })
-    //     .then((response) => {
-    //       setTbTreatmentOutCome(response.data);
-    //     })
-    //     .catch((error) => {});
-    // };
-  // useEffect(() => {
-  //   TB_TREATMENT_TYPE();
-  //   TB_TREATMENT_OUTCOME();
-  //   CLINIC_VISIT_LEVEL_OF_ADHERENCE();
-  // }, []);
+    const TB_TREATMENT_TYPE = () => {
+      axios
+        .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          setTbTreatmentType(response.data);
+        })
+        .catch((error) => {});
+    };
+    const TB_TREATMENT_OUTCOME = () => {
+      axios
+        .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          setTbTreatmentOutCome(response.data);
+        })
+        .catch((error) => {});
+    };
+  useEffect(() => {
+    TB_TREATMENT_TYPE();
+    TB_TREATMENT_OUTCOME();
+    CLINIC_VISIT_LEVEL_OF_ADHERENCE();
+  }, []);
   // TPT Logic
+  useEffect(() => {
+       // console.log(props.tbObj)
 
+  }, []);
 
-
+  // console.log("TB IN TBMONITORING", props.tbObj)
   //Get list of CLINIC_VISIT_LEVEL_OF_ADHERENCE
-
-  // const CLINIC_VISIT_LEVEL_OF_ADHERENCE = () => {
-  //   axios
-  //     .get(
-  //       `${baseUrl}application-codesets/v2/CLINIC_VISIT_LEVEL_OF_ADHERENCE`,
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     )
-  //     .then((response) => {
-  //       setAdherence(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-
+  const CLINIC_VISIT_LEVEL_OF_ADHERENCE = () => {
+    axios
+      .get(
+        `${baseUrl}application-codesets/v2/CLINIC_VISIT_LEVEL_OF_ADHERENCE`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((response) => {
+        setAdherence(response.data);
+      })
+      .catch((error) => {});
+  };
   //let temp = { ...errors }
 
 
@@ -164,24 +151,22 @@ const TBMonitoring = (props) => {
               <div className="form-group mb-3 col-md-6">
                 <FormGroup>
                   <Label> Current Weight (In kg) </Label>
-                  <span style={{ color: "red" }}> *</span>
+                  <span style={{color: "red"}}> *</span>
                   <InputGroup>
                     <Input
-                      type="number"
-                      name="currentWeight"
-                      id="currentWeight"
-                      min="1"
-                      onChange={props.handleInputChange}
-                      value={props.tbObj.currentWeight}
-                      disabled={props.action === "view" ? true : false}
+                        type="number"
+                        name="currentWeight"
+                        id="currentWeight"
+                        min="1"
+                        onChange={props.handleInputChange}
+                        value={props.tbObj.currentWeight}
+                        disabled={props.action === "view" ? true : false}
                     ></Input>
                   </InputGroup>
                   {errors.currentWeight !== "" ? (
-                    <span className={classes.error}>
-                      {errors.currentWeight}
-                    </span>
+                      <span className={classes.error}>{errors.currentWeight}</span>
                   ) : (
-                    ""
+                      ""
                   )}
                 </FormGroup>
               </div>
@@ -189,16 +174,16 @@ const TBMonitoring = (props) => {
                 <FormGroup>
                   <Label>
                     Have you completed TB Treatment?{" "}
-                    <span style={{ color: "red" }}> *</span>
+                    <span style={{color: "red"}}> *</span>
                   </Label>
                   <InputGroup>
                     <Input
-                      type="select"
-                      name="completedTbTreatment"
-                      id="completedTbTreatment"
-                      onChange={props.handleInputChange}
-                      value={props.tbObj.completedTbTreatment}
-                      disabled={props.action === "view" ? true : false}
+                        type="select"
+                        name="completedTbTreatment"
+                        id="completedTbTreatment"
+                        onChange={props.handleInputChange}
+                        value={props.tbObj.completedTbTreatment}
+                        disabled={props.action === "view" ? true : false}
                     >
                       <option value="">Select</option>
                       <option value="Yes">Yes</option>
@@ -206,106 +191,99 @@ const TBMonitoring = (props) => {
                     </Input>
                   </InputGroup>
                   {errors.completedTbTreatment !== "" ? (
-                    <span className={classes.error}>
-                      {errors.completedTbTreatment}
-                    </span>
+                      <span className={classes.error}>{errors.completedTbTreatment}</span>
                   ) : (
-                    ""
+                      ""
                   )}
                 </FormGroup>
+
               </div>
               {props.tbObj.completedTbTreatment === "Yes" && (
-                <>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>
-                        TB Treatment Completion Date{" "}
-                        <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <InputGroup>
-                        <Input
-                          type="date"
-                          name="completionDate"
-                          id="completionDate"
-                          onChange={props.handleInputChange}
-                          value={props.tbObj.completionDate}
-                          // min={props.encounterDate}
-                          disabled={props.action === "view" ? true : false}
-                          min={props.tbObj.tbTreatmentStartDate}
-                          max={moment(new Date()).format("YYYY-MM-DD")}
-                          onKeyPress={(e) => e.preventDefault()}
-                        ></Input>
-                      </InputGroup>
-                      {errors.completionDate !== "" ? (
-                        <span className={classes.error}>
-                          {errors.completionDate}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>
-                        Treatment Outcome{" "}
-                        <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <InputGroup>
-                        <Input
-                          type="select"
-                          name="treatmentOutcome"
-                          id="treatmentOutcome"
-                          onChange={props.handleInputChange}
-                          value={props.tbObj.treatmentOutcome}
-                          disabled={props.action === "view" ? true : false}
-                        >
-                          <option value="">Select</option>
-                          {getOptions("TB_TREATMENT_OUTCOME").map((value) => (
-                            <option key={value.id} value={value.display}>
-                              {value.display}
-                            </option>
-                          ))}
-                        </Input>
-                      </InputGroup>
-                      {errors.treatmentOutcome !== "" ? (
-                        <span className={classes.error}>
-                          {errors.treatmentOutcome}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                  {(props.tbObj.treatmentOutcome === "Treatment completed" ||
-                    props.tbObj.treatmentOutcome === "Cured") && (
+                  <>
                     <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>
+                          TB Treatment Completion Date{" "}
+                          <span style={{color: "red"}}> *</span>
+                        </Label>
+                        <InputGroup>
+                          <Input
+                              type="date"
+                              name="completionDate"
+                              id="completionDate"
+                              onChange={props.handleInputChange}
+                              value={props.tbObj.completionDate}
+                              // min={props.encounterDate}
+                              disabled={
+                                props.action === "view" ? true : false
+                              }
+                              min={props.tbObj.tbTreatmentStartDate}
+                              max={moment(new Date()).format("YYYY-MM-DD")}
+                              onKeyPress={(e) => e.preventDefault()}
+                          ></Input>
+                        </InputGroup>
+                        {errors.completionDate !== "" ? (
+                            <span className={classes.error}>{errors.completionDate}</span>
+                        ) : (
+                            ""
+                        )}
+                      </FormGroup>
+
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>
+                          Treatment Outcome{" "}
+                          <span style={{color: "red"}}> *</span>
+                        </Label>
+                        <InputGroup>
+                          <Input
+                              type="select"
+                              name="treatmentOutcome"
+                              id="treatmentOutcome"
+                              onChange={props.handleInputChange}
+                              value={props.tbObj.treatmentOutcome}
+                              disabled={props.action === "view" ? true : false}
+                          >
+                            <option value="">Select</option>
+                            {tbTreatmentOutCome.map((value) => (
+                                <option key={value.id} value={value.display}>
+                                  {value.display}
+                                </option>
+                            ))}
+                          </Input>
+                        </InputGroup>
+                        {errors.treatmentOutcome !== "" ? (
+                            <span className={classes.error}>{errors.treatmentOutcome}</span>
+                        ) : (
+                            ""
+                        )}
+                      </FormGroup>
+
+                    </div>
+                    {(props.tbObj.treatmentOutcome === "Treatment completed" || props.tbObj.treatmentOutcome === "Cured" ) &&
+                        <div className="form-group mb-3 col-md-6">
                       <FormGroup>
                         <Label>TB Treatment Completion Status</Label>
                         <InputGroup>
                           <Input
-                            type="text"
-                            name="treatmentCompletionStatus"
-                            id="treatmentCompletionStatus"
-                            onChange={props.handleInputChange}
-                            disabled
-                            value={
-                              props.tbObj.treatmentOutcome === "Cured" ||
-                              props.tbObj.treatmentOutcome ===
-                                "Treatment completed"
-                                ? "Treatment success"
-                                : ""
-                            }
-                          ></Input>
+                              type="text"
+                              name="treatmentCompletionStatus"
+                              id="treatmentCompletionStatus"
+                              onChange={props.handleInputChange}
+                              disabled
+                              value={(props.tbObj.treatmentOutcome === 'Cured' || props.tbObj.treatmentOutcome === 'Treatment completed') ? "Treatment success" : ""}
+                          >
+                          </Input>
                         </InputGroup>
                       </FormGroup>
-                    </div>
-                  )}
-                </>
+                    </div>}
+                  </>
               )}
 
-              <br />
-              <hr />
+              <br/>
+              <hr/>
+
             </div>
           </form>
         </CardBody>

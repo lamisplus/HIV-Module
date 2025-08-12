@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet id="20250723-01" author="Taiwo Gboyegun">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_pharmacy"/>
+        </preConditions>
+
+        <sql>
+            UPDATE hiv_art_pharmacy
+            SET ipt = jsonb_set(
+                    jsonb_set(ipt, '{dateCompleted}', '""'::jsonb),
+                    '{completionStatus}', '""'::jsonb
+                      )
+            WHERE
+                ipt->>'dateCompleted' IS NOT NULL
+              AND TRIM(ipt->>'dateCompleted') != ''
+              AND LOWER(TRIM(ipt->>'dateCompleted')) NOT LIKE '%null%'
+              AND ipt->>'dateCompleted' !~ '^\s+$'
+              AND TRIM(ipt->>'dateCompleted') ~ '^\d{4}-\d{2}-\d{2}$'
+              AND CAST(TRIM(ipt->>'dateCompleted') AS DATE) > CURRENT_DATE;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

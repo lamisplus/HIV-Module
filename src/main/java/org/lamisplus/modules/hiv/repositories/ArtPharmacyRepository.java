@@ -14,22 +14,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-
 public interface ArtPharmacyRepository extends JpaRepository<ArtPharmacy, Long> {
 	List<ArtPharmacy> getArtPharmaciesByVisitAndPerson(Visit visit, Person person);
-	
+
 	@Query(value = "SELECT p.id FROM hiv_art_pharmacy p " +
 			"INNER join hiv_art_pharmacy_regimens ap ON ap.id = p.id " +
 			"INNER join hiv_regimen r ON r.id = ap.regimens_id " +
 			"WHERE person_uuid = ?1 " +
 			"AND r.id = ?2 " +
-			"AND visit_date = ?3 "+
-			"AND archived = 0 ",
-			nativeQuery = true)
-    Long getCountForAnAlreadyDispenseRegimen(String personUuid, Long regimenId, LocalDate visitDate);
-	
+			"AND visit_date = ?3 " +
+			"AND archived = 0 ", nativeQuery = true)
+	Long getCountForAnAlreadyDispenseRegimen(String personUuid, Long regimenId, LocalDate visitDate);
+
 	Page<ArtPharmacy> getArtPharmaciesByPersonAndArchived(Person person, Integer archived, Pageable pageable);
-	
+
 	List<ArtPharmacy> getArtPharmaciesByPersonAndArchived(Person person, Integer archived);
 
 	@Query(value = "SELECT *, MAX(visit_date) OVER (PARTITION BY person_uuid ORDER BY visit_date DESC) " +
@@ -37,7 +35,6 @@ public interface ArtPharmacyRepository extends JpaRepository<ArtPharmacy, Long> 
 			"where person_uuid = ?1  " +
 			"and archived = ?2  LIMIT 1", nativeQuery = true)
 	Optional<ArtPharmacy> getOneArtPharmaciesByPersonAndArchived(String personUuid, Integer archived);
-
 
 	@Query(value = "SELECT sum(refill_Period) " +
 			"from hiv_art_pharmacy  " +
@@ -77,35 +74,31 @@ public interface ArtPharmacyRepository extends JpaRepository<ArtPharmacy, Long> 
 			"WHERE result.facility_id = :facilityId\n" +
 			"ORDER BY p.uuid, result.next_appointment, result.visit_date DESC")
 	List<PharmacyReport> getArtPharmacyReport(Long facilityId);
-	
+
 	@Query(value = "SELECT * FROM hiv_art_pharmacy p " +
 			"inner join hiv_art_pharmacy_regimens pr On p.id = pr.art_pharmacy_id " +
 			"INNER JOIN hiv_regimen r ON r.id = pr.regimens_id WHERE visit_date <=  ?2  " +
-			"AND r.regimen_type_id IN (1,2,3,4,14) AND person_uuid = ?1 " +
-			"AND archived = 0 ORDER BY visit_date DESC LIMIT 1" ,
-			nativeQuery = true)
+			"AND r.regimen_type_id IN (1,2,3,4,14, 16) AND person_uuid = ?1 " +
+			"AND archived = 0 ORDER BY visit_date DESC LIMIT 1", nativeQuery = true)
 	Optional<ArtPharmacy> getCurrentPharmacyRefillWithDateRange(String personUuid, LocalDate endDate);
+
 	@Query(value = "SELECT * FROM hiv_art_pharmacy WHERE person_uuid = ?1 " +
 			" AND ipt ->>'type' ILIKE'%initia%'AND ipt ->>'dateCompleted' IS NULL " +
 			" ORDER BY visit_date DESC LIMIT 1 ", nativeQuery = true)
-    Optional<ArtPharmacy> getInitialIPTWithoutCompletionDate(String personUuid);
-	
-	
+	Optional<ArtPharmacy> getInitialIPTWithoutCompletionDate(String personUuid);
+
 	@Query(value = "SELECT * FROM hiv_art_pharmacy WHERE person_uuid = ?1 " +
 			" AND ipt  IS NOT NULL " +
 			" ORDER BY visit_date DESC LIMIT 1 ", nativeQuery = true)
 	Optional<ArtPharmacy> getPharmacyIpt(String personUuid);
 
-	//For central sync
+	// For central sync
 	List<ArtPharmacy> findAllByFacilityId(Long facilityId);
 
-	@Query(value = "SELECT * FROM hiv_art_pharmacy WHERE last_modified_date > ?1 AND facility_id=?2 ",
-			nativeQuery = true
-	)
+	@Query(value = "SELECT * FROM hiv_art_pharmacy WHERE last_modified_date > ?1 AND facility_id=?2 ", nativeQuery = true)
 	List<ArtPharmacy> getAllDueForServerUpload(LocalDateTime dateLastSync, Long facilityId);
 
 	Optional<ArtPharmacy> findByUuid(String uuid);
 
 	Optional<ArtPharmacy> findByUuidAndFacilityId(String uuid, Long facilityId);
 }
-

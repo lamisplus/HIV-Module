@@ -25,6 +25,7 @@ public interface PatientProjection {
 	Long getEnrollmentId();
 	LocalDate getDateOfBirth();
 	LocalDate getDateOfRegistration();
+	String getStatus();
 	
 	
 }

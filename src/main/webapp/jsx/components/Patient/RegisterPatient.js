@@ -1049,7 +1049,7 @@ const UserRegistration = (props) => {
                            </Label>
                            <Input
                              className="form-control"
-                             type="date"
+                              type="date" onKeyPress={(e) => e.preventDefault()}
                              name="dateOfRegistration"
                              id="dateOfRegistration"
                              min="1983-12-31"
@@ -1294,7 +1294,7 @@ const UserRegistration = (props) => {
                            <Label>Date </Label>
                            <input
                              className="form-control"
-                             type="date"
+                              type="date" onKeyPress={(e) => e.preventDefault()}
                              name="dob"
                              min="1940-01-01"
                              id="dob"
@@ -2102,7 +2102,7 @@ const UserRegistration = (props) => {
                                <span style={{ color: "red" }}> *</span>
                              </Label>
                              <Input
-                               type="date"
+                                type="date" onKeyPress={(e) => e.preventDefault()}
                                name="dateOfRegistration"
                                id="dateOfRegistration"
                                min="01-01-1980"
@@ -2133,7 +2133,7 @@ const UserRegistration = (props) => {
                                <span style={{ color: "red" }}> *</span>
                              </Label>
                              <Input
-                               type="date"
+                                type="date" onKeyPress={(e) => e.preventDefault()}
                                name="dateOfRegistration"
                                id="dateOfRegistration"
                                min={basicInfo.dateOfRegistration}
@@ -2273,7 +2273,7 @@ const UserRegistration = (props) => {
                              <span style={{ color: "red" }}> *</span>
                            </Label>
                            <Input
-                             type="date"
+                              type="date" onKeyPress={(e) => e.preventDefault()}
                              name="dateConfirmedHiv"
                              id="dateConfirmedHiv"
                              min={basicInfo.dob}
@@ -2519,7 +2519,7 @@ const UserRegistration = (props) => {
                                <FormGroup>
                                  <Label>Date of LMP </Label>
                                  <Input
-                                   type="date"
+                                    type="date" onKeyPress={(e) => e.preventDefault()}
                                    name="dateOfLpm"
                                    id="dateOfLpm"
                                    max={moment(new Date()).format("YYYY-MM-DD")}
@@ -2644,7 +2644,7 @@ const UserRegistration = (props) => {
                              <FormGroup>
                                <Label>Date Referred To OVC Partner</Label>
                                <Input
-                                 type="date"
+                                  type="date" onKeyPress={(e) => e.preventDefault()}
                                  name="dateReferredToOVCPartner"
                                  id="dateReferredToOVCPartner"
                                  min={basicInfo.dob}
@@ -2686,7 +2686,7 @@ const UserRegistration = (props) => {
                              <FormGroup>
                                <Label>Date Referred From OVC Partner</Label>
                                <Input
-                                 type="date"
+                                  type="date" onKeyPress={(e) => e.preventDefault()}
                                  name="dateReferredFromOVCPartner"
                                  id="dateReferredFromOVCPartner"
                                  min={basicInfo.dob}

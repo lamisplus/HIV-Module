@@ -6,11 +6,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RegimenRequestDto {
+public class RegimenRequestDto implements Serializable {
     private Long regimenId;
     private Integer dispense;
     private String regimenName;

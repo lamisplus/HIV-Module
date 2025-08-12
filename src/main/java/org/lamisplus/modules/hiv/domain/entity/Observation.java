@@ -48,6 +48,21 @@ public class Observation extends HivAuditEntity  implements Persistable<Long> {
     @Column(name = "archived")
     private int archived;
 
+    @Basic
+    @Column(name = "source")
+    private String source;
+
+    @Basic
+    @Column(name = "longitude")
+    private String longitude;
+
+    @Basic
+    @Column(name = "latitude")
+    private  String latitude;
+
+    @Column(name = "comment")
+    private String comment;
+
     @Override
     public boolean isNew() {
         return id == null;

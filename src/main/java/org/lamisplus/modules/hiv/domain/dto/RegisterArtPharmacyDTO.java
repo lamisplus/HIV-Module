@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.lamisplus.modules.hiv.utility.LocalDateConverter;
 
+import javax.persistence.Basic;
 import javax.persistence.Convert;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
@@ -48,5 +49,11 @@ public class RegisterArtPharmacyDTO implements Serializable {
     private JsonNode extra;
     private JsonNode adverseDrugReactions;
     private Set<RegimenRequestDto> regimen;
-    
+    @Basic
+    private String source;
+    @Basic
+    private String longitude;
+    @Basic
+    private  String latitude;
+
 }

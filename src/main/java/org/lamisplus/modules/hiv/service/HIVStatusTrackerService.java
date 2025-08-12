@@ -13,6 +13,7 @@ import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
 import org.lamisplus.modules.hiv.repositories.ArtPharmacyRepository;
 import org.lamisplus.modules.hiv.repositories.HIVStatusTrackerRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
+import org.lamisplus.modules.hiv.utility.Constants;
 import org.lamisplus.modules.patient.controller.exception.NoRecordFoundException;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
@@ -33,7 +34,6 @@ public class HIVStatusTrackerService {
 
     public static final LocalDate INVALID_DATE = LocalDate.of(1970, 01, 01);
     public static final String NOT_ENROLLED = "Not Enrolled";
-    public static final String HIV_NEGATIVE = "HIV_NEGATIVE";
     public static final String HIV_PLUS_NON_ART = "HIV+ NON ART";
     public static final String IIT = "IIT";
     public static final int TWENTY_NINE_DAYS = 29;
@@ -57,27 +57,8 @@ public class HIVStatusTrackerService {
 
     private final ApplicationCodesetService applicationCodesetService;
 
-
-//    public HIVStatusTrackerDto registerHIVStatusTracker(HIVStatusTrackerDto hivStatusTrackerDto) {
-//        System.out.println("------------------------------I got to registerHIVStatusTracker method---------------------");
-//        Long personId = hivStatusTrackerDto.getPersonId();
-//        Person existPerson = getPerson(personId);
-//        HIVStatusTracker hivStatusTracker = convertDtoToEntity(hivStatusTrackerDto);
-//        Visit visit = hivVisitEncounter.processAndCreateVisit(personId, hivStatusTrackerDto.getStatusDate());
-//        hivStatusTracker.setVisit(visit);
-//        hivStatusTracker.setArchived(0);
-//        hivStatusTracker.setUuid(UUID.randomUUID().toString());
-//        hivStatusTracker.setAuto(false);
-//        hivStatusTracker.setPerson(existPerson);
-//        log.info("Creating ART Status Starts here");
-//        HIVStatusTracker statusTracker = hivStatusTrackerRepository.save(hivStatusTracker);
-//        log.info("This is Status Tracker " + statusTracker);
-//        return  null;
-//    }
-
     public HIVStatusTrackerDto registerHIVStatusTracker(HIVStatusTrackerDto hivStatusTrackerDto) {
         if (hivStatusTrackerDto != null) {
-            System.out.println("------------------------------I got to registerHIVStatusTracker method---------------------");
             Long personId = hivStatusTrackerDto.getPersonId();
             Person existPerson = getPerson(personId);
             HIVStatusTracker hivStatusTracker = convertDtoToEntity(hivStatusTrackerDto);
@@ -87,10 +68,8 @@ public class HIVStatusTrackerService {
             hivStatusTracker.setUuid(UUID.randomUUID().toString());
             hivStatusTracker.setAuto(false);
             hivStatusTracker.setPerson(existPerson);
-//            log.info("Creating ART Status Starts here");
             HIVStatusTracker statusTracker = hivStatusTrackerRepository.save(hivStatusTracker);
-//            log.info("This is Status Tracker " + statusTracker);
-            return convertEntityToDto(statusTracker); // Convert the entity to DTO and return
+            return convertEntityToDto(statusTracker);
         } else {
             return new HIVStatusTrackerDto();
         }
@@ -167,20 +146,13 @@ public class HIVStatusTrackerService {
         if (statusTracker.getStatusDate() == null) statusTracker.setStatusDate(INVALID_DATE);
         AtomicReference<LocalDate> statusDate = new AtomicReference<>(statusTracker.getStatusDate());
         Comparator<ArtPharmacy> refilledComparator = Comparator.comparing(ArtPharmacy::getNextAppointment);
-        //log.info("status tracker {}", statusTracker);
-		/*Optional<ArtPharmacy> artPharmacy =
-				artPharmacyRepository
-						.getArtPharmaciesByPersonAndArchived(statusTracker.getPerson(),0)
-						.stream()
-						.max(refilledComparator);*/
         Optional<ArtPharmacy> artPharmacy = artPharmacyRepository
                 .getOneArtPharmaciesByPersonAndArchived(statusTracker.getPerson().getUuid(), 0);
 
         artPharmacy.ifPresent(p -> statusDate.set(p.getNextAppointment()));
-       System.out.println("+++++++++statusTracker.getHivStatus++++++==:"+ statusTracker.getHivStatus());
         List<String> staticStatus = Arrays.asList("Stopped Treatment", "Died (Confirmed)", "ART Transfer Out", "HIV_NEGATIVE", "ART Transfer In" );
         if (staticStatus.contains(statusTracker.getHivStatus())) {
-            if (statusTracker.getHivStatus().equalsIgnoreCase(HIV_NEGATIVE)) {
+            if (statusTracker.getHivStatus().equalsIgnoreCase(Constants.HIV_NEGATIVE)) {
                 return new StatusDto(NOT_ENROLLED, statusTracker.getStatusDate());
             }
             return new StatusDto(statusTracker.getHivStatus(), statusTracker.getStatusDate());

@@ -354,7 +354,7 @@ const EditServiceForm = (props) => {
                                   <Input
                                     readOnly={isViewActionType}
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -404,7 +404,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -450,7 +450,7 @@ const EditServiceForm = (props) => {
                                     </Label>
                                     <Input
                                       readOnly={isViewActionType}
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -505,7 +505,7 @@ const EditServiceForm = (props) => {
                                       <Input
                                         readOnly={isViewActionType}
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -706,7 +706,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -814,7 +814,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -925,7 +925,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1036,7 +1036,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1141,7 +1141,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1240,7 +1240,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1346,7 +1346,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -1530,7 +1530,7 @@ const EditServiceForm = (props) => {
                                           <Input
                                             readOnly={isViewActionType}
                                             className="form-control"
-                                            type="date"
+                                             type="date" onKeyPress={(e) => e.preventDefault()}
                                             {...{
                                               min: moment(
                                                 new Date(
@@ -1582,7 +1582,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -1635,7 +1635,7 @@ const EditServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               readOnly={isViewActionType}
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -1692,7 +1692,7 @@ const EditServiceForm = (props) => {
                                               <Input
                                                 readOnly={isViewActionType}
                                                 className="form-control"
-                                                type="date"
+                                                 type="date" onKeyPress={(e) => e.preventDefault()}
                                                 {...{
                                                   min: moment(
                                                     new Date(
@@ -1928,7 +1928,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2040,7 +2040,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2152,7 +2152,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2264,7 +2264,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2375,7 +2375,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2485,7 +2485,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2596,7 +2596,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2782,7 +2782,7 @@ const EditServiceForm = (props) => {
                                           <Input
                                             readOnly={isViewActionType}
                                             className="form-control"
-                                            type="date"
+                                             type="date" onKeyPress={(e) => e.preventDefault()}
                                             {...{
                                               min: moment(
                                                 new Date(
@@ -2835,7 +2835,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2888,7 +2888,7 @@ const EditServiceForm = (props) => {
                                             </Label>
                                             <Input
                                               readOnly={isViewActionType}
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -2945,7 +2945,7 @@ const EditServiceForm = (props) => {
                                               <Input
                                                 readOnly={isViewActionType}
                                                 className="form-control"
-                                                type="date"
+                                                 type="date" onKeyPress={(e) => e.preventDefault()}
                                                 {...{
                                                   min: moment(
                                                     new Date(
@@ -3179,7 +3179,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3291,7 +3291,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3403,7 +3403,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3515,7 +3515,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3625,7 +3625,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3734,7 +3734,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -3845,7 +3845,7 @@ const EditServiceForm = (props) => {
                                             <Input
                                               readOnly={isViewActionType}
                                               className="form-control"
-                                              type="date"
+                                               type="date" onKeyPress={(e) => e.preventDefault()}
                                               {...{
                                                 min: moment(
                                                   new Date(
@@ -4069,7 +4069,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4177,7 +4177,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4288,7 +4288,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4398,7 +4398,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4502,7 +4502,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4601,7 +4601,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4707,7 +4707,7 @@ const EditServiceForm = (props) => {
                                     <Input
                                       readOnly={isViewActionType}
                                       className="form-control"
-                                      type="date"
+                                       type="date" onKeyPress={(e) => e.preventDefault()}
                                       {...{
                                         min: moment(
                                           new Date(
@@ -4887,7 +4887,7 @@ const EditServiceForm = (props) => {
                                       <Input
                                         readOnly={isViewActionType}
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -4998,7 +4998,7 @@ const EditServiceForm = (props) => {
                                       <Input
                                         readOnly={isViewActionType}
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5110,7 +5110,7 @@ const EditServiceForm = (props) => {
                                       <Input
                                         readOnly={isViewActionType}
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5222,7 +5222,7 @@ const EditServiceForm = (props) => {
                                       <Input
                                         readOnly={isViewActionType}
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5328,7 +5328,7 @@ const EditServiceForm = (props) => {
                                       <Input
                                         readOnly={isViewActionType}
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5428,7 +5428,7 @@ const EditServiceForm = (props) => {
                                       <Input
                                         readOnly={isViewActionType}
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5534,7 +5534,7 @@ const EditServiceForm = (props) => {
                                       <Input
                                         readOnly={isViewActionType}
                                         className="form-control"
-                                        type="date"
+                                         type="date" onKeyPress={(e) => e.preventDefault()}
                                         {...{
                                           min: moment(
                                             new Date(
@@ -5715,7 +5715,7 @@ const EditServiceForm = (props) => {
                                         <Input
                                           readOnly={isViewActionType}
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -5826,7 +5826,7 @@ const EditServiceForm = (props) => {
                                         <Input
                                           readOnly={isViewActionType}
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -5938,7 +5938,7 @@ const EditServiceForm = (props) => {
                                         <Input
                                           readOnly={isViewActionType}
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6050,7 +6050,7 @@ const EditServiceForm = (props) => {
                                         <Input
                                           readOnly={isViewActionType}
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6157,7 +6157,7 @@ const EditServiceForm = (props) => {
                                         <Input
                                           readOnly={isViewActionType}
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6264,7 +6264,7 @@ const EditServiceForm = (props) => {
                                         <Input
                                           readOnly={isViewActionType}
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6374,7 +6374,7 @@ const EditServiceForm = (props) => {
                                         <Input
                                           readOnly={isViewActionType}
                                           className="form-control"
-                                          type="date"
+                                           type="date" onKeyPress={(e) => e.preventDefault()}
                                           {...{
                                             min: moment(
                                               new Date(
@@ -6547,7 +6547,7 @@ const EditServiceForm = (props) => {
                                   <Input
                                     readOnly={isViewActionType}
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -6686,7 +6686,7 @@ const EditServiceForm = (props) => {
                                   <Input
                                     readOnly={isViewActionType}
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -6826,7 +6826,7 @@ const EditServiceForm = (props) => {
                                   <Input
                                     readOnly={isViewActionType}
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -6967,7 +6967,7 @@ const EditServiceForm = (props) => {
                                   <Input
                                     readOnly={isViewActionType}
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -7106,7 +7106,7 @@ const EditServiceForm = (props) => {
                                   <Input
                                     readOnly={isViewActionType}
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -7246,7 +7246,7 @@ const EditServiceForm = (props) => {
                                   <Input
                                     readOnly={isViewActionType}
                                     className="form-control"
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     {...{
                                       min: moment(
                                         new Date(
@@ -7505,7 +7505,7 @@ const EditServiceForm = (props) => {
                             <Input
                               readOnly={isViewActionType}
                               className="form-control"
-                              type="date"
+                               type="date" onKeyPress={(e) => e.preventDefault()}
                               {...{
                                 min: moment(
                                   new Date(
@@ -7586,7 +7586,7 @@ const EditServiceForm = (props) => {
                             <Input
                               readOnly={isViewActionType}
                               className="form-control"
-                              type="date"
+                               type="date" onKeyPress={(e) => e.preventDefault()}
                               {...{
                                 min: moment(
                                   new Date(
@@ -7630,7 +7630,7 @@ const EditServiceForm = (props) => {
                           <Input
                             readOnly={isViewActionType}
                             className="form-control"
-                            type="date"
+                             type="date" onKeyPress={(e) => e.preventDefault()}
                             {...{
                               min: moment(
                                 new Date(

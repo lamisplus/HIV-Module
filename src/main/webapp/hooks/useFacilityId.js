@@ -17,8 +17,6 @@ const useFacilityId = (baseUrl, token,) => {
        console.error("Error fetching facility ID:", error);
      }
    };
-
-
   useEffect(() => {
     fetchFacilityId()
   }, []);

@@ -133,7 +133,7 @@ const ChildRegimenNextAppointment = (props) => {
                 { headers: {"Authorization" : `Bearer ${token}`} }
             )
             .then((response) => {
-                const artRegimenChildren=response.data.filter((x)=> (x.id===3 || x.id===4))
+                const artRegimenChildren=response.data.filter((x)=> (x.id===3 || x.id===4 || x.id===16))
                 setAdultRegimenLine(artRegimenChildren);
             })
             .catch((error) => {

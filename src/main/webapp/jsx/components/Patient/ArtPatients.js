@@ -1,7 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
+import MaterialTable, { MTableToolbar } from "material-table";
+import axios from "axios";
+
 import { token as token, url as baseUrl } from "./../../../api";
 import { forwardRef } from "react";
 import "semantic-ui-css/semantic.min.css";
+import { Link } from "react-router-dom";
 import AddBox from "@material-ui/icons/AddBox";
 import ArrowUpward from "@material-ui/icons/ArrowUpward";
 import Check from "@material-ui/icons/Check";
@@ -20,16 +24,15 @@ import ViewColumn from "@material-ui/icons/ViewColumn";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import ButtonGroup from "@material-ui/core/ButtonGroup";
+import { MdDashboard } from "react-icons/md";
 import "@reach/menu-button/styles.css";
 import { Label } from "semantic-ui-react";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
+import { TiArrowForward } from "react-icons/ti";
 import { calculate_age } from "../../../utils";
-import { usePatientData } from "../../../hooks/usePatientData";
-import PatientName from "../Globals/PatientName";
-import PatientActions from "../Globals/PatientActions";
-import CustomTable from "../../../reuseables/CustomTable";
-//Dtate Picker package
 Moment.locale("en");
 momentLocalizer();
 
@@ -100,62 +103,227 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Patients = () => {
+const Patients = (props) => {
   const [showPPI, setShowPPI] = useState(true);
-  const { fetchPatients } = usePatientData(baseUrl, token);
-
   const handleCheckBox = (e) => {
-    setShowPPI(!e.target.checked);
+    if (e.target.checked) {
+      setShowPPI(false);
+    } else {
+      setShowPPI(true);
+    }
   };
-
-  const columns = useMemo(
-    () => [
-      {
-        title: "Patient Name",
-        field: "name",
-        hidden: showPPI,
-        render: (rowData) => <PatientName patient={rowData} />,
-      },
-      { title: "Unique ID", field: "uniqueId" },
-      { title: "Sex", field: "sex" },
-      {
-        title: "Age",
-        field: "age",
-        render: (rowData) => calculate_age(rowData.dateOfBirth),
-      },
-      // {
-      //   title: "ART Status",
-      //   field: "status",
-      //   render: (rowData) => (
-      //     <Label color="blue" size="mini">
-      //       {rowData.currentStatus}
-      //     </Label>
-      //   ),
-      // },
-      {
-        title: "Actions",
-        field: "actions",
-        render: (rowData) => <PatientActions patient={rowData} />,
-      },
-    ],
-    [showPPI]
-  );
-
-  const getData = async (query) => {
-    const result = await fetchPatients(query);
-    return result;
-  };
-
 
   return (
-    <CustomTable
-      title="ART Patients"
-      columns={columns}
-      data={getData}
-      icons={tableIcons}
-      showPPI={showPPI}
-      onPPIChange={handleCheckBox}
-    />
+    <div>
+      <MaterialTable
+        icons={tableIcons}
+        title="ART Patients"
+        columns={[
+          {
+            title: "Patient Name",
+            field: "name",
+            hidden: showPPI,
+          },
+          { title: "Unique ID", field: "uniqueId", filtering: false },
+          { title: "Sex", field: "sex", filtering: false },
+          { title: "Age", field: "age", filtering: false },
+          // { title: "ART Status", field: "status", filtering: false },
+          { title: "Actions", field: "actions", filtering: false },
+        ]}
+        data={(query) =>
+          new Promise((resolve, reject) =>
+            axios
+              .get(
+                `${baseUrl}hiv/patient/enrollment/list?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              )
+              .then((response) => response)
+              .then((result) => {
+                resolve({
+                  data: result.data.records.map((row) => ({
+                    name:
+                      row.currentStatus !== "Not Enrolled" ? (
+                        <>
+                          <Link
+                            to={{
+                              pathname: "/patient-history",
+                              state: { patientObj: row },
+                            }}
+                            title={"Click to view patient dashboard"}
+                          >
+                            {" "}
+                            {row.firstName + " " + row.surname}
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <Link
+                            to={{
+                              pathname: "/enroll-patient",
+                              state: { patientId: row.id, patientObj: row },
+                            }}
+                            title={"Enroll Patient"}
+                          >
+                            {" "}
+                            {row.firstName + " " + row.surname}
+                          </Link>
+                        </>
+                      ),
+                    uniqueId: row.uniqueId,
+                    sex: row.sex,
+                    age: calculate_age(row.dateOfBirth),
+                    actions: (
+                      <div>
+                        {row.currentStatus !== "Not Enrolled" ? (
+                          <>
+                            <Link
+                              to={{
+                                pathname: "/patient-history",
+                                state: { patientObj: row },
+                              }}
+                            >
+                              <ButtonGroup
+                                variant="contained"
+                                aria-label="split button"
+                                style={{
+                                  backgroundColor: "rgb(153, 46, 98)",
+                                  height: "30px",
+                                  width: "215px",
+                                }}
+                                size="large"
+                              >
+                                <Button
+                                  color="primary"
+                                  size="small"
+                                  aria-label="select merge strategy"
+                                  aria-haspopup="menu"
+                                  style={{
+                                    backgroundColor: "rgb(153, 46, 98)",
+                                  }}
+                                >
+                                  <MdDashboard />
+                                </Button>
+                                <Button
+                                  style={{
+                                    backgroundColor: "rgb(153, 46, 98)",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: "12px",
+                                      color: "#fff",
+                                      fontWeight: "bolder",
+                                    }}
+                                  >
+                                    Patient Dashboard
+                                  </span>
+                                </Button>
+                              </ButtonGroup>
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            <Link
+                              to={{
+                                pathname: "/enroll-patient",
+                                state: { patientId: row.id, patientObj: row },
+                              }}
+                            >
+                              <ButtonGroup
+                                variant="contained"
+                                aria-label="split button"
+                                style={{
+                                  backgroundColor: "rgb(153, 46, 98)",
+                                  height: "30px",
+                                  width: "215px",
+                                }}
+                                size="large"
+                              >
+                                <Button
+                                  color="primary"
+                                  size="small"
+                                  aria-label="select merge strategy"
+                                  aria-haspopup="menu"
+                                  style={{
+                                    backgroundColor: "rgb(153, 46, 98)",
+                                  }}
+                                >
+                                  <TiArrowForward />
+                                </Button>
+                                <Button
+                                  style={{
+                                    backgroundColor: "rgb(153, 46, 98)",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: "12px",
+                                      color: "#fff",
+                                      fontWeight: "bolder",
+                                    }}
+                                  >
+                                    Enroll Patient
+                                  </span>
+                                </Button>
+                              </ButtonGroup>
+                            </Link>
+                          </>
+                        )}
+                      </div>
+                    ),
+                  })),
+                  page: query.page,
+                  totalCount: result.data.totalRecords,
+                });
+              })
+          )
+        }
+        options={{
+          search: true,
+          headerStyle: {
+            backgroundColor: "#014d88",
+            color: "#fff",
+          },
+          searchFieldStyle: {
+            width: "200%",
+            margingLeft: "250px",
+          },
+          filtering: false,
+          exportButton: false,
+          searchFieldAlignment: "left",
+          pageSizeOptions: [10, 20, 100],
+          pageSize: 10,
+          debounceInterval: 400,
+        }}
+        components={{
+          Toolbar: (props) => (
+            <div>
+              <div className="form-check custom-checkbox  float-left mt-4 ml-3 ">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  name="showPP!"
+                  id="showPP"
+                  value="showPP"
+                  checked={showPPI === true ? false : true}
+                  onChange={handleCheckBox}
+                  style={{
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
+                  }}
+                />
+                <label className="form-check-label" htmlFor="basic_checkbox_1">
+                  <b style={{ color: "#014d88", fontWeight: "bold" }}>
+                    SHOW PII
+                  </b>
+                </label>
+              </div>
+              <MTableToolbar {...props} />
+            </div>
+          ),
+        }}
+      />
+    </div>
   );
 };
 

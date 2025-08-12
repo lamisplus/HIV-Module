@@ -15,9 +15,7 @@ import org.springframework.stereotype.Service;
 import reactor.util.UUIDUtils;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,15 +75,7 @@ public class HIVEacSessionService {
 	public void deleteEacSessionById(Long id) {
 		HIVEacSession eacSession = getEacSession(id);
 		eacSession.setArchived(1);
-		List<HIVEacSession> eacSessionList = hiveacSessionRepository.getAllSessionInEac(eacSession.getEac().getUuid());
 		hiveacSessionRepository.save(eacSession);
-
-		// Checking if any other Eac session exist
-		/*if (eacSessionList.isEmpty()){
-			HIVEac hivEac = getEac(eacSession.getEac().getId());
-			hivEac.setStatus("NOT COMMENCED");
-			hiveacRepository.save(hivEac);
-		}*/
 	}
 	
 	private HIVEacSession getEacSession(Long id) {
@@ -129,29 +119,6 @@ public class HIVEacSessionService {
 				throw new IllegalStateException("You are not allowed to have more than one extended EAC sessions: " + hivEacSesByEac.size());
 		}
 	}
-	
-//	private HIVEacSessionDto mapEntityToDto(HIVEacSession entity) {
-//		HIVEac eac = entity.getEac();
-//		Person person = entity.getPerson();
-//		Visit visit = entity.getVisit();
-//		return HIVEacSessionDto.builder()
-//				.facilityId(entity.getFacilityId())
-//				.id(entity.getId())
-//				.eacId(eac.getId())
-//				.personId(person.getId())
-//				.visitId(visit.getId())
-//				.barriers(entity.getBarriers())
-//				.intervention(entity.getIntervention())
-//				.barriersOthers(entity.getBarriersOthers())
-//				.interventionOthers(entity.getInterventionOthers())
-//				.comment(entity.getComment())
-//				.followUpDate(entity.getFollowUpDate())
-//				.sessionDate(entity.getEacSessionDate())
-//				.adherence(entity.getAdherence())
-//				.status(entity.getStatus())
-//				.uuid(entity.getUuid())
-//				.referral(entity.getReferral()).build();
-//	}
 
 	private HIVEacSessionDto mapEntityToDto(HIVEacSession entity) {
 		HIVEac eac = entity.getEac();

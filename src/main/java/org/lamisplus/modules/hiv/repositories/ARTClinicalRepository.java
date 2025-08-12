@@ -96,7 +96,7 @@ public interface ARTClinicalRepository extends JpaRepository<ARTClinical, Long> 
             "         INNER JOIN public.hiv_regimen r on r.id = pr.regimens_id\n" +
             "         INNER JOIN public.hiv_regimen_type rt on rt.id = r.regimen_type_id\n" +
             "left JOIN base_application_codeset ds_model on ds_model.code = p.dsd_model_type \n" +
-            "WHERE r.regimen_type_id in (1,2,3,4,14)\n" +
+            "WHERE r.regimen_type_id in (1,2,3,4,14,16)\n" +
             "  AND  p.archived = 0\n" +
             "  AND  p.facility_id = ?2\n" +
             "  AND  p.visit_date  < CAST (NOW() AS DATE)\n" +
@@ -147,7 +147,7 @@ public interface ARTClinicalRepository extends JpaRepository<ARTClinical, Long> 
             "            INNER JOIN hiv_enrollment h ON h.person_uuid = hap.person_uuid AND h.archived = 0 \n" +
             "            INNER JOIN public.hiv_regimen r on r.id = pr.regimens_id \n" +
             "            INNER JOIN public.hiv_regimen_type rt on rt.id = r.regimen_type_id \n" +
-            "            WHERE r.regimen_type_id in (1,2,3,4,14) \n" +
+            "            WHERE r.regimen_type_id in (1,2,3,4,14,16) \n" +
             "            AND hap.archived = 0                \n" +
             "            AND hap.visit_date < CAST ( NOW() AS DATE)\n" +
             "             ) MAX ON MAX.MAXDATE = hp.visit_date AND MAX.person_uuid = hp.person_uuid \n" +

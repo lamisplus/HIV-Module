@@ -53,8 +53,6 @@ public class ArtClinicVisitService {
 	private final HandleHIVVisitEncounter hivVisitEncounter;
 	
 	public ARTClinicVisitDto createArtClinicVisit(ARTClinicVisitDto artClinicVisitDto) {
-//		log.info("payload to create card visit: " + artClinicVisitDto);
-//		log.info("visit date: " + artClinicVisitDto.getVisitDate());
 		Long hivEnrollmentId = artClinicVisitDto.getHivEnrollmentId();
 		HivEnrollment hivEnrollment = hivEnrollmentRepository
 				.findById(hivEnrollmentId)
@@ -66,7 +64,6 @@ public class ArtClinicVisitService {
 		VitalSignRequestDto vitalSignDto = artClinicVisitDto.getVitalSignDto();
 		String captureDate = artClinicVisitDto.getVisitDate().toString().concat(" 00:00");
 		vitalSignDto.setCaptureDate(captureDate);
-		//Log.info("vitalSign dto {}", vitalSignDto);
 		if (visit != null) {
 			vitalSignDto.setVisitId(visit.getId());
 		}
@@ -196,19 +193,16 @@ public class ArtClinicVisitService {
 		ARTClinicVisitDto artClinicVisitDto = new ARTClinicVisitDto();
 		BeanUtils.copyProperties(artClinical, artClinicVisitDto);
 		artClinicVisitDto.setVitalSignDto(requestDto);
-//		log.info("converted artClinicVisitDto {}", artClinicVisitDto);
 		return artClinicVisitDto;
 	}
 	@NotNull
 	public ARTClinical convertDtoToART(ARTClinicVisitDto artClinicVisitDto, Long vitalSignId) {
 		ARTClinical artClinical = new ARTClinical();
-		//log.info("converted Dto 1 {}", artClinicVisitDto);
 		BeanUtils.copyProperties(artClinicVisitDto, artClinical);
 		VitalSign vitalSign = getVitalSign(vitalSignId);
 		artClinical.setVitalSign(vitalSign);
 		artClinical.setFacilityId(organizationUtil.getCurrentUserOrganization());
 		artClinical.setArchived(0);
-		//log.info("converted entity 1 {}", artClinical);
 		return artClinical;
 	}
 	

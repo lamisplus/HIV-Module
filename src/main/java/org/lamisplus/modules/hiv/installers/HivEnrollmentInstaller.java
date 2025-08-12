@@ -7,7 +7,7 @@
  @Order(1)
  @Installer(name = "schema-installer",
          description = "Installs the required database tables",
-         version = 3)
+         version = 4)
  public class HivEnrollmentInstaller extends AcrossLiquibaseInstaller {
      public HivEnrollmentInstaller() {
          super("classpath:installers/hiv/schema/schema.xml");

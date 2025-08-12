@@ -11,19 +11,15 @@ import {
 import MatButton from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
 import SaveIcon from "@material-ui/icons/Save";
-import CancelIcon from "@material-ui/icons/Cancel";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
-//import { useHistory } from "react-router-dom";
-//import {  Modal, Button } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import "react-summernote/dist/react-summernote.css"; // import styles
 import { Spinner } from "reactstrap";
 import { Message } from "semantic-ui-react";
 import { calculate_age_to_number } from "../../../utils";
-import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -93,14 +89,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CODESET_KEYS = [
-  "CLINICAL_STAGE",
-  "PREGNANCY_STATUS",
-  "FUNCTIONAL _STATUS",
-  "TB_STATUS",
-];
 const ArtCommencement = (props) => {
-  const { getOptions } = useCodesets(CODESET_KEYS);
   const patientObj = props.patientObj;
 
   let gender = "";
@@ -110,17 +99,17 @@ const ArtCommencement = (props) => {
   const toggleDropDown = () => setDropdownOpen(!dropdownOpen);
   const toggleSplit = () => setSplitButtonOpen(!splitButtonOpen);
   const classes = useStyles();
-  // const [clinicalStage, setClinicalStage] = useState([]);
+  const [clinicalStage, setClinicalStage] = useState([]);
   const [values, setValues] = useState([]);
   const [saving, setSaving] = useState(false);
   const [viraLoadStart, setViraLoadStart] = useState(false);
   const [errors, setErrors] = useState({});
   let temp = { ...errors };
-  // const [tbStatus, setTbStatus] = useState([]);
+  const [tbStatus, setTbStatus] = useState([]);
   const [regimenLine, setRegimenLine] = useState([]);
   const [regimenType, setRegimenType] = useState([]);
-  // const [pregnancyStatus, setpregnancyStatus] = useState([]);
-  // const [functionalStatus, setFunctionalStatus] = useState([]);
+  const [pregnancyStatus, setpregnancyStatus] = useState([]);
+  const [functionalStatus, setFunctionalStatus] = useState([]);
   const [adultRegimenLine, setAdultRegimenLine] = useState([]);
   const [childRegimenLine, setChildRegimenLine] = useState([]);
   const [disabledField, setDisabledField] = useState(false);
@@ -182,10 +171,10 @@ const ArtCommencement = (props) => {
 
   useEffect(() => {
     GetARTCommencement();
-    // FunctionalStatus();
-    // WhoStaging();
-    // TBStatus();
-    // PreganacyStatus();
+    FunctionalStatus();
+    WhoStaging();
+    TBStatus();
+    PreganacyStatus();
     RegimenLine();
     AdultRegimenLine();
     ChildRegimenLineObj();
@@ -235,7 +224,7 @@ const ArtCommencement = (props) => {
       })
       .then((response) => {
         const artRegimenChildren = response.data.filter(
-          (x) => x.id === 3 || x.id === 4
+          (x) => x.id === 3 || x.id === 4 || x.id === 16
         );
         setChildRegimenLine(artRegimenChildren);
       })
@@ -261,16 +250,16 @@ const ArtCommencement = (props) => {
       .catch((error) => {});
   };
   //Get list of WhoStaging
-  // const WhoStaging = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setClinicalStage(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
+  const WhoStaging = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setClinicalStage(response.data);
+      })
+      .catch((error) => {});
+  };
   //Get list of RegimenLine
   const RegimenLine = () => {
     axios
@@ -293,40 +282,40 @@ const ArtCommencement = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of PREGNANCY_STATUS
-  // const PreganacyStatus = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setpregnancyStatus(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
+  //Get list of PREGANACY_STATUS
+  const PreganacyStatus = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setpregnancyStatus(response.data);
+      })
+      .catch((error) => {});
+  };
   ///GET LIST OF FUNCTIONAL%20_STATUS
-  // async function FunctionalStatus() {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setFunctionalStatus(response.data);
-  //       //setValues(response.data)
-  //     })
-  //     .catch((error) => {});
-  // }
+  async function FunctionalStatus() {
+    axios
+      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setFunctionalStatus(response.data);
+        //setValues(response.data)
+      })
+      .catch((error) => {});
+  }
   // TB STATUS
-  // const TBStatus = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setTbStatus(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
+  const TBStatus = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setTbStatus(response.data);
+      })
+      .catch((error) => {});
+  };
 
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
@@ -501,16 +490,14 @@ const ArtCommencement = (props) => {
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
-    //temp.tbStatusId = objValues.tbStatusId ? "" : "This field is required"
     temp.bodyWeight = vital.bodyWeight ? "" : "This field is required";
     temp.height = vital.height ? "" : "This field is required";
-    //temp.systolic = vital.systolic ? "" : "This field is required"
-    //temp.diastolic = vital.diastolic ? "" : "This field is required"
     setErrors({
       ...temp,
     });
     return Object.values(temp).every((x) => x === "");
   };
+
   /**** Submit Button Processing  */
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -525,8 +512,7 @@ const ArtCommencement = (props) => {
       if (objValues.cd4Type === "Flow Cyteometry") {
         objValues.cd4 = objValues.cd4Count;
       }
-      //Getting pragnancy value from the ID
-
+      //Getting pregnancy value from the ID
       setSaving(true);
       axios
         .put(
@@ -584,7 +570,7 @@ const ArtCommencement = (props) => {
                     ART Start Date <span style={{ color: "red" }}> *</span>
                   </Label>
                   <Input
-                    type="date"
+                     type="date" onKeyPress={(e) => e.preventDefault()}
                     name="visitDate"
                     id="visitDate"
                     onChange={handleInputChange}
@@ -604,22 +590,6 @@ const ArtCommencement = (props) => {
                   )}
                 </FormGroup>
               </div>
-              {/* <div className="form-group mb-3 col-md-4">
-                            <FormGroup>
-                            <Label for="cd4">CD4 at start of ART </Label>
-                            <Input
-                                type="text"
-                                name="cd4"
-                                id="cd4"
-                                onChange={handleInputChange}
-                                value={objValues.cd4}
-                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                disabled={props.activeContent.actionType==='update' ? false :true}
-                            />
-                            
-                            </FormGroup>
-                        </div>
-                     */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label for="cd4Percentage">CD4%</Label>
@@ -831,7 +801,7 @@ const ArtCommencement = (props) => {
                     <FormGroup>
                       <Label>Date of Viral Load at Start of ART</Label>
                       <Input
-                        type="date"
+                         type="date" onKeyPress={(e) => e.preventDefault()}
                         name="dateOfViralLoadAtStartOfArt"
                         id="dateOfViralLoadAtStartOfArt"
                         max={moment(new Date()).format("YYYY-MM-DD")}
@@ -867,7 +837,7 @@ const ArtCommencement = (props) => {
                   >
                     <option value=""> Select</option>
 
-                    {getOptions("CLINICAL_STAGE").map((value) => (
+                    {clinicalStage.map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -900,7 +870,7 @@ const ArtCommencement = (props) => {
                   >
                     <option value=""> Select</option>
 
-                    {getOptions("FUNCTIONAL _STATUS").map((value) => (
+                    {functionalStatus.map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -915,7 +885,6 @@ const ArtCommencement = (props) => {
                   )}
                 </FormGroup>
               </div>
-
               {props.patientObj.sex === "Female" ||
               props.patientObj.sex === "FEMALE" ||
               props.patientObj.sex === "female" ? (
@@ -928,7 +897,7 @@ const ArtCommencement = (props) => {
                         name="pregnancyStatus"
                         id="pregnancyStatus"
                         onChange={handleInputChange}
-                        value={objValues.pregnancyStatus || ""}
+                        value={objValues.pregnancyStatus}
                         disabled={disabledField}
                         style={{
                           border: "1px solid #014D88",
@@ -937,8 +906,8 @@ const ArtCommencement = (props) => {
                       >
                         <option value=""> Select</option>
 
-                        {getOptions("PREGNANCY_STATUS").map((value) => (
-                          <option key={value.id} value={value.id}>
+                        {pregnancyStatus.map((value) => (
+                          <option key={value.id} value={value.code}>
                             {value.display}
                           </option>
                         ))}
@@ -952,7 +921,7 @@ const ArtCommencement = (props) => {
                         <FormGroup>
                           <Label>LMP</Label>
                           <Input
-                            type="date"
+                             type="date" onKeyPress={(e) => e.preventDefault()}
                             name="dateOfLpm"
                             id="dateOfLpm"
                             onChange={handleInputChange}
@@ -1462,8 +1431,8 @@ const ArtCommencement = (props) => {
                         >
                           <option value=""> Select</option>
 
-                          {getOptions("PREGNANCY_STATUS").map((value) => (
-                            <option key={value.id} value={value.id}>
+                          {pregnancyStatus.map((value) => (
+                            <option key={value.id} value={value.code}>
                               {value.display}
                             </option>
                           ))}
@@ -1474,7 +1443,7 @@ const ArtCommencement = (props) => {
                       <FormGroup>
                         <Label>LMP</Label>
                         <Input
-                          type="date"
+                           type="date" onKeyPress={(e) => e.preventDefault()}
                           name="LMPDate"
                           id="LMPDate"
                           onChange={handleInputChange}
@@ -1535,15 +1504,6 @@ const ArtCommencement = (props) => {
                     </span>
                   )}
                 </MatButton>
-                {/*                         
-                            <MatButton
-                                variant="contained"
-                                className={classes.button}
-                                startIcon={<CancelIcon style={{color:'#fff'}}/>}  
-                                style={{backgroundColor:'#992E62'}}                              
-                            >
-                                <span style={{ textTransform: "capitalize" }}>Cancel</span>
-                            </MatButton> */}
               </>
             ) : (
               ""

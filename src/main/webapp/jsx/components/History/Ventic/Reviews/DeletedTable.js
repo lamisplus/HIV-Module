@@ -18,8 +18,8 @@ const DeletedTable = () => {
   const [test, settest] = useState(0);
 
   // Active data
-  const chageData = (frist, sec) => {
-    for (var i = 0; i < data.length; ++i) {
+  const changeData = (frist, sec) => {
+    for (let i = 0; i < data.length; ++i) {
       if (i >= frist && i < sec) {
         data[i].classList.remove("d-none");
       } else {
@@ -35,7 +35,7 @@ const DeletedTable = () => {
 
 
   // Active pagginarion
-  activePag.current === 0 && chageData(0, sort);
+  activePag.current === 0 && changeData(0, sort);
   // paggination
   let paggination = Array(Math.ceil(data.length / sort))
     .fill()
@@ -44,7 +44,7 @@ const DeletedTable = () => {
   // Active paggination & chage data
   const onClick = (i) => {
     activePag.current = i;
-    chageData(activePag.current * sort, (activePag.current + 1) * sort);
+    changeData(activePag.current * sort, (activePag.current + 1) * sort);
     settest(i);
   };
 

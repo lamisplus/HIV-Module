@@ -45,80 +45,114 @@ const RecentHistory = (props) => {
   const [record, setRecord] = useState(null);
   const toggle = () => setOpen(!open);
   const [activeAccordionHeaderShadow, setActiveAccordionHeaderShadow] =
-      useState(0);
-
+    useState(0);
+  const [patientStatus, setPatientStatus] = useState([]);
   useEffect(() => {
     if (props.patientObj && props.patientObj !== null) {
       LaboratoryHistory();
       PharmacyList();
       ClinicVisitList();
       RecentActivities();
+      PatientStatus();
     }
   }, [props.patientObj]);
 
   //Get list of LaboratoryHistory
   const RecentActivities = () => {
     axios
-        .get(
-            `${baseUrl}hiv/patients/${props.patientObj.id}/activities?full=false`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        )
-        .then((response) => {
-          setLoadingRecent(false);
-          setRecentActivities(response.data);
-        })
-        .catch((error) => {
-          setLoadingRecent(false);
-        });
+      .get(
+        `${baseUrl}hiv/patients/${props.patientObj.id}/activities?full=false`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((response) => {
+        setLoadingRecent(false);
+        setRecentActivities(response.data);
+      })
+      .catch((error) => {
+        setLoadingRecent(false);
+      });
   };
   //Get list of LaboratoryHistory
   const LaboratoryHistory = () => {
     axios
-        .get(
-            `${baseUrl}laboratory/rde-all-orders/patients/${props.patientObj.id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        )
-        .then((response) => {
-          setLoadingLab(false);
+      .get(
+        `${baseUrl}laboratory/rde-all-orders/patients/${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((response) => {
+        setLoadingLab(false);
 
-          setViralLoad(response.data);
-        })
-        .catch((error) => {
-          setLoadingLab(false);
-        });
+        setViralLoad(response.data);
+      })
+      .catch((error) => {
+        setLoadingLab(false);
+      });
   };
+
+  // get the list of patient tracker using the person id
+  const PatientStatus = () => {
+    setLoading(true);
+    axios
+      .get(`${baseUrl}hiv/status/patient/${props.patientObj.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setLoading(false);
+        setPatientStatus(response.data)
+
+      })
+      .catch((error) => { });
+  };
+
+  // UPDATE PATIENT STATUS
+  const updatePatientStatus = () => {
+    // Check if patientStatus is not empty or null
+    if (!patientStatus || patientStatus.length === 0) return;
+    // Sort patientStatus in desc order using the statusDate
+    patientStatus.sort((a, b) => new Date(b.statusDate) - new Date(a.statusDate));
+    if (patientStatus[0].hivStatus === "ART Transfer Out") {
+      axios
+        .delete(`${baseUrl}hiv/status/${patientStatus[0].id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+  }
+
   //GET LIST Drug Refill
   const PharmacyList = () => {
     setLoading(true);
     axios
-        .get(
-            `${baseUrl}hiv/art/pharmacy/patient?pageNo=0&pageSize=10&personId=${props.patientObj.id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        )
-        .then((response) => {
-          setLoading(false);
-          setLoadingPharmacy(false);
-          setRefillList(response.data);
-        })
-        .catch((error) => {
-          setLoading(false);
-        });
+      .get(
+        `${baseUrl}hiv/art/pharmacy/patient?pageNo=0&pageSize=10&personId=${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((response) => {
+        setLoading(false);
+        setLoadingPharmacy(false);
+        setRefillList(response.data);
+      })
+      .catch((error) => {
+        setLoading(false);
+      });
   };
   //GET LIST Drug Refill
   const ClinicVisitList = () => {
     setLoading(true);
     axios
-        .get(
-            `${baseUrl}hiv/art/clinic-visit/person?pageNo=0&pageSize=10&personId=${props.patientObj.id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        )
-        .then((response) => {
-          setLoading(false);
-          setClinicVisitList(response.data);
-        })
-        .catch((error) => {
-          setLoading(false);
-        });
+      .get(
+        `${baseUrl}hiv/art/clinic-visit/person?pageNo=0&pageSize=10&personId=${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then((response) => {
+        setLoading(false);
+        setClinicVisitList(response.data);
+      })
+      .catch((error) => {
+        setLoading(false);
+      });
   };
 
   const labStatus = (status) => {
@@ -166,9 +200,9 @@ const RecentHistory = (props) => {
   const regimenName = (regimenObj) => {
     let regimenArr = [];
     regimenObj &&
-    regimenObj.forEach(function (value, index, array) {
-      regimenArr.push(value["name"]);
-    });
+      regimenObj.forEach(function (value, index, array) {
+        regimenArr.push(value["name"]);
+      });
     return regimenArr.toString();
   };
 
@@ -334,7 +368,7 @@ const RecentHistory = (props) => {
         actionType: action,
       });
     }
-    else if(row.path === "dsd-service-form"){
+    else if (row.path === "dsd-service-form") {
       props.setActiveContent({
         ...props.activeContent,
         route: "dsd-service-form-view",
@@ -352,439 +386,440 @@ const RecentHistory = (props) => {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'mental-health-view', id:row.id})
       axios
-          .delete(`${baseUrl}observation/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "Art-commence") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'art-commencement-view', id:row.id})
       axios
-          .delete(`${baseUrl}hiv/art/commencement/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}hiv/art/commencement/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "Clinical-evaluation") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'adult-clinic-eveluation-view', id:row.id})
       axios
-          .delete(`${baseUrl}observation/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "eac1") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'first-eac-history', id:row.id})
       axios
-          .delete(`${baseUrl}observation/eac/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/eac/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "eac2") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'second-eac-history', id:row.id})
       axios
-          .delete(`${baseUrl}observation/eac/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/eac/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "eac3") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'completed-eac-history', id:row.id})
       axios
-          .delete(`${baseUrl}observation/eac/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/eac/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "hiv-enrollment") {
       setSaving(true);
       axios
-          .delete(`${baseUrl}hiv/enrollment/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}hiv/enrollment/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
       //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
     } else if (row.path === "pharmacy") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
       //props.setActiveContent({...props.activeContent, route:'pharmacy', id:row.id, activeTab:"home", actionType:"update", obj:row})
       axios
-          .delete(`${baseUrl}hiv/art/pharmacy/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}hiv/art/pharmacy/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "clinic-visit") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
       axios
-          .delete(`${baseUrl}hiv/art/clinic-visit/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}hiv/art/clinic-visit/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "Client-Verification") {
       setSaving(true);
 
       axios
-          .delete(`${baseUrl}observation/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "Service-OTZ") {
       setSaving(true);
       axios
-          .delete(`${baseUrl}observation/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("OTZ record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("OTZ record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "Chronic-Care") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
       axios
-          .delete(`${baseUrl}observation/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "Cervical-cancer") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
       axios
-          .delete(`${baseUrl}observation/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     } else if (row.path === "ART-Transfer-Out") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
       axios
-          .delete(`${baseUrl}observation/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          updatePatientStatus();
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
 
-    } else if(row.path === "ART-Transfer-In") {
+    } else if (row.path === "ART-Transfer-In") {
       setSaving(true);
       //props.setActiveContent({...props.activeContent, route:'mental-health-history', id:row.id})
       axios
-          .delete(`${baseUrl}observation/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Record Deleted Successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Record Deleted Successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
 
     }
     else if (row.path === "Paediatric-OTZ") {
       setSaving(true);
       axios
-          .delete(`${baseUrl}observation/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("Paediatric OTZ record deleted successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Paediatric OTZ record deleted successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
 
-    } else if(row.path === "dsd-service-form"){
+    } else if (row.path === "dsd-service-form") {
       setSaving(true);
       axios
-          .delete(`${baseUrl}hiv/art/pharmacy/devolve/${row.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          .then((response) => {
-            toast.success("DSD service form record deleted successfully");
-            RecentActivities();
-            toggle();
-            setSaving(false);
-          })
-          .catch((error) => {
-            setSaving(false);
-            if (error.response && error.response.data) {
-              let errorMessage =
-                  error.response.data.apierror &&
-                  error.response.data.apierror.message !== ""
-                      ? error.response.data.apierror.message
-                      : "Something went wrong, please try again";
-              toast.error(errorMessage);
-            } else {
-              toast.error("Something went wrong. Please try again...");
-            }
-          });
+        .delete(`${baseUrl}hiv/art/pharmacy/devolve/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("DSD service form record deleted successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
     }
     else {
     }
@@ -798,342 +833,341 @@ const RecentHistory = (props) => {
   };
 
   return (
-      <Fragment>
-        {/* <Ext /> */}
+    <Fragment>
+      {/* <Ext /> */}
 
-        <div className="row">
-          <div className="col-xl-4 col-xxl-4 col-lg-4">
-            <div className="card">
-              <div className="card-header  border-0 pb-0">
-                <h4 className="card-title">
-                  <b>Recent Activities</b>{" "}
-                </h4>
-              </div>
-              <div className="card-body">
-                {loadingRecent === false ? (
-                    <>
-                      <PerfectScrollbar
-                          style={{ height: "370px" }}
-                          id="DZ_W_Todo1"
-                          className="widget-media dz-scroll ps ps--active-y"
-                      >
-                        <Accordion
-                            className="accordion accordion-header-bg accordion-header-shadow accordion-rounded "
-                            defaultActiveKey="0"
-                        >
-                          <>
-                            {recentActivities.map((data, i) => (
-                                <div className="accordion-item" key={i}>
-                                  <Accordion.Toggle
-                                      as={Card.Text}
-                                      eventKey={`${i}`}
-                                      className={`accordion-header ${
-                                          activeAccordionHeaderShadow === 1
-                                              ? ""
-                                              : "collapsed"
-                                      } accordion-header-info`}
-                                      onClick={() =>
-                                          setActiveAccordionHeaderShadow(
-                                              activeAccordionHeaderShadow === 1 ? -1 : i
-                                          )
-                                      }
-                                  >
-                                    <span className="accordion-header-icon"></span>
-                                    <span className="accordion-header-text">
+      <div className="row">
+        <div className="col-xl-4 col-xxl-4 col-lg-4">
+          <div className="card">
+            <div className="card-header  border-0 pb-0">
+              <h4 className="card-title">
+                <b>Recent Activities</b>{" "}
+              </h4>
+            </div>
+            <div className="card-body">
+              {loadingRecent === false ? (
+                <>
+                  <PerfectScrollbar
+                    style={{ height: "370px" }}
+                    id="DZ_W_Todo1"
+                    className="widget-media dz-scroll ps ps--active-y"
+                  >
+                    <Accordion
+                      className="accordion accordion-header-bg accordion-header-shadow accordion-rounded "
+                      defaultActiveKey="0"
+                    >
+                      <>
+                        {recentActivities.map((data, i) => (
+                          <div className="accordion-item" key={i}>
+                            <Accordion.Toggle
+                              as={Card.Text}
+                              eventKey={`${i}`}
+                              className={`accordion-header ${activeAccordionHeaderShadow === 1
+                                ? ""
+                                : "collapsed"
+                                } accordion-header-info`}
+                              onClick={() =>
+                                setActiveAccordionHeaderShadow(
+                                  activeAccordionHeaderShadow === 1 ? -1 : i
+                                )
+                              }
+                            >
+                              <span className="accordion-header-icon"></span>
+                              <span className="accordion-header-text">
                                 Visit Date :{" "}
-                                      <span className="">{data.date}</span>{" "}
+                                <span className="">{data.date}</span>{" "}
                               </span>
-                                    <span className="accordion-header-indicator"></span>
-                                  </Accordion.Toggle>
-                                  <Accordion.Collapse
-                                      eventKey={`${i}`}
-                                      className="accordion__body"
-                                  >
-                                    <div className="accordion-body-text">
-                                      <ul className="timeline">
-                                        {data.activities &&
-                                            data.activities.map((activity, index) => (
-                                                <li key={index}>
-                                                  <div className="timeline-panel">
-                                                    <div
-                                                        className={
-                                                          index % 2 == 0
-                                                              ? "media me-2 media-info"
-                                                              : "media me-2 media-success"
-                                                        }
-                                                    >
-                                                      {ActivityName(activity.name)}
-                                                    </div>
-                                                    <div className="media-body">
-                                                      <h5 className="mb-1">
-                                                        {activity.name === "Chronic Care"
-                                                            ? "Care and Support"
-                                                            : activity.name}
-                                                      </h5>
-                                                      <small className="d-block">
-                                                        {activity.date}
-                                                      </small>
-                                                    </div>
-                                                    {!notToBeUpdated.includes(
-                                                        activity.path
-                                                    ) ? (
-                                                        <Dropdown className="dropdown">
-                                                          <Dropdown.Toggle
-                                                              variant=" light"
-                                                              className="i-false p-0 btn-info sharp"
-                                                          >
-                                                            <svg
-                                                                width="18px"
-                                                                height="18px"
-                                                                viewBox="0 0 24 24"
-                                                                version="1.1"
-                                                            >
-                                                              <g
-                                                                  stroke="none"
-                                                                  strokeWidth="1"
-                                                                  fill="none"
-                                                                  fillRule="evenodd"
-                                                              >
-                                                                <rect
-                                                                    x="0"
-                                                                    y="0"
-                                                                    width="24"
-                                                                    height="24"
-                                                                />
-                                                                <circle
-                                                                    fill="#000000"
-                                                                    cx="5"
-                                                                    cy="12"
-                                                                    r="2"
-                                                                />
-                                                                <circle
-                                                                    fill="#000000"
-                                                                    cx="12"
-                                                                    cy="12"
-                                                                    r="2"
-                                                                />
-                                                                <circle
-                                                                    fill="#000000"
-                                                                    cx="19"
-                                                                    cy="12"
-                                                                    r="2"
-                                                                />
-                                                              </g>
-                                                            </svg>
-                                                          </Dropdown.Toggle>
-                                                          <Dropdown.Menu className="dropdown-menu">
-                                                            {activity.viewable && (
-                                                                <Dropdown.Item
-                                                                    className="dropdown-item"
-                                                                    onClick={() =>
-                                                                        LoadViewPage(
-                                                                            activity,
-                                                                            "view"
-                                                                        )
-                                                                    }
-                                                                >
-                                                                  View
-                                                                </Dropdown.Item>
-                                                            )}
-                                                            {activity.viewable && (
-                                                                <Dropdown.Item
-                                                                    className="dropdown-item"
-                                                                    onClick={() =>
-                                                                        LoadViewPage(
-                                                                            activity,
-                                                                            "update"
-                                                                        )
-                                                                    }
-                                                                >
-                                                                  Update
-                                                                </Dropdown.Item>
-                                                            )}
-                                                            {activity.deletable && (
-                                                                <Dropdown.Item
-                                                                    className="dropdown-item"
-                                                                    to="/widget-basic"
-                                                                    onClick={() =>
-                                                                        LoadModal(
-                                                                            activity,
-                                                                            "delete"
-                                                                        )
-                                                                    }
-                                                                >
-                                                                  Delete
-                                                                </Dropdown.Item>
-                                                            )}
-                                                          </Dropdown.Menu>
-                                                        </Dropdown>
-                                                    ) : (
-                                                        ""
-                                                    )}
-                                                  </div>
-                                                </li>
-                                            ))}
-                                      </ul>
-                                    </div>
-                                  </Accordion.Collapse>
-                                </div>
-                            ))}
-                          </>
-                        </Accordion>
-                      </PerfectScrollbar>
-                    </>
-                ) : (
-                    <>
-                      <p>Loading please wait...</p>
-                    </>
-                )}
-              </div>
+                              <span className="accordion-header-indicator"></span>
+                            </Accordion.Toggle>
+                            <Accordion.Collapse
+                              eventKey={`${i}`}
+                              className="accordion__body"
+                            >
+                              <div className="accordion-body-text">
+                                <ul className="timeline">
+                                  {data.activities &&
+                                    data.activities.map((activity, index) => (
+                                      <li key={index}>
+                                        <div className="timeline-panel">
+                                          <div
+                                            className={
+                                              index % 2 == 0
+                                                ? "media me-2 media-info"
+                                                : "media me-2 media-success"
+                                            }
+                                          >
+                                            {ActivityName(activity.name)}
+                                          </div>
+                                          <div className="media-body">
+                                            <h5 className="mb-1">
+                                              {activity.name === "Chronic Care"
+                                                ? "Care and Support"
+                                                : activity.name}
+                                            </h5>
+                                            <small className="d-block">
+                                              {activity.date}
+                                            </small>
+                                          </div>
+                                          {!notToBeUpdated.includes(
+                                            activity.path
+                                          ) ? (
+                                            <Dropdown className="dropdown">
+                                              <Dropdown.Toggle
+                                                variant=" light"
+                                                className="i-false p-0 btn-info sharp"
+                                              >
+                                                <svg
+                                                  width="18px"
+                                                  height="18px"
+                                                  viewBox="0 0 24 24"
+                                                  version="1.1"
+                                                >
+                                                  <g
+                                                    stroke="none"
+                                                    strokeWidth="1"
+                                                    fill="none"
+                                                    fillRule="evenodd"
+                                                  >
+                                                    <rect
+                                                      x="0"
+                                                      y="0"
+                                                      width="24"
+                                                      height="24"
+                                                    />
+                                                    <circle
+                                                      fill="#000000"
+                                                      cx="5"
+                                                      cy="12"
+                                                      r="2"
+                                                    />
+                                                    <circle
+                                                      fill="#000000"
+                                                      cx="12"
+                                                      cy="12"
+                                                      r="2"
+                                                    />
+                                                    <circle
+                                                      fill="#000000"
+                                                      cx="19"
+                                                      cy="12"
+                                                      r="2"
+                                                    />
+                                                  </g>
+                                                </svg>
+                                              </Dropdown.Toggle>
+                                              <Dropdown.Menu className="dropdown-menu">
+                                                {activity.viewable && (
+                                                  <Dropdown.Item
+                                                    className="dropdown-item"
+                                                    onClick={() =>
+                                                      LoadViewPage(
+                                                        activity,
+                                                        "view"
+                                                      )
+                                                    }
+                                                  >
+                                                    View
+                                                  </Dropdown.Item>
+                                                )}
+                                                {activity.viewable && (
+                                                  <Dropdown.Item
+                                                    className="dropdown-item"
+                                                    onClick={() =>
+                                                      LoadViewPage(
+                                                        activity,
+                                                        "update"
+                                                      )
+                                                    }
+                                                  >
+                                                    Update
+                                                  </Dropdown.Item>
+                                                )}
+                                                {activity.deletable && (
+                                                  <Dropdown.Item
+                                                    className="dropdown-item"
+                                                    to="/widget-basic"
+                                                    onClick={() =>
+                                                      LoadModal(
+                                                        activity,
+                                                        "delete"
+                                                      )
+                                                    }
+                                                  >
+                                                    Delete
+                                                  </Dropdown.Item>
+                                                )}
+                                              </Dropdown.Menu>
+                                            </Dropdown>
+                                          ) : (
+                                            ""
+                                          )}
+                                        </div>
+                                      </li>
+                                    ))}
+                                </ul>
+                              </div>
+                            </Accordion.Collapse>
+                          </div>
+                        ))}
+                      </>
+                    </Accordion>
+                  </PerfectScrollbar>
+                </>
+              ) : (
+                <>
+                  <p>Loading please wait...</p>
+                </>
+              )}
             </div>
           </div>
-          <div className="col-xl-4 col-xxl-4 col-lg-4">
-            <div className="card">
-              <div className="card-header border-0 pb-0">
-                <h4 className="card-title">
-                  <b>Laboratory Orders</b>
-                </h4>
-              </div>
-              <div className="card-body">
-                {loadingLab === false ? (
-                    <>
-                      <PerfectScrollbar
-                          style={{ height: "370px" }}
-                          id="DZ_W_TimeLine"
-                          className="widget-timeline dz-scroll height370 ps ps--active-y"
-                      >
-                        <ul className="timeline">
-                          {viralLoad.length > 0 ? (
-                              <>
-                                {viralLoad.map((test, index) => (
-                                    <>
-                                      <li key={index}>
-                                        <div
-                                            className={labStatus(test.labTestOrderStatus)}
-                                        ></div>
-                                        <span
-                                            className="timeline-panel text-muted"
-                                            onClick={() => redirectLink()}
-                                            //to=""
-                                        >
+        </div>
+        <div className="col-xl-4 col-xxl-4 col-lg-4">
+          <div className="card">
+            <div className="card-header border-0 pb-0">
+              <h4 className="card-title">
+                <b>Laboratory Orders</b>
+              </h4>
+            </div>
+            <div className="card-body">
+              {loadingLab === false ? (
+                <>
+                  <PerfectScrollbar
+                    style={{ height: "370px" }}
+                    id="DZ_W_TimeLine"
+                    className="widget-timeline dz-scroll height370 ps ps--active-y"
+                  >
+                    <ul className="timeline">
+                      {viralLoad.length > 0 ? (
+                        <>
+                          {viralLoad.map((test, index) => (
+                            <>
+                              <li key={index}>
+                                <div
+                                  className={labStatus(test.labTestOrderStatus)}
+                                ></div>
+                                <span
+                                  className="timeline-panel text-muted"
+                                  onClick={() => redirectLink()}
+                                //to=""
+                                >
                                   <h6 className="mb-0">
                                     Test Order Date <br />
                                     <strong className="text-primary">
                                       {test.dateOrderBy}
                                     </strong>
                                   </h6>
-                                          {test.labTestGroupName !== "others" && (
-                                              <h6 className="mb-0">
-                                                Test Order <br />
-                                                <strong className="text-primary">
-                                                  {test.labTestGroupName +
-                                                      " - " +
-                                                      test.labTestName}
-                                                </strong>
-                                                .
-                                              </h6>
-                                          )}
-                                          {test.labTestGroupName === "others" && (
-                                              <h6 className="mb-0">
-                                                Test Order <br />
-                                                <strong className="text-primary">
-                                                  {test.labTestName +
-                                                      " - " +
-                                                      test.viralLoadIndicationName}
-                                                </strong>
-                                                .
-                                              </h6>
-                                          )}
+                                  {test.labTestGroupName !== "others" && (
+                                    <h6 className="mb-0">
+                                      Test Order <br />
+                                      <strong className="text-primary">
+                                        {test.labTestGroupName +
+                                          " - " +
+                                          test.labTestName}
+                                      </strong>
+                                      .
+                                    </h6>
+                                  )}
+                                  {test.labTestGroupName === "others" && (
+                                    <h6 className="mb-0">
+                                      Test Order <br />
+                                      <strong className="text-primary">
+                                        {test.labTestName +
+                                          " - " +
+                                          test.viralLoadIndicationName}
+                                      </strong>
+                                      .
+                                    </h6>
+                                  )}
 
-                                          <h6 className="mb-0">
+                                  <h6 className="mb-0">
                                     Status <br />
                                     <strong className="text-primary">
                                       {test.labTestOrderStatusName}
                                     </strong>
                                     .
                                   </h6>
-                                          {test.labTestOrderStatusName ===
-                                              "Result Reported" && (
-                                                  <>
-                                                    <h6 className="mb-0">
-                                                      Date Result Reported <br />
-                                                      <strong className="text-primary">
-                                                        {test.dateResultReported}
-                                                      </strong>
-                                                      .
-                                                    </h6>
-                                                    <h6 className="mb-0">
-                                                      Result <br />
-                                                      <strong className="text-primary">
-                                                        {test.result}
-                                                      </strong>
-                                                      .
-                                                    </h6>
-                                                  </>
-                                              )}
+                                  {test.labTestOrderStatusName ===
+                                    "Result Reported" && (
+                                      <>
+                                        <h6 className="mb-0">
+                                          Date Result Reported <br />
+                                          <strong className="text-primary">
+                                            {test.dateResultReported}
+                                          </strong>
+                                          .
+                                        </h6>
+                                        <h6 className="mb-0">
+                                          Result <br />
+                                          <strong className="text-primary">
+                                            {test.result}
+                                          </strong>
+                                          .
+                                        </h6>
+                                      </>
+                                    )}
                                 </span>
-                                      </li>
-                                    </>
-                                ))}
-                              </>
-                          ) : (
-                              <Alert
-                                  variant="info"
-                                  className="alert-dismissible solid fade show"
-                              >
-                                <p>No Laboratory Test Order Yet</p>
-                              </Alert>
-                          )}
-                        </ul>
-                      </PerfectScrollbar>
-                    </>
-                ) : (
-                    <>
-                      <p>Loading please wait...</p>
-                    </>
-                )}
-              </div>
+                              </li>
+                            </>
+                          ))}
+                        </>
+                      ) : (
+                        <Alert
+                          variant="info"
+                          className="alert-dismissible solid fade show"
+                        >
+                          <p>No Laboratory Test Order Yet</p>
+                        </Alert>
+                      )}
+                    </ul>
+                  </PerfectScrollbar>
+                </>
+              ) : (
+                <>
+                  <p>Loading please wait...</p>
+                </>
+              )}
             </div>
           </div>
-          <div className="col-xl-4 col-xxl-4 col-lg-4">
-            <div className="card">
-              <div className="card-header border-0 pb-0">
-                <h3 className="card-title">
-                  <b>Refill Summary</b>
-                </h3>
-              </div>
-              <div className="card-body">
-                {loadingPharmacy === false ? (
-                    <>
-                      <PerfectScrollbar
-                          style={{ height: "370px" }}
-                          id="DZ_W_TimeLine1"
-                          className="widget-timeline dz-scroll style-1 height370 ps ps--active-y"
-                      >
-                        <ul className="timeline">
-                          {refillList && refillList.length > 0 ? (
-                              <>
-                                {refillList.map((regimen, index) => (
-                                    <>
-                                      <li key={index}>
-                                        <div
-                                            className={
-                                              index % 2 == 0
-                                                  ? "timeline-badge info"
-                                                  : "timeline-badge success"
-                                            }
-                                        ></div>
-                                        <span
-                                            className="timeline-panel text-muted"
-                                            onClick={() => redirectLink()}
-                                            //to=""
-                                        >
+        </div>
+        <div className="col-xl-4 col-xxl-4 col-lg-4">
+          <div className="card">
+            <div className="card-header border-0 pb-0">
+              <h3 className="card-title">
+                <b>Refill Summary</b>
+              </h3>
+            </div>
+            <div className="card-body">
+              {loadingPharmacy === false ? (
+                <>
+                  <PerfectScrollbar
+                    style={{ height: "370px" }}
+                    id="DZ_W_TimeLine1"
+                    className="widget-timeline dz-scroll style-1 height370 ps ps--active-y"
+                  >
+                    <ul className="timeline">
+                      {refillList && refillList.length > 0 ? (
+                        <>
+                          {refillList.map((regimen, index) => (
+                            <>
+                              <li key={index}>
+                                <div
+                                  className={
+                                    index % 2 == 0
+                                      ? "timeline-badge info"
+                                      : "timeline-badge success"
+                                  }
+                                ></div>
+                                <span
+                                  className="timeline-panel text-muted"
+                                  onClick={() => redirectLink()}
+                                //to=""
+                                >
                                   <h6 className="mb-0">
                                     Regimen
                                     {regimenName(
-                                        regimen && regimen.extra
-                                            ? regimen.extra.regimens
-                                            : null
+                                      regimen && regimen.extra
+                                        ? regimen.extra.regimens
+                                        : null
                                     )}
                                   </h6>
                                   <strong className="text-teal">
@@ -1154,72 +1188,72 @@ const RecentHistory = (props) => {
                                     {regimen.nextAppointment}
                                   </strong>
                                 </span>
-                                      </li>
-                                    </>
-                                ))}
-                              </>
-                          ) : (
-                              <Alert
-                                  variant="info"
-                                  className="alert-dismissible solid fade show"
-                              >
-                                <p>No Pharmacy Drug Refill</p>
-                              </Alert>
-                          )}
-                        </ul>
-                      </PerfectScrollbar>
-                    </>
-                ) : (
-                    <>
-                      <p>Loading please wait...</p>
-                    </>
-                )}
-              </div>
+                              </li>
+                            </>
+                          ))}
+                        </>
+                      ) : (
+                        <Alert
+                          variant="info"
+                          className="alert-dismissible solid fade show"
+                        >
+                          <p>No Pharmacy Drug Refill</p>
+                        </Alert>
+                      )}
+                    </ul>
+                  </PerfectScrollbar>
+                </>
+              ) : (
+                <>
+                  <p>Loading please wait...</p>
+                </>
+              )}
             </div>
           </div>
         </div>
-        <Modal
-            show={open}
-            toggle={toggle}
-            className="fade"
-            size="md"
-            aria-labelledby="contained-modal-title-vcenter"
-            centered
-            backdrop="static"
-        >
-          <Modal.Header>
-            <Modal.Title id="contained-modal-title-vcenter">
-              Notification!
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <h4>
-              Are you Sure you want to delete{" "}
-              <b>
-                {record && record.name === "Chronic Care"
-                    ? "Care and Support"
-                    : record && record.name}
-              </b>
-            </h4>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-                onClick={() => LoadDeletePage(record)}
-                style={{ backgroundColor: "red", color: "#fff" }}
-                disabled={saving}
-            >
-              {saving === false ? "Yes" : "Deleting..."}
-            </Button>
-            <Button
-                onClick={toggle}
-                style={{ backgroundColor: "#014d88", color: "#fff" }}
-                disabled={saving}
-            >
-              No
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      </Fragment>
+      </div>
+      <Modal
+        show={open}
+        toggle={toggle}
+        className="fade"
+        size="md"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+        backdrop="static"
+      >
+        <Modal.Header>
+          <Modal.Title id="contained-modal-title-vcenter">
+            Notification!
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <h4>
+            Are you Sure you want to delete{" "}
+            <b>
+              {record && record.name === "Chronic Care"
+                ? "Care and Support"
+                : record && record.name}
+            </b>
+          </h4>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            onClick={() => LoadDeletePage(record)}
+            style={{ backgroundColor: "red", color: "#fff" }}
+            disabled={saving}
+          >
+            {saving === false ? "Yes" : "Deleting..."}
+          </Button>
+          <Button
+            onClick={toggle}
+            style={{ backgroundColor: "#014d88", color: "#fff" }}
+            disabled={saving}
+          >
+            No
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Fragment>
   );
 };
 

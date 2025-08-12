@@ -10,14 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class PatientFlagDto {
-
-
     private Long id;
     private Integer surpressionValue;
     private String uuid;
-//    private Integer gracePeriod;
-//    private String message;
-//    private String api;
-
 
 }

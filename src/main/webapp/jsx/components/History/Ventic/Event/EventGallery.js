@@ -45,7 +45,7 @@ export default class EventGallery extends Component{
 	}
 	
 	render() {
-			var settings = {		
+			let settings = {
 				arrows: false,				
 			};
 		return(

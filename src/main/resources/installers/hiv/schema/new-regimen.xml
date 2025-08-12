@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+    <changeSet failOnError="true" author="Taiwo Gboyegun" id="20240926-001">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_regimen_type"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM hiv_regimen_type WHERE id = 16 OR description = 'Paediatric 3rd Line'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO hiv_regimen_type (id, description) VALUES (16, 'Paediatric 3rd Line');
+        </sql>
+<!--        <sql>-->
+<!--            UPDATE ndr_code_set-->
+<!--            SET code = '3a'-->
+<!--            WHERE code = '6c' AND code_description = 'DRV/r-DTG + 1-2 NRTIs';-->
+
+<!--            UPDATE ndr_code_set-->
+<!--            SET code_description = 'DRV/r +DTG ± 1-2 NRTIs'-->
+<!--            WHERE code = '3a' AND code_description = 'AZT-TDF-3TC-LPV/r';-->
+
+<!--            UPDATE ndr_code_set-->
+<!--            SET code_description = 'DRV/r +2NRTIs ± ETV'-->
+<!--            WHERE code = '3b' AND code_description = 'AZT-TDF-FTC-LPV/r';-->
+
+<!--            UPDATE ndr_code_set-->
+<!--            SET code_description = 'DRV/r +DTG or (RAL) ± 1-2 NRTIs'-->
+<!--            WHERE code = '6a' AND code_description = 'DRV/r + 2 NRTIs + 2 NNRTI';-->
+<!--        </sql>-->
+        <sql>
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1000, 'RAL(25mg)+DRV/r(75mg/100mg)+ABC/3TC(120mg/60mg)', 'Raltegravir+Darunavir+Abacavir+Lamivudine', 16, true, 1);
+
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1001, 'RAL(25mg)+DRV/r(75mg/100mg)+ABC/3TC(60mg/30mg)', 'Raltegravir+Darunavir+Abacavir+Lamivudine', 16, true, 1);
+
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1002, 'RAL(25mg)+DRV/r(75mg/120mg)+AZT/3TC(120mg/60mg)', 'Raltegravir+Darunavir+Zidovudine+Lamivudine', 16, true, 1);
+
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1003, 'RAL(25mg)+DRV/r(75mg/100mg)+AZT/3TC(60mg/30mg)', 'Raltegravir+Darunavir+Zidovudine+Lamivudine', 16, true, 1);
+
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1004, 'TDF/3TC(300mg/300mg)+DRV/r(600mg/100mg)+DTG(50mg)+ETV(200mg)', 'Tenofovir+Lamivudine+Darunavir/Ritonavir+Dolutegravir+Etravirine', 14, true, 1);
+
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1005, 'TDF/FTC(300mg/200mg)+DRV/r(600mg/100mg)+DTG(50mg)', 'Tenofovir+Emtricitabine+Darunavir+Ritonavir+Dolutegravir', 14, true, 1);
+
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1006, 'AZT/3TC(300mg/150mg)+DRV/r(600mg/100mg)+ETV(200mg)+DTG(50mg)', 'Zidovudine+Lamivudine+Darunavir/Ritonavir+Etravirine+Dolutegravir', 14, true, 1);
+
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1007, 'AZT/3TC(300mg/150mg)+DRV/r(600mg/100mg)+ETV(200mg)', 'Zidovudine+Lamivudine+Darunavir/Ritonavir+Etravirine', 14, true, 1);
+
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1008, 'AZT/3TC(300mg/150mg)+DRV/r(600mg/100mg)+DTG(50mg)', 'Zidovudine+Lamivudine+Darunavir/Ritonavir+Dolutegravir', 14, true, 1);
+        </sql>
+        <sql>
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('RAL(25mg)+DRV/r(75mg/100mg)+ABC/3TC(120mg/60mg)', 'DRV/r +DTG or (RAL) ± 1-2 NRTIs');
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('RAL(25mg)+DRV/r(75mg/100mg)+ABC/3TC(60mg/30mg)', 'DRV/r +DTG or (RAL) ± 1-2 NRTIs');
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('RAL(25mg)+DRV/r(75mg/120mg)+AZT/3TC(120mg/60mg)', 'DRV/r +DTG or (RAL) ± 1-2 NRTIs' );
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('RAL(25mg)+DRV/r(75mg/100mg)+AZT/3TC(60mg/30mg)', 'DRV/r +DTG or (RAL) ± 1-2 NRTIs');
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('TDF/3TC(300mg/300mg)+DRV/r(600mg/100mg)+DTG(50mg)+ETV(200mg)', 'DRV/r +2NRTIs ± ETV');
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('TDF/FTC300mg/200mg)+DRV/r(600mg/100mg)+DTG(50mg)', 'DRV/r-DTG + 1-2 NRTIs');
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('AZT/3TC(300mg/150mg)+DRV/r(600mg/100mg)+ETV(200mg)+DTG(50mg)', 'DRV/r +2NRTIs ± ETV');
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('AZT/3TC(300mg/150mg)+DRV/r(600mg/100mg)+ETV(200mg)', 'DRV/r-DTG + 1-2 NRTIs');
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('AZT/3TC(300mg/150mg)+DRV/r(600mg/100mg)+DTG(50mg)', 'DRV/r-DTG + 1-2 NRTIs');
+        </sql>
+
+        <sql>
+            INSERT INTO hiv_drug (id, abbrev, name, strength, pack_size, doseform, morning, afternoon, evening, item_id)
+            VALUES (200, 'TDF/3TC', 'Tenofovir Disoproxil Fumarate/ Lamivudine', '300mg/300mg', 0, 'Tablets', 1, 0, 0, 136);
+
+            INSERT INTO hiv_drug (id, abbrev, name, strength, pack_size, doseform, morning, afternoon, evening, item_id)
+            VALUES (201, 'DRV/r', 'Darunavir/ Ritonavir', '600mg/100mg', 0, 'Tablets', 1, 0, 1, 137);
+
+            INSERT INTO hiv_drug (id, abbrev, name, strength, pack_size, doseform, morning, afternoon, evening, item_id)
+            VALUES (202, 'RAL', 'Raltegravir', '25mg', 0, 'Tablets', 1, 0, 1, 138);
+
+            INSERT INTO hiv_drug (id, abbrev, name, strength, pack_size, doseform, morning, afternoon, evening, item_id)
+            VALUES (203, 'DRV', 'Darunavir', '75mg', 0, 'Tablets', 1, 0, 1, 139);
+
+            INSERT INTO hiv_drug (id, abbrev, name, strength, pack_size, doseform, morning, afternoon, evening, item_id)
+            VALUES (204, 'ABC/3TC', 'Abacavir/Lamivudine', '120mg/60mg', 0, 'Tablets', 1, 0, 1, 140);
+
+            INSERT INTO hiv_drug (id, abbrev, name, strength, pack_size, doseform, morning, afternoon, evening, item_id)
+            VALUES (205, 'ETV', 'Etravirine', '200mg', 0, 'Tablets', 1, 0, 1, 142);
+
+            INSERT INTO hiv_drug (id, abbrev, name, strength, pack_size, doseform, morning, afternoon, evening, item_id)
+            VALUES (206, 'AZT/3TC', 'Zidovudine/Lamivudine', '120mg/60mg', 0, 'Tablets', 1, 0, 1, 156);
+
+        </sql>
+        <sql>
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1000, 1000, 202);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1002, 1000, 201);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1003, 1000, 204);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1004, 1001, 202);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1005, 1001, 201);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1006, 1001, 204);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1007, 1002, 202);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1008, 1002, 201);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1009, 1002, 206);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1010, 1003, 202);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1011, 1003, 201);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1012, 1003, 206);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1013, 1004, 200);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1014, 1004, 201);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1015, 1004, 100);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1016, 1004, 205);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1017, 1005, 32);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1018, 1005, 201);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1019, 1005, 100);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1020, 1006, 32);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1021, 1006, 100);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1022, 1006, 201);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1023, 1006, 205);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1024, 1007, 6);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1025, 1007, 201);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1026, 1007, 205);
+
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1027, 1008, 6);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1028, 1008, 201);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1029, 1008, 100);
+        </sql>
+    </changeSet>
+    <changeSet failOnError="true" author="Taiwo Gboyegun" id="202402011-002">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM hiv_regimen WHERE description = 'ABC(120mg)/3TC(60mg)+DTG(50mg)'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES (1009, 'ABC(120mg)/3TC(60mg)+DTG(50mg)', 'Abacavir+Lamivudine+Dolutegravir', 3, true, 1);
+        </sql>
+        <sql>
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('ABC(120mg)/3TC(60mg)+DTG(50mg)', 'ABC+3TC(or FTC)+DTG');
+        </sql>
+        <sql>
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1029, 1009, 120);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1030, 1009, 133);
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id)
+            VALUES (1031, 1009, 122);
+        </sql>
+<!--        <sql>-->
+<!--            INSERT INTO ndr_code_set(code_set_nm, code, code_description, alt_description, sys_description)-->
+<!--            VALUES ('ARV_REGIMEN','4b', 'ABC+3TC(or FTC)+DTG', '', '')-->
+<!--        </sql>-->
+
+    </changeSet>
+
+
+</databaseChangeLog>
+

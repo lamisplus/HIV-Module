@@ -7,25 +7,17 @@ import {FormGroup, Label , CardBody, Spinner,Input,Form, InputGroup,
 } from "reactstrap";
 import {makeStyles} from "@material-ui/core/styles";
 import {Card, CardContent} from "@material-ui/core";
-import SaveIcon from "@material-ui/icons/Save";
-// import AddIcon from "@material-ui/icons/Add";
-// import CancelIcon from "@material-ui/icons/Cancel";
-import {ToastContainer, toast} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
-import { useHistory, } from "react-router-dom";
-// import {TiArrowBack} from 'react-icons/ti'
 import {token, url as baseUrl } from "../../../api";
 import 'react-phone-input-2/lib/style.css'
 import 'semantic-ui-css/semantic.min.css';
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import 'react-phone-input-2/lib/style.css'
-import { Button} from 'semantic-ui-react'
 import {  Message} from 'semantic-ui-react'
 import DualListBox from "react-dual-listbox";
 import 'react-dual-listbox/lib/react-dual-listbox.css';
-import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
     card: {
@@ -67,59 +59,54 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const CODESET_KEYS = [
-  "NUTRITION_EDUCATION_COUNSELLED",
-  "NUTRITION_SUPPORT",
-];
 
 const BasicInfo = (props) => {
-    const { getOptions } = useCodesets(CODESET_KEYS);
     const classes = useStyles();
     const [errors, setErrors] = useState({});
     const [selectedOptions1,setSelectedOptions1] = useState([]);
     const [selectedOptions2,setSelectedOptions2] = useState([]);
     const [nutrition,setNutrition] = useState([]);
     const [nutritionSupport,setNutritionSupport] = useState([]);
-    // useEffect(() => {
-    //     NUTRITION_EDUCATION_COUNSELLED();
-    //     NUTRITION_SUPPORT()
-    // }, []);
+    useEffect(() => {
+        NUTRITION_EDUCATION_COUNSELLED();
+        NUTRITION_SUPPORT()
+    }, []);
     //Get list of NUTRITION_EDUCATION_COUNSELLED
-    // const NUTRITION_EDUCATION_COUNSELLED =()=>{
-    //     axios
-    //         .get(`${baseUrl}application-codesets/v2/NUTRITION_EDUCATION_COUNSELLED`,
-    //             { headers: {"Authorization" : `Bearer ${token}`} }
-    //         )
-    //         .then((response) => {
+    const NUTRITION_EDUCATION_COUNSELLED =()=>{
+        axios
+            .get(`${baseUrl}application-codesets/v2/NUTRITION_EDUCATION_COUNSELLED`,
+                { headers: {"Authorization" : `Bearer ${token}`} }
+            )
+            .then((response) => {
 
-    //             setNutrition(Object.entries(response.data).map(([key, value]) => ({
-    //                 label: value.display,
-    //                 value: value.display,
-    //             })));
-    //         })
-    //         .catch((error) => {
+                setNutrition(Object.entries(response.data).map(([key, value]) => ({
+                    label: value.display,
+                    value: value.display,
+                })));
+            })
+            .catch((error) => {
             
-    //         });
+            });
         
-    // }
+    }
     //Get list of NUTRITION_SUPPORT
-    // const NUTRITION_SUPPORT =()=>{
-    //     axios
-    //         .get(`${baseUrl}application-codesets/v2/NUTRITION_SUPPORT`,
-    //             { headers: {"Authorization" : `Bearer ${token}`} }
-    //         )
-    //         .then((response) => {
+    const NUTRITION_SUPPORT =()=>{
+        axios
+            .get(`${baseUrl}application-codesets/v2/NUTRITION_SUPPORT`,
+                { headers: {"Authorization" : `Bearer ${token}`} }
+            )
+            .then((response) => {
 
-    //             setNutritionSupport(Object.entries(response.data).map(([key, value]) => ({
-    //                 label: value.display,
-    //                 value: value.display,
-    //             })));
-    //         })
-    //         .catch((error) => {
+                setNutritionSupport(Object.entries(response.data).map(([key, value]) => ({
+                    label: value.display,
+                    value: value.display,
+                })));
+            })
+            .catch((error) => {
             
-    //         });
+            });
         
-    // }
+    }
     const [vital, setVitalSignDto]= useState({
         bodyWeight: "",
         height: "",
@@ -155,11 +142,9 @@ const BasicInfo = (props) => {
     }
  
     const onSelectedOption = (selectedValues) => {
-        //setWho({...who, stage2ValueOption: selectedValues})
         setSelectedOptions1(selectedValues);
     }; 
     const onSelectedOption2 = (selectedValues) => {
-        //setWho({...who, stage2ValueOption: selectedValues})
         setSelectedOptions2(selectedValues);
     }; 
 
@@ -202,204 +187,139 @@ const BasicInfo = (props) => {
         { value: 'Referred to community support', label: 'Referred to community support' },
         
     ];
-
-
-    const getNutritionEducationOptions = () => {
-      const educationOptions = getOptions("NUTRITION_EDUCATION_COUNSELLED");
-      return educationOptions.map((item) => ({
-        label: item.display,
-        value: item.display,
-      }));
-    };
-
-    const getNutritionSupportOptions = () => {
-      const supportOptions = getOptions("NUTRITION_SUPPORT");
-      return supportOptions.map((item) => ({
-        label: item.display,
-        value: item.display,
-      }));
-    };
     
     return (
-      <>
-        <Card>
-          <CardBody>
-            <h2 style={{ color: "#000" }}>
-              Nutritional Status Assessment Using Body Mass Index
-            </h2>
-            <br />
-            <form>
-              <div className="row">
-                <div className="form-group mb-3 col-md-8"></div>
-              </div>
-              <div className="row">
-                <div className="row">
-                  <div className=" mb-3 col-md-4">
-                    <FormGroup>
-                      <Label>Body Weight</Label>
-                      <InputGroup>
-                        <Input
-                          type="number"
-                          name="bodyWeight"
-                          id="bodyWeight"
-                          onChange={handleInputChangeVitalSignDto}
-                          min="3"
-                          max="150"
-                          value={vital.bodyWeight}
-                          onKeyUp={handleInputValueCheckBodyWeight}
-                          style={{
-                            border: "1px solid #014D88",
-                            borderRadius: "0rem",
-                          }}
-                        />
-                        <InputGroupText
-                          addonType="append"
-                          style={{
-                            backgroundColor: "#014D88",
-                            color: "#fff",
-                            border: "1px solid #014D88",
-                            borderRadius: "0rem",
-                          }}
-                        >
-                          kg
-                        </InputGroupText>
-                      </InputGroup>
-                      {vitalClinicalSupport.bodyWeight !== "" ? (
-                        <span className={classes.error}>
-                          {vitalClinicalSupport.bodyWeight}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                      {errors.bodyWeight !== "" ? (
-                        <span className={classes.error}>
-                          {errors.bodyWeight}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                  <div className="form-group mb-3 col-md-4">
-                    <FormGroup>
-                      <Label>Height</Label>
-                      <InputGroup>
-                        <InputGroupText
-                          addonType="append"
-                          style={{
-                            backgroundColor: "#014D88",
-                            color: "#fff",
-                            border: "1px solid #014D88",
-                            borderRadius: "0rem",
-                          }}
-                        >
-                          cm
-                        </InputGroupText>
-                        <Input
-                          type="number"
-                          name="height"
-                          id="height"
-                          onChange={handleInputChangeVitalSignDto}
-                          value={vital.height}
-                          min="48.26"
-                          max="216.408"
-                          onKeyUp={handleInputValueCheckHeight}
-                          style={{
-                            border: "1px solid #014D88",
-                            borderRadius: "0rem",
-                          }}
-                        />
-                        <InputGroupText
-                          style={{
-                            backgroundColor: "#992E62",
-                            color: "#fff",
-                            border: "1px solid #992E62",
-                            borderRadius: "0rem",
-                          }}
-                        >
-                          {vital.height !== "" && vital.height !== undefined
-                            ? (vital.height / 100).toFixed(2) + "m"
-                            : "m"}
-                        </InputGroupText>
-                      </InputGroup>
-                      {vitalClinicalSupport.height !== "" ? (
-                        <span className={classes.error}>
-                          {vitalClinicalSupport.height}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                      {errors.height !== "" ? (
-                        <span className={classes.error}>{errors.height}</span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                  <div className="form-group mb-3 mt-2 col-md-4">
-                    {vital.bodyWeight !== "" && vital.height !== "" && (
-                      <FormGroup>
-                        <Label> </Label>
-                        <InputGroup>
-                          <InputGroupText
-                            addonType="append"
-                            style={{
-                              backgroundColor: "#014D88",
-                              color: "#fff",
-                              border: "1px solid #014D88",
-                              borderRadius: "0rem",
-                            }}
-                          >
-                            BMI :{" "}
-                            {(
-                              vital.bodyWeight /
-                              ((vital.height / 100) * (vital.height / 100))
-                            ).toFixed(2)}
-                          </InputGroupText>
+        <>  
+        
+            <Card >
+                <CardBody>   
+                <h2 style={{color:'#000'}}>Nutritional Status Assessment Using Body Mass Index</h2>
+                <br/>
+                    <form >
+                    <div className="row">
+                    <div className="form-group mb-3 col-md-8"></div>   
+                    </div>
+                    <div className="row">
+                  
+                    <div className="row">
+                    <div className=" mb-3 col-md-4">
+                        <FormGroup>
+                        <Label >Body Weight</Label>
+                        <InputGroup> 
+                            <Input 
+                                type="number"
+                                name="bodyWeight"
+                                id="bodyWeight"
+                                onChange={handleInputChangeVitalSignDto}
+                                min="3"
+                                max="150"
+                                value={vital.bodyWeight}
+                                onKeyUp={handleInputValueCheckBodyWeight} 
+                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
+                            />
+                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
+                                kg
+                            </InputGroupText>
                         </InputGroup>
-                      </FormGroup>
-                    )}
-                  </div>
-                </div>
-                {vital.bodyWeight !== "" && vital.height !== "" && (
-                  <div className="form-group mb-3 mt-2 col-md-12">
-                    {BmiCal(
-                      (
-                        vital.bodyWeight /
-                        ((vital.height / 100) * (vital.height / 100))
-                      ).toFixed(2)
-                    )}
-                  </div>
-                )}
-                <br />
-                <div className="form-group mb-3 col-md-12">
-                  <FormGroup>
-                    <Label>Nutrition Education and Counselled</Label>
-                    <DualListBox
-                      //canFilter
-                      options={getNutritionEducationOptions()}
-                      onChange={onSelectedOption}
-                      selected={selectedOptions1}
-                    />
-                  </FormGroup>
-                </div>
-                <div className="form-group mb-3 col-md-12">
-                  <FormGroup>
-                    <Label>Nutrition Support</Label>
-                    <DualListBox
-                      //canFilter
-                      options={getNutritionSupportOptions()}
-                      onChange={onSelectedOption2}
-                      selected={selectedOptions2}
-                    />
-                  </FormGroup>
-                </div>
-              </div>
-              <br />
-            </form>
-          </CardBody>
-        </Card>
-      </>
+                        {vitalClinicalSupport.bodyWeight !=="" ? (
+                                <span className={classes.error}>{vitalClinicalSupport.bodyWeight}</span>
+                        ) : ""}
+                        {errors.bodyWeight !=="" ? (
+                            <span className={classes.error}>{errors.bodyWeight}</span>
+                        ) : "" }
+                        </FormGroup>
+                    </div>                                   
+                    <div className="form-group mb-3 col-md-4">
+                        <FormGroup>
+                        <Label >Height</Label>
+                        <InputGroup> 
+                        <InputGroupText
+                                addonType="append"
+                                
+                                style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}
+                                >
+                                cm
+                        </InputGroupText>
+                            <Input 
+                                type="number"
+                                name="height"
+                                id="height"
+                                onChange={handleInputChangeVitalSignDto}
+                                value={vital.height}
+                                min="48.26"
+                                max="216.408"
+                                onKeyUp={handleInputValueCheckHeight} 
+                                style={{border: "1px solid #014D88", borderRadius:"0rem"}}
+                            />
+                                <InputGroupText
+
+                                style={{ backgroundColor:"#992E62", color:"#fff", border: "1px solid #992E62", borderRadius:"0rem"}}
+                                >
+                                {vital.height!=='' && vital.height!==undefined ? (vital.height/100).toFixed(2) + "m" : "m"}
+                            </InputGroupText>
+                        </InputGroup>
+                        {vitalClinicalSupport.height !=="" ? (
+                            <span className={classes.error}>{vitalClinicalSupport.height}</span>
+                        ) : ""}
+                        {errors.height !=="" ? (
+                            <span className={classes.error}>{errors.height}</span>
+                        ) : "" }
+                        </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 mt-2 col-md-4">
+                        {vital.bodyWeight!=="" && vital.height!=='' && (
+                            <FormGroup>
+                            <Label > {" "}</Label>
+                            <InputGroup> 
+                            <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
+                                BMI : {(vital.bodyWeight/(((vital.height/100) * (vital.height/100)))).toFixed(2)}
+                            </InputGroupText>                   
+                           
+                            </InputGroup>                
+                            </FormGroup>
+                        )}
+                    </div>
+                    </div>
+                    {vital.bodyWeight!=='' && vital.height!=='' && (
+                      <div className="form-group mb-3 mt-2 col-md-12">
+                            {
+                              BmiCal((vital.bodyWeight/(((vital.height/100) * (vital.height/100)))).toFixed(2))
+                            }
+                      </div>
+                     )}
+                    <br/>
+                    <div className="form-group mb-3 col-md-12">                                    
+                        <FormGroup>
+                        <Label >Nutrition Education and Counselled</Label>
+                        <DualListBox
+                            //canFilter
+                            options={nutrition}
+                            onChange={onSelectedOption}
+                            selected={selectedOptions1}
+                        />
+                        </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-12">                                    
+                        <FormGroup>
+                        <Label >Nutrition Support</Label>
+                        <DualListBox
+                            //canFilter
+                            options={nutritionSupport}
+                            onChange={onSelectedOption2}
+                            selected={selectedOptions2}
+                        />
+                        </FormGroup>
+                    </div>
+                    </div>
+                    <br/>
+
+
+                    </form>
+                    
+                </CardBody>
+            </Card> 
+                                     
+        </>
     );
 };
 

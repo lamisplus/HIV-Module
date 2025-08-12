@@ -28,7 +28,6 @@ import { toast } from "react-toastify";
 import { Alert } from "react-bootstrap";
 import { Icon, Button } from "semantic-ui-react";
 import { queryClient } from "../../../utils/queryClient";
-import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -72,9 +71,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CODESET_KEYS = ["TEST_ORDER_PRIORITY", "VIRAL_LOAD_INDICATION"];
 const Laboratory = (props) => {
-    const { getOptions } = useCodesets(CODESET_KEYS);
   let visitId = "";
   const patientObj = props.patientObj;
   const enrollDate =
@@ -112,8 +109,8 @@ const Laboratory = (props) => {
     CheckLabModule();
 
     TestGroup();
-    // PriorityOrder();
-    // ViraLoadIndication();
+    PriorityOrder();
+    ViraLoadIndication();
     //PatientVisit();
   }, [props.patientObj.id]);
 
@@ -129,19 +126,16 @@ const Laboratory = (props) => {
       .catch((error) => {});
   };
   //Get list of Test Group
-  // const PriorityOrder =()=>{
-  //     axios
-  //         .get(`${baseUrl}application-codesets/v2/TEST_ORDER_PRIORITY`,
-  //             { headers: {"Authorization" : `Bearer ${token}`} }
-  //         )
-  //         .then((response) => {
-  //             setPriority(response.data);
-  //         })
-  //         .catch((error) => {
-
-  //         });
-
-  //     }
+  const PriorityOrder = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TEST_ORDER_PRIORITY`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setPriority(response.data);
+      })
+      .catch((error) => {});
+  };
   //Check if Module Exist
   const CheckLabModule = () => {
     axios
@@ -161,18 +155,16 @@ const Laboratory = (props) => {
       .catch((error) => {});
   };
 
-  // const ViraLoadIndication = () => {
-  //     axios
-  //         .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`,
-  //             { headers: { "Authorization": `Bearer ${token}` } }
-  //         )
-  //         .then((response) => {
-  //             setVLIndication(response.data);
-  //         })
-  //         .catch((error) => {
-
-  //         });
-  // }
+  const ViraLoadIndication = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setVLIndication(response.data);
+      })
+      .catch((error) => {});
+  };
   const handleSelectedTestGroup = (e) => {
     setTests({ ...tests, labTestGroupId: e.target.value });
     const getTestList = testGroup.filter(
@@ -1005,13 +997,11 @@ const Laboratory = (props) => {
                           >
                             <option value="">Select </option>
 
-                            {getOptions("VIRAL_LOAD_INDICATION").map(
-                              (value) => (
-                                <option key={value.id} value={value.id}>
-                                  {value.display}
-                                </option>
-                              )
-                            )}
+                            {vLIndication.map((value) => (
+                              <option key={value.id} value={value.id}>
+                                {value.display}
+                              </option>
+                            ))}
                           </Input>
                           {errors.viralLoadIndication !== "" ? (
                             <span className={classes.error}>
@@ -1075,9 +1065,7 @@ const Laboratory = (props) => {
                                 index={index}
                                 order={tests}
                                 testGroupObj={testGroup}
-                                vLIndicationObj={getOptions(
-                                  "VIRAL_LOAD_INDICATION"
-                                )}
+                                vLIndicationObj={vLIndication}
                                 removeOrder={removeOrder}
                               />
                             ))}

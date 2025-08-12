@@ -15,7 +15,6 @@ import { List, Label as LabelSui} from 'semantic-ui-react'
 // import DeleteIcon from '@material-ui/icons/Delete';
 import { toast} from "react-toastify";
 import { queryClient } from '../../../../utils/queryClient';
-import useCodesets from '../../../../hooks/useCodesets';
 // import {Alert } from "react-bootstrap";
 // import { Icon,Button, } from 'semantic-ui-react'
 
@@ -62,9 +61,7 @@ const useStyles = makeStyles(theme => ({
 },
 }))
 
-const CODESET_KEYS = ["VIRAL_LOAD_INDICATION"];
 const Laboratory = (props) => {
-     const { getOptions } = useCodesets(CODESET_KEYS);
     let visitId=""
     //let labNumberOption=""
     const patientObj = props.patientObj;
@@ -121,7 +118,7 @@ const Laboratory = (props) => {
     useEffect(() => {
         GetPatientDTOObj()   
         CheckLabModule();
-        // ViraLoadIndication();
+        ViraLoadIndication();
         LabTestDetail();
         CheckEACStatus();  
         LabNumbers(); 
@@ -149,8 +146,6 @@ const Laboratory = (props) => {
            .then((response) => {
                const patientDTO= response.data.enrollment
                setEnrollDate (patientDTO && patientDTO.dateOfRegistration ? patientDTO.dateOfRegistration :"")
-               //setEacStatusObj(response.data);
-               
            })
            .catch((error) => {
            
@@ -222,55 +217,28 @@ const Laboratory = (props) => {
             });
         
     }
-   
-    // const PatientVisit =()=>{
-    //     axios
-    //         .get(`${baseUrl}patient/visit/visit-detail/${props.patientObj.id}`,
-    //             { headers: {"Authorization" : `Bearer ${token}`} }
-    //         )
-    //         .then((response) => {
-    //             const lastVisit = response.data[response.data.length - 1]
-    //             if(lastVisit.status==="PENDING"){
-    //                 visitId= lastVisit.id
-    //                 //setCurrentVisit(true)
-    //                 setButtonHidden(false)
-    //             }else{
-    //                 toast.error("Patient do not have any active visit")
-    //                 setButtonHidden(true)
-    //                 //setCurrentVisit(false)
-    //             }
 
-    //         })
-    //         .catch((error) => {
-    //         
-    //         });        
-    // }
     //Get list of Test Group
-    // const ViraLoadIndication =()=>{
-    //     axios
-    //         .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`,
-    //             { headers: {"Authorization" : `Bearer ${token}`} }
-    //         )
-    //         .then((response) => {
-    //             setVLIndication(response.data);
-    //         })
-    //         .catch((error) => {
+    const ViraLoadIndication =()=>{
+        axios
+            .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`,
+                { headers: {"Authorization" : `Bearer ${token}`} }
+            )
+            .then((response) => {
+                setVLIndication(response.data);
+            })
+            .catch((error) => {
             
-    //         });        
-    // }
+            });        
+    }
     const handleSelectedTestGroup = e =>{
         setTests ({...tests,  labTestGroupId: e.target.value});
         const getTestList= testGroup.filter((x)=> x.id===parseInt(e.target.value))
         setTest(getTestList[0].labTests)
-        // if(e.target.value==='4'){            
-        //     setVlRequired(true)
-        // }else{
-        //     setVlRequired(false) 
-        // }
     }
     const handleInputChangeObject = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
-        setTests ({...tests,  [e.target.name]: e.target.value});               
+        setTests ({...tests,  [e.target.name]: e.target.value});
     }
     const handleInputChange = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
@@ -279,7 +247,7 @@ const Laboratory = (props) => {
             const onlyPositiveNumber = e.target.value //Math.abs(e.target.value)
             setTests ({...tests,  [e.target.name]: onlyPositiveNumber});
         }else{
-            setTests ({...tests,  [e.target.name]: e.target.value}); 
+            setTests ({...tests,  [e.target.name]: e.target.value});
         }
         if(e.target.name==='dateReceivedAtPcrLab'){
             const dateReceivedAtPcrLab = moment(e.target.value).format("YYYY-MM-DD HH:MM:SS")   //Math.abs(e.target.value)
@@ -289,37 +257,28 @@ const Laboratory = (props) => {
             const dateResultReceived = moment(e.target.value).format("YYYY-MM-DD HH:MM:SS")   //Math.abs(e.target.value)
             setTests ({...tests,  [e.target.name]: dateResultReceived});
         }
-        // if(e.target.name==='pcrLabName'){
-        //     setTests ({...tests,  [e.target.name]: e.target.value});
-        // }
-        //setTests ({...tests,  [e.target.name]: e.target.value});
-                      
     }
-    const handleInputChangeLabNumber = e => {
-        labNumberOption=e.target.value
-        setLabNumberOption(labNumberOption)
-                      
-    }
+
     const handleInputChangeTest = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
-        
+
         if(e.target.value==="16"){
             setShowVLIndication(true)
             setVlRequired(true)
             setErrors({...temp, viralLoadIndication:""})
-            
+
             setTests ({...tests,  labTestId: e.target.value});
         }else{
             setShowVLIndication(false)
-            setVlRequired(false) 
+            setVlRequired(false)
             setTests ({...tests,  labTestId: e.target.value});
         }
-        //setObjValues ({...objValues,  [e.target.name]: e.target.value});       
+        //setObjValues ({...objValues,  [e.target.name]: e.target.value});
     }
 
       //Validations of the forms
-      const validate = () => {  
-        
+      const validate = async () => {
+        // synchronous validations
         temp.sampleTypeId = tests.sampleTypeId ? "" : "This field is required"
         temp.sampleCollectionDate =  tests.sampleCollectionDate ? "" : "This field is required"
         temp.viralLoadIndication = tests.viralLoadIndication ? "" : "This field is required"
@@ -345,15 +304,60 @@ const Laboratory = (props) => {
         showPcrLabDetail &&  (temp.checkedBy = tests.checkedBy ? "" : "This field is required")
         showPcrLabDetail && (temp.approvedBy = tests.approvedBy ? "" : "This field is required")
         
-        setErrors({
-            ...temp
-        })
-        return Object.values(temp).every(x => x == "")
+        // setErrors({
+        //     ...temp
+        // })
+        // return Object.values(temp).every(x => x == "")
+
+          // Update errors with synchronous validations
+          setErrors((prevErrors) => ({
+              ...prevErrors,
+              ...temp,
+          }));
+
+          // Check if all synchronous validations pass
+          const isSyncValid = Object.values(temp).every((x) => x === "");
+
+          // Asynchronous validation for sample number
+          if (tests.sampleNumber) {
+              try {
+                  const response = await axios.get(`${baseUrl}laboratory/check-sample-number?sampleNumber=${tests.sampleNumber}`, {
+                      headers: { Authorization: `Bearer ${token}` },
+                  });
+                  const data = response.data;
+
+                  if (data) {
+                      setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          sampleNumber: "This sample number is already taken.",
+                      }));
+                      return false; // Validation fails
+                  } else {
+                      setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          sampleNumber: "",
+                      }));
+                  }
+              } catch (error) {
+                  console.error("Error validating sample number:", error);
+                  setErrors((prevErrors) => ({
+                      ...prevErrors,
+                      sampleNumber: "An error occurred while checking the sample number.",
+                  }));
+                  return false;
+              }
+          }
+
+          // Return true only if both synchronous and asynchronous validations pass
+          return isSyncValid;
     }
 
-    const handleSubmit = (e) => {        
+    const handleSubmit = async  (e) => {
+        const isValid = await validate();
+        if(!isValid){
+            return;
+        }
         e.preventDefault();
-        if(validate()){
             //tests.labNumber=labNumberOption+"/"+tests.labNumber
             tests.labTestGroupId= testOrderList.labTestGroupId
             tests.labTestId= testOrderList.id
@@ -411,9 +415,7 @@ const Laboratory = (props) => {
                         toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER}); 
                     }                  
                 }); 
-            
-           
-        }
+
     }
     const handleCheckBox =e =>{
         if(e.target.checked){
@@ -457,755 +459,562 @@ const Laboratory = (props) => {
         }
     }
 
-  return (
-    <div>
-      <div className="row">
+  return (      
+      <div >
+
+        <div className="row">
         <div className="col-md-6">
-          <h2>Viral Load Order and Result</h2>
+        <h2>Viral Load Order and Result</h2>
         </div>
-
-        <br />
-        <br />
+     
+        <br/>
+        <br/>
         <Card className={classes.root}>
-          <CardBody>
+            <CardBody>
             {/* {moduleStatus==="1" && ( */}
-            <form>
-              <div className="row">
-                <Row>
-                  <Col md={6} className="form-group mb-3">
-                    <FormGroup>
-                      <Label for="encounterDate">Laboratory Number</Label>
-                      <Input
-                        type="select"
-                        name="labNumber"
-                        id="labNumber"
-                        value={tests.labNumber}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        required
-                      >
-                        <option value="">Select </option>
-
-                        {labNumbers.map((value) => (
-                          <option key={value.id} value={value.id}>
-                            {value.labNumber}
-                          </option>
-                        ))}
-                      </Input>
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={6} className="form-group mb-3">
-                    <FormGroup>
-                      <Label for="labNumber">
-                        Sample Number <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <Input
-                        type="text"
-                        name="sampleNumber"
-                        id="sampleNumber"
-                        value={tests.sampleNumber}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                      ></Input>
-                      {errors.sampleNumber !== "" ? (
-                        <span className={classes.error}>
-                          {errors.sampleNumber}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </Col>
-                  <Col md={6} className="form-group mb-3">
-                    <FormGroup>
-                      <Label for="vlIndication">
-                        VL Indication <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <Input
-                        type="select"
-                        name="viralLoadIndication"
-                        id="viralLoadIndication"
-                        value={tests.viralLoadIndication}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                      >
-                        <option value="">Select </option>
-
-                        {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
-                          <option key={value.id} value={value.id}>
-                            {value.display}
-                          </option>
-                        ))}
-                      </Input>
-                      {errors.viralLoadIndication !== "" ? (
-                        <span className={classes.error}>
-                          {errors.viralLoadIndication}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </Col>
-                  <Col md={6} className="form-group mb-3">
-                    <FormGroup>
-                      <Label for="encounterDate">
-                        Sample Type <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <Input
-                        type="select"
-                        name="sampleTypeId"
-                        id="sampleTypeId"
-                        //min={0}
-                        value={tests.sampleTypeId}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        required
-                      >
-                        <option value="">Select </option>
-                        {labTestDetail.map((value) => (
-                          <option key={value.id} value={value.id}>
-                            {value.sampleTypeName}
-                          </option>
-                        ))}
-                      </Input>
-                      {errors.sampleTypeId !== "" ? (
-                        <span className={classes.error}>
-                          {errors.sampleTypeId}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </Col>
-                  <Col md={6} className="form-group mb-3">
-                    <FormGroup>
-                      <Label for="encounterDate">
-                        Order by <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <Input
-                        type="text"
-                        name="orderBy"
-                        id="orderBy"
-                        value={tests.orderBy}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        required
-                      />
-                      {errors.orderBy !== "" ? (
-                        <span className={classes.error}>{errors.orderBy}</span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </Col>
-                  <Col md={6} className="form-group mb-3">
-                    <FormGroup>
-                      <Label for="encounterDate">
-                        Date Ordered <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <Input
-                        type="date"
-                        name="dateOrderBy"
-                        id="dateOrderBy"
-                        value={tests.dateOrderBy}
-                        onChange={handleInputChange}
-                        min={moment(enrollDate).format("YYYY-MM-DD")}
-                        max={moment(new Date()).format("YYYY-MM-DD")}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        required
-                      />
-                      {errors.dateOrderBy !== "" ? (
-                        <span className={classes.error}>
-                          {errors.dateOrderBy}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </Col>
-                  <Col md={6} className="form-group mb-3">
-                    <FormGroup>
-                      <Label for="encounterDate">
-                        Collected by <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <Input
-                        type="text"
-                        name="sampleCollectedBy"
-                        id="sampleCollectedBy"
-                        value={tests.sampleCollectedBy}
-                        onChange={handleInputChange}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        required
-                      />
-                      {errors.sampleCollectedBy !== "" ? (
-                        <span className={classes.error}>
-                          {errors.sampleCollectedBy}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </Col>
-                  <Col md={6} className="form-group mb-3">
-                    <FormGroup>
-                      <Label for="encounterDate">
-                        {" "}
-                        Date Sample Collected{" "}
-                        <span style={{ color: "red" }}> *</span>
-                      </Label>
-                      <Input
-                        type="datetime-local"
-                        name="sampleCollectionDate"
-                        id="sampleCollectionDate"
-                        value={tests.sampleCollectionDate}
-                        onChange={handleInputChange}
-                        min={
-                          tests.dateOrderBy !== null && tests.dateOrderBy !== ""
-                            ? moment(tests.dateOrderBy).format(
-                                "YYYY-MM-DD HH:MM:SS"
-                              )
-                            : moment(enrollDate).format("YYYY-MM-DD HH:MM:SS")
-                        }
-                        //min={eacStatusObj && eacStatusObj.eacsession && eacStatusObj.eacsession!=='Default' ? eacStatusObj.eacsessionDate :enrollDate}
-                        max={moment(new Date()).format("YYYY-MM-DD HH:MM:SS")}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                        required
-                      />
-                      {errors.sampleCollectionDate !== "" ? (
-                        <span className={classes.error}>
-                          {errors.sampleCollectionDate}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={6} className="mt-4 mb-3">
-                    <div className="form-check custom-checkbox ml-1 ">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        name="asResult"
-                        id="asResult"
-                        value="asResult"
-                        onChange={handleCheckBox}
-                        style={{
-                          border: "1px solid #014D88",
-                          borderRadius: "0.25rem",
-                        }}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="basic_checkbox_1"
-                      >
-                        Has Result ?
-                      </label>
-                    </div>
-                  </Col>
-                  <hr />
-                </Row>
-                {showResult && (
-                  <>
+                <form >
+                <div className="row">
                     <Row>
-                      <Col md={6} className="form-group mb-3">
+                    <Col md={6} className="form-group mb-3">
                         <FormGroup>
-                          <Label for="encounterDate">
-                            Assayed by <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <Input
-                            type="text"
-                            name="assayedBy"
-                            id="assayedBy"
-                            value={tests.assayedBy}
-                            onChange={handleInputChange}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            required
-                          />
-                          {errors.assayedBy !== "" ? (
-                            <span className={classes.error}>
-                              {errors.assayedBy}
-                            </span>
-                          ) : (
-                            ""
-                          )}
-                        </FormGroup>
-                      </Col>
-                      <Col md={6} className="form-group mb-3">
-                        <FormGroup>
-                          <Label for="encounterDate">
-                            Date Assayed{" "}
-                            <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <Input
-                            type="date"
-                            name="dateAssayedBy"
-                            id="dateAssayedBy"
-                            value={tests.dateAssayedBy}
-                            min={moment(tests.sampleCollectionDate).format(
-                              "YYYY-MM-DD"
-                            )}
-                            onChange={handleInputChange}
-                            //min={tests.sampleCollectionDate}
-                            max={
-                              tests.dateResultReceived !== ""
-                                ? tests.dateResultReceived
-                                : moment(new Date()).format("YYYY-MM-DD")
-                            }
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            required
-                          />
-                          {errors.dateAssayedBy !== "" ? (
-                            <span className={classes.error}>
-                              {errors.dateAssayedBy}
-                            </span>
-                          ) : (
-                            ""
-                          )}
-                        </FormGroup>
-                      </Col>
-                      <Col md={6} className="form-group mb-3">
-                        <FormGroup>
-                          <Label for="encounterDate">
-                            Date Result Received{" "}
-                            <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <Input
-                            type="datetime-local"
-                            name="dateResultReceived"
-                            id="dateResultReceived"
-                            value={tests.dateResultReceived}
-                            onChange={handleInputChange}
-                            //min={tests.sampleCollectionDate}
-                            min={moment(tests.sampleCollectionDate).format(
-                              "YYYY-MM-DD HH:MM:SS"
-                            )}
-                            max={moment(new Date()).format(
-                              "YYYY-MM-DD HH:MM:SS"
-                            )}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            required
-                          />
-                          {errors.dateResultReceived !== "" ? (
-                            <span className={classes.error}>
-                              {errors.dateResultReceived}
-                            </span>
-                          ) : (
-                            ""
-                          )}
-                        </FormGroup>
-                      </Col>
-                      <Col md={6} className="form-group mb-3">
-                        <FormGroup>
-                          <Label for="priority">
-                            Result <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <InputGroup>
+                            <Label for="encounterDate">Laboratory Number</Label>                                
                             <Input
-                              type="number"
-                              name="result"
-                              id="result"
-                              value={tests.result}
-                              onChange={handleInputChange}
-                              style={{
-                                border: "1px solid #014D88",
-                                borderRadius: "0rem",
-                              }}
-                            />
+                                type="select"
+                                name="labNumber"
+                                id="labNumber"
+                                value={tests.labNumber}
+                                onChange={handleInputChange}
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                            >
+                                    <option value="">Select </option>
+                                    
+                                    {labNumbers.map((value) => (
+                                        <option key={value.id} value={value.id}>
+                                            {value.labNumber}
+                                        </option>
+                                    ))}
 
-                            {/* <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
+                            </Input>
+                            
+                        </FormGroup>
+                    </Col>
+                    
+                    <Col md={6} className="form-group mb-3">
+                            <FormGroup>
+                                <Label for="labNumber">Sample Number <span style={{ color:"red"}}> *</span></Label>
+                                <Input
+                                type="text"
+                                name="sampleNumber"
+                                id="sampleNumber"
+                                value={tests.sampleNumber}
+                                onChange={handleInputChange}  
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}                 
+                                >
+                                
+                            </Input>
+                            {errors.sampleNumber !=="" ? (
+                                <span className={classes.error}>{errors.sampleNumber}</span>
+                            ) : "" }
+                            </FormGroup>
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
+                            <FormGroup>
+                                <Label for="vlIndication">VL Indication <span style={{ color:"red"}}> *</span></Label>
+                                <Input
+                                type="select"
+                                name="viralLoadIndication"
+                                id="viralLoadIndication"
+                                value={tests.viralLoadIndication}
+                                onChange={handleInputChange}  
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}                 
+                                >
+                                <option value="">Select </option>
+                                                
+                                    {vLIndication.map((value) => (
+                                        <option key={value.id} value={value.id}>
+                                            {value.display}
+                                        </option>
+                                    ))}
+                            </Input>
+                            {errors.viralLoadIndication !=="" ? (
+                                <span className={classes.error}>{errors.viralLoadIndication}</span>
+                            ) : "" }
+                            </FormGroup>
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
+                            <FormGroup>
+                                <Label for="encounterDate">Sample Type <span style={{ color:"red"}}> *</span></Label>
+                                <Input
+                                    type="select"
+                                    name="sampleTypeId"
+                                    id="sampleTypeId"
+                                    //min={0}
+                                    value={tests.sampleTypeId}
+                                    onChange={handleInputChange}
+                                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                    required
+                                >
+                                    <option value="">Select </option>
+                                    {labTestDetail.map((value) => (
+                                        <option key={value.id} value={value.id}>
+                                            {value.sampleTypeName}
+                                        </option>
+                                    ))}
+                                </Input>
+                                {errors.sampleTypeId !=="" ? (
+                                    <span className={classes.error}>{errors.sampleTypeId}</span>
+                                ) : "" }
+                            </FormGroup>
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
+                        <FormGroup>
+                            <Label for="encounterDate">Order by <span style={{ color:"red"}}> *</span></Label>
+                            <Input
+                                type="text"
+                                name="orderBy"
+                                id="orderBy"
+                                value={tests.orderBy}
+                                
+                                onChange={handleInputChange}
+                                
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                            />
+                            {errors.orderBy !=="" ? (
+                                <span className={classes.error}>{errors.orderBy}</span>
+                            ) : "" }
+                        </FormGroup>
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
+                                <FormGroup>
+                                    <Label for="encounterDate">Date Ordered  <span style={{ color:"red"}}> *</span></Label>
+                                    <Input
+                                        type="date"
+                                        name="dateOrderBy"
+                                        id="dateOrderBy"
+                                        value={tests.dateOrderBy}
+                                        onChange={handleInputChange}
+                                        min={moment(enrollDate).format("YYYY-MM-DD")}
+                                        max= {moment(new Date()).format("YYYY-MM-DD") }
+                                        style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                        required
+                                        onKeyPress={(e) => e.preventDefault()}
+                                    />
+                                    {errors.dateOrderBy !=="" ? (
+                                        <span className={classes.error}>{errors.dateOrderBy}</span>
+                                    ) : "" }
+                                </FormGroup>
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
+                        <FormGroup>
+                            <Label for="encounterDate">Collected by <span style={{ color:"red"}}> *</span></Label>
+                            <Input
+                                type="text"
+                                name="sampleCollectedBy"
+                                id="sampleCollectedBy"
+                                value={tests.sampleCollectedBy}
+                                
+                                onChange={handleInputChange}
+                                
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                            />
+                            {errors.sampleCollectedBy !=="" ? (
+                                <span className={classes.error}>{errors.sampleCollectedBy}</span>
+                            ) : "" }
+                        </FormGroup>
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
+                        <FormGroup>
+                            <Label for="encounterDate"> Date Sample Collected <span style={{ color:"red"}}> *</span></Label>
+                            <Input
+                                type="datetime-local"
+                                name="sampleCollectionDate"
+                                id="sampleCollectionDate"
+                                value={tests.sampleCollectionDate}
+                                onChange={handleInputChange}
+                                min={tests.dateOrderBy!==null && tests.dateOrderBy!==''? moment(tests.dateOrderBy).format("YYYY-MM-DD HH:MM:SS") :moment(enrollDate).format("YYYY-MM-DD HH:MM:SS")}
+                                max= {moment(new Date()).format("YYYY-MM-DD HH:MM:SS")}
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                                onKeyPress={(e) => e.preventDefault()}
+                            />
+                            {errors.sampleCollectionDate !=="" ? (
+                                <span className={classes.error}>{errors.sampleCollectionDate}</span>
+                            ) : "" }
+                        </FormGroup>
+                    </Col>
+                    
+                    <Col md={6} className="mt-4 mb-3">
+                        <div className="form-check custom-checkbox ml-1 ">
+                                <input
+                                type="checkbox"
+                                className="form-check-input"                       
+                                name="asResult"
+                                id="asResult"
+                                value="asResult"
+                                onChange={handleCheckBox}
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                />
+                                <label
+                                className="form-check-label"
+                                htmlFor="basic_checkbox_1"
+                                >
+                                Has Result ?
+                                </label>
+                        </div>
+                    </Col>
+                    <hr/>
+                    </Row>
+                    {showResult && (<>
+                        <Row>
+                            <Col md={6} className="form-group mb-3">
+                                <FormGroup>
+                                    <Label for="encounterDate">Assayed by <span style={{ color:"red"}}> *</span></Label>
+                                    <Input
+                                        type="text"
+                                        name="assayedBy"
+                                        id="assayedBy"
+                                        value={tests.assayedBy}                              
+                                        onChange={handleInputChange}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                        required
+                                    />
+                                    {errors.assayedBy !=="" ? (
+                                        <span className={classes.error}>{errors.assayedBy}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </Col>
+                            <Col md={6} className="form-group mb-3">
+                                <FormGroup>
+                                    <Label for="encounterDate">Date Assayed <span style={{ color:"red"}}> *</span></Label>
+                                    <Input
+                                        type="date"
+                                        name="dateAssayedBy"
+                                        id="dateAssayedBy"
+                                        value={tests.dateAssayedBy}
+                                        min={moment(tests.sampleCollectionDate).format("YYYY-MM-DD")}
+                                        onChange={handleInputChange}
+                                        //min={tests.sampleCollectionDate}
+                                        max= {tests.dateResultReceived!==''? tests.dateResultReceived :moment(new Date()).format("YYYY-MM-DD") }
+                                        style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                        required
+                                        onKeyPress={(e) => e.preventDefault()}
+                                    />
+                                    {errors.dateAssayedBy !=="" ? (
+                                        <span className={classes.error}>{errors.dateAssayedBy}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </Col> 
+                            <Col md={6} className="form-group mb-3">
+                                <FormGroup>
+                                    <Label for="encounterDate">Date Result Received <span style={{ color:"red"}}> *</span></Label>
+                                    <Input
+                                        type="datetime-local"
+                                        name="dateResultReceived"
+                                        id="dateResultReceived"
+                                        value={tests.dateResultReceived}
+                                        onChange={handleInputChange}
+                                        //min={tests.sampleCollectionDate}
+                                        min={moment(tests.sampleCollectionDate).format("YYYY-MM-DD HH:MM:SS")}
+                                        max= {moment(new Date()).format("YYYY-MM-DD HH:MM:SS")}
+                                        style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                        required
+                                        onKeyPress={(e) => e.preventDefault()}
+                                    />
+                                    {errors.dateResultReceived !=="" ? (
+                                        <span className={classes.error}>{errors.dateResultReceived}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </Col> 
+                            <Col md={6} className="form-group mb-3">
+                                <FormGroup>
+                                    <Label for="priority">Result <span style={{ color:"red"}}> *</span></Label>
+                                    <InputGroup>
+                                    <Input
+                                        type="text"
+                                        name="result"
+                                        id="result"
+                                        value={tests.result}
+                                        onChange={handleInputChange}  
+                                        style={{border: "1px solid #014D88", borderRadius:"0rem"}}                 
+                                    />
+
+                                    {/* <InputGroupText addonType="append" style={{ backgroundColor:"#014D88", color:"#fff", border: "1px solid #014D88", borderRadius:"0rem"}}>
                                         
                                     </InputGroupText> */}
-                          </InputGroup>
-                          {errors.result !== "" ? (
-                            <span className={classes.error}>
-                              {errors.result}
-                            </span>
-                          ) : (
-                            ""
-                          )}
-                        </FormGroup>
-                      </Col>
-                      <Col md={6} className="form-group mb-3">
-                        <FormGroup>
-                          <Label for="priority">Comment</Label>
-                          <Input
-                            type="textarea"
-                            name="comments"
-                            id="comments"
-                            value={tests.comments}
-                            onChange={handleInputChange}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                          ></Input>
-                        </FormGroup>
-                      </Col>
-                    </Row>
+                                    </InputGroup>
+                                    {errors.result !=="" ? (
+                                        <span className={classes.error}>{errors.result}</span>
+                                    ) : "" }
+                                </FormGroup>
+                            </Col>
+                            <Col md={6} className="form-group mb-3">
+                                <FormGroup>
+                                    <Label for="priority">Comment</Label>
+                                    <Input
+                                        type="textarea"
+                                        name="comments"
+                                        id="comments"
+                                        value={tests.comments}
+                                        onChange={handleInputChange}  
+                                        style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}                 
+                                        >
+                                        
+                                    </Input>
+                                    
+                                </FormGroup>
+                            </Col>
+                        </Row>
                     <Row>
-                      <Col md={6} className="mt-4 mb-3">
-                        <div className="form-check custom-checkbox ml-1 ">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            name="asResultPCR"
-                            id="asResultPCR"
-                            value="asResultPCR"
-                            onChange={handleCheckBoxPCR}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor="basic_checkbox_1"
-                          >
-                            Has PCR Lab Details ?
-                          </label>
-                        </div>
-                      </Col>
+                        <Col md={6} className="mt-4 mb-3">
+                            <div className="form-check custom-checkbox ml-1 ">
+                                    <input
+                                    type="checkbox"
+                                    className="form-check-input"                       
+                                    name="asResultPCR"
+                                    id="asResultPCR"
+                                    value="asResultPCR"
+                                    onChange={handleCheckBoxPCR}
+                                    style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                    />
+                                    <label
+                                    className="form-check-label"
+                                    htmlFor="basic_checkbox_1"
+                                    >
+                                    Has PCR Lab Details ?
+                                    </label>
+                            </div>
+                        </Col>
                     </Row>
-                    <br />
-                    <br />
-                    <hr />
-                  </>
-                )}
-                {showPcrLabDetail && (
-                  <>
+                    <br/>
+                    <br/>
+                    <hr/>
+                    </>)} 
+                    {showPcrLabDetail && (<>
                     <Row>
-                      <Col md={6} className="form-group mb-3">
+                    <Col md={6} className="form-group mb-3">
+                            <FormGroup>
+                                <Label for="vlIndication">PCR Lab Name <span style={{ color:"red"}}> *</span></Label>
+                                <Input
+                                type="select"
+                                name="pcrLabName"
+                                id="pcrLabName"
+                                value={tests.pcrLabName}
+                                onChange={handleInputChange}  
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}                 
+                                >
+                                <option value="">Select </option>
+                                {pcrs.map((value) => (
+                                        <option key={value.labNo} value={value.labNo}>
+                                            {value.name}
+                                        </option>
+                                    ))}             
+                                    
+                            </Input>
+                            {errors.pcrLabName !=="" ? (
+                                <span className={classes.error}>{errors.pcrLabName}</span>
+                            ) : "" }
+                            </FormGroup>
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
+                        {tests.pcrLabName!=="" && (
                         <FormGroup>
-                          <Label for="vlIndication">
-                            PCR Lab Name{" "}
-                            <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <Input
-                            type="select"
-                            name="pcrLabName"
-                            id="pcrLabName"
-                            value={tests.pcrLabName}
-                            onChange={handleInputChange}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                          >
-                            <option value="">Select </option>
-                            {pcrs.map((value) => (
-                              <option key={value.labNo} value={value.labNo}>
-                                {value.name}
-                              </option>
-                            ))}
-                          </Input>
-                          {errors.pcrLabName !== "" ? (
-                            <span className={classes.error}>
-                              {errors.pcrLabName}
-                            </span>
-                          ) : (
-                            ""
-                          )}
-                        </FormGroup>
-                      </Col>
-                      <Col md={6} className="form-group mb-3">
-                        {tests.pcrLabName !== "" && (
-                          <FormGroup>
                             <Label for="encounterDate">PCR Sample No.</Label>
                             <Input
-                              type="text"
-                              name="pcrLabSampleNumber"
-                              id="pcrLabSampleNumber"
-                              value={tests.pcrLabSampleNumber}
-                              onChange={handleInputChange}
-                              style={{
-                                border: "1px solid #014D88",
-                                borderRadius: "0.25rem",
-                              }}
-                              //disabled
+                                type="text"
+                                name="pcrLabSampleNumber"
+                                id="pcrLabSampleNumber"
+                                value={tests.pcrLabSampleNumber}
+                                onChange={handleInputChange}
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                //disabled
                             />
-                          </FormGroup>
-                        )}
-                        {errors.pcrLabSampleNumber !== "" ? (
-                          <span className={classes.error}>
-                            {errors.pcrLabSampleNumber}
-                          </span>
-                        ) : (
-                          ""
-                        )}
-                      </Col>
-
-                      <Col md={6} className="form-group mb-3">
-                        <FormGroup>
-                          <Label for="encounterDate">
-                            Sample logged remotely{" "}
-                          </Label>
-                          <Input
-                            type="select"
-                            name="sampleLoggedRemotely"
-                            id="sampleLoggedRemotely"
-                            //min={0}
-                            value={tests.sampleLoggedRemotely}
-                            onChange={handleInputChange}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            required
-                          >
-                            <option value="">Select </option>
-                            <option value="1">Yes </option>
-                            <option value="0">No </option>
-                          </Input>
+                           
                         </FormGroup>
-                      </Col>
-                      {tests.sampleLoggedRemotely === "1" && (
-                        <Col md={6} className="form-group mb-3">
-                          <FormGroup>
-                            <Label for="encounterDate">
-                              Date Sample logged remotely{" "}
-                              <span style={{ color: "red" }}> *</span>
-                            </Label>
+                        
+                        )}
+                         {errors.pcrLabSampleNumber !=="" ? (
+                                <span className={classes.error}>{errors.pcrLabSampleNumber}</span>
+                            ) : "" }
+                    </Col>
+                   
+                   
+                    <Col md={6} className="form-group mb-3">
+                        <FormGroup>  
+                            <Label for="encounterDate">Sample logged remotely </Label>
                             <Input
-                              type="date"
-                              name="dateSampleLoggedRemotely"
-                              id="dateSampleLoggedRemotely"
-                              //min={0}
-                              value={tests.dateSampleLoggedRemotely}
-                              max={moment(new Date()).format("YYYY-MM-DD")}
-                              onChange={handleInputChange}
-                              style={{
-                                border: "1px solid #014D88",
-                                borderRadius: "0.25rem",
-                              }}
-                              required
+                                type="select"
+                                name="sampleLoggedRemotely"
+                                id="sampleLoggedRemotely"
+                                //min={0}
+                                value={tests.sampleLoggedRemotely}
+                                onChange={handleInputChange}
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                                >
+                                <option value="">Select </option>
+                                <option value="1">Yes </option>
+                                <option value="0">No </option>
+                            </Input>
+                        </FormGroup>
+                    </Col> 
+                    {tests.sampleLoggedRemotely ==='1' && (
+                    <Col md={6} className="form-group mb-3">
+                        <FormGroup>
+                            <Label for="encounterDate">Date Sample logged remotely <span style={{ color:"red"}}> *</span></Label>
+                            <Input
+                                type="date"
+                                name="dateSampleLoggedRemotely"
+                                id="dateSampleLoggedRemotely"
+                                //min={0}
+                                value={tests.dateSampleLoggedRemotely}
+                                max= {moment(new Date()).format("YYYY-MM-DD") }
+                                onChange={handleInputChange}
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                                onKeyPress={(e) => e.preventDefault()}
                             />
-                            {errors.dateSampleLoggedRemotely !== "" ? (
-                              <span className={classes.error}>
-                                {errors.dateSampleLoggedRemotely}
-                              </span>
-                            ) : (
-                              ""
-                            )}
-                          </FormGroup>
-                        </Col>
-                      )}
-                      <Col md={6} className="form-group mb-3">
-                        <FormGroup>
-                          <Label for="encounterDate">
-                            Date Sample Received at PCR Lab{" "}
-                            <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <Input
-                            type="datetime-local"
-                            name="dateReceivedAtPcrLab"
-                            id="dateReceivedAtPcrLab"
-                            value={tests.dateReceivedAtPcrLab}
-                            min={tests.sampleCollectionDate}
-                            onChange={handleInputChange}
-                            //min={moment(tests.sampleCollectionDate).format("YYYY-MM-DD") }
-                            max={moment(new Date()).format(
-                              "YYYY-MM-DD HH:MM:SS"
-                            )}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            required
-                          />
-                          {errors.dateReceivedAtPcrLab !== "" ? (
-                            <span className={classes.error}>
-                              {errors.dateReceivedAtPcrLab}
-                            </span>
-                          ) : (
-                            ""
-                          )}
+                            {errors.dateSampleLoggedRemotely !=="" ? (
+                                <span className={classes.error}>{errors.dateSampleLoggedRemotely}</span>
+                            ) : "" }
                         </FormGroup>
-                      </Col>
-
-                      <Col md={6} className="form-group mb-3">
+                    </Col>
+                    )}
+                    <Col md={6} className="form-group mb-3">
                         <FormGroup>
-                          <Label for="encounterDate">
-                            Checked by <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <Input
-                            type="text"
-                            name="checkedBy"
-                            id="checkedBy"
-                            value={tests.checkedBy}
-                            onChange={handleInputChange}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            required
-                          />
-                          {errors.checkedBy !== "" ? (
-                            <span className={classes.error}>
-                              {errors.checkedBy}
-                            </span>
-                          ) : (
-                            ""
-                          )}
+                            <Label for="encounterDate">Date Sample Received at PCR Lab <span style={{ color:"red"}}> *</span></Label>
+                            <Input
+                                type="datetime-local"
+                                name="dateReceivedAtPcrLab"
+                                id="dateReceivedAtPcrLab"
+                                value={tests.dateReceivedAtPcrLab}
+                                min={tests.sampleCollectionDate}
+                                onChange={handleInputChange}
+                                //min={moment(tests.sampleCollectionDate).format("YYYY-MM-DD") }
+                                max= {moment(new Date()).format("YYYY-MM-DD HH:MM:SS")}
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                                onKeyPress={(e) => e.preventDefault()}
+                            />
+                            {errors.dateReceivedAtPcrLab !=="" ? (
+                                <span className={classes.error}>{errors.dateReceivedAtPcrLab}</span>
+                            ) : "" }
                         </FormGroup>
-                      </Col>
-                      <Col md={6} className="form-group mb-3">
+                    </Col>
+                    
+                    <Col md={6} className="form-group mb-3">
                         <FormGroup>
-                          <Label for="encounterDate">
-                            Date Checked{" "}
-                            <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <Input
-                            type="date"
-                            name="dateCheckedBy"
-                            id="dateCheckedBy"
-                            value={tests.dateCheckedBy}
-                            min={
-                              tests.sampleCollectionDate !== ""
-                                ? tests.sampleCollectionDate
-                                : moment(new Date()).format("YYYY-MM-DD")
-                            }
-                            onChange={handleInputChange}
-                            //min={tests.sampleCollectionDate}
-                            max={moment(new Date()).format("YYYY-MM-DD")}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            required
-                          />
-                          {errors.dateCheckedBy !== "" ? (
-                            <span className={classes.error}>
-                              {errors.dateCheckedBy}
-                            </span>
-                          ) : (
-                            ""
-                          )}
+                            <Label for="encounterDate">Checked by <span style={{ color:"red"}}> *</span></Label>
+                            <Input
+                                type="text"
+                                name="checkedBy"
+                                id="checkedBy"
+                                value={tests.checkedBy}
+                               
+                                onChange={handleInputChange}
+                               
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                            />
+                            {errors.checkedBy !=="" ? (
+                                <span className={classes.error}>{errors.checkedBy}</span>
+                            ) : "" }
                         </FormGroup>
-                      </Col>
-                      <Col md={6} className="form-group mb-3">
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
                         <FormGroup>
-                          <Label for="encounterDate">
-                            Approved by <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <Input
-                            type="text"
-                            name="approvedBy"
-                            id="approvedBy"
-                            value={tests.approvedBy}
-                            onChange={handleInputChange}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            required
-                          />
-                          {errors.approvedBy !== "" ? (
-                            <span className={classes.error}>
-                              {errors.approvedBy}
-                            </span>
-                          ) : (
-                            ""
-                          )}
+                            <Label for="encounterDate">Date Checked <span style={{ color:"red"}}> *</span></Label>
+                            <Input
+                                type="date"
+                                name="dateCheckedBy"
+                                id="dateCheckedBy"
+                                value={tests.dateCheckedBy}
+                                min={tests.sampleCollectionDate!==''? tests.sampleCollectionDate :moment(new Date()).format("YYYY-MM-DD")}
+                                onChange={handleInputChange}
+                                //min={tests.sampleCollectionDate}
+                                max= {moment(new Date()).format("YYYY-MM-DD") }
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                                onKeyPress={(e) => e.preventDefault()}
+                            />
+                            {errors.dateCheckedBy !=="" ? (
+                                <span className={classes.error}>{errors.dateCheckedBy}</span>
+                            ) : "" }
                         </FormGroup>
-                      </Col>
-                      <Col md={6} className="form-group mb-3">
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
                         <FormGroup>
-                          <Label for="encounterDate">
-                            Date Approved{" "}
-                            <span style={{ color: "red" }}> *</span>
-                          </Label>
-                          <Input
-                            type="date"
-                            name="dateApproved"
-                            id="dateApproved"
-                            value={tests.dateApproved}
-                            min={
-                              tests.sampleCollectionDate !== ""
-                                ? tests.sampleCollectionDate
-                                : moment(new Date()).format("YYYY-MM-DD")
-                            }
-                            onChange={handleInputChange}
-                            //min={tests.sampleCollectionDate}
-                            max={moment(new Date()).format("YYYY-MM-DD")}
-                            style={{
-                              border: "1px solid #014D88",
-                              borderRadius: "0.25rem",
-                            }}
-                            required
-                          />
-                          {errors.dateApproved !== "" ? (
-                            <span className={classes.error}>
-                              {errors.dateApproved}
-                            </span>
-                          ) : (
-                            ""
-                          )}
+                            <Label for="encounterDate">Approved by <span style={{ color:"red"}}> *</span></Label>
+                            <Input
+                                type="text"
+                                name="approvedBy"
+                                id="approvedBy"
+                                value={tests.approvedBy}
+                               
+                                onChange={handleInputChange}
+                                
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                            />
+                            {errors.approvedBy !=="" ? (
+                                <span className={classes.error}>{errors.approvedBy}</span>
+                            ) : "" }
                         </FormGroup>
-                      </Col>
-                    </Row>
-                  </>
-                )}
-              </div>
-
-              {saving ? <Spinner /> : ""}
-              <br />
-
-              <MatButton
-                type="submit"
-                variant="contained"
-                color="primary"
-                className={classes.button}
-                startIcon={<SaveIcon />}
-                hidden={buttonHidden}
-                style={{ backgroundColor: "#014d88" }}
-                disabled={saving}
-                onClick={handleSubmit}
-              >
-                {!saving ? (
-                  <span style={{ textTransform: "capitalize" }}>Save</span>
-                ) : (
-                  <span style={{ textTransform: "capitalize" }}>Saving...</span>
-                )}
-              </MatButton>
-            </form>
-          </CardBody>
-        </Card>
-      </div>
+                    </Col>
+                    <Col md={6} className="form-group mb-3">
+                        <FormGroup>
+                            <Label for="encounterDate">Date Approved <span style={{ color:"red"}}> *</span></Label>
+                            <Input
+                                type="date"
+                                name="dateApproved"
+                                id="dateApproved"
+                                value={tests.dateApproved}
+                                min={tests.sampleCollectionDate!==''? tests.sampleCollectionDate :moment(new Date()).format("YYYY-MM-DD")}
+                                onChange={handleInputChange}
+                                //min={tests.sampleCollectionDate}
+                                max= {moment(new Date()).format("YYYY-MM-DD") }
+                                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                                required
+                                onKeyPress={(e) => e.preventDefault()}
+                            />
+                            {errors.dateApproved !=="" ? (
+                                <span className={classes.error}>{errors.dateApproved}</span>
+                            ) : "" }
+                        </FormGroup>
+                    </Col>
+                    </Row>           
+                    </>)}   
+                    
+                </div>
+                    
+                    {saving ? <Spinner /> : ""}
+                    <br />
+                
+                    <MatButton
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        className={classes.button}
+                        startIcon={<SaveIcon />}
+                        hidden={buttonHidden}
+                        style={{backgroundColor:"#014d88"}}
+                        disabled={saving}
+                        onClick={handleSubmit}
+                        >
+                        {!saving ? (
+                        <span style={{ textTransform: "capitalize" }}>Save</span>
+                        ) : (
+                        <span style={{ textTransform: "capitalize" }}>Saving...</span>
+                        )}
+                    </MatButton>
+                
+                </form>
+           
+            </CardBody>
+        </Card> 
+        </div>             
     </div>
   );
 }

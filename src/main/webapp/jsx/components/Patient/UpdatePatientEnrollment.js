@@ -675,7 +675,7 @@ useEffect(() => {
                               <span style={{ color: "red" }}> *</span>
                             </Label>
                             <Input
-                              type="date"
+                               type="date" onKeyPress={(e) => e.preventDefault()}
                               name="dateOfRegistration"
                               id="dateOfRegistration"
                               min="01-01-1980"
@@ -706,7 +706,7 @@ useEffect(() => {
                               <span style={{ color: "red" }}> *</span>
                             </Label>
                             <Input
-                              type="date"
+                               type="date" onKeyPress={(e) => e.preventDefault()}
                               name="dateOfRegistration"
                               id="dateOfRegistration"
                               min={basicInfo.dateOfRegistration}
@@ -848,7 +848,7 @@ useEffect(() => {
                           <span style={{ color: "red" }}> *</span>
                         </Label>
                         <Input
-                          type="date"
+                           type="date" onKeyPress={(e) => e.preventDefault()}
                           name="dateConfirmedHiv"
                           id="dateConfirmedHiv"
                           min={basicInfo.dob}
@@ -1007,7 +1007,7 @@ useEffect(() => {
                                 <FormGroup>
                                   <Label>Date of LMP </Label>
                                   <Input
-                                    type="date"
+                                     type="date" onKeyPress={(e) => e.preventDefault()}
                                     name="dateOfLpm"
                                     id="dateOfLpm"
                                     max={moment(new Date()).format(
@@ -1225,7 +1225,7 @@ useEffect(() => {
                             <FormGroup>
                               <Label>Date Referred To OVC Partner</Label>
                               <Input
-                                type="date"
+                                 type="date" onKeyPress={(e) => e.preventDefault()}
                                 name="dateReferredToOVCPartner"
                                 id="dateReferredToOVCPartner"
                                 min={basicInfo.dob}
@@ -1266,7 +1266,7 @@ useEffect(() => {
                             <FormGroup>
                               <Label>Date Referred From OVC Partner</Label>
                               <Input
-                                type="date"
+                                 type="date" onKeyPress={(e) => e.preventDefault()}
                                 name="dateReferredFromOVCPartner"
                                 id="dateReferredFromOVCPartner"
                                 min={basicInfo.dob}

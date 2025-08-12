@@ -15,16 +15,12 @@ import CancelIcon from "@material-ui/icons/Cancel";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
-//import { useHistory } from "react-router-dom";
-//import {  Modal, Button } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import "react-summernote/dist/react-summernote.css"; // import styles
 import { Spinner } from "reactstrap";
-//import { DateTimePicker } from "react-widgets";
 import { Message } from "semantic-ui-react";
 import { calculate_age_to_number } from "../../../utils";
-import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -93,27 +89,17 @@ const useStyles = makeStyles((theme) => ({
     fontSize: "11px",
   },
 }));
-const CODESET_KEYS = [
-  "CLINICAL_STAGE",
-  "PREGNANCY_STATUS",
-  "FUNCTIONAL _STATUS",
-];
 
 const ArtCommencement = (props) => {
-  const { getOptions } = useCodesets(CODESET_KEYS);
   const patientObj = props.patientObj;
   const [enrollDate, setEnrollDate] = useState("");
-  //let history = useHistory();
   let gender = "";
   const classes = useStyles();
   const [clinicalStage, setClinicalStage] = useState([]);
-  //const [values, setValues] = useState([]);
   const [saving, setSaving] = useState(false);
   const [viraLoadStart, setViraLoadStart] = useState(false);
   const [errors, setErrors] = useState({});
   let temp = { ...errors };
-  //const [tbStatus, setTbStatus] = useState([]);
-  //const [regimenLine, setRegimenLine] = useState([]);
   const [regimenType, setRegimenType] = useState([]);
   const [pregnancyStatus, setpregnancyStatus] = useState([]);
   const [functionalStatus, setFunctionalStatus] = useState([]);
@@ -176,10 +162,10 @@ const ArtCommencement = (props) => {
   const patientAge = calculate_age_to_number(patientObj.dateOfBirth);
   const [patientObject, setPatientObject] = useState(null);
   useEffect(() => {
-    // FunctionalStatus();
-    // WhoStaging();
+    FunctionalStatus();
+    WhoStaging();
     //TBStatus();
-    // PreganacyStatus();
+    PreganacyStatus();
     RegimenLine();
     InitialClinicEvaluation();
     AdultRegimenLine();
@@ -205,14 +191,10 @@ const ArtCommencement = (props) => {
         setPatientObject(response.data);
         objValues.pregnancyStatus = response.data.enrollment.pregnancyStatusId;
 
-         setObjValues((prevValues) => {
-           const newValues = {
-             ...prevValues,
-             pregnancyStatus: response.data.enrollment.pregnancyStatusId,
-           };
-       
-           return newValues;
-         });
+        setObjValues({
+          ...objValues,
+          pregnancyStatus: response.data.enrollment.pregnancyStatusId,
+        });
       })
       .catch((error) => {});
   };
@@ -239,23 +221,23 @@ const ArtCommencement = (props) => {
       })
       .then((response) => {
         const artRegimenChildren = response.data.filter(
-          (x) => x.id === 3 || x.id === 4
+          (x) => x.id === 3 || x.id === 4 || x.id === 16
         );
         setChildRegimenLine(artRegimenChildren);
       })
       .catch((error) => {});
   };
   //Get list of WhoStaging
-  // const WhoStaging = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setClinicalStage(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
+  const WhoStaging = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setClinicalStage(response.data);
+      })
+      .catch((error) => {});
+  };
   const InitialClinicEvaluation = () => {
     axios
       .get(`${baseUrl}observation/person/${props.patientObj.id}`, {
@@ -296,33 +278,32 @@ const ArtCommencement = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of PREGNANCY_STATUS
-  // const PreganacyStatus = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setpregnancyStatus(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
+  //Get list of PREGANACY_STATUS
+  const PreganacyStatus = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setpregnancyStatus(response.data);
+      })
+      .catch((error) => {});
+  };
   ///GET LIST OF FUNCTIONAL%20_STATUS
-  // async function FunctionalStatus() {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setFunctionalStatus(response.data);
-  //       //setValues(response.data)
-  //     })
-  //     .catch((error) => {});
-  // }
+  async function FunctionalStatus() {
+    axios
+      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setFunctionalStatus(response.data);
+        //setValues(response.data)
+      })
+      .catch((error) => {});
+  }
 
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
-    
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
     if (e.target.name === "isViralLoadAtStartOfArt" && e.target.value !== "") {
       if (e.target.value === "true") {
@@ -359,11 +340,6 @@ const ArtCommencement = (props) => {
   const handleInputChangeVitalSignDto = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
     setVitalSignDto({ ...vital, [e.target.name]: e.target.value });
-    // if(e.target.name==='muac'){
-    //     setVitalSignDto ({...vital,  [e.target.name]: e.target.value});
-    // } else{
-    //     setVitalSignDto ({...vital,  [e.target.name]: e.target.value.replace(/\D/g, '')});
-    // }
   };
   const handleSelecteRegimen = (e) => {
     let regimenID = e.target.value;
@@ -462,15 +438,6 @@ const ArtCommencement = (props) => {
       setVitalClinicalSupport({ ...vitalClinicalSupport, temperature: "" });
     }
   };
-  // const handleInputChangeVitalStart =(e)=>{
-  //     if(e.target.value===true ){
-  //         setViraLoadStart(true)
-  //         setObjValues({...objValues, isViralLoadAtStartOfArt:true})
-  //     }else{
-  //         setObjValues({...objValues, isViralLoadAtStartOfArt:false})
-  //         setViraLoadStart(false)
-  //     }
-  // }
 
   //FORM VALIDATION
   const validate = () => {
@@ -483,74 +450,64 @@ const ArtCommencement = (props) => {
     temp.functionalStatusId = objValues.functionalStatusId
       ? ""
       : "This field is required";
-    //temp.tbStatusId = objValues.tbStatusId ? "" : "This field is required"
     temp.bodyWeight = vital.bodyWeight ? "" : "This field is required";
     temp.height = vital.height ? "" : "This field is required";
-    //temp.systolic = vital.systolic ? "" : "This field is required"
-    //temp.diastolic = vital.diastolic ? "" : "This field is required"
     setErrors({
       ...temp,
     });
     return Object.values(temp).every((x) => x == "");
   };
 
-  /**** Submit Button Processing  */
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validate()) {
-      objValues.personId = props.patientObj.id;
-      vital.encounterDate = objValues.visitDate;
-      vital.personId = props.patientObj.id;
-      objValues.vitalSignDto = vital;
-      objValues.hivEnrollmentId = patientObject && patientObject.enrollment.id;
-      objValues.clinicalStageId = objValues.whoStagingId;
-      // if (objValues.pregnancyStatus !== null) {
-      //   const pregnancyDisplay = getOptions("PREGNANCY_STATUS").find(
-      //     (x) => x.id === parseInt(objValues.pregnancyStatus)
-      //   );
-      //   objValues.pregnancyStatus = pregnancyDisplay.display;
-      // }
-      // else{
-      //     objValues.pregnancyStatus = objValues.pregnancyStatus
-      // }
-      //Logic for cd4 value
-      if (objValues.cd4Type === "Flow Cyteometry") {
-        objValues.cd4 = objValues.cd4Count;
-      }
-      
-      setSaving(true);
-      axios
+
+  const prepareObjValues = () => {
+    objValues.personId = props.patientObj.id;
+    vital.encounterDate = objValues.visitDate;
+    vital.personId = props.patientObj.id;
+    objValues.vitalSignDto = vital;
+    objValues.hivEnrollmentId = patientObject?.enrollment.id;
+    objValues.clinicalStageId = objValues.whoStagingId;
+    if (objValues.pregnancyStatus !== null) {
+      const pregnancyDisplay = pregnancyStatus.find(
+          (x) => x.id === parseInt(objValues.pregnancyStatus)
+      );
+      objValues.pregnancyStatus = pregnancyDisplay.code;
+    }
+    if (objValues.cd4Type === "Flow Cyteometry") {
+      objValues.cd4 = objValues.cd4Count;
+    }
+  };
+
+  const saveData = () => {
+    axios
         .post(`${baseUrl}hiv/art/commencement/`, objValues, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {
           setSaving(false);
-          //props.setArt(true)
           props.patientObj.commenced = true;
           toast.success("Record save successful");
-          localStorage.setItem("artCommencement", "true");
           props.setActiveContent({
             ...props.activeContent,
             route: "recent-history",
           });
-          //props.toggle()
-          //props.PatientCurrentStatus()
         })
         .catch((error) => {
           setSaving(false);
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            toast.error(errorMessage);
-          } else {
-            toast.error("Something went wrong. Please try again...");
-          }
+          handleError(error);
         });
+  };
+
+  const handleError = (error) => {
+    if (error.response && error.response.data) {
+      let errorMessage =
+          error.response.data.apierror?.message || "Something went wrong, please try again";
+      toast.error(errorMessage);
+    } else {
+      toast.error("Something went wrong. Please try again...");
     }
   };
+
+
   function BmiCal(bmi) {
     if (bmi < 18.5) {
       return <Message size="mini" color="brown" content="Underweight" />;
@@ -560,6 +517,15 @@ const ArtCommencement = (props) => {
       <Message size="mini" color="blue" content="Overweight/Obese" />;
     }
   }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validate()) {
+      prepareObjValues();
+      setSaving(true);
+      saveData();
+    }
+  };
 
   return (
     <div>
@@ -583,7 +549,7 @@ const ArtCommencement = (props) => {
                         ART Start Date <span style={{ color: "red" }}> *</span>{" "}
                       </Label>
                       <Input
-                        type="date"
+                         type="date" onKeyPress={(e) => e.preventDefault()}
                         name="visitDate"
                         id="visitDate"
                         onChange={handleInputChange}
@@ -614,7 +580,7 @@ const ArtCommencement = (props) => {
                         ART Start Date <span style={{ color: "red" }}> *</span>{" "}
                       </Label>
                       <Input
-                        type="date"
+                         type="date" onKeyPress={(e) => e.preventDefault()}
                         name="visitDate"
                         id="visitDate"
                         onChange={handleInputChange}
@@ -637,24 +603,6 @@ const ArtCommencement = (props) => {
                   </div>
                 </>
               )}
-
-              {/* <div className="form-group mb-3 col-md-4">
-                        <FormGroup>
-                        <Label for="cd4">CD4 at start of ART </Label>
-                        <Input
-                            type="text"
-                            name="cd4"
-                            id="cd4"
-                            min={0}
-                            onChange={handleInputChange}
-                            value={objValues.cd4}
-                            style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                            
-                        />
-                        
-                        </FormGroup>
-                    </div>
-                 */}
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label for="cd4Percentage">CD4%</Label>
@@ -863,7 +811,7 @@ const ArtCommencement = (props) => {
                     <FormGroup>
                       <Label>Date of Viral Load at Start of ART</Label>
                       <Input
-                        type="date"
+                         type="date" onKeyPress={(e) => e.preventDefault()}
                         name="dateOfViralLoadAtStartOfArt"
                         id="dateOfViralLoadAtStartOfArt"
                         max={moment(new Date()).format("YYYY-MM-DD")}
@@ -898,7 +846,7 @@ const ArtCommencement = (props) => {
                     }}
                   >
                     <option value=""> Select</option>
-                    {getOptions("CLINICAL_STAGE").map((value) => (
+                    {clinicalStage.map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -915,7 +863,7 @@ const ArtCommencement = (props) => {
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
                   <Label>
-                    Functional Status<span style={{ color: "red" }}> *</span>
+                    Functional Status <span style={{ color: "red" }}> *</span>
                   </Label>
                   <Input
                     type="select"
@@ -931,7 +879,7 @@ const ArtCommencement = (props) => {
                   >
                     <option value=""> Select</option>
 
-                    {getOptions("FUNCTIONAL _STATUS").map((value) => (
+                    {functionalStatus.map((value) => (
                       <option key={value.id} value={value.id}>
                         {value.display}
                       </option>
@@ -970,7 +918,7 @@ const ArtCommencement = (props) => {
                         name="pregnancyStatus"
                         id="pregnancyStatus"
                         onChange={handleInputChange}
-                        value={objValues.pregnancyStatus || ""}
+                        value={objValues.pregnancyStatus}
                         style={{
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
@@ -978,7 +926,7 @@ const ArtCommencement = (props) => {
                         //disabled
                       >
                         <option value=""> Select</option>
-                        {getOptions("PREGNANCY_STATUS").map((value) => (
+                        {pregnancyStatus.map((value) => (
                           <option key={value.id} value={value.id}>
                             {value.display}
                           </option>
@@ -991,7 +939,7 @@ const ArtCommencement = (props) => {
                       <FormGroup>
                         <Label>LMP</Label>
                         <Input
-                          type="date"
+                           type="date" onKeyPress={(e) => e.preventDefault()}
                           name="dateOfLpm"
                           id="dateOfLpm"
                           onChange={handleInputChange}
@@ -1009,31 +957,6 @@ const ArtCommencement = (props) => {
               ) : (
                 ""
               )}
-              {/* <div className="form-group mb-3 col-md-4">
-                        <FormGroup>
-                        <Label >TB Status</Label>
-                        <Input
-                            type="select"
-                            name="tbStatusId"
-                            id="tbStatusId"
-                            value={objValues.tbStatusId}
-                            onChange={handleInputChange}
-                            style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                            required
-                            >
-                                <option value=""> Select</option>
-        
-                               {getOptions('TB_STATUS').map((value) => (
-                          <option key={value.id} value={value.id}>
-                            {value.display}
-                          </option>
-                        ))}
-                        </Input>
-                        {errors.tbStatusId !=="" ? (
-                            <span className={classes.error}>{errors.tbStatusId}</span>
-                            ) : "" }
-                        </FormGroup>
-                    </div> */}
               <div className="row">
                 <div className=" mb-3 col-md-4">
                   <FormGroup>
@@ -1293,11 +1216,11 @@ const ArtCommencement = (props) => {
                             borderRadius: "0rem",
                           }}
                         >
-                          BMI:{" "}
+                          BMI :{" "}
                           {(
                             vital.bodyWeight /
-                            (vital.height / 100) ** 2
-                          ).toFixed(1)}
+                            ((vital.height / 100) * (vital.height / 100))
+                          ).toFixed(2)}
                         </InputGroupText>
                       </InputGroup>
                     </FormGroup>

@@ -109,11 +109,15 @@ const ChildRegimenNextAppointment = (props) => {
   const [adultRegimenLine, setAdultRegimenLine] = useState([]);
   useEffect(() => {
     if (props.observation.data) {
-      setRegimen(props.observation.data.regimen);
+      setRegimen({
+        regimenLine: props.observation.data.regimen.regimenLine || "",
+        regimen: props.observation.data.regimen.regimen || ""
+      });
       objValues.nextAppointment = props.observation.data.nextAppointment;
       objValues.clinicianName = props.observation.data.clinicianName;
     }
     AdultRegimenLine();
+    RegimenType(props.observation.data.regimen.regimenLine)
   }, [props.observation.data]);
   const handleRegimen = (e) => {
     setRegimen({ ...regimenObj, [e.target.name]: e.target.value });
@@ -133,7 +137,7 @@ const ChildRegimenNextAppointment = (props) => {
       })
       .then((response) => {
         const artRegimenChildren = response.data.filter(
-          (x) => x.id === 3 || x.id === 4 
+          (x) => x.id === 3 || x.id === 4 || x.id === 16
         );
         setAdultRegimenLine(artRegimenChildren);
       })

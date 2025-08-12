@@ -2,7 +2,6 @@ package org.lamisplus.modules.hiv.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.audit4j.core.util.Log;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.module.ModuleService;
 import org.lamisplus.modules.hiv.domain.dto.EACPharmacyDisplayDto;
@@ -20,10 +19,7 @@ import org.springframework.stereotype.Service;
 import reactor.util.UUIDUtils;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,15 +37,30 @@ public class HIVEacService {
 	private final ModuleService moduleService;
 	
 	private final HIVEacSessionRepository hivEacSessionRepository;
-	
-	
+
 	public List<HIVEacDto> getPatientEAcs(Long patientId) {
 		Person person = personRepository.findById(patientId)
 				.orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(patientId)));
+
 		if (moduleService.exist("Lab")) {
 			List<LabEacInfo> patientAllEacs = hivEacRepository.getPatientAllEacs(patientId);
-			patientAllEacs
+			List<LocalDate> existingDates = hivEacRepository
+					.getAllByPersonAndArchived(person, 0)
 					.stream()
+					.map(HIVEac::getDateOfLastViralLoad)
+					.collect(Collectors.toList());
+
+			// Deduplicate LabEacInfo objects by resultDate, retaining only the first occurrence
+			Map<LocalDate, LabEacInfo> uniqueRecordsByDate = patientAllEacs.stream()
+					.filter(labEacInfo -> !existingDates.contains(labEacInfo.getResultDate().toLocalDate()))
+					.collect(Collectors.toMap(
+							labEacInfo -> labEacInfo.getResultDate().toLocalDate(), // Key: resultDate
+							labEacInfo -> labEacInfo,                              // Value: LabEacInfo object
+							(existing, replacement) -> existing                     // Keep the first occurrence
+					));
+
+			// Process the unique records
+			uniqueRecordsByDate.values().stream()
 					.map(labEacInfo -> HIVEacDto.builder()
 							.labNumber(labEacInfo.getLabNumber())
 							.dateOfLastViralLoad(labEacInfo.getResultDate().toLocalDate())
@@ -60,16 +71,18 @@ public class HIVEacService {
 							.status("NOT COMMENCED")
 							.personId(patientId).build()
 					)
-					.filter(ln -> !(hivEacRepository.getHIVEacByPersonAndLabNumber(person, ln.getLabNumber()).isPresent()))
 					.map(this::mapDtoEntity)
 					.map(hivEacRepository::save)
 					.collect(Collectors.toList());
-			
 		}
+
 		return hivEacRepository.getAllByPersonAndArchived(person, 0)
-				.stream().map(this::mapEntityDto)
+				.stream()
+				.map(this::mapEntityDto)
 				.collect(Collectors.toList());
 	}
+
+
 	
 	public EACPharmacyDisplayDto getPatientOpenEAc(Long patientId) {
 		Person person = personRepository.findById(patientId)

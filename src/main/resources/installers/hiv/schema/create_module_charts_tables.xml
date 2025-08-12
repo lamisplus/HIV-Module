@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet id="20250801-1019" author="Peter Abiodun">
+        <sql>
+
+            CREATE TABLE IF NOT EXISTS public.patientmodule_chart
+            (
+                id uuid,
+                indicator_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                display_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                description character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                location character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                "position" integer DEFAULT 0,
+                type character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                icon character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                query character varying(5000) COLLATE pg_catalog."default" NOT NULL,
+                created_date timestamp without time zone,
+                created_by character varying(255) COLLATE pg_catalog."default",
+                last_modified_date timestamp without time zone,
+                last_modified_by character varying(255) COLLATE pg_catalog."default",
+                archived integer,
+                CONSTRAINT pk_patientmodule_chart PRIMARY KEY (indicator_name),
+                CONSTRAINT id_patientmodule_chart_unique UNIQUE (id)
+                );
+
+            CREATE TABLE IF NOT EXISTS public.biometricmodule_chart
+            (
+                id uuid,
+                indicator_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                display_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                description character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                location character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                "position" integer DEFAULT 0,
+                type character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                icon character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                query character varying(5000) COLLATE pg_catalog."default" NOT NULL,
+                created_date timestamp without time zone,
+                created_by character varying(255) COLLATE pg_catalog."default",
+                last_modified_date timestamp without time zone,
+                last_modified_by character varying(255) COLLATE pg_catalog."default",
+                archived integer,
+                CONSTRAINT pk_biometricmodule_chart PRIMARY KEY (indicator_name),
+                CONSTRAINT id_biometricmodule_chart_unique UNIQUE (id)
+                );
+
+            CREATE TABLE IF NOT EXISTS public.hivmodule_chart
+            (
+                id uuid,
+                indicator_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                display_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                description character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                location character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                "position" integer DEFAULT 0,
+                type character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                icon character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                query character varying(5000) COLLATE pg_catalog."default" NOT NULL,
+                created_date timestamp without time zone,
+                created_by character varying(255) COLLATE pg_catalog."default",
+                last_modified_date timestamp without time zone,
+                last_modified_by character varying(255) COLLATE pg_catalog."default",
+                archived integer,
+                CONSTRAINT pk_hivmodule_chart PRIMARY KEY (indicator_name),
+                CONSTRAINT id_hivmodule_chart_unique UNIQUE (id)
+                );
+
+            CREATE TABLE IF NOT EXISTS public.htsmodule_chart
+            (
+                id uuid,
+                indicator_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                display_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                description character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                location character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                "position" integer DEFAULT 0,
+                type character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                icon character varying(255) COLLATE pg_catalog."default" NOT NULL,
+                query character varying(5000) COLLATE pg_catalog."default" NOT NULL,
+                created_date timestamp without time zone,
+                created_by character varying(255) COLLATE pg_catalog."default",
+                last_modified_date timestamp without time zone,
+                last_modified_by character varying(255) COLLATE pg_catalog."default",
+                archived integer,
+                CONSTRAINT pk_htsmodule_chart PRIMARY KEY (indicator_name),
+                CONSTRAINT id_htsmodule_chart_unique UNIQUE (id)
+                );
+
+            INSERT INTO public.patientmodule_chart(
+                id, indicator_name, display_name, description, location, position, type, icon, query, created_date, created_by, last_modified_date, last_modified_by, archived
+            ) VALUES ('71f2ee2b-6299-41db-9bd0-bb60f1a1410b', 'TOTAL_RECORDS', 'Total Records', 'Total Records', 'core', 0, 'card', 'fa-users', 'SELECT COUNT(1) FROM patient_person WHERE facility_id=?facilityId AND archived=0', '2025-07-30 14:24:28.86492', 'Schema', '2025-07-30 14:24:28.86492', 'Schema', 0);
+
+            INSERT INTO public.htsmodule_chart(
+                id, indicator_name, display_name, description, location, position, type, icon, query, created_date, created_by, last_modified_date, last_modified_by, archived
+            ) VALUES ('bdd208a4-a646-486d-9898-c30cd7e907d2', 'TOTAL_TESTED_FOR_HIV', 'Total tested For HIV', 'Total Tested For Hiv', 'core', 1,'card', 'fa-user-md', 'SELECT COUNT (uuid) totalHTSCount FROM hts_client WHERE archived = 0 AND person_uuid IS NOT NULL AND hiv_test_result IS NOT NULL AND facility_id=?facilityId', '2025-07-30 14:24:28.86492', 'Schema', '2025-07-30 14:24:28.86492', 'Schema', 0);
+
+            INSERT INTO public.htsmodule_chart(
+                id, indicator_name, display_name, description, location, position, type, icon, query, created_date, created_by, last_modified_date, last_modified_by, archived
+            ) VALUES ('d43cffcf-8690-4b55-a7a4-d2c404fb0fe7', 'TOTAL_POSITIVE', 'Total HIV Positive', 'Total Positive', 'core', 2,'card', 'fa-plus-square',
+                      'SELECT COUNT (uuid) totalHTSCount FROM hts_client
+                    WHERE archived = 0 AND person_uuid IS NOT NULL AND hiv_test_result IS NOT NULL
+                    AND hiv_test_result ILIKE ''%Positive%''
+                    AND facility_id=?facilityId
+                ', '2025-07-30 14:24:28.86492', 'Schema', '2025-07-30 14:24:28.86492', 'Schema', 0);
+
+            INSERT INTO public.hivmodule_chart(
+                id, indicator_name, display_name, description, location, position, type, icon, query, created_date, created_by, last_modified_date, last_modified_by, archived
+            ) VALUES ('c1ecbdab-ef42-4435-af2a-5e16d283b097', 'EVER_ENROLLED', 'Ever Enrolled Into HIV', 'Ever Enrolled', 'core', 3,'card', 'fa-heartbeat',
+                      'SELECT COUNT(1) FROM hiv_enrollment WHERE facility_id=?facilityId AND archived=0', '2025-07-30 14:24:28.86492', 'Schema', '2025-07-30 14:24:28.86492', 'Schema', 0);
+
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

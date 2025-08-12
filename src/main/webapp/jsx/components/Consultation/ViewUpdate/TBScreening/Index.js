@@ -3,7 +3,6 @@ import { Input, Label, FormGroup } from "reactstrap";
 import { makeStyles } from "@material-ui/core/styles";
 import { token, url as baseUrl } from "./../../../../../api";
 import axios from "axios";
-import useCodesets from "../../../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -78,9 +77,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CODESET_KEYS = ["TB_STATUS"];
 const TBScreeningForm = (props) => {
-      const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   const [tbStatus, setTbStatus] = useState([]);
   // useEffect(() => {
@@ -109,25 +106,25 @@ const TBScreeningForm = (props) => {
   //     props.tbObj.tbStatusId = "";
   //   }
   // }, [props.tbObj]);
-  // useEffect(() => {
-  //   TBStatus()
-  // }, []);
+  useEffect(() => {
+    TBStatus()
+  }, []);
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
-  // const TBStatus = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
+  const TBStatus = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
        
-  //       setTbStatus(response.data);
+        setTbStatus(response.data);
        
-  //     })
-  //     .catch((error) => {
+      })
+      .catch((error) => {
         
-  //     });
-  // };
+      });
+  };
   const handleInputChange = (e) => {
     
     props.setTbObj({ ...props.tbObj, [e.target.name]: e.target.value });
@@ -306,7 +303,7 @@ const TBScreeningForm = (props) => {
               <option value=""></option>
               {props.tbObj.tbStatusId === 67 ? (
                 <>
-                  {getOptions("TB_STATUS")
+                  {tbStatus
                     .filter((x) => x.id === 67 || x.id === 633)
                     .map((value) => (
                       <option key={value.id} value={value.id}>
@@ -317,7 +314,7 @@ const TBScreeningForm = (props) => {
               ) : (
                 <>
                   <option value=""></option>
-                  {getOptions("TB_STATUS").map((value) => (
+                  {tbStatus.map((value) => (
                     <option key={value.id} value={value.id}>
                       {value.display}
                     </option>
@@ -336,24 +333,26 @@ const TBScreeningForm = (props) => {
         <div className="form-group mb-3 col-md-6">
           <FormGroup>
             <Label>Patient TB Status</Label>
+            <span style={{color: "red"}}> *</span>
             <Input
-              type="select"
-              // name="tcareCardPatientTbStatus"
-              // id="careCardPatientTbStatus"
-              name="tbStatusId"
-              id="tbStatusId"
-              value={props.tbObj.tbStatusId}
-              // value={props.tbObj.careCardPatientTbStatus}
-              onChange={handleInputChange}
-              style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
-              disabled={!props.enableUpdate}
+                type="select"
+                // name="tcareCardPatientTbStatus"
+                // id="careCardPatientTbStatus"
+                name="tbStatusId"
+                id="tbStatusId"
+                value={props.tbObj.tbStatusId}
+                // value={props.tbObj.careCardPatientTbStatus}
+                onChange={handleInputChange}
+                style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                disabled={!props.enableUpdate}
             >
-              <option value="">Select </option>
-              {getOptions("TB_STATUS").map((tb) => (
-                <option key={tb.id} value={tb.id}>
-                  {tb.display}
-                </option>
-              ))}
+              <option value="">Select</option>
+              {tbStatus &&
+                  tbStatus.map((tb) => (
+                      <option key={tb.id} value={tb.id}>
+                        {tb.display}
+                      </option>
+                  ))}
             </Input>
           </FormGroup>
           {/*{props.errors.careCardPatientTbStatus !== "" ? (*/}

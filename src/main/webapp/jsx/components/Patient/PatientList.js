@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import MaterialTable, { MTableToolbar } from "material-table";
 import axios from "axios";
 
@@ -35,12 +35,6 @@ import moment from "moment";
 import { calculate_age } from "../../../utils";
 //import { FaUserPlus } from "react-icons/fa";
 import { TiArrowForward } from "react-icons/ti";
-import CustomTable from "../../../reuseables/CustomTable";
-import FindPatientActions from "../Globals/FindPatientActions";
-import FindPatientName from "../Globals/FindPatientName";
-import { usePermissions } from "../../../hooks/usePermissions";
-import { useFindPatientData } from "../../../hooks/useFindPatientData";
-
 
 //Dtate Picker package
 Moment.locale("en");
@@ -113,66 +107,157 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Patients = () => {
+const Patients = (props) => {
   const [showPPI, setShowPPI] = useState(true);
-  const { fetchPatients } = useFindPatientData(baseUrl, token);
-
   const handleCheckBox = (e) => {
-    setShowPPI(!e.target.checked);
+    if (e.target.checked) {
+      setShowPPI(false);
+    } else {
+      setShowPPI(true);
+    }
   };
-
-  const columns = useMemo(
-    () => [
-      {
-        title: "Patient Name",
-        field: "name",
-        hidden: showPPI,
-        render: (rowData) => <FindPatientName row={rowData} />,
-      },
-      {
-        title: "Hospital Number",
-        field: "hospitalNumber",
-      },
-      { title: "Sex", field: "sex" },
-      { title: "Age", field: "age" },
-      // {
-      //   title: "ART Status",
-      //   field: "status",
-      //   render: (rowData) => (
-      //     <Label color="blue" size="mini">
-      //       {rowData.currentStatus}
-      //     </Label>
-      //   ),
-      // },
-      {
-        title: "Actions",
-        field: "actions",
-        render: (rowData) => <FindPatientActions row={rowData} />,
-      },
-    ],
-    [showPPI]
-  );
-
-  const getData = async (query) => {
-    const result = await fetchPatients(query);
-    return result;
-  };
-
 
   return (
     <div>
-      <CustomTable
-        title="Find Patient"
-        columns={columns}
-        data={getData}
+      <MaterialTable
         icons={tableIcons}
-        showPPI={showPPI}
-        onPPIChange={handleCheckBox}
+        title="Find Patient"
+        columns={[
+          {
+            title: "Patient Name",
+            field: "name",
+            hidden: showPPI,
+          },
+          {
+            title: "Hospital Number",
+            field: "hospital_number",
+            filtering: false,
+          },
+          { title: "Sex", field: "sex", filtering: false },
+          { title: "Age", field: "age", filtering: false },
+          // { title: "ART Status", field: "status", filtering: false },
+          { title: "Actions", field: "actions", filtering: false },
+        ]}
+        data={(query) =>
+          new Promise((resolve, reject) =>
+            axios
+              .get(
+                `${baseUrl}hiv/patients?pageSize=${query.pageSize}&pageNo=${query.page}&searchValue=${query.search}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              )
+              .then((response) => response)
+              .then((result) => {
+                resolve({
+                  data: result.data.records.map((row) => ({
+                    name:
+                     row.firstName + " " + row.surname,
+                    hospital_number: row.hospitalNumber,
+                    sex: row.sex,
+                    age: calculate_age(row.dateOfBirth),
+                    actions: (
+                      <div>
+                          <>
+                            <Link
+                              to={{
+                                pathname: "/enroll-patient",
+                                state: { patientId: row.id, patientObj: row },
+                              }}
+                            >
+                              <ButtonGroup
+                                variant="contained"
+                                aria-label="split button"
+                                style={{
+                                  backgroundColor: "rgb(153, 46, 98)",
+                                  height: "30px",
+                                  width: "215px",
+                                }}
+                                size="large"
+                              >
+                                <Button
+                                  color="primary"
+                                  size="small"
+                                  aria-label="select merge strategy"
+                                  aria-haspopup="menu"
+                                  style={{
+                                    backgroundColor: "rgb(153, 46, 98)",
+                                  }}
+                                >
+                                  <TiArrowForward />
+                                </Button>
+                                <Button
+                                  style={{
+                                    backgroundColor: "rgb(153, 46, 98)",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: "12px",
+                                      color: "#fff",
+                                      fontWeight: "bolder",
+                                    }}
+                                  >
+                                    Enroll Patient
+                                  </span>
+                                </Button>
+                              </ButtonGroup>
+                            </Link>
+                          </>
+                      </div>
+                    ),
+                  })),
+                  page: query.page,
+                  totalCount: result.data.totalRecords,
+                });
+              })
+          )
+        }
+        options={{
+          search: true,
+          headerStyle: {
+            backgroundColor: "#014d88",
+            color: "#fff",
+          },
+          searchFieldStyle: {
+            width: "200%",
+            margingLeft: "250px",
+          },
+          filtering: false,
+          exportButton: false,
+          searchFieldAlignment: "left",
+          pageSizeOptions: [10, 20, 100],
+          pageSize: 10,
+          debounceInterval: 300,
+        }}
+        components={{
+          Toolbar: (props) => (
+            <div>
+              <div className="form-check custom-checkbox  float-left mt-4 ml-3 ">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  name="showPP!"
+                  id="showPP"
+                  value="showPP"
+                  checked={showPPI === true ? false : true}
+                  onChange={handleCheckBox}
+                  style={{
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
+                  }}
+                />
+                <label className="form-check-label" htmlFor="basic_checkbox_1">
+                  <b style={{ color: "#014d88", fontWeight: "bold" }}>
+                    SHOW PII
+                  </b>
+                </label>
+              </div>
+              <MTableToolbar {...props} />
+            </div>
+          ),
+        }}
       />
     </div>
   );
 };
 
-export default memo(Patients);
-
-
+export default Patients;

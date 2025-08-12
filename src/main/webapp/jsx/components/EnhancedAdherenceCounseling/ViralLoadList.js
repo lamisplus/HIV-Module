@@ -120,10 +120,13 @@ const LabHistory = (props) => {
     }
 
 
-    const onClickHome = (row, actionType) =>{  
-        // props.setActiveContent({...props.activeContent, route:'pharmacy', activeTab:"hsitory"})
+    const onClickHome = (row, actionType) =>{
          props.setActiveContent({...props.activeContent, route:'eac-session', id:row.id, activeTab:"history", actionType:actionType, obj:row})
      }
+
+    const LoadEacOutCome = (row, actionType) =>{
+        props.setActiveContent({...props.activeContent, route:'eac-outcome', id:row.id, activeTab:"history", actionType:actionType, obj:row})
+    }
 
      const LoadDeletePage = (row) =>{  
       axios.delete(`${baseUrl}laboratory/rde-orders/tests/${row.id}`,
@@ -144,22 +147,14 @@ const LabHistory = (props) => {
           }); 
    }
 
-   //const LabObj = [{"id":16,"orderId":13,"patientId":9,"visitId":0,"labTestGroupId":4,"labTestGroupName":"Others","labTestId":16,"labTestName":"Viral Load","labNumber":"788","sampleCollectionDate":"2022-09-08","dateAssayed":"2022-09-09","result":"78","dateResultReceived":"2022-09-09","comments":"good","viralLoadIndication":297,"viralLoadIndicationName":"Targeted Monitoring"}]
-
-
   return (
     <div>
             <br/>
         
             <MaterialTable
             icons={tableIcons}
-              title="Laboratory Order"
+              title="EAC LIST"
               columns={[
-              // { title: " ID", field: "Id" },
-                // {
-                //   title: "Test Group",
-                //   field: "testGroup",
-                // },
                 { title: "Test Name", field: "testName", filtering: false },
                 { title: "Lab Number", field: "labNumber", filtering: false },
                 { title: "Viral Load", field: "lastViralLoad", filtering: false },
@@ -170,8 +165,6 @@ const LabHistory = (props) => {
               ]}
               isLoading={loading}
               data={ orderList.map((row) => ({
-                  //Id: manager.id,
-                  //testGroup:row.testGroup,
                   testName: row.testName,
                   labNumber: row.labNumber,
                   lastViralLoad: row.lastViralLoad,    
@@ -182,39 +175,47 @@ const LabHistory = (props) => {
                   (
                     <ButtonGroup variant="contained" 
                         aria-label="split button"
-                        style={{backgroundColor:'rgb(153, 46, 98)', height:'30px'}}
-                        size="large"
-                        onClick={()=>onClickHome(row, 'view')}
+                                 style={{
+                                     backgroundColor:'rgb(153, 46, 98)',
+                                     height:'30px',
+                                     whiteSpace: 'nowrap',
+                                     overflow: 'hidden',
+                                     textOverflow: 'ellipsis'
+                                 }}
+                                 size="large"
                     >
                     <Button
                     color="primary"
                     size="small"
                     aria-label="select merge strategy"
                     aria-haspopup="menu"
-                    style={{backgroundColor:'rgb(153, 46, 98)'}}
+                    style={{
+                        backgroundColor:'rgb(153, 46, 98)',
+                        height:'30px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                    }}
+
+                    onClick={()=>onClickHome(row, 'view')}
                     >
                        Eac Session
                     </Button>
+                        { row?.status === "COMPLETED" && <Button
+                            color="primary"
+                            size="small"
+                            aria-label="select merge strategy"
+                            aria-haspopup="menu"
+                            style={{backgroundColor:'rgb(153, 46, 98)'}}
+                            onClick={()=>LoadEacOutCome(row, 'view')}
+                        >
+                            Outcome
+                        </Button>
+                        }
                     </ButtonGroup>
-                  ), 
-                  // <div>
-                  //           <Menu.Menu position='right'  >
-                  //           <Menu.Item >
-                  //               <Button style={{backgroundColor:'rgb(153,46,98)'}} primary>
-                  //               <Dropdown item text='Action'>
-
-                  //               <Dropdown.Menu style={{ marginTop:"10px", }}>
-                  //                  <Dropdown.Item  onClick={()=>onClickHome(row, 'view')}> EAC SESSIONS</Dropdown.Item>
-                  //                  {/* <Dropdown.Item  onClick={()=>onClickHome(row, 'update')}><Icon name='edit' />Update</Dropdown.Item>
-                  //                   <Dropdown.Item  onClick={()=>LoadDeletePage(row)}> <Icon name='trash' /> Delete</Dropdown.Item> */}
-                  //               </Dropdown.Menu>
-                  //           </Dropdown>
-                  //               </Button>
-                  //           </Menu.Item>
-                  //           </Menu.Menu>
-                  //        </div>
+                  ),
                   }))}
-            
+
                         options={{
                           headerStyle: {
                               backgroundColor: "#014d88",

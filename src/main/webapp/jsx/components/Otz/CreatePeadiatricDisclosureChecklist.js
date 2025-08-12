@@ -248,6 +248,7 @@ const CreatePeadiatricDisclosureChecklist = (props) => {
                             border: "1px solid #014D88",
                             borderRadius: "0.25rem",
                           }}
+                          onKeyPress={(e) => e.preventDefault()}
                         ></Input>
                       </FormGroup>
                       {formik.errors.encounterDate !== "" ? (
@@ -382,6 +383,7 @@ const CreatePeadiatricDisclosureChecklist = (props) => {
                             border: "1px solid #014D88",
                             borderRadius: "0.25rem",
                           }}
+                          onKeyPress={(e) => e.preventDefault()}
                         ></Input>
                       </FormGroup>
                       {formik.errors.dateTask1Executed !== "" ? (
@@ -615,6 +617,7 @@ const CreatePeadiatricDisclosureChecklist = (props) => {
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
                         }}
+                        onKeyPress={(e) => e.preventDefault()}
                       ></Input>
                     </FormGroup>
                     {formik.errors.dateTask2Executed !== "" ? (
@@ -1042,6 +1045,7 @@ const CreatePeadiatricDisclosureChecklist = (props) => {
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
                         }}
+                        onKeyPress={(e) => e.preventDefault()}
                       ></Input>
                     </FormGroup>
                     {formik.errors.dateTask3Executed !== "" ? (
@@ -1556,6 +1560,7 @@ const CreatePeadiatricDisclosureChecklist = (props) => {
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
                         }}
+                        onKeyPress={(e) => e.preventDefault()}
                       ></Input>
                     </FormGroup>
                     {formik.errors.dateTask4Executed !== "" ? (

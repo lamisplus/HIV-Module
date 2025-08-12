@@ -2,6 +2,7 @@ package org.lamisplus.modules.hiv.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+import org.lamisplus.modules.hiv.utility.Constants;
 import org.lamisplus.modules.hiv.utility.LocalDateConverter;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
@@ -127,7 +128,19 @@ public class HivEnrollment extends HivAuditEntity implements Persistable<Long>, 
     @Basic
     @Column(name = "tb_status_id")
     private Long tbStatusId;
-    
+
+    @Basic
+    @Column(name = "source")
+    private String source;
+
+    @Basic
+    @Column(name = "longitude")
+    private String longitude;
+
+    @Basic
+    @Column(name = "latitude")
+    private  String latitude;
+
     @Basic
     @Column(name = "lip_name")
     private String lipName;

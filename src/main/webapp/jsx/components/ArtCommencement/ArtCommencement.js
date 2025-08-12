@@ -28,7 +28,6 @@ import moment from "moment";
 import "react-summernote/dist/react-summernote.css"; // import styles
 import { Spinner } from "reactstrap";
 import { DateTimePicker } from "react-widgets";
-import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -73,15 +72,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CODESET_KEYS = [
-  "CLINICAL_STAGE",
-  "PREGNANCY_STATUS",
-  "FUNCTIONAL _STATUS",
-  "TB_STATUS",
-];
-
 const ArtCommencement = (props) => {
-  const { getOptions } = useCodesets(CODESET_KEYS);
   const patientObj = props.patientObj;
   const enrollDate =
     patientObj && patientObj.enrollment
@@ -96,17 +87,17 @@ const ArtCommencement = (props) => {
   const [heightValue, setHeightValue] = useState("cm");
 
   const classes = useStyles();
-  //   const [clinicalStage, setClinicalStage] = useState([]);
+  const [clinicalStage, setClinicalStage] = useState([]);
   const [values, setValues] = useState([]);
   const [saving, setSaving] = useState(false);
   const [viraLoadStart, setViraLoadStart] = useState(false);
   const [errors, setErrors] = useState({});
   let temp = { ...errors };
-  //   const [tbStatus, setTbStatus] = useState([]);
+  const [tbStatus, setTbStatus] = useState([]);
   const [regimenLine, setRegimenLine] = useState([]);
   const [regimenType, setRegimenType] = useState([]);
-  //   const [pregancyStatus, setPregancyStatus] = useState([]);
-  //   const [functionalStatus, setFunctionalStatus] = useState([]);
+  const [pregancyStatus, setPregancyStatus] = useState([]);
+  const [functionalStatus, setFunctionalStatus] = useState([]);
   const [objValues, setObjValues] = useState({
     personId: props.patientObj.id,
     visitDate: null,
@@ -147,10 +138,10 @@ const ArtCommencement = (props) => {
   });
 
   useEffect(() => {
-    // FunctionalStatus();
-    // WhoStaging();
-    // TBStatus();
-    // PreganacyStatus();
+    FunctionalStatus();
+    WhoStaging();
+    TBStatus();
+    PreganacyStatus();
     RegimenLine();
     gender =
       props.patientObj.gender && props.patientObj.gender.display
@@ -158,16 +149,16 @@ const ArtCommencement = (props) => {
         : null;
   }, [props.patientObj]);
   //Get list of WhoStaging
-  //   const WhoStaging = () => {
-  //     axios
-  //       .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       })
-  //       .then((response) => {
-  //         setClinicalStage(response.data);
-  //       })
-  //       .catch((error) => {});
-  //   };
+  const WhoStaging = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setClinicalStage(response.data);
+      })
+      .catch((error) => {});
+  };
   //Get list of RegimenLine
   const RegimenLine = () => {
     axios
@@ -190,40 +181,42 @@ const ArtCommencement = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of PREGNANCY_STATUS
-  //   const PreganacyStatus = () => {
-  //     axios
-  //       .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       })
-  //       .then((response) => {
-  //         setPregancyStatus(response.data);
-  //       })
-  //       .catch((error) => {});
-  //   };
+  //Get list of PREGANACY_STATUS
+  const PreganacyStatus = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setPregancyStatus(response.data);
+      })
+      .catch((error) => {});
+  };
+
   ///GET LIST OF FUNCTIONAL%20_STATUS
-  //   async function FunctionalStatus() {
-  //     axios
-  //       .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       })
-  //       .then((response) => {
-  //         setFunctionalStatus(response.data);
-  //         //setValues(response.data)
-  //       })
-  //       .catch((error) => {});
-  //   }
+  async function FunctionalStatus() {
+    axios
+      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setFunctionalStatus(response.data);
+        //setValues(response.data)
+      })
+      .catch((error) => {});
+  }
+
   // TB STATUS
-  //   const TBStatus = () => {
-  //     axios
-  //       .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       })
-  //       .then((response) => {
-  //         setTbStatus(response.data);
-  //       })
-  //       .catch((error) => {});
-  //   };
+  const TBStatus = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setTbStatus(response.data);
+      })
+      .catch((error) => {});
+  };
 
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
@@ -415,6 +408,7 @@ const ArtCommencement = (props) => {
                       <Label for="artDate">ART Start Date * </Label>
                       <Input
                         type="date"
+                        onKeyPress={(e) => e.preventDefault()}
                         name="visitDate"
                         id="visitDate"
                         onChange={handleInputChange}
@@ -583,6 +577,7 @@ const ArtCommencement = (props) => {
                           <Label>Date of Viral Load at Start of ART</Label>
                           <Input
                             type="date"
+                            onKeyPress={(e) => e.preventDefault()}
                             name="dateOfViralLoadAtStartOfArt"
                             id="dateOfViralLoadAtStartOfArt"
                             max={moment(new Date()).format("YYYY-MM-DD")}
@@ -615,8 +610,9 @@ const ArtCommencement = (props) => {
                         }}
                         required
                       >
-                        <option value="">Select</option>
-                        {getOptions("CLINICAL_STAGE").map((value) => (
+                        <option value=""> Select</option>
+
+                        {clinicalStage.map((value) => (
                           <option key={value.id} value={value.id}>
                             {value.display}
                           </option>
@@ -647,8 +643,9 @@ const ArtCommencement = (props) => {
                         }}
                         required
                       >
-                        <option value="">Select</option>
-                        {getOptions("FUNCTIONAL _STATUS").map((value) => (
+                        <option value=""> Select</option>
+
+                        {functionalStatus.map((value) => (
                           <option key={value.id} value={value.id}>
                             {value.display}
                           </option>
@@ -682,7 +679,6 @@ const ArtCommencement = (props) => {
                             id="pregancyStatus"
                             disabled
                             onChange={handleInputChange}
-                            //value="72"
                             style={{
                               border: "1px solid #014D88",
                               borderRadius: "0.25rem",
@@ -690,7 +686,7 @@ const ArtCommencement = (props) => {
                           >
                             <option value=""> Select</option>
 
-                            {getOptions("PREGNANCY_STATUS").map((value) => (
+                            {pregancyStatus.map((value) => (
                               <option key={value.id} value={value.id}>
                                 {value.display}
                               </option>
@@ -706,6 +702,7 @@ const ArtCommencement = (props) => {
                               <Label>LMP</Label>
                               <Input
                                 type="date"
+                                onKeyPress={(e) => e.preventDefault()}
                                 name="LMPDate"
                                 id="LMPDate"
                                 onChange={handleInputChange}
@@ -723,32 +720,6 @@ const ArtCommencement = (props) => {
                   ) : (
                     ""
                   )}
-                  {/* <div className="form-group mb-3 col-md-4">
-                                        <FormGroup>
-                                        <Label >TB Status</Label>
-                                        <Input
-                                            type="select"
-                                            name="tbStatusId"
-                                            id="tbStatusId"
-                                            value={objValues.tbStatusId}
-                                            onChange={handleInputChange}
-                                            style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                                            required
-                                            >
-                                             <option value=""> Select</option>
-                      
-                                               <option value="">Select</option>
-                        {getOptions('TB_STATUS').map((value) => (
-                          <option key={value.id} value={value.id}>
-                            {value.display}
-                          </option>
-                        ))}
-                                        </Input>
-                                        {errors.tbStatusId !=="" ? (
-                                            <span className={classes.error}>{errors.tbStatusId}</span>
-                                            ) : "" }
-                                        </FormGroup>
-                                    </div> */}
                   <div className="row">
                     <div className=" mb-3 col-md-4">
                       <FormGroup>

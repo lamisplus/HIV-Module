@@ -18,6 +18,7 @@ import org.lamisplus.modules.hiv.domain.entity.ArtPharmacy;
 import org.lamisplus.modules.hiv.domain.entity.Regimen;
 import org.lamisplus.modules.hiv.repositories.ArtPharmacyRepository;
 import org.lamisplus.modules.hiv.repositories.RegimenRepository;
+import org.lamisplus.modules.hiv.utility.Constants;
 import org.lamisplus.modules.patient.domain.dto.EncounterResponseDto;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
@@ -32,7 +33,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -56,7 +61,10 @@ public class ArtPharmacyService {
 	private final VisitRepository visitRepository;
 	
 	private static final String REGIMEN = "regimens";
-	
+	@PersistenceContext
+	private EntityManager entityManager;
+
+
 	public RegisterArtPharmacyDTO registerArtPharmacy(RegisterArtPharmacyDTO dto) throws IOException {
 		checkIfSelectRegimenIsAlreadyDispensed(dto);
 		Visit visit = handleHIVisitEncounter.processAndCreateVisit(dto.getPersonId(), dto.getVisitDate());
@@ -204,6 +212,10 @@ public class ArtPharmacyService {
 		processAndSetIpt(dto.getIptType(), isoniazid, dto.getVisitDate(), artPharmacy);
 		artPharmacy.setRegimens(regimenList);
 		artPharmacy.setFacilityId(organizationUtil.getCurrentUserOrganization());
+		artPharmacy.setLatitude(dto.getLatitude());
+		artPharmacy.setLongitude(dto.getLongitude());
+		String sourceSupport = dto.getSource() == null || dto.getSource().isEmpty() ? Constants.WEB_SOURCE : Constants.MOBILE_SOURCE;
+		artPharmacy.setSource(sourceSupport);
 		return artPharmacy;
 	}
 	private void processAndSetIpt(
@@ -211,6 +223,7 @@ public class ArtPharmacyService {
 			Optional<RegimenRequestDto> isoniazid,
 			LocalDate visitDate,
 	      ArtPharmacy artPharmacy){
+		String  dateCompleted = null;
 		if(iptType != null && isoniazid.isPresent()) {
 			ObjectMapper mapper = new ObjectMapper();
 			RegimenRequestDto regimenRequestDto = isoniazid.get();
@@ -220,18 +233,18 @@ public class ArtPharmacyService {
 					.build();
 			Integer duration = regimenRequestDto.getDispense();
 			if(iptType.contains("INITIATION") &&  duration >= 168) {
-				LocalDate  dateCompleted = visitDate.plusDays(168);
-				iptDto.setDateCompleted(dateCompleted.toString());
+				// LocalDate  dateCompleted = visitDate.plusDays(168);
+				iptDto.setDateCompleted(dateCompleted);
 			}
 			if(iptType.contains("REFILL")){
-				LocalDate  dateCompleted = visitDate.plusDays(duration);
-				iptDto.setDateCompleted(dateCompleted.toString());
+				// LocalDate  dateCompleted = visitDate.plusDays(duration);
+				iptDto.setDateCompleted(dateCompleted);
 				Optional<ArtPharmacy> initialIptPharmacy =
 						artPharmacyRepository.getInitialIPTWithoutCompletionDate(artPharmacy.getPerson().getUuid());
 				if(initialIptPharmacy.isPresent()) {
 					ArtPharmacy artPharmacy1 = initialIptPharmacy.get();
 					JsonNode ipt = artPharmacy1.getIpt();
-					((ObjectNode) ipt).put("dateCompleted", dateCompleted.toString());
+					((ObjectNode) ipt).put("dateCompleted", dateCompleted);
 					artPharmacy1.setIpt(ipt);
 					artPharmacyRepository.save(artPharmacy1);
 					
@@ -289,6 +302,45 @@ public class ArtPharmacyService {
 	public List<PharmacyReport> getReport(Long facilityId){
 		return  artPharmacyRepository.getArtPharmacyReport(facilityId);
 	}
-	
-	
+
+
+	public CurrentRegimenInfoDTO getCurrentRegimenInfo(String personUuid) throws JsonProcessingException {
+		String sqlQuery = "SELECT CAST(row_to_json(t) AS TEXT) AS object " +
+				"FROM (" +
+				"SELECT * FROM (" +
+				"SELECT *, ROW_NUMBER() OVER (PARTITION BY pr1.person_uuid40 ORDER BY pr1.lastPickupDate DESC) AS rnk3 " +
+				"FROM (" +
+				"SELECT p.person_uuid AS person_uuid40, " +
+				"COALESCE(ds_model.display, p.dsd_model_type) AS dsdModel, " +
+				"p.visit_date AS lastPickupDate, " +
+				"r.description AS currentARTRegimen, " +
+				"rt.description AS currentRegimenLine, " +
+				"p.next_appointment AS nextPickupDate, " +
+				"CAST(p.refill_period / 30.0 AS DECIMAL(10, 1)) AS monthsOfARVRefill " +
+				"FROM public.hiv_art_pharmacy p " +
+				"INNER JOIN public.hiv_art_pharmacy_regimens pr ON pr.art_pharmacy_id = p.id " +
+				"INNER JOIN public.hiv_regimen r ON r.id = pr.regimens_id " +
+				"INNER JOIN public.hiv_regimen_type rt ON rt.id = r.regimen_type_id " +
+				"LEFT JOIN base_application_codeset ds_model ON ds_model.code = p.dsd_model_type " +
+				"WHERE r.regimen_type_id IN (1, 2, 3, 4, 14) " +
+				"AND p.archived = 0 " +
+				"AND p.visit_date >= '1901-01-01' " +
+				"AND p.person_uuid = :personUuid " +
+				") AS pr1 " +
+				") AS pr2 " +
+				"WHERE pr2.rnk3 = 1 " +
+				") AS t";
+
+		Query query = entityManager.createNativeQuery(sqlQuery);
+		query.setParameter("personUuid", personUuid);
+		List<String> results = query.getResultList();
+		if (results.isEmpty()) {
+			return null;
+		}
+		String jsonResult = results.get(0);
+		ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(jsonResult, CurrentRegimenInfoDTO.class);
+	}
+
+
 }

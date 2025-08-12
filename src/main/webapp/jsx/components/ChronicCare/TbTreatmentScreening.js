@@ -16,7 +16,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { useHistory } from "react-router-dom";
-// import {TiArrowBack} from 'react-icons/ti'
 import { token, url as baseUrl } from "../../../api";
 import "react-phone-input-2/lib/style.css";
 import "semantic-ui-css/semantic.min.css";
@@ -25,6 +24,7 @@ import "react-widgets/dist/css/react-widgets.css";
 import "react-phone-input-2/lib/style.css";
 import { calculate_age_to_number } from "../../../utils";
 import { h } from "preact";
+import useFacilityId from "../../../hooks/useFacilityId";
 import { el } from "date-fns/locale";
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
   },
   form: {
-    width: "100%", // Fix IE 11 issue.
+    width: "100%",
     marginTop: theme.spacing(3),
   },
   submit: {
@@ -90,73 +90,62 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CODESET_KEYS = [
-  "TB_SPECIMEN_TYPE",
-  "TB_TREATMENT_TYPE",
-  "CHEST X-RAY_TEST_RESULT",
-  "TB_DIAGNOSTIC_TEST_TYPE",
-];
 const TbTreatmentScreening = (props) => {
-  const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   let errors = props.errors;
-
-  // const [tbSpecimenType, setTbSpecimenType] = useState([]);
-  // const [tbDiagnosticTestType, setTbDiagnosticTestType] = useState([]);
-  // const [chestXrayTest, setChestXrayTest] = useState([]);
-  // const [treatmentType, setTreatmentType] = useState([]);
-  const handleEligibility = (e) => {
-    // props.setEligibility({
-    //   ...props.eligibility,
-    //   [e.target.name]: e.target.value,
-    // });
+  const [tbSpecimenType, setTbSpecimenType] = useState([]);
+  const [tbDiagnosticTestType, setTbDiagnosticTestType] = useState([]);
+  const [chestXrayTest, setChestXrayTest] = useState([]);
+  const [treatmentType, setTreatmentType] = useState([]);
+  useEffect(() => {
+    TB_DIAGNOSTIC_TEST_TYPE();
+    TB_SPECIMEN_TYPE();
+    CHEST_X_RAY_TEST_RESULT();
+    TB_TREATMENT_TYPE();
+  }, []);
+  const TB_SPECIMEN_TYPE = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TB_SPECIMEN_TYPE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setTbSpecimenType(response.data);
+      })
+      .catch((error) => { });
   };
-  // useEffect(() => {
-  //   TB_DIAGNOSTIC_TEST_TYPE();
-  //   TB_SPECIMEN_TYPE();
-  //   CHEST_X_RAY_TEST_RESULT();
-  //   TB_TREATMENT_TYPE()
-  // }, []);
-  // const TB_SPECIMEN_TYPE = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/TB_SPECIMEN_TYPE`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setTbSpecimenType(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  // const TB_TREATMENT_TYPE = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setTreatmentType(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  // const CHEST_X_RAY_TEST_RESULT = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/CHEST X-RAY_TEST_RESULT`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setChestXrayTest(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  // const TB_DIAGNOSTIC_TEST_TYPE = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/TB_DIAGNOSTIC_TEST_TYPE`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setTbDiagnosticTestType(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
+
+
+
+  const TB_TREATMENT_TYPE = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setTreatmentType(response.data);
+      })
+      .catch((error) => { });
+  };
+  const CHEST_X_RAY_TEST_RESULT = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/CHEST X-RAY_TEST_RESULT`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setChestXrayTest(response.data);
+      })
+      .catch((error) => { });
+  };
+  const TB_DIAGNOSTIC_TEST_TYPE = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TB_DIAGNOSTIC_TEST_TYPE`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setTbDiagnosticTestType(response.data);
+      })
+      .catch((error) => { });
+  };
 
   return (
     <>
@@ -241,20 +230,13 @@ const TbTreatmentScreening = (props) => {
                           value={props.tbObj.specimenType}
                         >
                           <option value="">Select</option>
-                          {getOptions("TB_SPECIMEN_TYPE").map((value) => (
+                          {tbSpecimenType.map((value) => (
                             <option key={value.id} value={value.display}>
                               {value.display}
                             </option>
                           ))}
                         </Input>
                       </InputGroup>
-                      {errors.specimenType !== "" ? (
-                        <span className={classes.error}>
-                          {errors.specimenType}
-                        </span>
-                      ) : (
-                        ""
-                      )}
                     </FormGroup>
                   </div>
                 </>
@@ -272,19 +254,11 @@ const TbTreatmentScreening = (props) => {
                           id="dateSpecimenSent"
                           value={props.tbObj.dateSpecimenSent}
                           onChange={props.handleInputChange}
-                          min={props.dateOfObservation}
+                          min={props.dateOfBirth}
                           max={moment(new Date()).format("YYYY-MM-DD")}
-                          // disabled={props.action === "view" ? true : false}
                           onKeyPress={(e) => e.preventDefault()}
                         />
                       </InputGroup>
-                      {errors.dateSpecimenSent !== "" ? (
-                        <span className={classes.error}>
-                          {errors.dateSpecimenSent}
-                        </span>
-                      ) : (
-                        ""
-                      )}
                     </FormGroup>
                     {/* )} */}
                   </div>
@@ -309,13 +283,6 @@ const TbTreatmentScreening = (props) => {
                           <option value="No">No</option>
                         </Input>
                       </InputGroup>
-                      {errors.diagnosticTestDone !== "" ? (
-                        <span className={classes.error}>
-                          {errors.diagnosticTestDone}
-                        </span>
-                      ) : (
-                        ""
-                      )}
                     </FormGroup>
                   </div>
                 </>
@@ -360,13 +327,11 @@ const TbTreatmentScreening = (props) => {
                           disabled={props.action === "view" ? true : false}
                         >
                           <option value="">Select</option>
-                          {getOptions("TB_DIAGNOSTIC_TEST_TYPE").map(
-                            (value) => (
-                              <option key={value.id} value={value.display}>
-                                {value.display}
-                              </option>
-                            )
-                          )}
+                          {tbDiagnosticTestType.map((value) => (
+                            <option key={value.id} value={value.display}>
+                              {value.display}
+                            </option>
+                          ))}
                         </Input>
                       </InputGroup>
                       {errors.diagnosticTestType !== "" ? (
@@ -401,61 +366,51 @@ const TbTreatmentScreening = (props) => {
                                 onKeyPress={(e) => e.preventDefault()}
                               ></Input>
                             </InputGroup>
-                            {/*{errors.DateDiagnosticTestResultReceived !== "" ? (*/}
-                            {/*    <span className={classes.error}>{errors.DateDiagnosticTestResultReceived}</span>*/}
-                            {/*) : (*/}
-                            {/*    ""*/}
-                            {/*)}*/}
                           </FormGroup>
                         </div>
                       </>
                     )}
                 </>
               )}
+
               {(props.tbObj.diagnosticTestType === "Truenat" ||
                 props.tbObj.diagnosticTestType === "GeneXpert") && (
-                <>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>TB Test Result </Label>
-                      <InputGroup>
-                        <Input
-                          type="select"
-                          name="tbTestResult"
-                          id="tbTestResult"
-                          onChange={props.handleInputChange}
-                          value={props.tbObj.tbTestResult}
-                          disabled={props.action === "view" ? true : false}
-                        >
-                          <option value="">Select</option>
-                          <option value="MTB not detected">
-                            MTB not detected
-                          </option>
-                          <option value="MTB detected RR not detected">
-                            MTB detected RR not detected
-                          </option>
-                          <option value="MTB detected RR detected">
-                            MTB detected RR detected
-                          </option>
-                          <option value="MTB trace RR indeterminate">
-                            MTB trace RR indeterminate
-                          </option>
-                          <option value="Error">Error</option>
-                          <option value="Invalid">Invalid</option>
-                          <option value="Incomplete">Incomplete</option>
-                        </Input>
-                      </InputGroup>
-                      {errors.tbTestResult !== "" ? (
-                        <span className={classes.error}>
-                          {errors.tbTestResult}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                </>
-              )}
+                  <>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>TB Test Result </Label>
+                        <InputGroup>
+                          <Input
+                            type="select"
+                            name="tbTestResult"
+                            id="tbTestResult"
+                            onChange={props.handleInputChange}
+                            value={props.tbObj.tbTestResult}
+                            disabled={props.action === "view" ? true : false}
+                          >
+                            <option value="">Select</option>
+                            <option value="MTB not detected">
+                                MTB not detected
+                            </option>
+                            <option value="MTB detected RR not detected">
+                              MTB detected RR not detected
+                            </option>
+                            <option value="MTB detected RR detected">
+                              MTB detected RR detected
+                            </option>
+                            <option value="MTB trace RR indeterminate">
+                              MTB trace RR indeterminate
+                            </option>
+                            <option value="Error">Error</option>
+                            <option value="Invalid">Invalid</option>
+                            <option value="Incomplete">Incomplete</option>
+                          </Input>
+                        </InputGroup>
+                      </FormGroup>
+                    </div>
+                  </>
+                )}
+
               {props.tbObj.diagnosticTestType === "Cobas" && (
                 <>
                   <div className="form-group mb-3 col-md-6">
@@ -499,72 +454,41 @@ const TbTreatmentScreening = (props) => {
                   </div>
                 </>
               )}
+
               {(props.tbObj.diagnosticTestType === "TB-LAMP" ||
                 props.tbObj.diagnosticTestType === "LF-LAM" ||
                 props.tbObj.diagnosticTestType === "Smear Microscopy") && (
-                <>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>TB Test Result </Label>
-                      <InputGroup>
-                        <Input
-                          type="select"
-                          name="tbTestResult"
-                          id="tbTestResult"
-                          onChange={props.handleInputChange}
-                          value={props.tbObj.tbTestResult}
-                          disabled={props.action === "view" ? true : false}
-                        >
-                          <option value="">Select</option>
-                          <option value="Positive">Positive</option>
-                          <option value="Negative">Negative</option>
-                        </Input>
-                      </InputGroup>
-                      {errors.tbTestResult !== "" ? (
-                        <span className={classes.error}>
-                          {errors.tbTestResult}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                </>
-              )}
+                  <>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>TB Test Result </Label>
+                        <InputGroup>
+                          <Input
+                            type="select"
+                            name="tbTestResult"
+                            id="tbTestResult"
+                            onChange={props.handleInputChange}
+                            value={props.tbObj.tbTestResult}
+                            disabled={props.action === "view" ? true : false}
+                          >
+                            <option value="">Select</option>
+                            <option value="Positive">Positive</option>
+                            <option value="Negative">Negative</option>
+                          </Input>
+                        </InputGroup>
+                        {errors.tbTestResult !== "" ? (
+                          <span className={classes.error}>
+                            {errors.tbTestResult}
+                          </span>
+                        ) : (
+                          ""
+                        )}
+                      </FormGroup>
+                    </div>
+                  </>
+                )}
 
-              {/*{((props.tbObj.diagnosticTestType==='GeneXpert' ||*/}
-              {/*props.tbObj.diagnosticTestType==='Truenat' || props.tbObj.diagnosticTestType==='Cobas' || props.tbObj.diagnosticTestType==='TB-LAMP' || props.tbObj.diagnosticTestType==='Smear Microscopy' || (props.tbObj.diagnosticTestType || "").includes("LF-LAM")) &&*/}
-              {/*(props.tbObj.tbTestResult==='MTB not detected' ||*/}
-              {/*props.tbObj.tbTestResult==='Negative')*/}
-
-              {/*)   && (<>*/}
-              {/*<div className="form-group mb-3 col-md-6">*/}
-              {/*  <FormGroup>*/}
-              {/*    <Label>Clinically Evaluated </Label>*/}
-              {/*    <InputGroup>*/}
-              {/*      <Input*/}
-              {/*        type="select"*/}
-              {/*        name="clinicallyEvaulated"*/}
-              {/*        id="clinicallyEvaulated"*/}
-              {/*        onChange={props.handleInputChange}*/}
-              {/*        value={props.tbObj.clinicallyEvaulated}*/}
-              {/*        disabled={props.action === "view" ? true : false}*/}
-              {/*      >*/}
-              {/*        <option value="">Select</option>*/}
-              {/*        <option value="Yes">Yes</option>*/}
-              {/*        <option value="No">No</option>*/}
-              {/*      </Input>*/}
-              {/*    </InputGroup>*/}
-              {/*    {errors.clinicallyEvaulated !== "" ? (*/}
-              {/*        <span className={classes.error}>{errors.clinicallyEvaulated}</span>*/}
-              {/*    ) : (*/}
-              {/*        ""*/}
-              {/*    )}*/}
-              {/*  </FormGroup>*/}
-              {/*</div>*/}
-              {/* </>)}*/}
-
-              {(((props.tbObj.diagnosticTestType === "GeneXpert" ||
+              {/* {(((props.tbObj.diagnosticTestType === "GeneXpert" ||
                 props.tbObj.diagnosticTestType === "Truenat" ||
                 props.tbObj.diagnosticTestType === "Cobas" ||
                 props.tbObj.diagnosticTestType === "TB-LAMP" ||
@@ -601,7 +525,56 @@ const TbTreatmentScreening = (props) => {
                     </FormGroup>
                   </div>
                 </>
-              )}
+              )} */}
+
+              {!(
+                props.tbObj.specimentCollectedStatus === "Yes" &&
+                (props.tbObj.specimentSent || "").toLowerCase() === "no"
+              ) &&
+                (
+                  (
+                    (
+                      props.tbObj.diagnosticTestType === "GeneXpert" ||
+                      props.tbObj.diagnosticTestType === "Truenat" ||
+                      props.tbObj.diagnosticTestType === "Cobas" ||
+                      props.tbObj.diagnosticTestType === "TB-LAMP" ||
+                      props.tbObj.diagnosticTestType === "Smear Microscopy" ||
+                      ["LF-LAM"].includes(props.tbObj.diagnosticTestType)
+                    ) &&
+                    (
+                      props.tbObj.tbTestResult === "MTB not detected" ||
+                      props.tbObj.tbTestResult === "Negative"
+                    )
+                  ) ||
+                  (props.tbObj.specimentSent || "").toLowerCase() === "no"
+                ) && (
+                  <>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>Clinically Evaluated </Label>
+                        <InputGroup>
+                          <Input
+                            type="select"
+                            name="clinicallyEvaulated"
+                            id="clinicallyEvaulated"
+                            onChange={props.handleInputChange}
+                            value={props.tbObj.clinicallyEvaulated}
+                            disabled={props.action === "view"}
+                          >
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                          </Input>
+                        </InputGroup>
+                        {errors.clinicallyEvaulated && (
+                          <span className={classes.error}>
+                            {errors.clinicallyEvaulated}
+                          </span>
+                        )}
+                      </FormGroup>
+                    </div>
+                  </>
+                )}
 
               {/*{((props.tbObj.diagnosticTestType==='GeneXpert' || */}
               {/*props.tbObj.diagnosticTestType==='Truenat' || props.tbObj.diagnosticTestType==='Cobas' || props.tbObj.diagnosticTestType==='TB-LAMP' || props.tbObj.diagnosticTestType==='Smear Microscopy' || props.tbObj.diagnosticTestType==='LF-LAM') &&*/}
@@ -617,74 +590,74 @@ const TbTreatmentScreening = (props) => {
                 (props.tbObj.tbTestResult === "MTB not detected" ||
                   props.tbObj.tbTestResult === "Negative")) ||
                 (props.tbObj.specimentSent || "").toLowerCase() === "no") && (
-                <>
-                  {props.tbObj.clinicallyEvaulated === "Yes" && (
-                    <div className="form-group mb-3 col-md-6">
-                      <FormGroup>
-                        <Label>Chest X-Ray Done </Label>
-                        <InputGroup>
-                          <Input
-                            type="select"
-                            name="chestXrayDone"
-                            id="chestXrayDone"
-                            onChange={props.handleInputChange}
-                            value={props.tbObj.chestXrayDone}
-                            disabled={props.action === "view" ? true : false}
-                          >
-                            <option value="">Select</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                          </Input>
-                        </InputGroup>
-                        {errors.chestXrayDone !== "" ? (
-                          <span className={classes.error}>
-                            {errors.chestXrayDone}
-                          </span>
-                        ) : (
-                          ""
-                        )}
-                      </FormGroup>
-                    </div>
-                  )}
-                  {props.tbObj?.clinicallyEvaulated === "Yes" &&
-                    props.tbObj?.specimentSent === "No" &&
-                    props.tbObj?.chestXrayDone === "No" && (
+                  <>
+                    {props.tbObj.clinicallyEvaulated === "Yes" && (
                       <div className="form-group mb-3 col-md-6">
                         <FormGroup>
-                          <Label>Result of clinical evaluation </Label>
+                          <Label>Chest X-ray Reviewed by Radiologist</Label>
                           <InputGroup>
                             <Input
                               type="select"
-                              name="resultOfClinicalEvaluation"
-                              id="resultOfClinicalEvaluation"
+                              name="chestXrayDone"
+                              id="chestXrayDone"
                               onChange={props.handleInputChange}
-                              value={props.tbObj.resultOfClinicalEvaluation}
+                              value={props.tbObj.chestXrayDone}
                               disabled={props.action === "view" ? true : false}
                             >
                               <option value="">Select</option>
-                              <option value="Suggestive of TB">
-                                Suggestive of TB
-                              </option>
-                              <option value="Not suggestive of TB">
-                                Not suggestive of TB
-                              </option>
+                              <option value="Yes">Yes</option>
+                              <option value="No">No</option>
                             </Input>
                           </InputGroup>
-                          {/*{errors.clinicallyEvaulated !== "" ? (*/}
-                          {/*    <span className={classes.error}>{errors.clinicallyEvaulated}</span>*/}
-                          {/*) : (*/}
-                          {/*    ""*/}
-                          {/*)}*/}
+                          {errors.chestXrayDone !== "" ? (
+                            <span className={classes.error}>
+                              {errors.chestXrayDone}
+                            </span>
+                          ) : (
+                            ""
+                          )}
                         </FormGroup>
                       </div>
                     )}
-                </>
-              )}
+                    {props.tbObj?.clinicallyEvaulated === "Yes" &&
+                      props.tbObj?.specimentSent === "No" &&
+                      props.tbObj?.chestXrayDone === "No" && (
+                        <div className="form-group mb-3 col-md-6">
+                          <FormGroup>
+                            <Label>Result of clinical evaluation </Label>
+                            <InputGroup>
+                              <Input
+                                type="select"
+                                name="resultOfClinicalEvaluation"
+                                id="resultOfClinicalEvaluation"
+                                onChange={props.handleInputChange}
+                                value={props.tbObj.resultOfClinicalEvaluation}
+                                disabled={props.action === "view" ? true : false}
+                              >
+                                <option value="">Select</option>
+                                <option value="Suggestive of TB">
+                                  Suggestive of TB
+                                </option>
+                                <option value="Not suggestive of TB">
+                                  Not suggestive of TB
+                                </option>
+                              </Input>
+                            </InputGroup>
+                            {/*{errors.clinicallyEvaulated !== "" ? (*/}
+                            {/*    <span className={classes.error}>{errors.clinicallyEvaulated}</span>*/}
+                            {/*) : (*/}
+                            {/*    ""*/}
+                            {/*)}*/}
+                          </FormGroup>
+                        </div>
+                      )}
+                  </>
+                )}
               {props.tbObj.chestXrayDone === "Yes" && (
                 <>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label>Chest X-ray Result </Label>
+                      <Label>Result of Chest X-ray Reviewed </Label>
                       <InputGroup>
                         <Input
                           type="select"
@@ -695,13 +668,11 @@ const TbTreatmentScreening = (props) => {
                           disabled={props.action === "view" ? true : false}
                         >
                           <option value="">Select</option>
-                          {getOptions("CHEST X-RAY_TEST_RESULT").map(
-                            (value) => (
-                              <option key={value.id} value={value.display}>
-                                {value.display}
-                              </option>
-                            )
-                          )}
+                          {chestXrayTest.map((value) => (
+                            <option key={value.id} value={value.display}>
+                              {value.display}
+                            </option>
+                          ))}
                         </Input>
                       </InputGroup>
                       {errors.chestXrayResultTest !== "" ? (
@@ -715,7 +686,7 @@ const TbTreatmentScreening = (props) => {
                   </div>
                   <div className="form-group mb-3 col-md-6">
                     <FormGroup>
-                      <Label>Date of Chest X-ray </Label>
+                      <Label>Date of Chest X-ray Review </Label>
                       <InputGroup>
                         <Input
                           type="date"
@@ -729,9 +700,9 @@ const TbTreatmentScreening = (props) => {
                           onKeyPress={(e) => e.preventDefault()}
                         ></Input>
                       </InputGroup>
-                      {errors.dateOfDiagnosticTest !== "" ? (
+                      {errors.dateOfChestXrayResultTestDone !== "" ? (
                         <span className={classes.error}>
-                          {errors.dateOfDiagnosticTest}
+                          {errors.dateOfChestXrayResultTestDone}
                         </span>
                       ) : (
                         ""
@@ -747,93 +718,93 @@ const TbTreatmentScreening = (props) => {
                 props.tbObj.tbTestResult === "MTB trace RR indeterminate" ||
                 props.tbObj.tbTestResult === "MTB detected INH detected" ||
                 props.tbObj.tbTestResult ===
-                  "MTB detected RIF/INH not detected" ||
+                "MTB detected RIF/INH not detected" ||
                 props.tbObj.tbTestResult === "Positive" ||
                 props.tbObj.chestXrayResultTest === "Suggestive of TB") && (
-                <>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>TB Type </Label>
-                      <InputGroup>
-                        <Input
-                          type="select"
-                          name="tbType"
-                          id="tbType"
-                          onChange={props.handleInputChange}
-                          value={props.tbObj.tbType}
-                          disabled={props.action === "view" ? true : false}
-                        >
-                          <option value="">Select</option>
-                          {getOptions("TB_TREATMENT_TYPE").map((value) => (
-                            <option key={value.id} value={value.display}>
-                              {value.display}
-                            </option>
-                          ))}
-                        </Input>
-                      </InputGroup>
-                      {errors.tbType !== "" ? (
-                        <span className={classes.error}>{errors.tbType}</span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>TB Treatment Started</Label>
-                      <InputGroup>
-                        <Input
-                          type="select"
-                          name="tbTreatmentStarted"
-                          id="tbTreatmentStarted"
-                          onChange={props.handleInputChange}
-                          value={props.tbObj.tbTreatmentStarted}
-                          disabled={props.action === "view" ? true : false}
-                        >
-                          <option value="">Select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </Input>
-                      </InputGroup>
-                      {errors.tbTreatmentStarted !== "" ? (
-                        <span className={classes.error}>
-                          {errors.tbTreatmentStarted}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-
-                  {props.tbObj.tbTreatmentStarted === "Yes" && (
+                  <>
                     <div className="form-group mb-3 col-md-6">
                       <FormGroup>
-                        <Label>TB Treatment Start Date </Label>
+                        <Label>TB Type </Label>
                         <InputGroup>
                           <Input
-                            type="date"
-                            name="tbTreatmentStartDate"
-                            id="tbTreatmentStartDate"
+                            type="select"
+                            name="tbType"
+                            id="tbType"
                             onChange={props.handleInputChange}
-                            min={props.tbObj.DateDiagnosticTestResultReceived}
-                            max={moment(new Date()).format("YYYY-MM-DD")}
-                            value={props.tbObj.tbTreatmentStartDate}
+                            value={props.tbObj.tbType}
                             disabled={props.action === "view" ? true : false}
-                            onKeyPress={(e) => e.preventDefault()}
-                          ></Input>
+                          >
+                            <option value="">Select</option>
+                            {treatmentType.map((value) => (
+                              <option key={value.id} value={value.display}>
+                                {value.display}
+                              </option>
+                            ))}
+                          </Input>
                         </InputGroup>
-                        {errors.tbTreatmentStartDate !== "" ? (
+                        {errors.tbType !== "" ? (
+                          <span className={classes.error}>{errors.tbType}</span>
+                        ) : (
+                          ""
+                        )}
+                      </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>TB Treatment Started</Label>
+                        <InputGroup>
+                          <Input
+                            type="select"
+                            name="tbTreatmentStarted"
+                            id="tbTreatmentStarted"
+                            onChange={props.handleInputChange}
+                            value={props.tbObj.tbTreatmentStarted}
+                            disabled={props.action === "view" ? true : false}
+                          >
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                          </Input>
+                        </InputGroup>
+                        {errors.tbTreatmentStarted !== "" ? (
                           <span className={classes.error}>
-                            {errors.tbTreatmentStartDate}
+                            {errors.tbTreatmentStarted}
                           </span>
                         ) : (
                           ""
                         )}
                       </FormGroup>
                     </div>
-                  )}
-                </>
-              )}
+
+                    {props.tbObj.tbTreatmentStarted === "Yes" && (
+                      <div className="form-group mb-3 col-md-6">
+                        <FormGroup>
+                          <Label>TB Treatment Start Date </Label>
+                          <InputGroup>
+                            <Input
+                              type="date"
+                              name="tbTreatmentStartDate"
+                              id="tbTreatmentStartDate"
+                              onChange={props.handleInputChange}
+                              min={props.tbObj.DateDiagnosticTestResultReceived}
+                              max={moment(new Date()).format("YYYY-MM-DD")}
+                              value={props.tbObj.tbTreatmentStartDate}
+                              disabled={props.action === "view" ? true : false}
+                              onKeyPress={(e) => e.preventDefault()}
+                            ></Input>
+                          </InputGroup>
+                          {errors.tbTreatmentStartDate !== "" ? (
+                            <span className={classes.error}>
+                              {errors.tbTreatmentStartDate}
+                            </span>
+                          ) : (
+                            ""
+                          )}
+                        </FormGroup>
+                      </div>
+                    )}
+                  </>
+                )}
             </div>
             <br />
             {props.tbObj.tbTreatment !== "Yes" && (

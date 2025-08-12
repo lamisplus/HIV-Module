@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet  id="20240910-1026"  author="taiwo-data.fi">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select COUNT(*) from hiv_art_pharmacy WHERE extra::jsonb->'regimens' @> '[{"name": "ABC(600mg)+3TC(300mg)+DTG(50mg)"}]';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE hiv_art_pharmacy
+            SET extra = jsonb_set(
+                    extra::jsonb,
+                    '{regimens}',
+                    (SELECT jsonb_agg(
+                                    CASE
+                                        WHEN regimen->>'name' = 'ABC(600mg)+3TC(300mg)+DTG(50mg)'
+                                            THEN regimen::jsonb || '{"name": "ABC(600mg)/3TC(300mg)+DTG(50mg)", "regimenName": "ABC(600mg)/3TC(300mg)+DTG(50mg)"}'::jsonb
+                                        ELSE regimen
+                                        END
+                            )
+                     FROM jsonb_array_elements(extra->'regimens') AS regimen
+                    )
+                        )
+            WHERE extra::jsonb->'regimens' @> '[{"name": "ABC(600mg)+3TC(300mg)+DTG(50mg)"}]';
+        </sql>
+    </changeSet>
+
+    <changeSet  id="20240910-1027"  author="taiwo-data.fi">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select COUNT(*)  from hiv_art_pharmacy  WHERE extra::jsonb->'regimens' @> '[{"name": "ABC(60mg)+3TC(30mg)+DTG(10mg)"}]';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE hiv_art_pharmacy
+            SET extra = jsonb_set(
+                    extra::jsonb,
+                    '{regimens}',
+                    (SELECT jsonb_agg(
+                                    CASE
+                                        WHEN regimen->>'name' = 'ABC(60mg)+3TC(30mg)+DTG(10mg)'
+                                            THEN regimen::jsonb || '{"name": "ABC(60mg)/3TC(30mg)+DTG(10mg)", "regimenName": "ABC(60mg)/3TC(30mg)+DTG(10mg)"}'::jsonb
+                                        ELSE regimen
+                                        END
+                            )
+                     FROM jsonb_array_elements(extra->'regimens') AS regimen
+                    )
+                        )
+            WHERE extra::jsonb->'regimens' @> '[{"name": "ABC(60mg)+3TC(30mg)+DTG(10mg)"}]';
+        </sql>
+    </changeSet>
+
+    <changeSet  id="20240910-1028"  author="taiwo-data.fi">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select COUNT(*)  from hiv_art_pharmacy WHERE extra::jsonb->'regimens' @> '[{"name": "ABC(60mg)+3TC(30mg)+DTG(50mg)"}]';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE hiv_art_pharmacy
+            SET extra = jsonb_set(
+                    extra::jsonb,
+                    '{regimens}',
+                    (SELECT jsonb_agg(
+                                    CASE
+                                        WHEN regimen->>'name' = 'ABC(60mg)+3TC(30mg)+DTG(50mg)'
+                                            THEN regimen::jsonb || '{"name": "ABC(60mg)/3TC(30mg)+DTG(50mg)", "regimenName": "ABC(60mg)/3TC(30mg)+DTG(50mg)"}'::jsonb
+                                        ELSE regimen
+                                        END
+                            )
+                     FROM jsonb_array_elements(extra->'regimens') AS regimen
+                    )
+                        )
+            WHERE extra::jsonb->'regimens' @> '[{"name": "ABC(60mg)+3TC(30mg)+DTG(50mg)"}]';
+        </sql>
+    </changeSet>
+
+    <changeSet  id="20240910-1029"  author="taiwo-data.fi">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select COUNT(*)  from hiv_art_pharmacy WHERE extra::jsonb->'regimens' @> '[{"name": "ABC(120mg)/3TC(60mg)/DTG(50mg)"}]';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE hiv_art_pharmacy
+            SET extra = jsonb_set(
+                    extra::jsonb,
+                    '{regimens}',
+                    (SELECT jsonb_agg(
+                                    CASE
+                                        WHEN regimen->>'name' = 'ABC(120mg)/3TC(60mg)/DTG(50mg)'
+                                            THEN regimen::jsonb || '{"name": "ABC(120mg)/3TC(60mg)+DTG(10mg)", "regimenName": "ABC(120mg)/3TC(60mg)+DTG(10mg)"}'::jsonb
+                                        ELSE regimen
+                                        END
+                            )
+                     FROM jsonb_array_elements(extra->'regimens') AS regimen
+                    )
+                        )
+            WHERE extra::jsonb->'regimens' @> '[{"name": "ABC(120mg)/3TC(60mg)/DTG(50mg)"}]';
+        </sql>
+    </changeSet>
+
+    <changeSet  id="20240910-1030"  author="taiwo-data.fi">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select COUNT(*) from hiv_art_pharmacy WHERE extra::jsonb->'regimens' @> '[{"name": "TDF(300mg)+3TC(300mg)+DTG(50mg)"}]';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE hiv_art_pharmacy
+            SET extra = jsonb_set(
+                    extra::jsonb,
+                    '{regimens}',
+                    (SELECT jsonb_agg(
+                                    CASE
+                                        WHEN regimen->>'name' = 'TDF(300mg)+3TC(300mg)+DTG(50mg)'
+                                            THEN regimen::jsonb || '{"name": "TDF(300mg)/3TC(300mg)/DTG(50mg)", "regimenName": "TDF(300mg)/3TC(300mg)/DTG(50mg)"}'::jsonb
+                                        ELSE regimen
+                                        END
+                            )
+                     FROM jsonb_array_elements(extra->'regimens') AS regimen
+                    )
+                        )
+            WHERE extra::jsonb->'regimens' @> '[{"name": "TDF(300mg)+3TC(300mg)+DTG(50mg)"}]';
+        </sql>
+    </changeSet>
+
+    <changeSet  id="20240911-1031"  author="taiwo-data.fi">
+        <sql>
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen) SELECT 'ABC(600mg)/3TC(300mg)+DTG(50mg)', 'ABC-3TC-DTG' WHERE NOT EXISTS (SELECT 1 FROM hiv_regimen_resolver WHERE regimensys = 'TDF(300mg)/3TC(300mg)/DTG(50mg)' AND regimen = 'ABC-3TC-DTG');
+        </sql>
+        <sql>
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen) SELECT 'ABC(60mg)/3TC(30mg)+DTG(10mg)', 'ABC-3TC-DTG' WHERE NOT EXISTS (SELECT 1 FROM hiv_regimen_resolver WHERE regimensys = 'ABC(60mg)/3TC(30mg)+DTG(10mg)' AND regimen = 'ABC-3TC-DTG');
+        </sql>
+        <sql>
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen) SELECT 'ABC(60mg)/3TC(30mg)+DTG(50mg)', 'ABC-3TC-DTG' WHERE NOT EXISTS (SELECT 1 FROM hiv_regimen_resolver WHERE regimensys = 'ABC(60mg)/3TC(30mg)+DTG(50mg)' AND regimen = 'ABC-3TC-DTG');
+        </sql>
+        <sql>
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen) SELECT 'ABC(120mg)/3TC(60mg)+DTG(10mg)', 'ABC-3TC-DTG' WHERE NOT EXISTS (SELECT 1 FROM hiv_regimen_resolver WHERE regimensys = 'ABC(120mg)/3TC(60mg)+DTG(10mg)' AND regimen = 'ABC-3TC-DTG');
+        </sql>
+        <sql>
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen) SELECT 'TDF(300mg)/3TC(300mg)/DTG(50mg)', 'TDF-3TC-DTG' WHERE NOT EXISTS (SELECT 1 FROM hiv_regimen_resolver WHERE regimensys = 'TDF(300mg)/3TC(300mg)/DTG(50mg)' AND regimen = 'TDF-3TC-DTG');
+        </sql>
+
+    </changeSet>
+
+    <changeSet  id="20240917-1031"  author="taiwo-data.fi">
+        <sql>DELETE FROM hiv_regimen_resolver WHERE regimensys= 'ABC(600mg)/3TC(300mg)+DTG(50mg)' AND  regimen = 'ABC/3TC+DTG50';</sql>
+        <sql>DELETE FROM hiv_regimen_resolver WHERE regimensys= 'ABC(60mg)/3TC(30mg)+DTG(10mg)' AND  regimen = '60/30+DTG10';</sql>
+        <sql>DELETE FROM hiv_regimen_resolver WHERE regimensys= 'ABC(60mg)/3TC(30mg)+DTG(50mg)' AND  regimen = '60/30+DTG50';</sql>
+        <sql>DELETE FROM hiv_regimen_resolver WHERE regimensys= 'TDF(300mg)/3TC(300mg)/DTG(50mg)' AND  regimen = 'TLD';</sql>
+    </changeSet>
+
+
+</databaseChangeLog>

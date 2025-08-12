@@ -21,13 +21,14 @@ import "react-widgets/dist/css/react-widgets.css";
 import { Spinner } from "reactstrap";
 import { url as baseUrl, token } from "../../../../api";
 import moment from "moment";
-import { List, Label as LabelSui } from "semantic-ui-react";
+import {List, Label as LabelSui, Button} from "semantic-ui-react";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { toast } from "react-toastify";
 import { Icon } from "semantic-ui-react";
 import Select from "react-select";
-import useCodesets from "../../../../hooks/useCodesets";
+import {Get} from "react-lodash";
+import {Modal} from "react-bootstrap";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -71,13 +72,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CODESET_KEYS = [
-  "TEST_ORDER_PRIORITY",
-  "VIRAL_LOAD_INDICATION",
-  "LAB_ORDER_INDICATION",
-];
 const Laboratory = (props) => {
-   const { getOptions } = useCodesets(CODESET_KEYS);
+
   let visitId = "";
   //let =""
   const patientObj = props.patientObj;
@@ -89,21 +85,23 @@ const Laboratory = (props) => {
   const [buttonHidden, setButtonHidden] = useState(false);
   const [moduleStatus, setModuleStatus] = useState("0");
   const [testGroup, setTestGroup] = useState([]);
-  //const [test, setTest] = useState([]);
-  //const [vlRequired, setVlRequired]=useState(false)
   const [priority, setPriority] = useState([]);
   const [eacStatusObj, setEacStatusObj] = useState();
-  //const [labNumberOption, setLabNumberOption] = useState("")
-  //const [currentVisit, setCurrentVisit]=useState(true)
   const [vLIndication, setVLIndication] = useState([]);
   const [testOrderList, setTestOrderList] = useState([]); //Test Order List
-  //const [showVLIndication, setShowVLIndication] = useState(false);
   const [labNumbers, setLabNumbers] = useState([]); //
-  const [selectedOption, setSelectedOption] = useState([]);
+  // const [selectedOption, setSelectedOption] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
   const [labTestOptions, setLabTestOptions] = useState([]);
   const [labOrderIndication, setLabOrderIndication] = useState([]);
   let testsOptions = [];
+  const [chronicCareTestResult, setChronicCareTestResult] = useState("")
+  const [userHasChanged, setUserHasChanged] = useState(false);
+  const [tptMonitorng, setTptMonitoring ] = useState({})
   let temp = { ...errors };
+  const [cd4CountObj, setCd4CountObj] = useState({cd4CountType:"", SQC4CountValue:"", FCCd4CountValue: ""})
+  const [chestXrayDocumented, setChestXrayDocumented] = useState(false);
+  const [showModal, setShowModal] = useState({ show: false, message: "" });
   const [tests, setTests] = useState({
     comments: "",
     dateAssayed: "",
@@ -128,15 +126,19 @@ const Laboratory = (props) => {
     sampleNumber: "",
   });
 
+  const hideModal = () => {
+    setShowModal({ show: false, message: "" });
+  };
+
   useEffect(() => {
     CheckLabModule();
     TestGroup();
-    // PriorityOrder();
-    // ViraLoadIndication();
+    PriorityOrder();
+    ViraLoadIndication();
     GetPatientDTOObj();
     CheckEACStatus();
     LabNumbers();
-    // LAB_ORDER_INDICATION();
+    LAB_ORDER_INDICATION();
   }, [props.patientObj.id, tests.labTestId]);
   const GetPatientDTOObj = () => {
     axios
@@ -201,18 +203,196 @@ const Laboratory = (props) => {
       .catch((error) => {});
   };
 
+  // Fetch chronic care
+  // const GetCareAndSupportDiagnosticTest = () => {
+  //   axios
+  //       .get(  `${baseUrl}observation/person/${props.patientObj.id}`, {
+  //         headers: { Authorization: `Bearer ${token}` }, // Add token here
+  //       })
+  //       .then((response) => {
+  //         const data = response.data;
+  //         const filteredRecords = data.filter(
+  //             (item) =>
+  //                 item.type === "Chronic Care" &&
+  //                 item.data?.tbIptScreening?.diagnosticTestType !== null &&
+  //                 item.data?.tbIptScreening?.diagnosticTestType !== ""
+  //         );
+  //         if (filteredRecords.length > 0) {
+  //           const mostRecentRecord = filteredRecords.sort(
+  //               (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
+  //           )[0];
+  //           setTptMonitoring(mostRecentRecord.data.tbIptScreening)
+  //           const { diagnosticTestType, chestXrayDone } = mostRecentRecord.data.tbIptScreening;
+  //           setChestXrayDocumented(chestXrayDone)
+  //           if (diagnosticTestType === "TB-LAMP") {
+  //             setChronicCareTestResult("TB LAMP");
+  //           } else if (diagnosticTestType === "LF-LAM") {
+  //             setChronicCareTestResult("LF-LAM");
+  //           } else if (diagnosticTestType === "Truenat") {
+  //             setChronicCareTestResult("TrueNAT");
+  //           } else if (diagnosticTestType === "Smear Microscopy") {
+  //             setChronicCareTestResult("AFB smear microscopy");
+  //           } else if (diagnosticTestType === "Cobas") {
+  //             setChronicCareTestResult("Cobas");
+  //           }
+  //           else if (diagnosticTestType === "GeneXpert" ) {
+  //             setChronicCareTestResult("Gene Xpert");
+  //           }
+  //         } else {
+  //           setChronicCareTestResult("");
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error fetching care and support data:", error);
+  //       });
+  // };
+
+
+  // Fetch chronic care diagnostic test
+  const GetCareAndSupportDiagnosticTest = () => {
+    axios
+        .get(  `${baseUrl}observation/person/${props.patientObj.id}`, {
+          headers: { Authorization: `Bearer ${token}` }, // Add token here
+        })
+        .then((response) => {
+          const data = response.data;
+
+          // Step 1: Get all Chronic Care records
+          const allChronicCareRecords = data.filter((item) => item.type === "Chronic Care");
+
+          if (allChronicCareRecords.length === 0) {
+            setChronicCareTestResult("");
+            return;
+          }
+
+          // Step 2: Find the most recent date among ALL Chronic Care records
+          const mostRecentCareAndSupportRecordDate = allChronicCareRecords.reduce(
+              (maxDate, item) => {
+                const itemDate = new Date(item.dateOfObservation);
+                return itemDate > maxDate ? itemDate : maxDate;
+              },
+              new Date(0) // Start with the earliest possible date
+          );
+
+          // Step 3: Filter for Chronic Care records that have a diagnostic test
+          const filteredRecords = allChronicCareRecords.filter(
+              (item) =>
+                  item.data?.tbIptScreening?.diagnosticTestType !== null &&
+                  item.data?.tbIptScreening?.diagnosticTestType !== ""
+          );
+
+          if (filteredRecords.length > 0) {
+            // Get the most recent valid record (with diagnostic test)
+            const mostRecentRecord = filteredRecords.sort(
+                (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
+            )[0];
+
+            const mostRecentValidDate = new Date(mostRecentRecord.dateOfObservation);
+
+            // Step 4: Compare — if the latest Chronic Care record is NEWER than this one,
+            // it means the newest visit has no test → don't trust older test data
+            if (mostRecentCareAndSupportRecordDate > mostRecentValidDate) {
+              setTptMonitoring({}); // No valid latest test
+            } else {
+              // The most recent Chronic Care record IS the one with test data → safe to use
+              const tbIptData = mostRecentRecord.data.tbIptScreening;
+              setTptMonitoring(tbIptData);
+              setChestXrayDocumented(tbIptData.chestXrayDone);
+
+              // Map diagnostic test type to display value
+              const { diagnosticTestType } = tbIptData;
+              const testTypeMap = {
+                "TB-LAMP": "TB LAMP",
+                "LF-LAM": "LF-LAM",
+                "Truenat": "TrueNAT",
+                "Smear Microscopy": "AFB smear microscopy",
+                "Cobas": "Cobas",
+                "GeneXpert": "Gene Xpert",
+              };
+              setChronicCareTestResult(testTypeMap[diagnosticTestType] || "");
+            }
+          } else {
+            // No Chronic Care record has diagnostic test data
+            setChronicCareTestResult("");
+            setTptMonitoring({}); // Clear or keep? depends on your logic
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching care and support data:", error);
+        });
+  };
+
+  useEffect(() => {
+    GetCareAndSupportDiagnosticTest();
+  }, []);
+
+
+  useEffect(() => {
+    if (chronicCareTestResult && !userHasChanged) {
+      const matchedOption = labTestOptions.find(
+          (option) => option.label === chronicCareTestResult
+      );
+      if (matchedOption) {
+        setSelectedOption(matchedOption);
+        setTests((prevObject) => ({
+          ...prevObject,
+          labTestGroupId: matchedOption.testGroupId,
+          labTestId: matchedOption.value,
+          result: tptMonitorng?.tbTestResult,
+          sampleCollectionDate: moment(tptMonitorng?.dateSpecimenSent).format("YYYY-MM-DDTHH:mm"),
+          dateResultReceived: tptMonitorng?.DateDiagnosticTestResultReceived
+              ? moment(tptMonitorng?.DateDiagnosticTestResultReceived).format("YYYY-MM-DDTHH:mm")
+              : ""
+        }));
+      }
+    }
+  }, [chronicCareTestResult, userHasChanged]);
+
+
+  useEffect(() => {
+    if (chestXrayDocumented && testOrderList.length === 1) {
+      const chestXrayOption = labTestOptions.find(
+          (option) => option.label === "Chest X-ray"
+      );
+
+      if (chestXrayOption && !userHasChanged) {
+        setSelectedOption(chestXrayOption);
+        setTests((prev) => ({
+          ...prev,
+          labTestGroupId: chestXrayOption.testGroupId,
+          labTestId: chestXrayOption.value,
+          result: tptMonitorng?.chestXrayResultTest === "Not suggestive of TB"
+              ? "Not suggestive for TB"
+              : tptMonitorng?.chestXrayResultTest === "Suggestive of TB"
+                  ? "Suggestive for TB"
+                  : "",
+          dateResultReceived: tptMonitorng?.dateOfChestXrayResultTestDone
+              ? moment(tptMonitorng?.dateOfChestXrayResultTestDone).format("YYYY-MM-DDTHH:mm")
+              : ""
+        }));
+        // toast.success("Chest X-ray test has been autopopulated", {
+        //   position: toast.POSITION.BOTTOM_CENTER
+        // });
+        setShowModal({
+          show: true,
+          message: "Chest X-ray test has been autopopulated. It is required to also be added to the list"
+        });
+      }
+    }
+  }, [chestXrayDocumented, testOrderList.length, labTestOptions, userHasChanged]);
+
   //Load the tests of all Laboratory
   //Get list of Test Group
-  // const PriorityOrder = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/TEST_ORDER_PRIORITY`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setPriority(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
+  const PriorityOrder = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/TEST_ORDER_PRIORITY`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setPriority(response.data);
+      })
+      .catch((error) => {});
+  };
   //Check if Module Exist
   const CheckLabModule = () => {
     axios
@@ -233,19 +413,19 @@ const Laboratory = (props) => {
   };
 
   //Get list of Test Group
-  // const ViraLoadIndication = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setVLIndication(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
+  const ViraLoadIndication = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setVLIndication(response.data);
+      })
+      .catch((error) => {});
+  };
 
   const handleInputChangeObject = (e) => {
-    
+    setUserHasChanged(true)
     setSelectedOption(e);
     setTests((prevObject) => ({
       ...prevObject,
@@ -256,23 +436,42 @@ const Laboratory = (props) => {
 
   useEffect(() => {
     // Clear result when labTestId changes
-    if (tests.labTestId !== 65 && tests.labTestId !== 50) {
+    if (tests.labTestId !== 65 ) {
       setTests((prevTests) => ({ ...prevTests, result: "" }));
     }
+    if(tests.labTestId !== 1){
+      setCd4CountObj({cd4CountType:"", SQC4CountValue:"", FCCd4CountValue: ""})
+    }
+
   }, [tests.labTestId]);
 
-  const handleInputChange = (e) => {
-    setErrors({ ...temp, [e.target.name]: "" });
-    if (e.target.name === "labNumber") {
-      const onlyPositiveNumber = e.target.value; //Math.abs(e.target.value)
-      setTests({ ...tests, [e.target.name]: onlyPositiveNumber });
-    } else {
-      setTests({ ...tests, [e.target.name]: e.target.value });
+  useEffect(()=>{
+    if(tests.labTestId === 1){
+      setTests({...tests, result: cd4CountObj.FCCd4CountValue !== "" ? cd4CountObj.FCCd4CountValue : cd4CountObj.SQC4CountValue })
     }
-  };
+  },[cd4CountObj])
 
-  const addOrder = (e) => {
-    if (validate()) {
+  const handleInputChange = (e) => {
+    setErrors({...temp, [e.target.name]: ""});
+      if (e.target.name === "labNumber") {
+      const onlyPositiveNumber = e.target.value;
+      setTests({...tests, [e.target.name]: onlyPositiveNumber});
+    } else if (e.target.name === "cd4CountType") {
+      setCd4CountObj({...cd4CountObj, [e.target.name]: e.target.value})
+    } else if (e.target.name === "SQC4CountValue") {
+      setCd4CountObj({...cd4CountObj, SQC4CountValue: e.target.value, FCCd4CountValue: ""})
+    } else if (e.target.name === "FCCd4CountValue") {
+      setCd4CountObj({...cd4CountObj, SQC4CountValue: "", FCCd4CountValue: e.target.value})
+    } else {
+      setTests({...tests, [e.target.name]: e.target.value});
+    }
+  }
+
+  const addOrder = async (e) => {
+    const isValid = await validate();
+    if(!isValid){
+      return;
+    }
       tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format(
         "YYYY-MM-DD HH:MM:SS"
       );
@@ -280,9 +479,7 @@ const Laboratory = (props) => {
         tests.dateResultReceived !== ""
           ? moment(tests.dateResultReceived).format("YYYY-MM-DD HH:MM:SS")
           : "";
-
       tests.visitId = visitId;
-
       setTestOrderList([...testOrderList, tests]);
       setTests({
         comments: "",
@@ -307,8 +504,10 @@ const Laboratory = (props) => {
         orderId: "",
         resultReportedBy: "",
       });
-      setSelectedOption([]);
-    }
+      // setSelectedOption([]);
+    setSelectedOption(null);
+    // setUserHasChanged(false);
+
   };
   /* Remove ADR  function **/
   const removeOrder = (index) => {
@@ -321,55 +520,102 @@ const Laboratory = (props) => {
     testOrderList.splice(index, 1);
     setTestOrderList([...testOrderList]);
   };
-  //Validations of the forms
-  const validate = () => {
-    //temp.dateAssayed = tests.dateAssayed ? "" : "This field is required"
-    temp.labTestGroupId = tests.labTestGroupId ? "" : "This field is required";
-    temp.labTestId = tests.labTestId ? "" : "This field is required";
-    temp.labOrderIndication = tests.labOrderIndication
-      ? ""
-      : "This field is required";
-    temp.orderedDate = tests.orderedDate ? "" : "This field is required";
-    temp.sampleNumber = tests.sampleNumber ? "" : "This field is required";
-    temp.sampleCollectionDate = tests.sampleCollectionDate
-      ? ""
-      : "This field is required";
-    tests.labTestId === "16" &&
-      (temp.viralLoadIndication = tests.viralLoadIndication
-        ? ""
-        : "This field is required");
-    {
-      tests.dateResultReceived !== "" &&
-        (temp.result = tests.result ? "" : "This field is required");
-    }
-    {
-      tests.result !== "" &&
-        (temp.dateResultReceived = tests.dateResultReceived
-          ? ""
-          : "This field is required");
-    }
 
-    setErrors({
-      ...temp,
-    });
-    return Object.values(temp).every((x) => x == "");
+  const isCheckXrayAddedToList = () => {
+    if (chestXrayDocumented && testOrderList.length > 0) {
+      const xrayExists = testOrderList.some(test => test.labTestId === 66);
+      setShowModal({
+        show: !xrayExists,
+        message: "Chest X-ray documented on care and support for this encounter. It is required to also be added to the list"
+      });
+      return !xrayExists;
+    }
+    setShowModal({ show: false, message: "" });
+    return false;
   };
 
-  // const LAB_ORDER_INDICATION = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/LAB_ORDER_INDICATION`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setLabOrderIndication(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
 
-  
+  const validate = async () => {
+    // Synchronous validations
+    temp.labTestGroupId = tests.labTestGroupId ? "" : "This field is required";
+    temp.labTestId = tests.labTestId ? "" : "This field is required";
+    temp.labOrderIndication = tests.labOrderIndication ? "" : "This field is required";
+    temp.orderedDate = tests.orderedDate ? "" : "This field is required";
+    temp.sampleNumber = tests.sampleNumber ? "" : "This field is required";
+    temp.sampleCollectionDate = tests.sampleCollectionDate ? "" : "This field is required";
+
+    // Conditional validation for viralLoadIndication
+    if (tests.labTestId === "16") {
+      temp.viralLoadIndication = tests.viralLoadIndication ? "" : "This field is required";
+    }
+
+    // Conditional validation for result and dateResultReceived
+    if (tests.dateResultReceived) {
+      temp.result = tests.result ? "" : "This field is required";
+    }
+    if (tests.result) {
+      temp.dateResultReceived = tests.dateResultReceived ? "" : "This field is required";
+    }
+
+    // Update errors with synchronous validations
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      ...temp,
+    }));
+
+    // Check if all synchronous validations pass
+    const isSyncValid = Object.values(temp).every((x) => x === "");
+
+    // Asynchronous validation for sample number
+    if (tests.sampleNumber) {
+      try {
+        const response = await axios.get(`${baseUrl}laboratory/check-sample-number?sampleNumber=${tests.sampleNumber}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = response.data;
+
+        if (data) {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            sampleNumber: "This sample number is already taken.",
+          }));
+          return false; // Validation fails
+        } else {
+          setErrors((prevErrors) => ({
+            ...prevErrors,
+            sampleNumber: "",
+          }));
+        }
+      } catch (error) {
+        console.error("Error validating sample number:", error);
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          sampleNumber: "An error occurred while checking the sample number.",
+        }));
+        return false;
+      }
+    }
+
+    // Return true only if both synchronous and asynchronous validations pass
+    return isSyncValid;
+  };
+
+  const LAB_ORDER_INDICATION = () => {
+    axios
+      .get(`${baseUrl}application-codesets/v2/LAB_ORDER_INDICATION`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setLabOrderIndication(response.data);
+      })
+      .catch((error) => {});
+  };
 
    const handleSubmit = (e) => {
      e.preventDefault();
+     if(isCheckXrayAddedToList()){
+       return;
+     }
      setSaving(true);
      tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format(
        "YYYY-MM-DD HH:MM:SS"
@@ -479,7 +725,7 @@ const Laboratory = (props) => {
                    <Col md={4} className="form-group mb-3">
                      <FormGroup>
                        <Label for="encounterDate">
-                         Sample Number <span style={{ color: "red" }}> *</span>
+                         Sample Number<span style={{ color: "red" }}> *</span>
                        </Label>
                        <Input
                          type="text"
@@ -511,9 +757,12 @@ const Laboratory = (props) => {
                        </Label>
 
                        <Select
-                         value={selectedOption}
-                         onChange={handleInputChangeObject}
-                         options={labTestOptions}
+                         // value={selectedOption}
+                         // onChange={handleInputChangeObject}
+                         // options={labTestOptions}
+                           value={selectedOption}
+                           onChange={handleInputChangeObject}
+                           options={labTestOptions}
                          theme={(theme) => ({
                            ...theme,
                            borderRadius: "0.25rem",
@@ -534,6 +783,67 @@ const Laboratory = (props) => {
                        )}
                      </FormGroup>
                    </Col>
+                   {/*cd4 count type */}
+                   {tests.labTestId === 1 && <>
+                     <Col md={4} className="form-group mb-3">
+                       <FormGroup>
+                         <Label>CD4 Count (Type)</Label>
+                         <select
+                             className="form-control"
+                             name="cd4CountType"
+                             id="cd4CountType"
+                             value={cd4CountObj.cd4CountType}
+                             onChange={handleInputChange}
+                             style={{
+                               border: "1px solid #014D88",
+                               borderRadius: "0.2rem",
+                             }}
+                         >
+                           <option value={""}></option>
+                           <option value="Semi-Quantitative">Semi-Quantitative</option>
+                           <option value="Flow Cyteometry">Flow Cytometry</option>
+                         </select>
+                       </FormGroup>
+                       {/* </div> */}
+                     </Col>
+                   </>}
+                   { cd4CountObj.cd4CountType === "Semi-Quantitative" && (<Col md={4} className="form-group mb-3">
+                     <FormGroup>
+                       <Label>CD4 Count Value(Semi-Quantitative)</Label>
+                       <select
+                           className="form-control"
+                           name="SQC4CountValue"
+                           id="SQC4CountValue"
+                           value={cd4CountObj.SQC4CountValue}
+                           onChange={handleInputChange}
+                           style={{
+                             border: "1px solid #014D88",
+                             borderRadius: "0.2rem",
+                           }}
+                       >
+                         <option value={""}></option>
+                         <option value="<200">{"<200"}</option>
+                         <option value=">=200">{">=200"}</option>
+                       </select>
+                     </FormGroup>
+                   </Col>)}
+                   { cd4CountObj.cd4CountType === "Flow Cyteometry" && (<Col md={4} className="form-group mb-3">
+                       <FormGroup>
+                         <Label for="">CD4 Count Value (Flow Cytometry)</Label>
+                         <Input
+                             type="number"
+                             min={1}
+                             name="FCCd4CountValue"
+                             id="FCCd4CountValue"
+                             value={cd4CountObj.FCCd4CountValue}
+                             onChange={handleInputChange}
+                             style={{
+                               border: "1px solid #014D88",
+                               borderRadius: "0.25rem",
+                             }}
+                         />
+                       </FormGroup>
+                   </Col>)}
                    {/* Indications */}
                    <>
                      <Col md={4} className="form-group mb-3">
@@ -541,21 +851,21 @@ const Laboratory = (props) => {
                        <FormGroup>
                          <Label>
                            Lab Order Indication{" "}
-                           <span style={{ color: "red" }}> *</span>
+                           <span style={{color: "red"}}> *</span>
                          </Label>
                          <select
-                           className="form-control"
-                           name="labOrderIndication"
-                           id="labOrderIndication"
-                           value={tests.labOrderIndication}
-                           onChange={handleInputChange}
+                             className="form-control"
+                             name="labOrderIndication"
+                             id="labOrderIndication"
+                             value={tests.labOrderIndication}
+                             onChange={handleInputChange}
                            style={{
                              border: "1px solid #014D88",
                              borderRadius: "0.2rem",
                            }}
                          >
                            <option value="">Select</option>
-                           {getOptions("LAB_ORDER_INDICATION").map((value) => (
+                           {labOrderIndication.map((value) => (
                              <option key={value.id} value={value.display}>
                                {value.display}
                              </option>
@@ -592,7 +902,7 @@ const Laboratory = (props) => {
                          >
                            <option value="">Select </option>
 
-                           {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
+                           {vLIndication.map((value) => (
                              <option key={value.id} value={value.id}>
                                {value.display}
                              </option>
@@ -629,7 +939,7 @@ const Laboratory = (props) => {
                            borderRadius: "0.25rem",
                          }}
                          required
-                         onKeyPress={(e) => e.preventDefault()}
+                         onKeyDown={(e) => e.preventDefault()}
                        />
                        {errors.sampleCollectionDate !== "" ? (
                          <span className={classes.error}>
@@ -644,7 +954,7 @@ const Laboratory = (props) => {
                      <FormGroup>
                        <Label for="">
                          Date Result Received{" "}
-                         {tests.result !== "" ? (
+                         {tests.dateResultReceived !== "" ? (
                            <span style={{ color: "red" }}> *</span>
                          ) : (
                            ""
@@ -736,24 +1046,31 @@ const Laboratory = (props) => {
                                borderRadius: "0.2rem",
                              }}
                            >
-                             //start
-                             <option value={""}>Select</option>
-                             <option value="MTB not detected">
-                               {"MTB not detected"}
-                             </option>
-                             <option value="MTB detected RR not detected">
-                               {"MTB detected RR not detected"}
-                             </option>
-                             <option value="MTB detected RR detected">
-                               {"MTB detected RR detected"}
-                             </option>
-                             <option value="MTB detected RR indeterminate">
-                               {"MTB detected RR indeterminate"}
-                             </option>
-                             <option value="Error">{"Error"}</option>
-                             <option value="Invalid ">{"Invalid "}</option>
-                             <option value="Incomplete">{"Incomplete"}</option>
-                             //end
+
+                           //start
+                          <option value={""}>Select</option>
+                          <option value="MTB not detected">
+                             {"MTB not detected"}
+                          </option>
+                          <option value="MTB detected RR not detected">
+                             {"MTB detected RR not detected"}
+                          </option>
+                          <option value="MTB detected RR detected">
+                           {"MTB detected RR detected"}
+                          </option>
+                          <option value="MTB detected RR indeterminate">
+                           {"MTB detected RR indeterminate"}
+                          </option>
+                          <option value="Error">
+                            {"Error"}
+                          </option>
+                          <option value="Invalid ">
+                            {"Invalid "}
+                          </option>
+                          <option value="Incomplete">
+                             {"Incomplete"}
+                          </option>
+                          //end
                            </select>
                          </FormGroup>
                        </Col>
@@ -818,43 +1135,76 @@ const Laboratory = (props) => {
                          </FormGroup>
                        </Col>
                      </>
-                   ) : //start
-                   tests.labTestId === 82 ||
+                   ) :
+                       tests.labTestId === 50 ? (
+                               <>
+                                 <Col md={4} className="form-group mb-3">
+                                   <FormGroup>
+                                     <Label>
+                                       Result{" "}
+                                       {tests.dateResultReceived !== "" ? (
+                                           <span style={{ color: "red" }}> *</span>
+                                       ) : (
+                                           ""
+                                       )}
+                                     </Label>
+                                     <select
+                                         className="form-control"
+                                         name="result"
+                                         id="result"
+                                         value={tests.result}
+                                         onChange={handleInputChange}
+                                         style={{
+                                           border: "1px solid #014D88",
+                                           borderRadius: "0.2rem",
+                                         }}
+                                     >
+                                       <option value={""}></option>
+                                       <option value="<200">{"<200"}</option>
+                                       <option value=">=200">{">=200"}</option>
+                                     </select>
+                                   </FormGroup>
+                                 </Col>
+                               </>
+                           )
+                           //start
+                   : tests.labTestId === 82 ||
                      tests.labTestId === 83 ||
                      tests.labTestId === 84 ||
                      tests.labTestId === 85 ? (
-                     <>
-                       <Col md={4} className="form-group mb-3">
-                         <FormGroup>
-                           <Label>
-                             Result{" "}
-                             {tests.dateResultReceived !== "" ? (
-                               <span style={{ color: "red" }}> *</span>
-                             ) : (
-                               ""
-                             )}
-                           </Label>
-                           <select
-                             className="form-control"
-                             name="result"
-                             id="result"
-                             value={tests.result}
-                             onChange={handleInputChange}
-                             style={{
-                               border: "1px solid #014D88",
-                               borderRadius: "0.2rem",
-                             }}
-                           >
-                             <option value={""}>Select</option>
-                             <option value="Normal">Normal</option>
-                             <option value="Deranged">Deranged</option>
-                           </select>
-                         </FormGroup>
-                       </Col>
-                     </>
-                   ) : //end
+                    <>
+                      <Col md={4} className="form-group mb-3">
+                        <FormGroup>
+                          <Label>
+                            Result{" "}
+                            {tests.dateResultReceived !== "" ? (
+                              <span style={{ color: "red" }}> *</span>
+                            ) : (
+                              ""
+                            )}
+                          </Label>
+                          <select
+                            className="form-control"
+                            name="result"
+                            id="result"
+                            value={tests.result}
+                            onChange={handleInputChange}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.2rem",
+                            }}
+                          >
+                            <option value={""}>Select</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Deranged">Deranged</option>
+                          </select>
+                        </FormGroup>
+                      </Col>
+                    </>
+                  )
+               //end
 
-                   tests.labTestId === 69 ? (
+                   : tests.labTestId === 69 ? (
                      <>
                        <Col md={4} className="form-group mb-3">
                          <FormGroup>
@@ -942,8 +1292,8 @@ const Laboratory = (props) => {
                              }}
                            >
                              <option value={""}>Select</option>
-                             <option value="AFB Positive">AFB Positive</option>
-                             <option value="AFB Negative">AFB Negative</option>
+                             <option value="Positive">AFB Positive</option>
+                             <option value="Negative">AFB Negative</option>
                            </select>
                          </FormGroup>
                        </Col>
@@ -1098,39 +1448,43 @@ const Laboratory = (props) => {
                          </FormGroup>
                        </Col>
                      </>
-                   ) : //start
-                   tests.labTestId === 33 ? (
-                     <>
-                       <Col md={4} className="form-group mb-3">
-                         <FormGroup>
-                           <Label>
-                             Result{" "}
-                             {tests.dateResultReceived !== "" ? (
-                               <span style={{ color: "red" }}> *</span>
-                             ) : (
-                               ""
-                             )}
-                           </Label>
-                           <select
-                             className="form-control"
-                             name="result"
-                             id="result"
-                             value={tests.result}
-                             onChange={handleInputChange}
-                             style={{
-                               border: "1px solid #014D88",
-                               borderRadius: "0.2rem",
-                             }}
-                           >
-                             <option value={""}>Select</option>
-                             <option value="Normal">Normal</option>
-                             <option value="Deranged">Deranged</option>
-                           </select>
-                         </FormGroup>
-                       </Col>
-                     </>
-                   ) : //end
-                   tests.labTestId === 32 ? (
+                   )
+
+                   //start
+                    : tests.labTestId === 33 ? (
+                        <>
+                          <Col md={4} className="form-group mb-3">
+                            <FormGroup>
+                              <Label>
+                                Result{" "}
+                                {tests.dateResultReceived !== "" ? (
+                                  <span style={{ color: "red" }}> *</span>
+                                ) : (
+                                  ""
+                                )}
+                              </Label>
+                              <select
+                                className="form-control"
+                                name="result"
+                                id="result"
+                                value={tests.result}
+                                onChange={handleInputChange}
+                                style={{
+                                  border: "1px solid #014D88",
+                                  borderRadius: "0.2rem",
+                                }}
+                              >
+                                <option value={""}>Select</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Deranged">Deranged</option>
+                              </select>
+                            </FormGroup>
+                          </Col>
+                        </>
+                      )
+
+                    //end
+                    : tests.labTestId === 32 ? (
                      <>
                        <Col md={4} className="form-group mb-3">
                          <FormGroup>
@@ -1280,38 +1634,41 @@ const Laboratory = (props) => {
                          </FormGroup>
                        </Col>
                      </>
-                   ) : //start
-                   tests.labTestId === 21 ? (
-                     <>
-                       <Col md={4} className="form-group mb-3">
-                         <FormGroup>
-                           <Label>
-                             Result{" "}
-                             {tests.dateResultReceived !== "" ? (
-                               <span style={{ color: "red" }}> *</span>
-                             ) : (
-                               ""
-                             )}
-                           </Label>
-                           <select
-                             className="form-control"
-                             name="result"
-                             id="result"
-                             value={tests.result}
-                             onChange={handleInputChange}
-                             style={{
-                               border: "1px solid #014D88",
-                               borderRadius: "0.2rem",
-                             }}
-                           >
-                             <option value={""}>Select</option>
-                             <option value="Normal">Normal</option>
-                             <option value="Deranged">Deranged</option>
-                           </select>
-                         </FormGroup>
-                       </Col>
-                     </>
-                   ) : tests.labTestId === 65 ? (
+                   )
+
+                //start
+               : tests.labTestId === 21 ? (
+                   <>
+                     <Col md={4} className="form-group mb-3">
+                       <FormGroup>
+                         <Label>
+                           Result{" "}
+                           {tests.dateResultReceived !== "" ? (
+                             <span style={{ color: "red" }}> *</span>
+                           ) : (
+                             ""
+                           )}
+                         </Label>
+                         <select
+                           className="form-control"
+                           name="result"
+                           id="result"
+                           value={tests.result}
+                           onChange={handleInputChange}
+                           style={{
+                             border: "1px solid #014D88",
+                             borderRadius: "0.2rem",
+                           }}
+                         >
+                           <option value={""}>Select</option>
+                           <option value="Normal">Normal</option>
+                           <option value="Deranged">Deranged</option>
+                         </select>
+                       </FormGroup>
+                     </Col>
+                   </>
+                 )
+                   : tests.labTestId === 65 ? (
                      <>
                        <Col md={4} className="form-group mb-3">
                          <FormGroup>
@@ -1337,99 +1694,112 @@ const Laboratory = (props) => {
                              //start
                              <option value={""}>Select</option>
                              <option value="MTB not detected">
-                               {"MTB not detected"}
+                                {"MTB not detected"}
                              </option>
                              <option value="MTB detected RIF resistance not detected">
-                               {"MTB detected RIF resistance not detected"}
+                                {"MTB detected RIF resistance not detected"}
                              </option>
                              <option value="MTB detected RIF resistance detected">
-                               {"MTB detected RIF resistance detected"}
+                              {"MTB detected RIF resistance detected"}
                              </option>
                              <option value="MTB trace RIF resistance indeterminate">
-                               {"MTB trace RIF resistance indeterminate"}
+                              {"MTB trace RIF resistance indeterminate"}
                              </option>
-                             <option value="Error">{"Error"}</option>
-                             <option value="Invalid">{"Invalid"}</option>
-                             <option value="Incomplete">{"Incomplete"}</option>
+                             <option value="Error">
+                               {"Error"}
+                             </option>
+                             <option value="Invalid">
+                               {"Invalid"}
+                             </option>
+                             <option value="Incomplete">
+                                {"Incomplete"}
+                             </option>
                              //end
+
                            </select>
                          </FormGroup>
                        </Col>
                      </>
-                   ) : tests.labTestId === 86 ? (
+                   )
+                    : tests.labTestId === 86 ? (
+                        <>
+                          <Col md={4} className="form-group mb-3">
+                            <FormGroup>
+                              <Label>
+                                Result{" "}
+                                {tests.dateResultReceived !== "" ? (
+                                  <span style={{ color: "red" }}> *</span>
+                                ) : (
+                                  ""
+                                )}
+                              </Label>
+                              <select
+                                className="form-control"
+                                name="result"
+                                id="result"
+                                value={tests.result}
+                                onChange={handleInputChange}
+                                style={{
+                                  border: "1px solid #014D88",
+                                  borderRadius: "0.2rem",
+                                }}
+                              >
+                                //start
+                                <option value={""}>Select</option>
+                                <option value="MTB not detected">
+                                   {"MTB not detected"}
+                                </option>
+                                <option value="MTB detected RIF/INH not detected">
+                                   {"MTB detected RIF/INH not detected"}
+                                </option>
+                                <option value="MTB detected RIF detected">
+                                 {"MTB detected RIF detected"}
+                                </option>
+                                <option value="MTB detected INH detected">
+                                 {"MTB detected INH detected"}
+                                </option>
+                                <option value="MTB detected RIF&INH detected">
+                                  {"MTB detected RIF&INH detected"}
+                                </option>
+                                <option value="Invalid">
+                                  {"Invalid"}
+                                </option>
+                                <option value="No result">
+                                   {"No result"}
+                                </option>
+                                //end
+
+                              </select>
+                            </FormGroup>
+                          </Col>
+                        </>
+                      )
+
+                   : tests.labTestId === 1 ? (
                      <>
                        <Col md={4} className="form-group mb-3">
                          <FormGroup>
                            <Label>
                              Result{" "}
                              {tests.dateResultReceived !== "" ? (
-                               <span style={{ color: "red" }}> *</span>
+                                 <span style={{ color: "red" }}> *</span>
                              ) : (
-                               ""
+                                 ""
                              )}
                            </Label>
-                           <select
-                             className="form-control"
-                             name="result"
-                             id="result"
-                             value={tests.result}
-                             onChange={handleInputChange}
-                             style={{
-                               border: "1px solid #014D88",
-                               borderRadius: "0.2rem",
-                             }}
-                           >
-                             //start
-                             <option value={""}>Select</option>
-                             <option value="MTB not detected">
-                               {"MTB not detected"}
-                             </option>
-                             <option value="MTB detected RIF/INH not detected">
-                               {"MTB detected RIF/INH not detected"}
-                             </option>
-                             <option value="MTB detected RIF detected">
-                               {"MTB detected RIF detected"}
-                             </option>
-                             <option value="MTB detected INH detected">
-                               {"MTB detected INH detected"}
-                             </option>
-                             <option value="MTB detected RIF&INH detected">
-                               {"MTB detected RIF&INH detected"}
-                             </option>
-                             <option value="Invalid">{"Invalid"}</option>
-                             <option value="No result">{"No result"}</option>
-                             //end
-                           </select>
-                         </FormGroup>
-                       </Col>
-                     </>
-                   ) : tests.labTestId === 50 ? (
-                     <>
-                       <Col md={4} className="form-group mb-3">
-                         <FormGroup>
-                           <Label>
-                             Result{" "}
-                             {tests.dateResultReceived !== "" ? (
-                               <span style={{ color: "red" }}> *</span>
-                             ) : (
-                               ""
-                             )}
-                           </Label>
-                           <select
-                             className="form-control"
-                             name="result"
-                             id="result"
-                             value={tests.result}
-                             onChange={handleInputChange}
-                             style={{
-                               border: "1px solid #014D88",
-                               borderRadius: "0.2rem",
-                             }}
-                           >
-                             <option value={""}>Select</option>
-                             <option value="<200">{"<200"}</option>
-                             <option value=">=200">{">=200"}</option>
-                           </select>
+                           <Input
+                               className="form-control"
+                               type="text"
+                               name="result"
+                               id="result"
+                               value={tests.result}
+                               onChange={handleInputChange}
+                               style={{
+                                 border: "1px solid #014D88",
+                                 borderRadius: "0.25rem",
+                               }}
+                               required
+                           />
                          </FormGroup>
                        </Col>
                      </>
@@ -1513,8 +1883,8 @@ const Laboratory = (props) => {
                            border: "1px solid #014D88",
                            borderRadius: "0.25rem",
                          }}
-                         required
                          onKeyPress={(e) => e.preventDefault()}
+                         required
                        />
                        {errors.orderedDate !== "" ? (
                          <span className={classes.error}>
@@ -1634,16 +2004,16 @@ const Laboratory = (props) => {
                      <FormGroup>
                        <Label for="priority">Comment</Label>
                        <Input
-                         type="textarea"
-                         name="comments"
-                         id="comments"
-                         value={tests.comments}
-                         onChange={handleInputChange}
-                         style={{
-                           border: "1px solid #014D88",
-                           borderRadius: "0.25rem",
-                         }}
-                       ></Input>
+                           type="textarea"
+                           name="comments"
+                           id="comments"
+                           value={tests.comments}
+                           onChange={handleInputChange}
+                           style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                       >
+
+                       </Input>
+
                      </FormGroup>
                    </Col>
 
@@ -1720,21 +2090,49 @@ const Laboratory = (props) => {
                  )}
                </MatButton>
              </form>
-             {/* )} */}
-             {/* {moduleStatus==="2" && (
-            <>
-            <Alert
-                variant="warning"
-                className="alert-dismissible solid fade show"
-            >
-                <p>Laboratory Module is not install</p>
-            </Alert>
-           
-            </>
-            )}  */}
            </CardBody>
          </Card>
        </div>
+
+       {showModal.show && (
+           <Modal
+               show={showModal.show}
+               onHide={hideModal}
+               className="fade"
+               size="md"
+               centered
+               backdrop="static"
+               keyboard={false}
+               aria-labelledby="chest-xray-warning-label"
+           >
+             <Modal.Header closeButton style={{ backgroundColor: "#007bff",fontWeight: "bold", color: "#fff" }}>
+               <Modal.Title id="chest-xray-warning-label">
+                 <strong color="#fff">Chest X-ray Required</strong>
+               </Modal.Title>
+             </Modal.Header>
+
+             <Modal.Body className="text-center py-4">
+               <p style={{ fontSize: "1.2rem", color: "#333" }}>
+                 {showModal.message}
+               </p>
+             </Modal.Body>
+
+             <Modal.Footer className="justify-content-center">
+               <Button
+                   variant="secondary"
+                   onClick={hideModal}
+                   style={{
+                     backgroundColor: "#007bff",
+                     borderColor: "#014d88",
+                     fontWeight: "bold",
+                     padding: "0.5rem 1.5rem",
+                   }}
+               >
+                 Close
+               </Button>
+             </Modal.Footer>
+           </Modal>
+       )}
      </div>
    );
 };
@@ -1797,6 +2195,14 @@ function TestOrdersList({
       </th>
     </tr>
   );
+
+
+
 }
+
+
+
+
+
 
 export default Laboratory;

@@ -16,7 +16,6 @@ import moment from "moment";
 import { Spinner } from "reactstrap";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 import Select from "react-select";
-import { getFacilityId } from "../../../utils/localstorage";
 
 // import moment from "moment";
 
@@ -102,7 +101,7 @@ const DashboardFilledTransferForm = (props) => {
   const [showSelectdropdown, setShowSelectdropdown] = useState(false);
 
   const [currentMedication, setCurrentMedication] = useState([]);
-  const [facId, setFacId] = useState(null);
+  const [facId, setFacId] = useState(localStorage.getItem("facId"));
   const [attemptList, setAttemptList] = useState([]);
   const[observationType, setObservationType] = useState("")
   // const [selectedLga, setSelectedLga] = useState("");
@@ -115,7 +114,7 @@ const DashboardFilledTransferForm = (props) => {
   ]);
 
   const [info, setInfo] = useState({});
-
+  const [hasExistingTransfer, setHasExistingTransfer] = useState(false);
   const [payload, setPayload] = useState({
     height: "",
     weight: "",
@@ -176,14 +175,6 @@ const DashboardFilledTransferForm = (props) => {
   const [selectedFacility, setSelectedFacility] = useState({});
   const [selectedLga, setSelectedLga] = useState({});
 
-    useEffect(() => {
-      const init = async () => {
-        const facilityId = getFacilityId();
-        setFacId(facilityId);
-      };
-      init();
-    }, []);
-
   const loadStates1 = () => {
     axios
       .get(`${baseUrl}organisation-units/parent-organisation-units/1`, {
@@ -197,7 +188,7 @@ const DashboardFilledTransferForm = (props) => {
         }
       })
       .catch((e) => {
-       console.error("Fetch States error" + e);
+        // console.log("Fetch states error" + e);
       });
   };
 
@@ -216,7 +207,7 @@ const DashboardFilledTransferForm = (props) => {
         }
       })
       .catch((e) => {
-        console.error("Fetch LGA error" + e);
+        // console.log("Fetch LGA error" + e);
       });
   };
 
@@ -233,7 +224,7 @@ const DashboardFilledTransferForm = (props) => {
         }
       })
       .catch((e) => {
-        console.error("Fetch Facilities error" + e);
+        // console.log("Fetch Facilities error" + e);
       });
   };
 
@@ -245,7 +236,8 @@ const DashboardFilledTransferForm = (props) => {
       .then((response) => {
         setObservationType(response.data.type)
         setPayload({ ...response.data.data });
-       
+        // console.log("observation", response.data.data)
+        // console.log("observation type", response.data.type)
         setDefaultFacility({
           value: "",
           label: response.data.data.facilityTransferTo,
@@ -298,8 +290,8 @@ const DashboardFilledTransferForm = (props) => {
   };
 
   const getBasedlineCD4Count = () => {
-
-
+    // let facId = localStorage.getItem("faciltyId");
+    // /patient_baseline_cd4/{facilityId}/{patientUuid
     axios
       .get(`${baseUrl}patient_baseline_cd4/${facId}/${patientObj.personUuid}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -423,8 +415,40 @@ const DashboardFilledTransferForm = (props) => {
   }, [transferInfo.height, transferInfo.weight]);
 
   const handleInputChange = (e) => {
+    const {name, value} = e.target
     setErrors({ ...temp, [e.target.name]: "" });
     setPayload({ ...payload, [e.target.name]: e.target.value });
+    if (name === "encounterDate" && value) {
+      checkExistingTransfer(value);
+    }
+
+  };
+
+  // Function to check existing transfer
+  const checkExistingTransfer = async (date) => {
+    try {
+      const response = await axios.get(`${baseUrl}treatment-transfers/check-transfer`, {
+        params: {
+          personUuid: patientObj?.personUuid,
+          encounterDate: date
+        },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const hasTransfer = response.data.hasTransfer
+      setHasExistingTransfer(hasTransfer)
+      if (hasTransfer) {
+        setErrors(prev => ({
+          ...prev,
+          encounterDate: "The selected date is already used for transfer in or out"
+        }));
+      }
+    } catch (error) {
+      console.error("Error checking transfer status:", error);
+      setErrors(prev => ({
+        ...prev,
+        encounterDate: "Error validating date"
+      }));
+    }
   };
 
   const handleInputChangeLocation = (e) => {
@@ -469,44 +493,14 @@ const DashboardFilledTransferForm = (props) => {
     reasonForDefaultingOthers: "",
   });
 
-
-  //Validations of the forms
-  // const validate = () => {
-  //   temp.reasonForTransfer = payload.reasonForTransfer
-  //     ? ""
-  //     : "This field is required";
-  //   temp.modeOfHIVTest = payload.modeOfHIVTest ? "" : "This field is required";
-  //   setErrors({
-  //     ...temp,
-  //   });
-  //   return Object.values(temp).every((x) => x == "");
-  // };
-
   const validate = async () => {
     temp.reasonForTransfer = payload.reasonForTransfer !== "" ? "" : "This field is required";
     temp.modeOfHIVTest = payload.modeOfHIVTest !== "" ? "" : "This field is required";
     temp.encounterDate = payload.encounterDate !== "" ? "" : "This field is required";
+    // if(hasExistingTransfer){
+    //   temp.encounterDate = 'The selected date is already used for transfer in or out'
+    // }
 
-    if (payload.encounterDate !== "") {
-      try {
-        const response = await axios.get(
-            `${baseUrl}treatment-transfers/validate-encounter-date?personUuid=${patientObj?.personUuid}&encounterDate=${payload.encounterDate}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-        );
-        if (response.data === 'Date is valid.') {
-          temp.encounterDate = '';
-        } else if (response.data === 'The selected date is already used for transfer in or out.') {
-          temp.encounterDate = "The selected date is already used for transfer in or out";
-        } else {
-          temp.encounterDate = "An unexpected error occurred";
-        }
-      } catch (error) {
-        console.error('Error validating date:', error);
-        temp.encounterDate = 'The selected date is already used for transfer in or out';
-      }
-    }
     setErrors({
       ...temp,
     });
@@ -516,7 +510,7 @@ const DashboardFilledTransferForm = (props) => {
 
   /**** Submit Button Processing  */
   const handleSubmit = async (e) => {
-
+    let facId = localStorage.getItem("faciltyId");
     e.preventDefault();
     if (await validate()) {
       payload.bmi = BMI;
@@ -548,7 +542,7 @@ const DashboardFilledTransferForm = (props) => {
               <h2>Transfer {observationType === "ART Transfer Out" ? "Out" : "In"} Form</h2>
               <br/>
               <div className="row">
-                <div className="form-group mb-3 col-md-12">
+                <div className="form-group mb-3 col-md-4">
                   <FormGroup>
                     <Label for="">Encounter Date</Label>
                     <span style={{color: "red"}}> *</span>
@@ -564,8 +558,9 @@ const DashboardFilledTransferForm = (props) => {
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
                         }}
+                        min={payload.dateEnrolledInTreatment}
                         disabled={
-                          props.activeContent.actionType === "view" ? true : false
+                          props.activeContent.actionType === "view"
                         }
                         onKeyPress={(e) => e.preventDefault()}
                     />
@@ -1863,185 +1858,3 @@ const DashboardFilledTransferForm = (props) => {
 
 export default DashboardFilledTransferForm;
 
-/**
- * {
- "eye": {
- "nsf": "",
- "oral": "",
- "other": "",
- "thrush": "",
- "icterus": "",
- "abnormal": ""
- },
- "who": {
- "stage": "119"
- },
- "plan": {
- "cd4Type": "Semi-Quantitative",
- "cd4Count": ">=200"
- },
- "skin": {
- "nsf": "",
- "other": "",
- "fungal": "",
- "herpes": "",
- "kaposi": "",
- "pruritic": "",
- "abscesses": "",
- "suborrheic": ""
- },
- "breast": {
- "nsf": "",
- "lumps": "",
- "other": "",
- "discharge": ""
- },
- "enroll": {
- "enrollIn": "ARV therapy"
- },
- "planArt": {
- "previousArvExposure": "Start new treatment"
- },
- "regimen": {
- "regimen": "122",
- "regimenLine": "3"
- },
- "assesment": {
- "assessment": "Asymptomatic"
- },
- "genitalia": {
- "nsf": "",
- "other": "",
- "inguinal": "",
- "genital_ulcer": "",
- "genital_discharge": ""
- },
- "visitDate": "",
- "respiratory": {
- "nsf": "",
- "rate": "",
- "other": "",
- "labored": "",
- "cyanosis": "",
- "wheezing": "",
- "intercostal": "",
- "auscultation_finding": ""
- },
- "mentalstatus": {
- "nsf": "",
- "other": "",
- "anxiety": "",
- "ideation": "",
- "mentation": "",
- "depression": "",
- "memoryloss": "",
- "moodSwings": "",
- "tenderness": ""
- },
- "neurological": {
- "nsf": "",
- "other": "",
- "paresis": "",
- "numbness": "",
- "blindness": "",
- "orientation": "",
- "speechSlurs": "",
- "neckStiffness": ""
- },
- "cardiovascular": {
- "nsf": "",
- "other": "",
- "abnormal_heart_rate": ""
- },
- "currentMedical": "",
- "medicalHistory": {
- "pain": "",
- "rash": "",
- "cough": "",
- "fever": "",
- "Nausea": "",
- "friend": "",
- "recent": "",
- "spouse": "",
- "chronic": "",
- "genital": "",
- "itching": "",
- "headache": "",
- "numbness": "",
- "currentART": "",
- "currentCTX": "",
- "fatherName": "",
- "motherName": "",
- "new_visual": "",
- "Nausea_fever": "",
- "familyMember": "",
- "currentOthers": "",
- "fatherAddress": "",
- "genital_score": "",
- "motherAddress": "",
- "pain_duration": "",
- "rash_duration": "",
- "screen_for_tb": "Yes",
- "cough_duration": "",
- "drug_allergies": "No side effects",
- "fever_duration": "",
- "night_duration": "",
- "disclosureNoOne": "",
- "hospitalization": "",
- "howManySibiling": "",
- "recent_duration": "",
- "spiritualLeader": "",
- "childFatherAlive": "No",
- "childMotherAlive": "No",
- "chronic_duration": "",
- "disclosureOthers": "",
- "genital_duration": "",
- "itching_duration": "",
- "headache_duration": "",
- "numbness_duration": "",
- "currentAntiTbDdrugs": "",
- "duration_of_care_to": "",
- "modeOfInfantFeeding": "",
- "new_visual_duration": "",
- "shortness_of_breath": "",
- "immunisationComplete": "",
- "name_of_the_facility": "",
- "past_medical_history": "",
- "CurrentMedicationNone": "",
- "as_never_receive_arvs": "",
- "duration_of_care_from": "",
- "previous_arv_exposure": "",
- "genital_score_duration": "",
- "HivStatusCanBeDiscussed": "",
- "relevant_family_history": "",
- "parentChildMarriageStatus": "Married",
- "shortness_of_breath_duration": "",
- "early_arv_but_not_transfer_in": ""
- },
- "pastArvMedical": {
- "none": "on"
- },
- "nextAppointment": "2024-02-28",
- "gastrointestinal": {
- "nsf": "",
- "other": "",
- "distention": "",
- "tenderness": "",
- "spenomegaly": "",
- "hepatomegaly": ""
- },
- "generalApperance": {
- "nsf": "",
- "other": "",
- "pallor": "",
- "febrile": "",
- "dehydrated": "",
- "peripheral": ""
- },
- "patientDisclosure": "",
- "physicalExamination": {
- "height": "135",
- "bodyWeight": "35"
- }
- }
- */
