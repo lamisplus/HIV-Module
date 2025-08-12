@@ -598,6 +598,6 @@ public class IITMlService {
                 .build();
 
         facilities = cb.parse();
-        System.out.printf("Facilities loaded: %s\n", facilities);
+//        System.out.printf("Facilities loaded: %s\n", facilities);
     }
 }
