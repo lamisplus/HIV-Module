@@ -295,7 +295,7 @@ const TPT = (props) => {
                 props.setTpt({
                     ...props.tpt,
                     [name]: value,
-                    dateOfTptCompleted: '', // Clear date if "No" is selected
+                    dateOfTptCompleted: '', 
                 });
             }
         }

@@ -197,55 +197,31 @@ const ViewChronicCare = (props) => {
     // tbTreatmentStartDate: "",
 
     //TPT prevention
-    everCompletedTpt:"",
-    eligibilityTpt:"",
-    tptPreventionOutcome:"",
-    currentlyOnTpt:"",
-    contractionForTpt:"",
-    liverSymptoms:"",
-    chronicAlcohol:"",
-    neurologicSymptoms:"",
-    dateTptStarted:"",
-    tptRegimen:"",
-    endedTpt:"",
-    dateOfTptCompleted:"",
-    dateTptEnded:"",
-    tbSideEffect:"",
-    giUpsetEffect:"",
-    hepatotoxicityEffect:"",
-    neurologicSymptomsEffect:"",
-    giUpsetEffectSeverity:"",
-    hypersensitivityReactionEffect:"",
-    hypersensitivityReactionEffectSeverity:"",
-    neurologicSymptomsEffectSeverity:"",
-    hepatotoxicityEffectSeverity:'',
-    enrolledOnTpt:""
+    everCompletedTpt: "",
+    eligibilityTpt: "",
+    tptPreventionOutcome: "",
+    currentlyOnTpt: "",
+    contractionForTpt: "",
+    liverSymptoms: "",
+    chronicAlcohol: "",
+    neurologicSymptoms: "",
+    dateTptStarted: "",
+    tptRegimen: "",
+    endedTpt: "",
+    dateOfTptCompleted: "",
+    dateTptEnded: "",
+    tbSideEffect: "",
+    giUpsetEffect: "",
+    hepatotoxicityEffect: "",
+    neurologicSymptomsEffect: "",
+    giUpsetEffectSeverity: "",
+    hypersensitivityReactionEffect: "",
+    hypersensitivityReactionEffectSeverity: "",
+    neurologicSymptomsEffectSeverity: "",
+    hepatotoxicityEffectSeverity: "",
+    enrolledOnTpt: "",
   });
   const [tbObj, setTbObj] = useState({
-    //TB and IPT Screening Object
-    // currentlyOnTuberculosis: "",
-    // tbTreatment: "",
-    // tbTreatmentStartDate: "",
-    // coughing: "",
-    // fever: "",
-    // losingWeight: "",
-    // nightSweats: "",
-    // poorWeightGain: "",
-    // historyWithAdults: "",
-    // outcome: "",
-    // priorInh: false,
-    // highAlcohol: false,
-    // activeHepatitis: false,
-    // age1year: false,
-    // poorTreatmentAdherence: false,
-    // abnormalChest: false,
-    // activeTb: false,
-    // contraindications: "",
-    // eligibleForTPT: "",
-    // treatementOutcome: "",
-    // treatementType: "",
-    // completionDate: "",
-
     //TB and IPT Screening Object
     currentlyOnTuberculosis: "",
     tbTreatment: "",
@@ -266,8 +242,8 @@ const ViewChronicCare = (props) => {
     activeTb: false,
     contraindications: "",
     eligibleForTPT: "",
-    chestXrayResult:"",
-    isTbTestConfirmed:"",
+    chestXrayResult: "",
+    isTbTestConfirmed: "",
 
     // treatementOutcome: "",
     //This is section for TB Treament Variable
@@ -284,18 +260,18 @@ const ViewChronicCare = (props) => {
     tbType: "",
     tbTreatmentStarted: "",
     tbTreatmentStartDate: "",
-    dateOfDiagnosticTest:"",
-    chestXrayResultTest:"",
-    dateOfChestXrayResultTestDone:"",
-    DateDiagnosticTestResultReceived:"",
-    resultOfClinicalEvaluation:"",
-    careCardPatientTbStatus:"",
+    dateOfDiagnosticTest: "",
+    chestXrayResultTest: "",
+    dateOfChestXrayResultTestDone: "",
+    DateDiagnosticTestResultReceived: "",
+    resultOfClinicalEvaluation: "",
+    careCardPatientTbStatus: "",
     treatmentType: "",
     treatmentOutcome: "",
     completionDate: "",
     treatmentCompletionStatus: "",
     completedTbTreatment: "",
-    currentWeight:""
+    currentWeight: "",
   });
   const [observationObj, setObservationObj] = useState({
     //Predefine object for chronic care DTO
@@ -389,7 +365,6 @@ const ViewChronicCare = (props) => {
         const DateObj = response.data.filter((x) => x.type === "Chronic Care");
         if (response.data) {
           setChronicDateExist(DateObj);
-
         }
       })
       .catch((error) => {});
@@ -454,83 +429,53 @@ const ViewChronicCare = (props) => {
     toast.success(message, { position: toast.POSITION.BOTTOM_CENTER });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setSaving(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
 
-  if (tbObj.tbTreatment === "") {
-    showErrorMessage("TB & IPT Screening is not filled for patient");
-    setSaving(false);
-    return;
-  }
+    if (tbObj.tbTreatment === "") {
+      showErrorMessage("TB & IPT Screening is not filled for patient");
+      setSaving(false);
+      return;
+    }
 
-  // Set up observation object
-  observation.personId = patientObj.id;
-  observationObj.eligibility = eligibility;
-  observationObj.nutrition = nutrition;
-  observationObj.genderBase = genderBase;
-  observationObj.chronicCondition = chronicConditions;
-  observationObj.positiveHealth = preventive;
-  observationObj.peproductive = reproductive;
-  observationObj.tbIptScreening = tbObj;
-  observationObj.tptMonitoring = tpt;
-  observation.data = observationObj;
+    // Set up observation object
+    observation.personId = patientObj.id;
+    observationObj.eligibility = eligibility;
+    observationObj.nutrition = nutrition;
+    observationObj.genderBase = genderBase;
+    observationObj.chronicCondition = chronicConditions;
+    observationObj.positiveHealth = preventive;
+    observationObj.peproductive = reproductive;
+    observationObj.tbIptScreening = tbObj;
+    observationObj.tptMonitoring = tpt;
+    observation.data = observationObj;
 
-  // Validate form
-  // if (!validate()) {
-  //   showErrorMessage("All fields are required");
-  //   setSaving(false);
-  //   return;
-  // }
-
-  // Check for duplicate visit Date
-  // if (
-  //   chronicDateExist !== null &&
-  //   chronicDateExist.find(
-  //     (x) => x.dateOfObservation === observation.dateOfObservation
-  //   )
-  // ) {
-  //   showErrorMessage(
-  //     "Chronic Care visit date " +
-  //       observation.dateOfObservation +
-  //       " already exists."
-  //   );
-  //   setSaving(false);
-  //   return;
-  // }
-
-  // Send request
-  try {
-    let response;
-    // if (isUpdate) {
+    try {
+      let response;
       response = await axios.put(
         `${baseUrl}observation/${props.activeContent.id}`,
         observation,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-    // }
-    // else {
-    //   response = await axios.post(`${baseUrl}observation`, observation, {
-    //     headers: { Authorization: `Bearer ${token}` },
-    //   });
-    // }
-
-    setSaving(false);
-    showSuccessMessage("Chronic Care Save successful");
-    props.setActiveContent({ ...props.activeContent, route: "recent-history" });
-  } catch (error) {
-    setSaving(false);
-    if (error.response && error.response.data) {
-      const errorMessage =
-        error.response.data.apierror &&
-        error.response.data.apierror.message !== ""
-          ? error.response.data.apierror.message
-          : "Something went wrong. Please try again...";
-      showErrorMessage(errorMessage);
+      setSaving(false);
+      showSuccessMessage("Chronic Care Save successful");
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "recent-history",
+      });
+    } catch (error) {
+      setSaving(false);
+      if (error.response && error.response.data) {
+        const errorMessage =
+          error.response.data.apierror &&
+          error.response.data.apierror.message !== ""
+            ? error.response.data.apierror.message
+            : "Something went wrong. Please try again...";
+        showErrorMessage(errorMessage);
+      }
     }
-  }
-};
-
+  };
 
   const onClickEligibility = () => {
     setShowEligibility(!showEligibility);
@@ -713,62 +658,57 @@ const handleSubmit = async (e) => {
               </div>
               {/* End TB & IPT  Screening  */}
               {/* TPT MONITORING */}
-              {
-                  (tbObj.tbEvaulationOutcome === 'TB Not Diagnosed' ||
-                      tbObj.status === 'No signs or symptoms of TB' ||
-                      tbObj.status === 'Currently on TB treatment'
-                  )
-                  &&
-                  (
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    TPT Prevention/Monitoring
-                  </h5>
-                  {showTpt === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickTpt}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickTpt}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
+              {(tbObj.tbEvaulationOutcome === "TB Not Diagnosed" ||
+                tbObj.status === "No signs or symptoms of TB" ||
+                tbObj.status === "Currently on TB treatment") && (
+                <div className="card">
+                  <div
+                    className="card-header"
+                    style={{
+                      backgroundColor: "#014d88",
+                      color: "#fff",
+                      fontWeight: "bolder",
+                      borderRadius: "0.2rem",
+                    }}
+                  >
+                    <h5 className="card-title" style={{ color: "#fff" }}>
+                      TPT Prevention/Monitoring
+                    </h5>
+                    {showTpt === false ? (
+                      <>
+                        <span
+                          className="float-end"
+                          style={{ cursor: "pointer" }}
+                          onClick={onClickTpt}
+                        >
+                          <FaPlus />
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span
+                          className="float-end"
+                          style={{ cursor: "pointer" }}
+                          onClick={onClickTpt}
+                        >
+                          <FaAngleDown />
+                        </span>{" "}
+                      </>
+                    )}
+                  </div>
+                  {showTpt && (
+                    <Tpt
+                      setTpt={setTpt}
+                      tpt={tpt}
+                      setErrors={setErrors}
+                      errors={errors}
+                      encounterDate={observation.dateOfObservation}
+                      patientObj={patientObj}
+                      action={props.activeContent.actionType}
+                    />
                   )}
                 </div>
-                {showTpt && (
-                  <Tpt
-                    setTpt={setTpt}
-                    tpt={tpt}
-                    setErrors={setErrors}
-                    errors={errors}
-                    encounterDate={observation.dateOfObservation}
-                    patientObj={patientObj}
-                    action={props.activeContent.actionType}
-                  />
-                )}
-              </div>
-                  )
-              }
+              )}
               {/* End TPT MONITORING */}
               {/* End Nutritional Status Assessment */}
               <div className="card">
@@ -872,7 +812,7 @@ const handleSubmit = async (e) => {
                   </div>
                 )}
               </div>
-               {/*End Gender Based Violence Screening*/}
+              {/*End Gender Based Violence Screening*/}
               {/* End Screening for Chronic Conditions */}
               <div className="card">
                 <div
@@ -979,59 +919,7 @@ const handleSubmit = async (e) => {
                 )}
               </div>
               {/* End Positive Health Dignity and Prevention */}
-              {/*SWO-FEATURE */}
-              {/* Reproductive Intentions */}
-              {/*<div className="card">*/}
-              {/*  <div*/}
-              {/*    className="card-header"*/}
-              {/*    style={{*/}
-              {/*      backgroundColor: "#014d88",*/}
-              {/*      color: "#fff",*/}
-              {/*      fontWeight: "bolder",*/}
-              {/*      borderRadius: "0.2rem",*/}
-              {/*    }}*/}
-              {/*  >*/}
-              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
-              {/*      Reproductive Intentions{" "}*/}
-              {/*    </h5>*/}
-              {/*    {showReproductive === false ? (*/}
-              {/*      <>*/}
-              {/*        <span*/}
-              {/*          className="float-end"*/}
-              {/*          style={{ cursor: "pointer" }}*/}
-              {/*          onClick={onClickReproductive}*/}
-              {/*        >*/}
-              {/*          <FaPlus />*/}
-              {/*        </span>*/}
-              {/*      </>*/}
-              {/*    ) : (*/}
-              {/*      <>*/}
-              {/*        <span*/}
-              {/*          className="float-end"*/}
-              {/*          style={{ cursor: "pointer" }}*/}
-              {/*          onClick={onClickReproductive}*/}
-              {/*        >*/}
-              {/*          <FaAngleDown />*/}
-              {/*        </span>{" "}*/}
-              {/*      </>*/}
-              {/*    )}*/}
-              {/*  </div>*/}
-              {/*  {showReproductive && (*/}
-              {/*    <div className="card-body">*/}
-              {/*      <div className="row">*/}
-              {/*        <ReproductiveIntentions*/}
-              {/*          setReproductive={setReproductive}*/}
-              {/*          reproductive={reproductive}*/}
-              {/*          setErrors={setErrors}*/}
-              {/*          errors={errors}*/}
-              {/*          encounterDate={observation.dateOfObservation}*/}
-              {/*          patientObj={patientObj}*/}
-              {/*          action={props.activeContent.actionType}*/}
-              {/*        />*/}
-              {/*      </div>*/}
-              {/*    </div>*/}
-              {/*  )}*/}
-              {/*</div> */}
+
               {/* End Reproductive Intentions */}
               {saving ? <Spinner /> : ""}
 

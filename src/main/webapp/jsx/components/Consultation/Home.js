@@ -984,13 +984,14 @@ const ClinicVisit = (props) => {
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
-    // temp.pregnancyStatus =
-    //   objValues.pregnancyStatus === "select" || !objValues.pregnancyStatus
-    //     ? "This field is required"
-    //     : "";
-    //
-    // if (patientObj.sex.toLocaleLowerCase() === "male")
-    //   temp.pregnancyStatus = "";
+  
+      if (patientAge >= 10 && patientObj.sex === "Female") {
+      temp.pregnancyStatus = objValues.pregnancyStatus
+        ? ""
+        : "This field is required";
+    } else {
+      temp.pregnancyStatus = "";
+    }
 
     temp.stage = who?.stage ? "" : "This field is required";
     temp.functionalStatusId = objValues.functionalStatusId
@@ -1003,7 +1004,7 @@ const ClinicVisit = (props) => {
     setErrors({
       ...temp,
     });
-    // console.log("temp:", temp);
+    console.log("temp:", temp);
     return Object.values(temp).every((x) => x === "");
   };
   // console.log("temp", temp)
@@ -1013,99 +1014,91 @@ const ClinicVisit = (props) => {
       (x) => x.id === parseInt(e.target.value)
     );
     setTest(getTestList[0].labTests);
-    // if(e.target.value==='4'){
-    //     setVlRequired(true)
-    // }else{
-    //     setVlRequired(false)
-    // }
+  
   };
   const handleInputChangeTest = (e) => {
     setErrors({ ...temp, [e.target.name]: "" }); //reset the error message to empty once the field as value
     setTests({ ...tests, [e.target.name]: e.target.value });
   };
 
-  // console.log("tb object inside parent", tbObj)
 
-  /**** Submit Button Processing  */
   const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validate()) {
-      setSaving(true);
-      objValues.whoStagingId = who?.stage;
-      objValues.who = who;
-      objValues.visitDate = vital.encounterDate;
-      vital["captureDate"] = vital.encounterDate;
-      objValues.adverseDrugReactions = adrList;
-      objValues.artStatusId = getPatientObj.artCommence.id;
-      objValues.hivEnrollmentId = getPatientObj.enrollment.id;
-      objValues.opportunisticInfections = infectionList;
-      objValues.tbScreen = tbObj;
-      objValues.tbStatus = tbObj.tbStatusId;
-      objValues.viralLoadOrder = testOrderList;
-      objValues.arvdrugsRegimen = arvDrugOrderList;
-      objValues["vitalSignDto"] = vital;
-      axios
-        .post(`${baseUrl}hiv/art/clinic-visit/`, objValues, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-          PatientDetailId();
-          props.ClinicVisitListHistory();
-          setSaving(false);
-          toast.success("Clinic Visit(Care card) save successful", {
-            position: toast.POSITION.BOTTOM_CENTER,
-          });
-          props.setActiveContent({
-            ...props.activeContent,
-            route: "recent-history",
-          });
-        })
-        .catch((error) => {
-          setSaving(false);
+  e.preventDefault();
 
-          if (error.response && error.response.data) {
-            let errorMessage =
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== ""
-                ? error.response.data.apierror.message
-                : "Something went wrong, please try again";
-            if (
-              error.response.data.apierror &&
-              error.response.data.apierror.message !== "" &&
-              error.response.data.apierror &&
-              error.response.data.apierror.subErrors[0].message !== ""
-            ) {
-              toast.error(
-                error.response.data.apierror.message +
-                  " : " +
-                  error.response.data.apierror.subErrors[0].field +
-                  " " +
-                  error.response.data.apierror.subErrors[0].message,
-                { position: toast.POSITION.BOTTOM_CENTER }
-              );
-            } else {
-              toast.error(errorMessage, {
-                position: toast.POSITION.BOTTOM_CENTER,
-              });
-            }
-          } else {
-            toast.error("Something went wrong. Please try again...", {
-              position: toast.POSITION.BOTTOM_CENTER,
-            });
-          }
-        });
-    } else {
-      // alert("is not validated");
-      toast.error("All field are required", {
+  if (!validate()) {
+    toast.error("All fields are required", {
+      position: toast.POSITION.BOTTOM_CENTER,
+    });
+    return; // Stop further execution if validation fails
+  }
+
+  setSaving(true);
+
+  objValues.whoStagingId = who?.stage;
+  objValues.who = who;
+  objValues.visitDate = vital.encounterDate;
+  vital["captureDate"] = vital.encounterDate;
+  objValues.adverseDrugReactions = adrList;
+  objValues.artStatusId = getPatientObj.artCommence.id;
+  objValues.hivEnrollmentId = getPatientObj.enrollment.id;
+  objValues.opportunisticInfections = infectionList;
+  objValues.tbScreen = tbObj;
+  objValues.tbStatus = tbObj.tbStatusId;
+  objValues.viralLoadOrder = testOrderList;
+  objValues.arvdrugsRegimen = arvDrugOrderList;
+  objValues["vitalSignDto"] = vital;
+
+  axios
+    .post(`${baseUrl}hiv/art/clinic-visit/`, objValues, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((response) => {
+      PatientDetailId();
+      props.ClinicVisitListHistory();
+      setSaving(false);
+      toast.success("Clinic Visit (Care card) saved successfully", {
         position: toast.POSITION.BOTTOM_CENTER,
       });
-    }
-    // resetForm(setObjValues, setVitalSignDto, setTbObj, setTests);
-    resetForm();
-    setCareSupportTb(null);
-    setTbStatus(null);
-  };
 
+      // Reset form only after successful submission
+      resetForm();
+      setCareSupportTb(null);
+      setTbStatus(null);
+
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "recent-history",
+      });
+    })
+    .catch((error) => {
+      setSaving(false);
+
+      if (error.response && error.response.data) {
+        const apiError = error.response.data.apierror;
+
+        if (
+          apiError &&
+          apiError.message !== "" &&
+          apiError.subErrors &&
+          apiError.subErrors.length > 0
+        ) {
+          toast.error(
+            `${apiError.message}: ${apiError.subErrors[0].field} ${apiError.subErrors[0].message}`,
+            { position: toast.POSITION.BOTTOM_CENTER }
+          );
+        } else {
+          toast.error(apiError?.message || "Something went wrong, please try again", {
+            position: toast.POSITION.BOTTOM_CENTER,
+          });
+        }
+      } else {
+        toast.error("Something went wrong. Please try again...", {
+          position: toast.POSITION.BOTTOM_CENTER,
+        });
+      }
+    });
+};
+  
   const resetForm = () => {
     setWho({
       stage: "",
@@ -2362,7 +2355,7 @@ const ClinicVisit = (props) => {
                           <option value="select">Select </option>
 
                           {pregnancyStatus.map((value) => (
-                            <option key={value.code} value={value.display}>
+                            <option key={value.code} value={value.code}>
                               {value.display}
                             </option>
                           ))}

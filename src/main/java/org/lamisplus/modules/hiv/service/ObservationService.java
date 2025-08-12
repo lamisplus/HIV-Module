@@ -123,41 +123,87 @@ public class ObservationService {
     }
 
 
-    private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Person person) {
-        if (observationDto.getType().equals("Chronic Care")) {
-            JsonNode tptMonitoring = observationDto.getData().get("tptMonitoring");
+//     private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Person person) {
+//         if (observationDto.getType().equals("Chronic Care")) {
+//             JsonNode tptMonitoring = observationDto.getData().get("tptMonitoring");
+//             JsonNode iptCompletionDate = tptMonitoring.get("date");
+//             JsonNode outComeOfIpt = tptMonitoring.get("outComeOfIpt");
+//             if ((outComeOfIpt != null && !outComeOfIpt.isEmpty()) || (iptCompletionDate != null && !iptCompletionDate.asText().isEmpty())) {
+// //                log.info ("found for IPT out come");
+//                 StringBuilder dateIptCompleted = new StringBuilder();
+//                 StringBuilder iptCompletionStatus = new StringBuilder();
+// //                log.info ("checking if IPT out come has a date");
+//                 if (iptCompletionDate != null) {
+// //                    log.info ("found for IPT out come date");
+//                     dateIptCompleted.append(iptCompletionDate.asText());
+//                 }
+//                 if (outComeOfIpt != null) {
+//                     iptCompletionStatus.append(outComeOfIpt.asText());
+//                 }
+// //                log.info ("fetching current IPT from pharmacy");
+//                 Optional<ArtPharmacy> recentIPtPharmacy =
+//                         pharmacyRepository.getPharmacyIpt(person.getUuid());
+//                 if (recentIPtPharmacy.isPresent()) {
+// //                    log.info ("found current IPT from pharmacy");
+//                     ArtPharmacy artPharmacy = recentIPtPharmacy.get();
+//                     JsonNode ipt = artPharmacy.getIpt();
+//                     ((ObjectNode) ipt).put("dateCompleted", dateIptCompleted.toString());
+//                     ((ObjectNode) ipt).put("completionStatus", iptCompletionStatus.toString());
+//                     artPharmacy.setIpt(ipt);
+// //                    log.info ("updating  current IPT from pharmacy");
+//                     pharmacyRepository.save(artPharmacy);
+// //                    log.info ("update was successful  current pharmacy affected uuid {}", artPharmacy.getUuid());
+//                 }
+
+//             }
+//         }
+//     }
+
+private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Person person) {
+    ObjectMapper objectMapper = new ObjectMapper();
+    if (observationDto.getType().equals("Chronic Care")) {
+        JsonNode tptMonitoring = observationDto.getData().get("tptMonitoring");
+
+        if (tptMonitoring != null && !tptMonitoring.isNull()) {
             JsonNode iptCompletionDate = tptMonitoring.get("date");
             JsonNode outComeOfIpt = tptMonitoring.get("outComeOfIpt");
-            if ((outComeOfIpt != null && !outComeOfIpt.isEmpty()) || (iptCompletionDate != null && !iptCompletionDate.asText().isEmpty())) {
-//                log.info ("found for IPT out come");
+
+            // Only proceed if either field is present and not empty
+            if ((outComeOfIpt != null && !outComeOfIpt.isNull() && !outComeOfIpt.asText().isEmpty()) ||
+                (iptCompletionDate != null && !iptCompletionDate.isNull() && !iptCompletionDate.asText().isEmpty())) {
+
                 StringBuilder dateIptCompleted = new StringBuilder();
                 StringBuilder iptCompletionStatus = new StringBuilder();
-//                log.info ("checking if IPT out come has a date");
-                if (iptCompletionDate != null) {
-//                    log.info ("found for IPT out come date");
+
+                if (iptCompletionDate != null && !iptCompletionDate.isNull()) {
                     dateIptCompleted.append(iptCompletionDate.asText());
                 }
-                if (outComeOfIpt != null) {
+
+                if (outComeOfIpt != null && !outComeOfIpt.isNull()) {
                     iptCompletionStatus.append(outComeOfIpt.asText());
                 }
-//                log.info ("fetching current IPT from pharmacy");
-                Optional<ArtPharmacy> recentIPtPharmacy =
-                        pharmacyRepository.getPharmacyIpt(person.getUuid());
+
+                Optional<ArtPharmacy> recentIPtPharmacy = pharmacyRepository.getPharmacyIpt(person.getUuid());
+
                 if (recentIPtPharmacy.isPresent()) {
-//                    log.info ("found current IPT from pharmacy");
                     ArtPharmacy artPharmacy = recentIPtPharmacy.get();
                     JsonNode ipt = artPharmacy.getIpt();
-                    ((ObjectNode) ipt).put("dateCompleted", dateIptCompleted.toString());
-                    ((ObjectNode) ipt).put("completionStatus", iptCompletionStatus.toString());
-                    artPharmacy.setIpt(ipt);
-//                    log.info ("updating  current IPT from pharmacy");
-                    pharmacyRepository.save(artPharmacy);
-//                    log.info ("update was successful  current pharmacy affected uuid {}", artPharmacy.getUuid());
-                }
 
+                    // Safely convert to ObjectNode
+                    ObjectNode iptObject = (ipt == null || ipt.isNull())
+                            ? objectMapper.createObjectNode()
+                            : objectMapper.convertValue(ipt, ObjectNode.class);
+
+                    iptObject.set("dateCompleted", (JsonNode) null);
+                    iptObject.set("completionStatus", (JsonNode) null);
+
+                    artPharmacy.setIpt(iptObject);
+                    pharmacyRepository.save(artPharmacy);
+                }
             }
         }
     }
+}
 
     private List<Observation> getAnExistingClinicalEvaluationType(String type, Person person, Long orgId) {
         return observationRepository
