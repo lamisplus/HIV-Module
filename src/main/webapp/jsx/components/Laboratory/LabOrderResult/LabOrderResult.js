@@ -251,8 +251,8 @@ const Laboratory = (props) => {
   // Fetch chronic care diagnostic test
   const GetCareAndSupportDiagnosticTest = () => {
     axios
-        .get(`${baseUrl}observation/person/${props.patientObj.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        .get(  `${baseUrl}observation/person/${props.patientObj.id}`, {
+          headers: { Authorization: `Bearer ${token}` }, // Add token here
         })
         .then((response) => {
           const data = response.data;

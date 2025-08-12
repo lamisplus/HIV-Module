@@ -1,24 +1,24 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import {withStyles} from "@material-ui/core/styles";
+import { withStyles } from "@material-ui/core/styles";
 //import classNames from 'classnames';
 import ExpansionPanel from "@material-ui/core/ExpansionPanel";
 import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
 
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import ButtonMui from "@material-ui/core/Button";
-import {TiArrowBack} from "react-icons/ti";
+import { TiArrowBack } from "react-icons/ti";
 import Badge from "react-bootstrap/Badge";
 
-import {Label, Sticky} from "semantic-ui-react";
+import { Label, Sticky } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
-import {Col, Row} from "reactstrap";
+import { Col, Row } from "reactstrap";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
 import axios from "axios";
-import {token, url as baseUrl} from "./../../../api";
+import { token, url as baseUrl } from "./../../../api";
 import Typography from "@material-ui/core/Typography";
-import {calculate_age} from "../../../utils";
+import { calculate_age } from "../../../utils";
 //Dtate Picker package
 Moment.locale("en");
 momentLocalizer();
@@ -59,14 +59,15 @@ const styles = (theme) => ({
 });
 
 function PatientCard(props) {
-    const {classes} = props;
+    const { classes } = props;
     //const patientCurrentStatus=props.patientObj && props.patientObj.currentStatus==="Died (Confirmed)" ? true : false ;
     const patientObject = props.patientObj1;
     const id = props.patientObj.id;
     const [viralLoadIsPresent, setViralLoadIsPresent] = useState(false);
     const [patientFlag, setPatientFlag] = useState({});
-    const [patientMlValue, setPatientMlValue] = useState({"iit": null, "chance": null});
+    const [patientMlValue, setPatientMlValue] = useState({ "iit": null, "chance": null });
     const [resultCheck, setResultCheck] = useState({})
+    const [currentTbStatus, setCurrentTBStatus] = useState("")
     const getPhoneNumber = (identifier) => {
         const phoneNumber = identifier?.contactPoint?.find(
             (obj) => obj.type === "phone"
@@ -85,7 +86,7 @@ function PatientCard(props) {
     const fetchPatientFlags = () => {
         axios
             .get(`${baseUrl}hiv/patient-flag/${id}`, {
-                headers: {Authorization: `Bearer ${token}`},
+                headers: { Authorization: `Bearer ${token}` },
             })
             .then((response) => {
                 setPatientFlag(response.data);
@@ -95,18 +96,66 @@ function PatientCard(props) {
             });
     };
 
+
+    const getPatientCurrentTBStatus = () => {
+        if (!patientObject?.personUuid) {
+            return;
+        }
+
+        axios
+            .get(`${baseUrl}observation/current-tb-status`, {
+                params: {
+                    personUuid: patientObject.personUuid,
+                },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            .then((response) => {
+                if (typeof response.data === 'string') {
+                    setCurrentTBStatus(response.data);
+                } else {
+                    setCurrentTBStatus("");
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching TB current status", error);
+                setCurrentTBStatus("");
+            });
+    };
+
+
+    const getTbColor = (status) => {
+        switch (status) {
+            case "presumptive tb":
+            case "presumptive tb and referred for evaluation":
+                return "amber";
+            case "confirmed tb":
+            case "currently on tb treatment":
+                return "red";
+            case "no signs or symptoms of tb":
+            case "no signs and symptoms of tb":
+            case "currently on tpt":
+            case "currently on inh prophylaxis (ipt)":
+            case "tb treatment completed":
+                return "green";
+            default:
+                return "grey";
+        }
+    };
+
     const fetchPatientMlReport = () => {
         axios.get(`${baseUrl}hiv/iit-ml/patient/${id}/iit-report`,
-            {headers: {Authorization: `Bearer ${token}`},})
+            { headers: { Authorization: `Bearer ${token}` }, })
             .then((response) => {
                 setPatientMlValue(response.data);
             }).catch((error) => {
-            if (error.response && error.response.data.apierror.message === "Could not find a matching facility with the provided ID") {
-                setPatientMlValue((prevValue) => ({...prevValue, iit: false}));
-            } else {
-                console.error("An unexpected error occurred:", error);
-            }
-        });
+                if (error.response && error.response.data.apierror.message === "Could not find a matching facility with the provided ID") {
+                    setPatientMlValue((prevValue) => ({ ...prevValue, iit: false }));
+                } else {
+                    console.error("An unexpected error occurred:", error);
+                }
+            });
     }
 
     useEffect(() => {
@@ -114,7 +163,7 @@ function PatientCard(props) {
             try {
                 const response = await axios.get(
                     `${baseUrl}laboratory/rde-all-orders/patients/${props.patientObj.id}`,
-                    {headers: {Authorization: `Bearer ${token}`}}
+                    { headers: { Authorization: `Bearer ${token}` } }
                 );
 
                 if (!Array.isArray(response.data)) {
@@ -140,12 +189,12 @@ function PatientCard(props) {
                         ? item.sampleNumber.replace(/\//g, "-")
                         : "unknown"; // fallback if sampleNumber is null/missing
 
-                    let fullResult = {...item};
+                    let fullResult = { ...item };
 
                     try {
                         const limsResponse = await axios.get(
                             `${baseUrl}lims/sample/result/${improvedSampleNumber}`,
-                            {headers: {Authorization: `Bearer ${token}`}}
+                            { headers: { Authorization: `Bearer ${token}` } }
                         );
 
                         if (limsResponse.data && limsResponse.data.testResult) {
@@ -196,7 +245,8 @@ function PatientCard(props) {
     useEffect(() => {
         fetchPatientFlags(id);
         fetchPatientMlReport();
-    }, []);
+        getPatientCurrentTBStatus()
+    }, [id, patientObject?.personUuid]);
 
     const extractViralLoadValue = (result) => {
         if (!result) return null;
@@ -254,114 +304,114 @@ function PatientCard(props) {
                                                         variant="contained"
                                                         color="primary"
                                                         className=" float-end ms-2 mr-2 mt-2"
-                                                        startIcon={<TiArrowBack/>}
+                                                        startIcon={<TiArrowBack />}
                                                         style={{
                                                             backgroundColor: "rgb(153, 46, 98)",
                                                             color: "#fff",
                                                             height: "35px",
                                                         }}
                                                     >
-                            <span style={{textTransform: "capitalize"}}>
-                              Back
-                            </span>
+                                                        <span style={{ textTransform: "capitalize" }}>
+                                                            Back
+                                                        </span>
                                                     </ButtonMui>
                                                 </Link>
                                             </Col>
                                             <Col md={4} className={classes.root2}>
-                        <span>
-                          {" "}
-                            Patient ID :{" "}
-                            <b style={{color: "#0B72AA"}}>
-                            {props.patientObj.hospitalNumber}
-                          </b>
-                        </span>
+                                                <span>
+                                                    {" "}
+                                                    Patient ID :{" "}
+                                                    <b style={{ color: "#0B72AA" }}>
+                                                        {props.patientObj.hospitalNumber}
+                                                    </b>
+                                                </span>
                                             </Col>
 
                                             <Col md={4} className={classes.root2}>
-                        <span>
-                          Date Of Birth :{" "}
-                            <b style={{color: "#0B72AA"}}>
-                            {patientObject.dateOfBirth}
-                          </b>
-                        </span>
+                                                <span>
+                                                    Date Of Birth :{" "}
+                                                    <b style={{ color: "#0B72AA" }}>
+                                                        {patientObject.dateOfBirth}
+                                                    </b>
+                                                </span>
                                             </Col>
                                             <Col md={4} className={classes.root2}>
-                        <span>
-                          {" "}
-                            Age :{" "}
-                            <b style={{color: "#0B72AA"}}>
-                            {calculate_age(patientObject.dateOfBirth)}
-                          </b>
-                        </span>
+                                                <span>
+                                                    {" "}
+                                                    Age :{" "}
+                                                    <b style={{ color: "#0B72AA" }}>
+                                                        {calculate_age(patientObject.dateOfBirth)}
+                                                    </b>
+                                                </span>
                                             </Col>
                                             <Col md={4}>
-                        <span>
-                          {" "}
-                            Gender :{" "}
-                            <b style={{color: "#0B72AA"}}>
-                            {patientObject.sex && patientObject.sex !== null
-                                ? patientObject.sex
-                                : ""}
-                          </b>
-                        </span>
+                                                <span>
+                                                    {" "}
+                                                    Gender :{" "}
+                                                    <b style={{ color: "#0B72AA" }}>
+                                                        {patientObject.sex && patientObject.sex !== null
+                                                            ? patientObject.sex
+                                                            : ""}
+                                                    </b>
+                                                </span>
                                             </Col>
                                             <Col md={4} className={classes.root2}>
-                        <span>
-                          {" "}
-                            Phone Number :
-                          <b style={{color: "#0B72AA"}}>
-                            {patientObject.contactPoint !== null
-                                ? getPhoneNumber(patientObject.contactPoint)
-                                : ""}
-                          </b>
-                        </span>
+                                                <span>
+                                                    {" "}
+                                                    Phone Number :
+                                                    <b style={{ color: "#0B72AA" }}>
+                                                        {patientObject.contactPoint !== null
+                                                            ? getPhoneNumber(patientObject.contactPoint)
+                                                            : ""}
+                                                    </b>
+                                                </span>
                                             </Col>
                                             <Col md={4} className={classes.root2}>
-                        <span>
-                          {" "}
-                            Address :
-                          <b style={{color: "#0B72AA"}}>
-                            {getAddress(patientObject.address)}{" "}
-                          </b>
-                        </span>
+                                                <span>
+                                                    {" "}
+                                                    Address :
+                                                    <b style={{ color: "#0B72AA" }}>
+                                                        {getAddress(patientObject.address)}{" "}
+                                                    </b>
+                                                </span>
                                             </Col>
-                                            <Col md={4} style={{marginBottom: "6px"}}>
-                        <span>
-                          {" "}
-                            Next Appointment Date :{" "}
-                            <b style={{color: "#0B72AA"}}>
-                            {patientFlag.nextAppointmentDate &&
-                            patientFlag.nextAppointmentDate !== null
-                                ? patientFlag.nextAppointmentDate
-                                : ""}
-                                {patientFlag.dateDiff !== null ? (
-                                    <span
-                                        style={{
-                                            fontStyle: "italic",
-                                            color: "rgb(153, 46, 98)",
-                                        }}
-                                    >
-                                        {" "}
-                                        {"   "} due in{" "}
-                                        <Badge
-                                            style={{
-                                                backgroundColor: "red",
-                                                fontSize: "14px",
-                                            }}
-                                        >
-                                            {" "}
-                                            {patientFlag.dateDiff}
-                                        </Badge>{" "}
-                                        days{" "}
-                                    </span>
-                                ) : null}
-                          </b>
-                        </span>
+                                            <Col md={4} style={{ marginBottom: "6px" }}>
+                                                <span>
+                                                    {" "}
+                                                    Next Appointment Date :{" "}
+                                                    <b style={{ color: "#0B72AA" }}>
+                                                        {patientFlag.nextAppointmentDate &&
+                                                            patientFlag.nextAppointmentDate !== null
+                                                            ? patientFlag.nextAppointmentDate
+                                                            : ""}
+                                                        {patientFlag.dateDiff !== null ? (
+                                                            <span
+                                                                style={{
+                                                                    fontStyle: "italic",
+                                                                    color: "rgb(153, 46, 98)",
+                                                                }}
+                                                            >
+                                                                {" "}
+                                                                {"   "} due in{" "}
+                                                                <Badge
+                                                                    style={{
+                                                                        backgroundColor: "red",
+                                                                        fontSize: "14px",
+                                                                    }}
+                                                                >
+                                                                    {" "}
+                                                                    {patientFlag.dateDiff}
+                                                                </Badge>{" "}
+                                                                days{" "}
+                                                            </span>
+                                                        ) : null}
+                                                    </b>
+                                                </span>
                                             </Col>
                                             <Col
                                                 md={4}
                                                 className={classes.root2}
-                                                style={{marginBottom: "6px"}}
+                                                style={{ marginBottom: "6px" }}
                                             >
                                                 <Typography variant="caption">
                                                     <Label
@@ -382,27 +432,27 @@ function PatientCard(props) {
                                                             }}
                                                         >
                                                             {patientFlag.missedAppointment ===
-                                                            "Missed Appointment"
+                                                                "Missed Appointment"
                                                                 ? "MISSED APPOINTMENT"
                                                                 : "PATIENT STILL IN CARE"}
 
                                                             {patientFlag.missedAppointment ===
-                                                            "Missed Appointment" ? (
-                                                                    <Badge
-                                                                        style={{
-                                                                            backgroundColor: "red",
-                                                                            fontSize: "14px",
-                                                                        }}
-                                                                    >
-                                                                        {" "}
-                                                                        {patientFlag.daysMissedAppointment}
-                                                                    </Badge>
-                                                                ) : // <div style={{ width: '25px', height: '25px', borderRadius: '50%', backgroundColor: 'red', padding: '3px', display: 'flex', justifyContent: 'center', alignItems: 'center' }} >{patientFlag.daysMissedAppointment}</div>
+                                                                "Missed Appointment" ? (
+                                                                <Badge
+                                                                    style={{
+                                                                        backgroundColor: "red",
+                                                                        fontSize: "14px",
+                                                                    }}
+                                                                >
+                                                                    {" "}
+                                                                    {patientFlag.daysMissedAppointment}
+                                                                </Badge>
+                                                            ) : // <div style={{ width: '25px', height: '25px', borderRadius: '50%', backgroundColor: 'red', padding: '3px', display: 'flex', justifyContent: 'center', alignItems: 'center' }} >{patientFlag.daysMissedAppointment}</div>
                                                                 null}
                                                         </Label.Detail>
                                                     </Label>
                                                 </Typography>
-                                                <br/>
+                                                <br />
                                                 {patientMlValue?.iit && <div>
                                                     <Typography variant="caption">
                                                         <Label
@@ -417,7 +467,7 @@ function PatientCard(props) {
                                                             }}
                                                         >
                                                             IIT-ML PREDICTION
-                                                            <br/>
+                                                            <br />
 
                                                             <Label.Detail style={{
                                                                 display: 'flex',
@@ -448,82 +498,82 @@ function PatientCard(props) {
 
 
                                             <Col xs={12} sm={6} md={4} className={classes.root2} style={{ marginBottom: "6px" }}>
-    <Typography variant="caption">
-        <Label
-            size={"medium"}
-            style={{
-                width: "100%",
-                height: "auto",
-                justifyContent: "space-between",
-                alignItems: "left"
-            }}
-        >
-            {viralLoadIsPresent ? (
-                <span>
-                    {(() => {
-                        const rawResult = resultCheck?.result || "";
-                        const viralLoadValue = extractViralLoadValue(rawResult);
-                        const isSuppressed = viralLoadValue !== null && viralLoadValue < 1000;
+                                                <Typography variant="caption">
+                                                    <Label
+                                                        size={"medium"}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "auto",
+                                                            justifyContent: "space-between",
+                                                            alignItems: "left"
+                                                        }}
+                                                    >
+                                                        {viralLoadIsPresent ? (
+                                                            <span>
+                                                                {(() => {
+                                                                    const rawResult = resultCheck?.result || "";
+                                                                    const viralLoadValue = extractViralLoadValue(rawResult);
+                                                                    const isSuppressed = viralLoadValue !== null && viralLoadValue < 1000;
 
-                        let displayText = rawResult;
-                        if (rawResult.toLowerCase().includes("notdetected")) {
-                            displayText = "NOT DETECTED";
-                        }
+                                                                    let displayText = rawResult;
+                                                                    if (rawResult.toLowerCase().includes("notdetected")) {
+                                                                        displayText = "NOT DETECTED";
+                                                                    }
 
-                        return (
-                            <Badge
-                                style={{
-                                    backgroundColor: isSuppressed ? "seagreen" : "red",
-                                    fontSize: "14px",
-                                    whiteSpace: "normal",
-                                    textAlign: "left",
-                                    color: "white",
-                                    padding: "8px"
-                                }}
-                            >
-                                CURRENT VIRAL LOAD RESULT:{" "}
-                                <strong>{displayText}</strong>
-                            </Badge>
-                        );
-                    })()}
-                </span>
-            ) : resultCheck !== null &&
-            resultCheck.labTestName === "Viral Load" &&
-            resultCheck.result !== "" ? (
-                <span>
-                    {(() => {
-                        const rawResult = resultCheck.result;
-                        const viralLoadValue = extractViralLoadValue(rawResult);
-                        const isSuppressed = viralLoadValue !== null && viralLoadValue <= 999;
+                                                                    return (
+                                                                        <Badge
+                                                                            style={{
+                                                                                backgroundColor: isSuppressed ? "seagreen" : "red",
+                                                                                fontSize: "14px",
+                                                                                whiteSpace: "normal",
+                                                                                textAlign: "left",
+                                                                                color: "white",
+                                                                                padding: "8px"
+                                                                            }}
+                                                                        >
+                                                                            CURRENT VIRAL LOAD RESULT:{" "}
+                                                                            <strong>{displayText}</strong>
+                                                                        </Badge>
+                                                                    );
+                                                                })()}
+                                                            </span>
+                                                        ) : resultCheck !== null &&
+                                                            resultCheck.labTestName === "Viral Load" &&
+                                                            resultCheck.result !== "" ? (
+                                                            <span>
+                                                                {(() => {
+                                                                    const rawResult = resultCheck.result;
+                                                                    const viralLoadValue = extractViralLoadValue(rawResult);
+                                                                    const isSuppressed = viralLoadValue !== null && viralLoadValue <= 999;
 
-                        let displayText = rawResult;
-                        if (rawResult?.toLowerCase().includes("notdetected")) {
-                            displayText = "NOT DETECTED";
-                        }
+                                                                    let displayText = rawResult;
+                                                                    if (rawResult?.toLowerCase().includes("notdetected")) {
+                                                                        displayText = "NOT DETECTED";
+                                                                    }
 
-                        return (
-                            <Badge
-                                style={{
-                                    backgroundColor: isSuppressed ? "seagreen" : "red",
-                                    fontSize: "14px",
-                                    whiteSpace: "normal",
-                                    textAlign: "left",
-                                    color: "white",
-                                    padding: "8px"
-                                }}
-                            >
-                                LATEST VIRAL LOAD RESULT:{" "}
-                                <strong>{displayText}</strong>
-                            </Badge>
-                        );
-                    })()}
-                </span>
-            ) : (
-                <span>NO VIRAL LOAD RESULT</span>
-            )}
-        </Label>
-    </Typography>
-</Col>
+                                                                    return (
+                                                                        <Badge
+                                                                            style={{
+                                                                                backgroundColor: isSuppressed ? "seagreen" : "red",
+                                                                                fontSize: "14px",
+                                                                                whiteSpace: "normal",
+                                                                                textAlign: "left",
+                                                                                color: "white",
+                                                                                padding: "8px"
+                                                                            }}
+                                                                        >
+                                                                            LATEST VIRAL LOAD RESULT:{" "}
+                                                                            <strong>{displayText}</strong>
+                                                                        </Badge>
+                                                                    );
+                                                                })()}
+                                                            </span>
+                                                        ) : (
+                                                            <span>NO VIRAL LOAD RESULT</span>
+                                                        )}
+                                                    </Label>
+                                                </Typography>
+                                            </Col>
                                             <Col md={12}>
                                                 <div>
                                                     <Typography variant="caption">
@@ -544,12 +594,22 @@ function PatientCard(props) {
                                                             }
                                                             size={"mini"}
                                                         >
-                                                            Biometric Status
+                                                            Biometric Status :
                                                             <Label.Detail>
                                                                 {patientObject.biometricStatus === true
                                                                     ? "Captured"
                                                                     : "Not Captured"}
                                                             </Label.Detail>
+                                                        </Label>
+                                                    </Typography>
+                                                </div>
+                                            </Col>
+                                            <Col md={12}>
+                                                <div>
+                                                    <Typography variant="caption">
+                                                        <Label style={{ backgroundColor: getTbColor(String(currentTbStatus).toLowerCase()), color: "#fff" }} size="mini">
+                                                            TB Status at last visit :
+                                                            <Label.Detail>{currentTbStatus || ""}</Label.Detail>
                                                         </Label>
                                                     </Typography>
                                                 </div>

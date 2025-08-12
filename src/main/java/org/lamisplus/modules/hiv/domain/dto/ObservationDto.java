@@ -28,11 +28,13 @@ public class ObservationDto implements Serializable {
     private Long personId;
     private String type;
     private Long visitId;
+    private String comment;
     @Basic
     private String source;
     @Basic
     private String longitude;
     @Basic
     private  String latitude;
+
 
 }

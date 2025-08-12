@@ -158,6 +158,45 @@ const TbScreening = (props) => {
       .catch((error) => {});
   };
 
+
+  const getActiveTbTreatmentStartDate = (observations) => {
+    if (!Array.isArray(observations) || observations.length === 0) return "";
+
+    const sorted = [...observations].sort(
+        (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
+    );
+
+    // BLOCK 1: If any visit has completion date is not null, do NOT auto-fill
+    const hasCompletedTreatment = sorted.some(obs => {
+      const screening = obs.data?.tbIptScreening;
+      return screening?.completionDate.trim() !== "";
+    });
+
+    if (hasCompletedTreatment) {
+      return "";
+    }
+
+    //  BLOCK 2: If most recent visit has completionDate, block
+    const latestScreening = sorted[0]?.data?.tbIptScreening;
+    if (latestScreening?.completionDate && latestScreening.completionDate.trim() !== "") {
+      return "";
+    }
+
+    //  Only now look for the most recent valid start date
+    for (const obs of sorted) {
+      const screening = obs.data?.tbIptScreening;
+      if (!screening) continue;
+
+      const hasValidStartDate = screening.tbTreatmentStartDate && screening.tbTreatmentStartDate.trim() !== "";
+      const hasCompletionDate = screening.completionDate && screening.completionDate.trim() !== "";
+
+      if (hasValidStartDate && !hasCompletionDate) {
+        return screening.tbTreatmentStartDate;
+      }
+    }
+
+    return "";
+  };
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -202,8 +241,6 @@ const TbScreening = (props) => {
       [name]: value,
     };
 
-    // let updatedTpt = {...props.tpt, [name]: value}
-
     // Build tpt update only if name is in tptFields
     let updatedTpt = { ...props.tpt };
     if (tptFields.includes(name)) {
@@ -212,78 +249,161 @@ const TbScreening = (props) => {
         [name]: value,
       };
     }
-    // Handle specific fields and their related state resets
-    if (name === "tbTreatment") {
-      updateObj = {
-        ...updateObj,
-        tbTreatmentStartDate: "",
-        tbScreeningType: "",
-        cadScore: "",
-        cadOutcome: "",
-        completedTbTreatment: "",
-        specimentCollectedStatus: "",
-        diagnosticTestType: "",
-        tbEvaulationOutcome: "",
-        chestXrayResult: "",
-        outcome: "",
-        status: "",
-        tbType: "",
-        coughing: "",
-        fever: "",
-        nightSweats: "",
-        losingWeight: "",
-        historyWithAdults: "",
-        poorWeightGain: "",
-        specimentSent: "",
-        tbTestResult: "",
-        specimenType: "",
-        poorTreatmentAdherence: "",
-        chestXrayDone: "",
-        clinicallyEvaulated: "",
-        DateDiagnosticTestResultReceived: "",
-        dateOfChestXrayResultTestDone: "",
-        dateOfDiagnosticTest: "",
-        dateSpecimenSent: "",
-        diagnosticTestDone: "",
-        tbTreeatmentStarted: "",
-        chestXrayResultTest: "",
-      };
 
-      updatedTpt = {
-        ...updatedTpt,
-        weight: "",
-        referredForServices: "",
-        adherence: "",
-        rash: "",
-        hepatitisSymptoms: "",
-        tbSymptoms: "",
-        resonForStoppingIpt: "",
-        outComeOfIpt: "",
-        everCompletedTpt: "",
-        eligibilityTpt: "",
-        tptPreventionOutcome: "",
-        currentlyOnTpt: "",
-        contractionForTpt: "",
-        liverSymptoms: "",
-        chronicAlcohol: "",
-        neurologicSymptoms: "",
-        dateTptStarted: "",
-        tptRegimen: "",
-        endedTpt: "",
-        dateOfTptCompleted: "",
-        dateTptEnded: "",
-        tbSideEffect: "",
-        giUpsetEffect: "",
-        hepatotoxicityEffect: "",
-        neurologicSymptomsEffect: "",
-        giUpsetEffectSeverity: "",
-        hypersensitivityReactionEffect: "",
-        hypersensitivityReactionEffectSeverity: "",
-        neurologicSymptomsEffectSeverity: "",
-        hepatotoxicityEffectSeverity: "",
-        enrolledOnTpt: "",
-      };
-    } else if (name === "tbScreeningType" || value === "") {
+    if (name === "tbTreatment") {
+      if (value === "Yes") {
+        // Auto-populate tbTreatmentStartDate from most recent active treatment
+        const autoDate = getActiveTbTreatmentStartDate(props.chronicCareRecords);
+
+        updateObj = {
+          ...props.tbObj,
+          tbTreatment: "Yes",
+          tbTreatmentStartDate: autoDate, // Auto-fill if available
+          // Reset other fields as before
+          tbScreeningType: "",
+          cadScore: "",
+          cadOutcome: "",
+          completedTbTreatment: "",
+          specimentCollectedStatus: "",
+          diagnosticTestType: "",
+          tbEvaulationOutcome: "",
+          chestXrayResult: "",
+          outcome: "",
+          status: "",
+          tbType: "",
+          coughing: "",
+          fever: "",
+          nightSweats: "",
+          losingWeight: "",
+          historyWithAdults: "",
+          poorWeightGain: "",
+          specimentSent: "",
+          tbTestResult: "",
+          specimenType: "",
+          poorTreatmentAdherence: "",
+          chestXrayDone: "",
+          clinicallyEvaulated: "",
+          DateDiagnosticTestResultReceived: "",
+          dateOfChestXrayResultTestDone: "",
+          dateOfDiagnosticTest: "",
+          dateSpecimenSent: "",
+          diagnosticTestDone: "",
+          tbTreeatmentStarted: "",
+          chestXrayResultTest: "",
+        };
+
+        // Also reset TPT fields
+        updatedTpt = {
+          ...updatedTpt,
+          weight: "",
+          referredForServices: "",
+          adherence: "",
+          rash: "",
+          hepatitisSymptoms: "",
+          tbSymptoms: "",
+          resonForStoppingIpt: "",
+          outComeOfIpt: "",
+          everCompletedTpt: "",
+          eligibilityTpt: "",
+          tptPreventionOutcome: "",
+          currentlyOnTpt: "",
+          contractionForTpt: "",
+          liverSymptoms: "",
+          chronicAlcohol: "",
+          neurologicSymptoms: "",
+          dateTptStarted: "",
+          tptRegimen: "",
+          endedTpt: "",
+          dateOfTptCompleted: "",
+          dateTptEnded: "",
+          tbSideEffect: "",
+          giUpsetEffect: "",
+          hepatotoxicityEffect: "",
+          neurologicSymptomsEffect: "",
+          giUpsetEffectSeverity: "",
+          hypersensitivityReactionEffect: "",
+          hypersensitivityReactionEffectSeverity: "",
+          neurologicSymptomsEffectSeverity: "",
+          hepatotoxicityEffectSeverity: "",
+          enrolledOnTpt: "",
+        };
+
+      } else {
+        // If "No" or empty
+        updateObj = {
+          ...props.tbObj,
+          tbTreatment: value,
+          tbTreatmentStartDate: "",
+          // Reset all related fields (your existing reset logic)
+          tbScreeningType: "",
+          cadScore: "",
+          cadOutcome: "",
+          completedTbTreatment: "",
+          specimentCollectedStatus: "",
+          diagnosticTestType: "",
+          tbEvaulationOutcome: "",
+          chestXrayResult: "",
+          outcome: "",
+          status: "",
+          tbType: "",
+          coughing: "",
+          fever: "",
+          nightSweats: "",
+          losingWeight: "",
+          historyWithAdults: "",
+          poorWeightGain: "",
+          specimentSent: "",
+          tbTestResult: "",
+          specimenType: "",
+          poorTreatmentAdherence: "",
+          chestXrayDone: "",
+          clinicallyEvaulated: "",
+          DateDiagnosticTestResultReceived: "",
+          dateOfChestXrayResultTestDone: "",
+          dateOfDiagnosticTest: "",
+          dateSpecimenSent: "",
+          diagnosticTestDone: "",
+          tbTreeatmentStarted: "",
+          chestXrayResultTest: "",
+        };
+        updatedTpt = {
+          ...updatedTpt,
+          weight: "",
+          referredForServices: "",
+          adherence: "",
+          rash: "",
+          hepatitisSymptoms: "",
+          tbSymptoms: "",
+          resonForStoppingIpt: "",
+          outComeOfIpt: "",
+          everCompletedTpt: "",
+          eligibilityTpt: "",
+          tptPreventionOutcome: "",
+          currentlyOnTpt: "",
+          contractionForTpt: "",
+          liverSymptoms: "",
+          chronicAlcohol: "",
+          neurologicSymptoms: "",
+          dateTptStarted: "",
+          tptRegimen: "",
+          endedTpt: "",
+          dateOfTptCompleted: "",
+          dateTptEnded: "",
+          tbSideEffect: "",
+          giUpsetEffect: "",
+          hepatotoxicityEffect: "",
+          neurologicSymptomsEffect: "",
+          giUpsetEffectSeverity: "",
+          hypersensitivityReactionEffect: "",
+          hypersensitivityReactionEffectSeverity: "",
+          neurologicSymptomsEffectSeverity: "",
+          hepatotoxicityEffectSeverity: "",
+          enrolledOnTpt: "",
+        };
+      }
+    }
+
+    else if (name === "tbScreeningType" || value === "") {
       updateObj = {
         ...updateObj,
         chestXray: "",
@@ -992,7 +1112,6 @@ const TbScreening = (props) => {
                           id="tbTreatmentStartDate"
                           onChange={handleInputChange}
                           value={props.tbObj.tbTreatmentStartDate}
-                          // min={props.encounterDate}
                           min={props.patientObj.dateOfBirth}
                           max={moment(new Date()).format("YYYY-MM-DD")}
                           disabled={props.action === "view" ? true : false}
@@ -1085,31 +1204,6 @@ const TbScreening = (props) => {
                       </FormGroup>
                     </div>
                   )}
-
-                  {/*{(props.tbObj.tbScreeningType === "Chest X-Ray with CAD and/or Symptom screening" || props.tbObj.tbScreeningType === 'Chest X-ray without CAD') && (*/}
-                  {/*    <FormGroup>*/}
-                  {/*        <Label>*/}
-                  {/*            Chest X-ray Result{" "}*/}
-                  {/*            <span style={{color: "red"}}> *</span>*/}
-                  {/*        </Label>*/}
-                  {/*        <InputGroup>*/}
-                  {/*            <Input*/}
-                  {/*                type="select"*/}
-                  {/*                name="chestXrayResult"*/}
-                  {/*                id="chestXrayResult"*/}
-                  {/*                onChange={handleInputChange}*/}
-                  {/*                value={props.tbObj.chestXrayResult}*/}
-                  {/*                disabled={props.action === "view" || props.tbObj.cadScore !== ''}*/}
-                  {/*            >*/}
-                  {/*                <option value="">Select</option>*/}
-                  {/*                {chestXrayResult.map((value) => (<option key={value.id} value={value.display}>*/}
-                  {/*                    {value.display}*/}
-                  {/*                </option>))}*/}
-                  {/*            </Input>*/}
-                  {/*        </InputGroup>*/}
-                  {/*        {errors.chestXrayResult && (<span style={{color: "red"}}>{errors.chestXrayResult}</span>)}*/}
-                  {/*    </FormGroup>)}*/}
-
                   {props.tbObj.tbTreatment === "No" &&
                     props.tbObj.tbScreeningType ===
                       "Chest X-Ray with CAD and/or Symptom screening" &&

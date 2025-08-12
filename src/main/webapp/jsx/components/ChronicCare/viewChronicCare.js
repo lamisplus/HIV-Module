@@ -291,6 +291,7 @@ const ViewChronicCare = (props) => {
     personId: 0,
     type: "Chronic Care",
     visitId: null,
+    comment: ""
   });
   useEffect(() => {
     GetChronicCareData();
@@ -317,7 +318,7 @@ const ViewChronicCare = (props) => {
         setEnrollDate(response.data.enrollment.dateOfRegistration);
         //setPatientObject(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   }
   const GetChronicCare = () => {
     //function to get chronic care data for edit
@@ -351,10 +352,11 @@ const ViewChronicCare = (props) => {
           ...response.data.data.peproductive,
         });
         setTpt({ ...tpt, ...response.data.data.tptMonitoring });
-        setlastDateOfObservation(response.data.dateOfObservation); //set the date of onservation into this variable
+        setlastDateOfObservation(response.data.dateOfObservation);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
+
   const GetChronicCareData = () => {
     //function to get chronic care data check if record exist using date for validation
     axios
@@ -367,8 +369,9 @@ const ViewChronicCare = (props) => {
           setChronicDateExist(DateObj);
         }
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
+
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
     setObservation({ ...observation, [e.target.name]: e.target.value });
@@ -451,6 +454,7 @@ const ViewChronicCare = (props) => {
     observationObj.tptMonitoring = tpt;
     observation.data = observationObj;
 
+
     try {
       let response;
       response = await axios.put(
@@ -469,7 +473,7 @@ const ViewChronicCare = (props) => {
       if (error.response && error.response.data) {
         const errorMessage =
           error.response.data.apierror &&
-          error.response.data.apierror.message !== ""
+            error.response.data.apierror.message !== ""
             ? error.response.data.apierror.message
             : "Something went wrong. Please try again...";
         showErrorMessage(errorMessage);
@@ -661,54 +665,54 @@ const ViewChronicCare = (props) => {
               {(tbObj.tbEvaulationOutcome === "TB Not Diagnosed" ||
                 tbObj.status === "No signs or symptoms of TB" ||
                 tbObj.status === "Currently on TB treatment") && (
-                <div className="card">
-                  <div
-                    className="card-header"
-                    style={{
-                      backgroundColor: "#014d88",
-                      color: "#fff",
-                      fontWeight: "bolder",
-                      borderRadius: "0.2rem",
-                    }}
-                  >
-                    <h5 className="card-title" style={{ color: "#fff" }}>
-                      TPT Prevention/Monitoring
-                    </h5>
-                    {showTpt === false ? (
-                      <>
-                        <span
-                          className="float-end"
-                          style={{ cursor: "pointer" }}
-                          onClick={onClickTpt}
-                        >
-                          <FaPlus />
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span
-                          className="float-end"
-                          style={{ cursor: "pointer" }}
-                          onClick={onClickTpt}
-                        >
-                          <FaAngleDown />
-                        </span>{" "}
-                      </>
+                  <div className="card">
+                    <div
+                      className="card-header"
+                      style={{
+                        backgroundColor: "#014d88",
+                        color: "#fff",
+                        fontWeight: "bolder",
+                        borderRadius: "0.2rem",
+                      }}
+                    >
+                      <h5 className="card-title" style={{ color: "#fff" }}>
+                        TPT Prevention/Monitoring
+                      </h5>
+                      {showTpt === false ? (
+                        <>
+                          <span
+                            className="float-end"
+                            style={{ cursor: "pointer" }}
+                            onClick={onClickTpt}
+                          >
+                            <FaPlus />
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span
+                            className="float-end"
+                            style={{ cursor: "pointer" }}
+                            onClick={onClickTpt}
+                          >
+                            <FaAngleDown />
+                          </span>{" "}
+                        </>
+                      )}
+                    </div>
+                    {showTpt && (
+                      <Tpt
+                        setTpt={setTpt}
+                        tpt={tpt}
+                        setErrors={setErrors}
+                        errors={errors}
+                        encounterDate={observation.dateOfObservation}
+                        patientObj={patientObj}
+                        action={props.activeContent.actionType}
+                      />
                     )}
                   </div>
-                  {showTpt && (
-                    <Tpt
-                      setTpt={setTpt}
-                      tpt={tpt}
-                      setErrors={setErrors}
-                      errors={errors}
-                      encounterDate={observation.dateOfObservation}
-                      patientObj={patientObj}
-                      action={props.activeContent.actionType}
-                    />
-                  )}
-                </div>
-              )}
+                )}
               {/* End TPT MONITORING */}
               {/* End Nutritional Status Assessment */}
               <div className="card">
@@ -920,6 +924,30 @@ const ViewChronicCare = (props) => {
               </div>
               {/* End Positive Health Dignity and Prevention */}
 
+              <div className="">
+                <FormGroup>
+                  <h5 className="card-title" style={{ color: "#014d87" }}>
+                    Clinical Note
+                  </h5>
+                  <textarea
+                    name="comment"
+                    id="comment"
+                    value={observation.comment}
+                    onChange={handleInputChange}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                      height: 200,
+                      width: "100%",
+                      padding: 10
+                    }}
+                    disabled={
+                      props.activeContent.actionType === "view" ? true : false
+                    }
+                  />
+                </FormGroup>
+
+              </div>
               {/* End Reproductive Intentions */}
               {saving ? <Spinner /> : ""}
 

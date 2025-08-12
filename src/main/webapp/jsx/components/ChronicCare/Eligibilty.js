@@ -181,9 +181,6 @@ const Eligibility = (props) => {
         console.error("Error fetching Last CD4 Result:", error);
       });
   };
-
-    console.log("Eligibility ", lastCd4Result);
-
   useEffect(() => {
     // Update props.eligibility.lastCd4Result with the value of lastCd4Result.cd4?.resultReported
     props.setEligibility((prevEligibility) => ({
@@ -200,7 +197,6 @@ const Eligibility = (props) => {
 
   
   
-    console.log("Eligibility ", lastCd4Result)
     const dateObject = new Date(inputDate);
       if (isNaN(dateObject)) {
         return ""; 

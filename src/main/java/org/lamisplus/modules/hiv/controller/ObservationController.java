@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.hiv.domain.dto.ObservationDto;
+import org.lamisplus.modules.hiv.domain.dto.TBCompletionStatusDTO;
 import org.lamisplus.modules.hiv.domain.dto.TPtCompletionStatusInfoDTO;
 import org.lamisplus.modules.hiv.repositories.ObservationRepository;
 import org.lamisplus.modules.hiv.service.ObservationService;
@@ -73,6 +74,20 @@ public class ObservationController {
         Optional<String> tptCompletionDate = observationRepository.findTptCompletionDateByPersonAndDate(personUuid, dateOfObservation);
         return tptCompletionDate.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.ok(""));
+    }
+
+    @GetMapping("/tb-completion-date")
+    public ResponseEntity<TBCompletionStatusDTO> getTbPrompt(@RequestParam String personUuid) {
+        TBCompletionStatusDTO tbClientWithoutCompletionDate =
+                observationRepository.findTbClientWithoutCompletionDate(personUuid);
+
+       return ResponseEntity.ok(tbClientWithoutCompletionDate);
+    }
+
+    @GetMapping("/current-tb-status")
+    public ResponseEntity<String> getCurrentTbStatus(@RequestParam String personUuid) {
+        Optional<String> currentTbStatus = observationRepository.findCurrentTbStatus(personUuid);
+        return currentTbStatus.isPresent() ? ResponseEntity.ok(currentTbStatus.get()) : ResponseEntity.ok("");
     }
 
 }
