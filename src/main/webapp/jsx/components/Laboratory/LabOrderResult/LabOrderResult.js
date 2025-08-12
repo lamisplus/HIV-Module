@@ -204,42 +204,117 @@ const Laboratory = (props) => {
   };
 
   // Fetch chronic care
+  // const GetCareAndSupportDiagnosticTest = () => {
+  //   axios
+  //       .get(  `${baseUrl}observation/person/${props.patientObj.id}`, {
+  //         headers: { Authorization: `Bearer ${token}` }, // Add token here
+  //       })
+  //       .then((response) => {
+  //         const data = response.data;
+  //         const filteredRecords = data.filter(
+  //             (item) =>
+  //                 item.type === "Chronic Care" &&
+  //                 item.data?.tbIptScreening?.diagnosticTestType !== null &&
+  //                 item.data?.tbIptScreening?.diagnosticTestType !== ""
+  //         );
+  //         if (filteredRecords.length > 0) {
+  //           const mostRecentRecord = filteredRecords.sort(
+  //               (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
+  //           )[0];
+  //           setTptMonitoring(mostRecentRecord.data.tbIptScreening)
+  //           const { diagnosticTestType, chestXrayDone } = mostRecentRecord.data.tbIptScreening;
+  //           setChestXrayDocumented(chestXrayDone)
+  //           if (diagnosticTestType === "TB-LAMP") {
+  //             setChronicCareTestResult("TB LAMP");
+  //           } else if (diagnosticTestType === "LF-LAM") {
+  //             setChronicCareTestResult("LF-LAM");
+  //           } else if (diagnosticTestType === "Truenat") {
+  //             setChronicCareTestResult("TrueNAT");
+  //           } else if (diagnosticTestType === "Smear Microscopy") {
+  //             setChronicCareTestResult("AFB smear microscopy");
+  //           } else if (diagnosticTestType === "Cobas") {
+  //             setChronicCareTestResult("Cobas");
+  //           }
+  //           else if (diagnosticTestType === "GeneXpert" ) {
+  //             setChronicCareTestResult("Gene Xpert");
+  //           }
+  //         } else {
+  //           setChronicCareTestResult("");
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error fetching care and support data:", error);
+  //       });
+  // };
+
+
+  // Fetch chronic care diagnostic test
   const GetCareAndSupportDiagnosticTest = () => {
     axios
-        .get(  `${baseUrl}observation/person/${props.patientObj.id}`, {
-          headers: { Authorization: `Bearer ${token}` }, // Add token here
+        .get(`${baseUrl}observation/person/${props.patientObj.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
         })
         .then((response) => {
           const data = response.data;
-          const filteredRecords = data.filter(
-              (item) =>
-                  item.type === "Chronic Care" &&
-                  item.data?.tptMonitoring?.diagnosticTestType !== null &&
-                  item.data?.tptMonitoring?.diagnosticTestType !== ""
+
+          // Step 1: Get all Chronic Care records
+          const allChronicCareRecords = data.filter((item) => item.type === "Chronic Care");
+
+          if (allChronicCareRecords.length === 0) {
+            setChronicCareTestResult("");
+            return;
+          }
+
+          // Step 2: Find the most recent date among ALL Chronic Care records
+          const mostRecentCareAndSupportRecordDate = allChronicCareRecords.reduce(
+              (maxDate, item) => {
+                const itemDate = new Date(item.dateOfObservation);
+                return itemDate > maxDate ? itemDate : maxDate;
+              },
+              new Date(0) // Start with the earliest possible date
           );
+
+          // Step 3: Filter for Chronic Care records that have a diagnostic test
+          const filteredRecords = allChronicCareRecords.filter(
+              (item) =>
+                  item.data?.tbIptScreening?.diagnosticTestType !== null &&
+                  item.data?.tbIptScreening?.diagnosticTestType !== ""
+          );
+
           if (filteredRecords.length > 0) {
+            // Get the most recent valid record (with diagnostic test)
             const mostRecentRecord = filteredRecords.sort(
                 (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
             )[0];
-            setTptMonitoring(mostRecentRecord.data.tptMonitoring)
-            const { diagnosticTestType, chestXrayDone } = mostRecentRecord.data.tptMonitoring;
-            setChestXrayDocumented(chestXrayDone)
-            if (diagnosticTestType === "TB-LAMP") {
-              setChronicCareTestResult("TB LAMP");
-            } else if (diagnosticTestType === "LF-LAM") {
-              setChronicCareTestResult("LF-LAM");
-            } else if (diagnosticTestType === "Truenat") {
-              setChronicCareTestResult("TrueNAT");
-            } else if (diagnosticTestType === "Smear Microscopy") {
-              setChronicCareTestResult("AFB smear microscopy");
-            } else if (diagnosticTestType === "Cobas") {
-              setChronicCareTestResult("Cobas");
-            }
-            else if (diagnosticTestType === "GeneXpert" ) {
-              setChronicCareTestResult("Gene Xpert");
+
+            const mostRecentValidDate = new Date(mostRecentRecord.dateOfObservation);
+
+            // Step 4: Compare — if the latest Chronic Care record is NEWER than this one,
+            // it means the newest visit has no test → don't trust older test data
+            if (mostRecentCareAndSupportRecordDate > mostRecentValidDate) {
+              setTptMonitoring({}); // No valid latest test
+            } else {
+              // The most recent Chronic Care record IS the one with test data → safe to use
+              const tbIptData = mostRecentRecord.data.tbIptScreening;
+              setTptMonitoring(tbIptData);
+              setChestXrayDocumented(tbIptData.chestXrayDone);
+
+              // Map diagnostic test type to display value
+              const { diagnosticTestType } = tbIptData;
+              const testTypeMap = {
+                "TB-LAMP": "TB LAMP",
+                "LF-LAM": "LF-LAM",
+                "Truenat": "TrueNAT",
+                "Smear Microscopy": "AFB smear microscopy",
+                "Cobas": "Cobas",
+                "GeneXpert": "Gene Xpert",
+              };
+              setChronicCareTestResult(testTypeMap[diagnosticTestType] || "");
             }
           } else {
+            // No Chronic Care record has diagnostic test data
             setChronicCareTestResult("");
+            setTptMonitoring({}); // Clear or keep? depends on your logic
           }
         })
         .catch((error) => {

@@ -64,7 +64,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "        cc.body_weight AS weight,\n" +
             "        cc.height AS height,\n" +
             "        lastVisit.visit_date AS dateOfLastClinicalVisist,\n" +
-            "        lastVisit.pregnancy_status AS pregnancyStatus,\n" +
+            "        (SELECT display from base_application_codeset WHERE code = lastVisit.pregnancy_status) AS pregnancyStatus,\n" +
             "        bac_adl.display AS adherenceLevel,\n" +
             "        bac.display AS currentWhoClinical,\n" +
             "        cd4.currentCD4Count AS currentCD4Count,\n" +
