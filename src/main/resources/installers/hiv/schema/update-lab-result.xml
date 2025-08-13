@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet id="20250813-01" author="Taiwo Gboyegun">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="laboratory_result"/>
+        </preConditions>
+        <sql>
+            UPDATE laboratory_result SET date_modified = date_result_received,
+                                         date_created = date_result_received WHERE date_modified IS NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
