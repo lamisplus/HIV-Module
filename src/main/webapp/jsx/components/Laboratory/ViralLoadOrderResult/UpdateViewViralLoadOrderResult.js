@@ -12,7 +12,7 @@ import { url as baseUrl, token } from "../../../../api";
 import moment from "moment";
 import { List, Label as LabelSui} from 'semantic-ui-react'
 import { toast} from "react-toastify";
-
+import useCodesets from "../../../../hooks/useCodesets";
 import { Button, } from 'semantic-ui-react'
 import {TiArrowBack} from 'react-icons/ti'
 import { queryClient } from '../../../../utils/queryClient';
@@ -59,6 +59,8 @@ const useStyles = makeStyles(theme => ({
 },
 }))
 
+const CODESET_KEYS = ["VIRAL_LOAD_INDICATION"];
+
 const Laboratory = (props) => {
     let visitId=""
     const patientObj = props.patientObj;
@@ -70,13 +72,13 @@ const Laboratory = (props) => {
     const [moduleStatus, setModuleStatus]= useState("0")
     const [disabledField, setDisabledField] = useState(false);
     //const [currentVisit, setCurrentVisit]=useState(true)
-    const [vLIndication, setVLIndication] = useState([]);
     const [labTestDetail, setLabTestDetail]=useState([])
     const [labNumberOption, setLabNumberOption] = useState("")
     const [showResult, setShowResult]=useState(false)
     const [showPcrLabDetail, setShowPcrLabDetail]=useState(false)
     const [labNumbers, setLabNumbers] = useState([]);//
     const [pcrs, setPcrs] = useState([]);//
+    const { getOptions } = useCodesets(CODESET_KEYS);
     let temp = { ...errors }
     const [showObj, setShowObj] = useState(
         {
@@ -116,7 +118,6 @@ const Laboratory = (props) => {
     useEffect(() => {
            
         CheckLabModule();
-        ViraLoadIndication();
         LabTestDetail();
         PCRLabList();
         setTests(props.activeContent.obj) 
@@ -231,19 +232,6 @@ const Laboratory = (props) => {
             });
         
     }  
-    //Get list of Test Group
-    const ViraLoadIndication =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setVLIndication(response.data);
-            })
-            .catch((error) => {
-            
-            });        
-    }
     const handleInputChange = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
         //tests.labNumber
@@ -433,7 +421,7 @@ const Laboratory = (props) => {
                                 >
                                 <option value="">Select </option>
                                                 
-                                    {vLIndication.map((value) => (
+                                    {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
                                         <option key={value.id} value={value.id}>
                                             {value.display}
                                         </option>

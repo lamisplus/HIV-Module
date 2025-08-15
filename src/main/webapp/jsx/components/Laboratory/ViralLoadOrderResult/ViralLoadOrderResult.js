@@ -15,6 +15,7 @@ import { List, Label as LabelSui} from 'semantic-ui-react'
 // import DeleteIcon from '@material-ui/icons/Delete';
 import { toast} from "react-toastify";
 import { queryClient } from '../../../../utils/queryClient';
+import useCodesets from "../../../../hooks/useCodesets";
 // import {Alert } from "react-bootstrap";
 // import { Icon,Button, } from 'semantic-ui-react'
 
@@ -61,6 +62,8 @@ const useStyles = makeStyles(theme => ({
 },
 }))
 
+const CODESET_KEYS = ["VIRAL_LOAD_INDICATION"];
+
 const Laboratory = (props) => {
     let visitId=""
     //let labNumberOption=""
@@ -78,7 +81,6 @@ const Laboratory = (props) => {
     const [showResult, setShowResult]=useState(false)
     const [showPcrLabDetail, setShowPcrLabDetail]=useState(false)
     //const [currentVisit, setCurrentVisit]=useState(true)
-    const [vLIndication, setVLIndication] = useState([]);
     const [testOrderList, setTestOrderList] = useState([]);//Test Order List
     const [showVLIndication, setShowVLIndication] = useState(false);
     const [labTestDetail, setLabTestDetail]=useState([])
@@ -86,6 +88,7 @@ const Laboratory = (props) => {
     const [labNumberOption, setLabNumberOption] = useState("")
     const [labNumbers, setLabNumbers] = useState([]);//
     const [pcrs, setPcrs] = useState([]);//
+    const { getOptions } = useCodesets(CODESET_KEYS);
     let temp = { ...errors }
     const [tests, setTests]=useState({
             approvedBy: "",
@@ -118,7 +121,6 @@ const Laboratory = (props) => {
     useEffect(() => {
         GetPatientDTOObj()   
         CheckLabModule();
-        ViraLoadIndication();
         LabTestDetail();
         CheckEACStatus();  
         LabNumbers(); 
@@ -218,19 +220,6 @@ const Laboratory = (props) => {
         
     }
 
-    //Get list of Test Group
-    const ViraLoadIndication =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setVLIndication(response.data);
-            })
-            .catch((error) => {
-            
-            });        
-    }
     const handleSelectedTestGroup = e =>{
         setTests ({...tests,  labTestGroupId: e.target.value});
         const getTestList= testGroup.filter((x)=> x.id===parseInt(e.target.value))
@@ -531,7 +520,7 @@ const Laboratory = (props) => {
                                 >
                                 <option value="">Select </option>
                                                 
-                                    {vLIndication.map((value) => (
+                                    {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
                                         <option key={value.id} value={value.id}>
                                             {value.display}
                                         </option>

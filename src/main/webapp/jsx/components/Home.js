@@ -1,38 +1,55 @@
-import React, { useState, Fragment, useEffect } from "react";
+import React, { useState, Fragment, useEffect, lazy, Suspense,useMemo, memo } from "react";
 import { Row, Col, Card, Tab, Tabs } from "react-bootstrap";
-import Dashboard from "./Patient/PatientList";
-import ArtPatients from "./Patient/ArtPatients";
-import Ovc from "./Ovc/Index";
+import LoadingSpinner from "../../reuseables/Loading";
+const Dashboard = lazy(() => import("./Patient/PatientList"));
+const CheckedInPatients = lazy(() => import("./Patient/CheckedInPatients"));
+const ArtPatients = lazy(() => import("./Patient/ArtPatients"));
+const Ovc = lazy(() => import("./Ovc/Index"));
 import { Link } from "react-router-dom";
 import Button from "@material-ui/core/Button";
-import { url as baseUrl } from "../../api";
 import { FaUserPlus } from "react-icons/fa";
-import { token } from "../../api";
-import axios from "axios";
+import { usePermissions } from "../../hooks/usePermissions";
+import { useRoles } from "../../hooks/useRoles";
+
 const divStyle = {
   borderRadius: "2px",
   fontSize: 14,
 };
 
 const Home = () => {
-  const [key, setKey] = useState("home");
-  // tab
+  const { hasPermission, loading } = usePermissions();
+  const { hasRole, loading: rolesLoading } = useRoles();
+  const [key, setKey] = useState("checkedIn");
+  const [activeTab, setActiveTab] = useState("checkedIn");
 
-  const fetchFacilityId = () => {
-    axios
-      .get(`${baseUrl}account`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        const organisationUnitId = response.data.currentOrganisationUnitId;
-        localStorage.setItem("facId", organisationUnitId);
-      })
-      .catch((error) => {});
+  const handleTabSelect = (k) => {
+    setKey(k);
+    setActiveTab(k);
   };
 
+  const isRDE = hasRole("RDE");
+
   useEffect(() => {
-    fetchFacilityId();
-  }, []);
+    if (!rolesLoading) {
+      const defaultTab = isRDE ? "home" : "checkedIn";
+      setKey(defaultTab);
+      setActiveTab(defaultTab);
+    }
+  }, [rolesLoading, isRDE]);
+
+  const permissions = useMemo(
+    () => ({
+      canSeeCheckedInPatients: !isRDE, // POC users see this
+      canSeeFindPatients: isRDE, // RDE users see this
+      canSeeArtPatients: isRDE, // RDE users see this
+      canSeeOvcLinkage: isRDE, // RDE users see this
+    }),
+    [isRDE]
+  );
+
+  if (rolesLoading || loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <Fragment>
@@ -46,40 +63,64 @@ const Home = () => {
           </li>
         </ol>
       </div>
-      <Link to={"register-patient"}>
-        <Button
-          variant="contained"
-          color="primary"
-          className=" float-end mb-10"
-          startIcon={<FaUserPlus size="10" />}
-          style={{ backgroundColor: "#014d88" }}
-        >
-          <span style={{ textTransform: "capitalize" }}>New Patient</span>
-        </Button>
-      </Link>
+      {isRDE && (
+                <Link to={"register-patient"}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    className="float-end mb-10"
+                    startIcon={<FaUserPlus size="10" />}
+                    style={{ backgroundColor: "#014d88" }}
+                  >
+                    <span style={{ textTransform: "capitalize" }}>New Patient</span>
+                  </Button>
+                </Link>
+              )}
+     
       <br />
       <br />
       <Row>
         <Col xl={12}>
           <Card style={divStyle}>
             <Card.Body>
-              {/* <!-- Nav tabs --> */}
               <div className="custom-tab-1">
                 <Tabs
                   id="controlled-tab-example"
                   activeKey={key}
-                  onSelect={(k) => setKey(k)}
+                  onSelect={handleTabSelect}
                   className="mb-3"
                 >
-                  <Tab eventKey="home" title="Find Patients">
-                    <Dashboard />
-                  </Tab>
-                  <Tab eventKey="art-patients" title="ART Patients">
-                    <ArtPatients />
-                  </Tab>
-                  <Tab eventKey="list" title="OVC Linkage">
-                    <Ovc />
-                  </Tab>
+                  {permissions.canSeeCheckedInPatients && (
+                    <Tab eventKey="checkedIn" title="Checked-In Patients">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        {activeTab === "checkedIn" && <CheckedInPatients />}
+                      </Suspense>
+                    </Tab>
+                  )}
+            
+                  {permissions.canSeeFindPatients && (
+                    <Tab eventKey="home" title="Find Patients">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        {activeTab === "home" && <Dashboard />}
+                      </Suspense>
+                    </Tab>
+                  )}
+
+                  {permissions.canSeeArtPatients && (
+                    <Tab eventKey="art-patients" title="ART Patients">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        {activeTab === "art-patients" && <ArtPatients />}
+                      </Suspense>
+                    </Tab>
+                  )}
+
+                  {permissions.canSeeOvcLinkage && (
+                    <Tab eventKey="list" title="OVC Linkage">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        {activeTab === "list" && <Ovc />}
+                      </Suspense>
+                    </Tab>
+                  )}
                 </Tabs>
               </div>
             </Card.Body>

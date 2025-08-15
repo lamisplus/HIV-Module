@@ -25,6 +25,7 @@ import "react-widgets/dist/css/react-widgets.css";
 import "react-phone-input-2/lib/style.css";
 import { calculate_age_to_number } from "../../../utils";
 import useCodesets from "../../../hooks/useCodesets";
+
 const useStyles = makeStyles((theme) => ({
   card: {
     margin: theme.spacing(20),
@@ -154,6 +155,10 @@ const Eligibility = (props) => {
   //     })
   //     .catch((error) => {});
   // };
+
+
+
+
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
 
   return (

@@ -21,6 +21,7 @@ import CancelIcon from "@material-ui/icons/Cancel";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 //import { useHistory } from "react-router-dom";
 import { Modal, Button } from "react-bootstrap";
 import "react-widgets/dist/css/react-widgets.css";
@@ -72,8 +73,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "CLINICAL_STAGE",
+  "PREGANACY_STATUS", 
+  "FUNCTIONAL _STATUS",
+  "TB_STATUS",
+];
+
 const ArtCommencement = (props) => {
   const patientObj = props.patientObj;
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const enrollDate =
     patientObj && patientObj.enrollment
       ? patientObj.enrollment.dateOfRegistration
@@ -87,17 +96,13 @@ const ArtCommencement = (props) => {
   const [heightValue, setHeightValue] = useState("cm");
 
   const classes = useStyles();
-  const [clinicalStage, setClinicalStage] = useState([]);
   const [values, setValues] = useState([]);
   const [saving, setSaving] = useState(false);
   const [viraLoadStart, setViraLoadStart] = useState(false);
   const [errors, setErrors] = useState({});
   let temp = { ...errors };
-  const [tbStatus, setTbStatus] = useState([]);
   const [regimenLine, setRegimenLine] = useState([]);
   const [regimenType, setRegimenType] = useState([]);
-  const [pregancyStatus, setPregancyStatus] = useState([]);
-  const [functionalStatus, setFunctionalStatus] = useState([]);
   const [objValues, setObjValues] = useState({
     personId: props.patientObj.id,
     visitDate: null,
@@ -138,27 +143,12 @@ const ArtCommencement = (props) => {
   });
 
   useEffect(() => {
-    FunctionalStatus();
-    WhoStaging();
-    TBStatus();
-    PreganacyStatus();
     RegimenLine();
     gender =
       props.patientObj.gender && props.patientObj.gender.display
         ? props.patientObj.gender.display
         : null;
   }, [props.patientObj]);
-  //Get list of WhoStaging
-  const WhoStaging = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setClinicalStage(response.data);
-      })
-      .catch((error) => {});
-  };
   //Get list of RegimenLine
   const RegimenLine = () => {
     axios
@@ -181,42 +171,8 @@ const ArtCommencement = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of PREGANACY_STATUS
-  const PreganacyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGANACY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPregancyStatus(response.data);
-      })
-      .catch((error) => {});
-  };
 
-  ///GET LIST OF FUNCTIONAL%20_STATUS
-  async function FunctionalStatus() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setFunctionalStatus(response.data);
-        //setValues(response.data)
-      })
-      .catch((error) => {});
-  }
 
-  // TB STATUS
-  const TBStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbStatus(response.data);
-      })
-      .catch((error) => {});
-  };
 
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
@@ -612,7 +568,7 @@ const ArtCommencement = (props) => {
                       >
                         <option value=""> Select</option>
 
-                        {clinicalStage.map((value) => (
+                        {getOptions("CLINICAL_STAGE").map((value) => (
                           <option key={value.id} value={value.id}>
                             {value.display}
                           </option>
@@ -645,7 +601,7 @@ const ArtCommencement = (props) => {
                       >
                         <option value=""> Select</option>
 
-                        {functionalStatus.map((value) => (
+                        {getOptions("FUNCTIONAL _STATUS").map((value) => (
                           <option key={value.id} value={value.id}>
                             {value.display}
                           </option>

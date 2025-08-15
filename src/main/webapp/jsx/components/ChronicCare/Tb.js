@@ -1,31 +1,16 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   FormGroup,
   Label,
   CardBody,
-  Spinner,
   Input,
-  Form,
   InputGroup,
 } from "reactstrap";
 import * as moment from "moment";
 import { makeStyles } from "@material-ui/core/styles";
 import { Card } from "@material-ui/core";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import "react-widgets/dist/css/react-widgets.css";
-import { useHistory } from "react-router-dom";
-// import {TiArrowBack} from 'react-icons/ti'
-import { token, url as baseUrl } from "../../../api";
-import "react-phone-input-2/lib/style.css";
-import "semantic-ui-css/semantic.min.css";
-import "react-toastify/dist/ReactToastify.css";
-import "react-widgets/dist/css/react-widgets.css";
-import "react-phone-input-2/lib/style.css";
-import { Button } from "semantic-ui-react";
+import useCodesets from "../../../hooks/useCodesets";
 import { calculate_age_to_number } from "../../../utils";
-import { fi } from "date-fns/locale";
 import TbTreatmentScreening from "./TbTreatmentScreening";
 import TbMonitoring from "./TbMonitoring";
 
@@ -93,70 +78,28 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "TB_TREATMENT_TYPE",
+  "CHEST X-RAY_TEST_RESULT", 
+  "TB_TREATMENT_OUTCOME",
+  "TB_SCREENING_TYPE"
+];
+
 const TbScreening = (props) => {
   let age = props.patientObj.age;
   let dateOfBirth = props.patientObj.dateOfBirth;
   let errors = props.errors;
   const classes = useStyles();
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [contraindicationDisplay, setcontraindicationDisplay] = useState(false);
-  const [tbTreatmentType, setTbTreatmentType] = useState([]);
-  const [tbTreatmentOutCome, setTbTreatmentOutCome] = useState([]);
-  const [tbScreeningType, setTbScreeningType] = useState([]);
-  const [tbScreeningType2, setTbScreeningType2] = useState([]);
   const [showAdditionalFields, setShowAdditionalFields] = useState(false);
-  const [chestXrayResult, setChestXrayResult] = useState([]);
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
   const [careAndSupportEncounterDate, setCareAndSupportEncounterDate] =
     useState("");
 
   useEffect(() => {
-    TB_TREATMENT_OUTCOME();
-    TB_TREATMENT_TYPE();
-    TB_SCREENING_TYPE();
-    CHEST_XRAY_TEST_RESULT();
-    // CXR_SCREENING_TYPE();
+    // Codesets are now loaded via useCodesets hook
   }, []);
-  const TB_TREATMENT_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbTreatmentType(response.data);
-      })
-      .catch((error) => {});
-  };
-  const CHEST_XRAY_TEST_RESULT = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CHEST X-RAY_TEST_RESULT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setChestXrayResult(response.data);
-      })
-      .catch((error) => {});
-  };
-  const TB_TREATMENT_OUTCOME = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbTreatmentOutCome(response.data);
-      })
-      .catch((error) => {});
-  };
-
-  const TB_SCREENING_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_SCREENING_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbScreeningType(response.data);
-      })
-      .catch((error) => {});
-  };
 
 
   const getActiveTbTreatmentStartDate = (observations) => {
@@ -1149,7 +1092,7 @@ const TbScreening = (props) => {
                           value={props.tbObj.tbScreeningType}
                         >
                           <option value="">Select</option>
-                          {tbScreeningType.map((value) => (
+                          {getOptions("TB_SCREENING_TYPE").map((value) => (
                             <option key={value.id} value={value.display}>
                               {value.display}
                             </option>

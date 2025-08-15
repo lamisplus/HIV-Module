@@ -18,6 +18,7 @@ import "react-widgets/dist/css/react-widgets.css";
 import { useHistory } from "react-router-dom";
 // import {TiArrowBack} from 'react-icons/ti'
 import { token, url as baseUrl } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-phone-input-2/lib/style.css";
 import "semantic-ui-css/semantic.min.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -91,13 +92,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "TB_TREATMENT_TYPE",
+  "TB_TREATMENT_OUTCOME",
+  "TB_SCREENING_TYPE"
+];
+
 const TbScreening = (props) => {
   let age = props.patientObj.age;
   const classes = useStyles();
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [contraindicationDisplay, setcontraindicationDisplay] = useState(false);
-  const [tbTreatmentType, setTbTreatmentType] = useState([]);
-  const [tbTreatmentOutCome, setTbTreatmentOutCome] = useState([]);
-  const [tbScreeningType, setTbScreeningType] = useState([]);
   const [tbScreeningType2, setTbScreeningType2] = useState([]);
   const [showAdditionalFields, setShowAdditionalFields] = useState(false);
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
@@ -701,42 +706,9 @@ const TbScreening = (props) => {
   }
 
   useEffect(() => {
-    TB_TREATMENT_OUTCOME();
-    TB_TREATMENT_TYPE();
-    TB_SCREENING_TYPE();
     // CXR_SCREENING_TYPE();
   }, []);
-  const TB_TREATMENT_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbTreatmentType(response.data);
-      })
-      .catch((error) => {});
-  };
-  const TB_TREATMENT_OUTCOME = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbTreatmentOutCome(response.data);
-      })
-      .catch((error) => {});
-  };
 
-  const TB_SCREENING_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_SCREENING_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbScreeningType(response.data);
-      })
-      .catch((error) => {});
-  };
   // const CXR_SCREENING_TYPE = () => {
   //   axios
   //     .get(`${baseUrl}application-codesets/v2/LAB_ORDER_INDICATION`, {
@@ -859,7 +831,7 @@ const TbScreening = (props) => {
                               disabled={props.action === "view" ? true : false}
                             >
                               <option value="">Select</option>
-                              {tbTreatmentType.map((value) => (
+                              {getOptions("TB_TREATMENT_TYPE").map((value) => (
                                 <option key={value.id} value={value.display}>
                                   {value.display}
                                 </option>
@@ -884,7 +856,7 @@ const TbScreening = (props) => {
                               disabled={props.action === "view" ? true : false}
                             >
                               <option value="">Select</option>
-                              {tbTreatmentOutCome.map((value) => (
+                              {getOptions("TB_TREATMENT_OUTCOME").map((value) => (
                                 <option key={value.id} value={value.display}>
                                   {value.display}
                                 </option>
@@ -939,7 +911,7 @@ const TbScreening = (props) => {
                               value={props.tbObj.tbScreeningType}
                             >
                               <option value="">Select</option>
-                              {tbScreeningType.map((value) => (
+                              {getOptions("TB_SCREENING_TYPE").map((value) => (
                                 <option key={value.id} value={value.display}>
                                   {value.display}
                                 </option>
@@ -1174,7 +1146,7 @@ const TbScreening = (props) => {
                           disabled={props.action === "view" ? true : false}
                         >
                           <option value="">Select</option>
-                          {tbTreatmentType.map((value) => (
+                          {getOptions("TB_TREATMENT_TYPE").map((value) => (
                             <option key={value.id} value={value.display}>
                               {value.display}
                             </option>
@@ -1199,7 +1171,7 @@ const TbScreening = (props) => {
                           disabled={props.action === "view" ? true : false}
                         >
                           <option value="">Select</option>
-                          {tbTreatmentOutCome.map((value) => (
+                          {getOptions("TB_TREATMENT_OUTCOME").map((value) => (
                             <option key={value.id} value={value.display}>
                               {value.display}
                             </option>
@@ -1317,7 +1289,7 @@ const TbScreening = (props) => {
                               value={props.tbObj.tbScreeningType}
                             >
                               <option value="">Select</option>
-                              {tbScreeningType.map((value) => (
+                              {getOptions("TB_SCREENING_TYPE").map((value) => (
                                 <option key={value.id} value={value.display}>
                                   {value.display}
                                 </option>
@@ -1530,7 +1502,7 @@ const TbScreening = (props) => {
                               value={props.tbObj.tbScreeningType}
                             >
                               <option value="">Select</option>
-                              {tbScreeningType.map((value) => (
+                              {getOptions("TB_SCREENING_TYPE").map((value) => (
                                 <option key={value.id} value={value.display}>
                                   {value.display}
                                 </option>
@@ -1768,7 +1740,7 @@ const TbScreening = (props) => {
                               value={props.tbObj.tbScreeningType}
                             >
                               <option value="">Select</option>
-                              {tbScreeningType.map((value) => (
+                              {getOptions("TB_SCREENING_TYPE").map((value) => (
                                 <option key={value.id} value={value.display}>
                                   {value.display}
                                 </option>

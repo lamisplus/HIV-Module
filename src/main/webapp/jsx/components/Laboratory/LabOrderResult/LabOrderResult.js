@@ -20,6 +20,7 @@ import "react-widgets/dist/css/react-widgets.css";
 //import moment from "moment";
 import { Spinner } from "reactstrap";
 import { url as baseUrl, token } from "../../../../api";
+import useCodesets from "../../../../hooks/useCodesets";
 import moment from "moment";
 import {List, Label as LabelSui, Button} from "semantic-ui-react";
 import IconButton from "@mui/material/IconButton";
@@ -72,6 +73,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = ["TEST_ORDER_PRIORITY", "VIRAL_LOAD_INDICATION", "LAB_ORDER_INDICATION"];
+
 const Laboratory = (props) => {
 
   let visitId = "";
@@ -85,15 +88,13 @@ const Laboratory = (props) => {
   const [buttonHidden, setButtonHidden] = useState(false);
   const [moduleStatus, setModuleStatus] = useState("0");
   const [testGroup, setTestGroup] = useState([]);
-  const [priority, setPriority] = useState([]);
   const [eacStatusObj, setEacStatusObj] = useState();
-  const [vLIndication, setVLIndication] = useState([]);
   const [testOrderList, setTestOrderList] = useState([]); //Test Order List
   const [labNumbers, setLabNumbers] = useState([]); //
   // const [selectedOption, setSelectedOption] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const [labTestOptions, setLabTestOptions] = useState([]);
-  const [labOrderIndication, setLabOrderIndication] = useState([]);
+  const { getOptions } = useCodesets(CODESET_KEYS);
   let testsOptions = [];
   const [chronicCareTestResult, setChronicCareTestResult] = useState("")
   const [userHasChanged, setUserHasChanged] = useState(false);
@@ -133,12 +134,9 @@ const Laboratory = (props) => {
   useEffect(() => {
     CheckLabModule();
     TestGroup();
-    PriorityOrder();
-    ViraLoadIndication();
     GetPatientDTOObj();
     CheckEACStatus();
     LabNumbers();
-    LAB_ORDER_INDICATION();
   }, [props.patientObj.id, tests.labTestId]);
   const GetPatientDTOObj = () => {
     axios
@@ -381,18 +379,6 @@ const Laboratory = (props) => {
     }
   }, [chestXrayDocumented, testOrderList.length, labTestOptions, userHasChanged]);
 
-  //Load the tests of all Laboratory
-  //Get list of Test Group
-  const PriorityOrder = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TEST_ORDER_PRIORITY`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPriority(response.data);
-      })
-      .catch((error) => {});
-  };
   //Check if Module Exist
   const CheckLabModule = () => {
     axios
@@ -412,17 +398,6 @@ const Laboratory = (props) => {
       .catch((error) => {});
   };
 
-  //Get list of Test Group
-  const ViraLoadIndication = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setVLIndication(response.data);
-      })
-      .catch((error) => {});
-  };
 
   const handleInputChangeObject = (e) => {
     setUserHasChanged(true)
@@ -600,16 +575,6 @@ const Laboratory = (props) => {
     return isSyncValid;
   };
 
-  const LAB_ORDER_INDICATION = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/LAB_ORDER_INDICATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setLabOrderIndication(response.data);
-      })
-      .catch((error) => {});
-  };
 
    const handleSubmit = (e) => {
      e.preventDefault();
@@ -865,7 +830,7 @@ const Laboratory = (props) => {
                            }}
                          >
                            <option value="">Select</option>
-                           {labOrderIndication.map((value) => (
+                           {getOptions("LAB_ORDER_INDICATION").map((value) => (
                              <option key={value.id} value={value.display}>
                                {value.display}
                              </option>
@@ -902,7 +867,7 @@ const Laboratory = (props) => {
                          >
                            <option value="">Select </option>
 
-                           {vLIndication.map((value) => (
+                           {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
                              <option key={value.id} value={value.id}>
                                {value.display}
                              </option>

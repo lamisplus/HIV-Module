@@ -14,6 +14,7 @@ import SaveIcon from "@material-ui/icons/Save";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl, token } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import "react-summernote/dist/react-summernote.css"; // import styles
@@ -89,8 +90,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "CLINICAL_STAGE",
+  "PREGNANCY_STATUS",
+  "FUNCTIONAL _STATUS", 
+  "TB_STATUS",
+];
+
 const ArtCommencement = (props) => {
   const patientObj = props.patientObj;
+  const { getOptions } = useCodesets(CODESET_KEYS);
 
   let gender = "";
   const [enrollDate, setEnrollDate] = useState("");
@@ -99,17 +108,13 @@ const ArtCommencement = (props) => {
   const toggleDropDown = () => setDropdownOpen(!dropdownOpen);
   const toggleSplit = () => setSplitButtonOpen(!splitButtonOpen);
   const classes = useStyles();
-  const [clinicalStage, setClinicalStage] = useState([]);
   const [values, setValues] = useState([]);
   const [saving, setSaving] = useState(false);
   const [viraLoadStart, setViraLoadStart] = useState(false);
   const [errors, setErrors] = useState({});
   let temp = { ...errors };
-  const [tbStatus, setTbStatus] = useState([]);
   const [regimenLine, setRegimenLine] = useState([]);
   const [regimenType, setRegimenType] = useState([]);
-  const [pregnancyStatus, setpregnancyStatus] = useState([]);
-  const [functionalStatus, setFunctionalStatus] = useState([]);
   const [adultRegimenLine, setAdultRegimenLine] = useState([]);
   const [childRegimenLine, setChildRegimenLine] = useState([]);
   const [disabledField, setDisabledField] = useState(false);
@@ -171,10 +176,6 @@ const ArtCommencement = (props) => {
 
   useEffect(() => {
     GetARTCommencement();
-    FunctionalStatus();
-    WhoStaging();
-    TBStatus();
-    PreganacyStatus();
     RegimenLine();
     AdultRegimenLine();
     ChildRegimenLineObj();
@@ -249,17 +250,6 @@ const ArtCommencement = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of WhoStaging
-  const WhoStaging = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setClinicalStage(response.data);
-      })
-      .catch((error) => {});
-  };
   //Get list of RegimenLine
   const RegimenLine = () => {
     axios
@@ -279,40 +269,6 @@ const ArtCommencement = (props) => {
       })
       .then((response) => {
         setRegimenType(response.data);
-      })
-      .catch((error) => {});
-  };
-  //Get list of PREGANACY_STATUS
-  const PreganacyStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setpregnancyStatus(response.data);
-      })
-      .catch((error) => {});
-  };
-  ///GET LIST OF FUNCTIONAL%20_STATUS
-  async function FunctionalStatus() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setFunctionalStatus(response.data);
-        //setValues(response.data)
-      })
-      .catch((error) => {});
-  }
-  // TB STATUS
-  const TBStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbStatus(response.data);
       })
       .catch((error) => {});
   };
@@ -467,15 +423,6 @@ const ArtCommencement = (props) => {
       });
     } else {
       setVitalClinicalSupport({ ...vitalClinicalSupport, temperature: "" });
-    }
-  };
-  const handleInputChangeVitalStart = (e) => {
-    if (e.target.value === "YES") {
-      setViraLoadStart(true);
-      setObjValues({ ...objValues, viralLoad: e.target.value });
-    } else {
-      setObjValues({ ...objValues, viralLoad: e.target.value });
-      setViraLoadStart(false);
     }
   };
 
@@ -837,8 +784,8 @@ const ArtCommencement = (props) => {
                   >
                     <option value=""> Select</option>
 
-                    {clinicalStage.map((value) => (
-                      <option key={value.id} value={value.id}>
+                    {getOptions("CLINICAL_STAGE").map((value) => (
+                      <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
                     ))}
@@ -870,8 +817,8 @@ const ArtCommencement = (props) => {
                   >
                     <option value=""> Select</option>
 
-                    {functionalStatus.map((value) => (
-                      <option key={value.id} value={value.id}>
+                    {getOptions("FUNCTIONAL _STATUS").map((value) => (
+                      <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
                     ))}
@@ -906,8 +853,8 @@ const ArtCommencement = (props) => {
                       >
                         <option value=""> Select</option>
 
-                        {pregnancyStatus.map((value) => (
-                          <option key={value.id} value={value.code}>
+                        {getOptions("PREGNANCY_STATUS").map((value) => (
+                          <option key={value.code} value={value.code}>
                             {value.display}
                           </option>
                         ))}
@@ -1431,8 +1378,8 @@ const ArtCommencement = (props) => {
                         >
                           <option value=""> Select</option>
 
-                          {pregnancyStatus.map((value) => (
-                            <option key={value.id} value={value.code}>
+                          {getOptions("PREGNANCY_STATUS").map((value) => (
+                            <option key={value.code} value={value.code}>
                               {value.display}
                             </option>
                           ))}

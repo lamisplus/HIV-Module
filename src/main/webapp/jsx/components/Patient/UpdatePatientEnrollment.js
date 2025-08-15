@@ -1083,25 +1083,31 @@ useEffect(() => {
                             {(basicInfo.sex === "Female" ||
                               basicInfo.sex === "female") && (
                               <>
-                                {getOptions("TARGET_GROUP")
-                                  .filter((x) => x.display !== "MSM")
-                                  .map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                      {value.display}
-                                    </option>
-                                  ))}
+                                {getOptions("TARGET_GROUP") && getOptions("TARGET_GROUP").length > 0 ? 
+                                  getOptions("TARGET_GROUP")
+                                    .filter((x) => x.display !== "MSM")
+                                    .map((value) => (
+                                      <option key={value.id} value={value.id}>
+                                        {value.display}
+                                      </option>
+                                    )) : 
+                                  <option value="">Loading...</option>
+                                }
                               </>
                             )}
                             {(basicInfo.sex === "Male" ||
                               basicInfo.sex === "male") && (
                               <>
-                                {getOptions("TARGET_GROUP")
-                                  .filter((x) => x.display !== "FSW")
-                                  .map((value) => (
-                                    <option key={value.id} value={value.id}>
-                                      {value.display}
-                                    </option>
-                                  ))}
+                                {getOptions("TARGET_GROUP") && getOptions("TARGET_GROUP").length > 0 ? 
+                                  getOptions("TARGET_GROUP")
+                                    .filter((x) => x.display !== "FSW")
+                                    .map((value) => (
+                                      <option key={value.id} value={value.id}>
+                                        {value.display}
+                                      </option>
+                                    )) : 
+                                  <option value="">Loading...</option>
+                                }
                               </>
                             )}
                           </Input>

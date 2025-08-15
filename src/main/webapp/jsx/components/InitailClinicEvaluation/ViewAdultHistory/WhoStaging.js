@@ -20,6 +20,7 @@
 // //import moment from "moment";
 // import { Spinner } from "reactstrap";
 // import { url as baseUrl, token } from "../../../../api";
+import useCodesets from "../../../../hooks/useCodesets";
 // import moment from "moment";
 // import { List, Label as LabelSui } from "semantic-ui-react";
 // import IconButton from "@mui/material/IconButton";
@@ -763,14 +764,16 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
+const CODESET_KEYS = ["CLINICAL_STAGE"];
+
 const BasicInfo = (props) => {
     const classes = useStyles()
+    const { getOptions } = useCodesets(CODESET_KEYS);
     const [errors, setErrors] = useState({});
     const [selectedOptions1,setSelectedOptions1] = useState([]);
     const [selectedOptions2,setSelectedOptions2] = useState([]);
     const [selectedOptions3,setSelectedOptions3] = useState([]);
     const [selectedOptions4,setSelectedOptions4] = useState([]);
-    const [clinicalStage, setClinicalStage] = useState([])
     let temp = { ...errors }
     useEffect(() => {
         WhoStaging();
@@ -783,20 +786,6 @@ const BasicInfo = (props) => {
             setSelectedOptions4(props.observation.data.who.stage4ValueOption)
         }
     }, [props.observation.data]);
-    const WhoStaging =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-                setClinicalStage(response.data);
-            })
-            .catch((error) => {
-
-            });
-
-    }
     const [who, setWho] = useState({stage:"", stage1Value:"",stage2Value:"", stage3Value:"",stage4Value:"", stage1ValueOption:"",stage2ValueOption:"", stage3ValueOption:"",stage4ValueOption:""});
 
     const [assesment, setAssesment] = useState({assessment:""});
@@ -949,7 +938,7 @@ const BasicInfo = (props) => {
                                             onChange={handleWho}
                                         >
                                             <option value=""> Select</option>
-                                            {clinicalStage.map((value) => (
+                                            {getOptions("CLINICAL_STAGE").map((value) => (
                                                 <option key={value.id} value={value.id}>
                                                     {value.display}
                                                 </option>

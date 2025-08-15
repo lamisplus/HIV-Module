@@ -16,6 +16,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { toast} from "react-toastify";
 import {Alert } from "react-bootstrap";
 import { Icon,Button, } from 'semantic-ui-react'
+import useCodesets from '../../../../hooks/useCodesets';
 
 
 const useStyles = makeStyles(theme => ({
@@ -60,11 +61,16 @@ const useStyles = makeStyles(theme => ({
 },
 }))
 
+const CODESET_KEYS = [
+  "VIRAL_LOAD_INDICATION"
+];
+
 const Laboratory = (props) => {
     let visitId=""
     const patientObj = props.patientObj;
     //const enrollDate = patientObj && patientObj.artCommence ? patientObj.artCommence.visitDate : null
     const classes = useStyles();
+    const { getOptions } = useCodesets(CODESET_KEYS);
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [buttonHidden, setButtonHidden]= useState(false);

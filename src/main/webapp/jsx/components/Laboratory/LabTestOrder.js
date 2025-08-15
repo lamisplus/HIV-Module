@@ -9,6 +9,7 @@ import "react-widgets/dist/css/react-widgets.css";
 //import moment from "moment";
 import { Spinner } from "reactstrap";
 import { url as baseUrl, token } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import moment from "moment";
 import { List, Label as LabelSui} from 'semantic-ui-react'
 import IconButton from '@mui/material/IconButton';
@@ -32,18 +33,21 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+const CODESET_KEYS = [
+  "TEST_ORDER_PRIORITY",
+  "VIRAL_LOAD_INDICATION",
+];
+
 const Laboratory = (props) => {
     let visitId=""
     const classes = useStyles();
+    const { getOptions } = useCodesets(CODESET_KEYS);
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [buttonHidden, setButtonHidden]= useState(false);
     const [moduleStatus, setModuleStatus]= useState("0")
     const [testGroup, setTestGroup] = useState([]);
     const [test, setTest] = useState([]);
-    const [priority, setPriority]=useState([])
-    //const [currentVisit, setCurrentVisit]=useState(true)
-    const [vLIndication, setVLIndication] = useState([]);
     const [testOrderList, setTestOrderList] = useState([]);//Test Order List
     const [showVLIndication, setShowVLIndication] = useState(false);
     let temp = { ...errors }
@@ -63,8 +67,6 @@ const Laboratory = (props) => {
                                     })
     useEffect(() => {
             TestGroup();
-            PriorityOrder();
-            ViraLoadIndication();
             PatientVisit();
             CheckLabModule();
         }, [props.patientObj.id]);
@@ -82,20 +84,6 @@ const Laboratory = (props) => {
             });
         
     }
-    //Get list of Test Group
-    const PriorityOrder =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/TEST_ORDER_PRIORITY`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setPriority(response.data);
-            })
-            .catch((error) => {
-            
-            });
-        
-        }
         //Check if Module Exist
         const CheckLabModule =()=>{
             axios
@@ -140,19 +128,6 @@ const Laboratory = (props) => {
             
             });        
     }
-    //Get list of Test Group
-    const ViraLoadIndication =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setVLIndication(response.data);
-            })
-            .catch((error) => {
-            
-            });        
-        }
     const handleSelectedTestGroup = e =>{
         setTests ({...tests,  labTestGroupId: e.target.value});
         const getTestList= testGroup.filter((x)=> x.id===parseInt(e.target.value))
@@ -324,7 +299,7 @@ const Laboratory = (props) => {
                                     >
                                     <option value="">Select </option>
                                                     
-                                        {priority.map((value) => (
+                                        {getOptions("TEST_ORDER_PRIORITY").map((value) => (
                                             <option key={value.id} value={value.id}>
                                                 {value.display}
                                             </option>
@@ -349,7 +324,7 @@ const Laboratory = (props) => {
                                     >
                                     <option value="">Select </option>
                                                     
-                                        {vLIndication.map((value) => (
+                                        {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
                                             <option key={value.id} value={value.id}>
                                                 {value.display}
                                             </option>
@@ -389,7 +364,7 @@ const Laboratory = (props) => {
                                     index={index}
                                     order={tests}
                                     testGroupObj={testGroup}
-                                    vLIndicationObj={vLIndication}
+                                    vLIndicationObj={getOptions("VIRAL_LOAD_INDICATION")}
                                     removeOrder={removeOrder}
                                 />
                                 ))}

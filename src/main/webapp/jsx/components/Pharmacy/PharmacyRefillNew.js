@@ -20,6 +20,7 @@ import moment from "moment";
 import { Spinner } from "reactstrap";
 
 import { url as baseUrl, token } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import { toast } from "react-toastify";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 import { calculate_age_to_number } from "../../../utils";
@@ -65,10 +66,17 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
+
+const CODESET_KEYS = [
+  "IPT_TYPE",
+  "PREP_SIDE_EFFECTS",
+];
+
 let refillPeriodValue = null;
 
 const Pharmacy = (props) => {
   const patientObj = props.patientObj;
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [selectedCombinedRegimen, setSelectedCombinedRegimen] = useState([]);
   const [enrollDate, setEnrollDate] = useState("");
   const classes = useStyles();
@@ -77,7 +85,6 @@ const Pharmacy = (props) => {
   let temp = { ...errors };
   const [selectedOption, setSelectedOption] = useState([]);
   const [selectedOptionAdr, setSelectedOptionAdr] = useState();
-  const [prepSideEffect, setPrepSideEffect] = useState([]);
   const [dsdModelType, setDsdModelType] = useState([]);
   const [mmdType, setmmdType] = useState();
   const [showmmdType, setShowmmdType] = useState(false);
@@ -157,10 +164,8 @@ const Pharmacy = (props) => {
   });
   useEffect(() => {
     RegimenLine();
-    PrepSideEffect();
     VitalSigns();
     AdultRegimenLine();
-    IPT_TYPE();
     PatientCurrentRegimen();
     OtherDrugs();
     setRegimenList(
@@ -358,17 +363,6 @@ const Pharmacy = (props) => {
     }
   };
 
-  const IPT_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/IPT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setIPT_TYPE(response.data);
-      })
-      .catch((error) => {});
-  };
-  //IPT_TYPE
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
     axios
@@ -431,21 +425,11 @@ const Pharmacy = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of PrepSideEffect
-  const PrepSideEffect = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPrepSideEffect(
-          Object.entries(response.data).map(([key, value]) => ({
-            label: value.display,
-            value: value.id,
-          }))
-        );
-      })
-      .catch((error) => {});
+  const getFormattedPrepSideEffects = () => {
+    return getOptions("PREP_SIDE_EFFECTS").map(item => ({
+      label: item.display,
+      value: item.id,
+    }));
   };
 
   //Get list of DSD Model Type
@@ -1942,7 +1926,7 @@ const Pharmacy = (props) => {
                       >
                         <option value="">Select</option>
 
-                        {iptType.map((value) => (
+                        {getOptions("IPT_TYPE").map((value) => (
                           <option key={value.id} value={value.code}>
                             {value.display}
                           </option>

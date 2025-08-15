@@ -65,6 +65,7 @@ import DsdServiceFormView from "../DSD/DsdServiceFormView";
 // import EACOutcome from "../EnhancedAdherenceCounseling/EacOutCome";
 import EACOutcome from "../EnhancedAdherenceCounseling/EACOutcome/index";
 import ViewUpdateEACOutcome from "../EnhancedAdherenceCounseling/EACOutcome/ViewUpdateEACOutcome";
+import PatientVisits from "./PatientVisits";
 
 const styles = (theme) => ({
   root: {
@@ -507,6 +508,13 @@ function PatientCard(props) {
           )}
           {activeContent.route === "chronic-care" && (
             <ChronicCare
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "patient-visit" && (
+            <PatientVisits
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

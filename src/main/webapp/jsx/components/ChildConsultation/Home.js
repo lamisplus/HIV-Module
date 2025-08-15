@@ -81,11 +81,6 @@ const Widget = (props) => {
   const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
-  const [clinicalStage, setClinicalStage] = useState([]);
-  const [functionalStatus, setFunctionalStatus] = useState([]);
-  const [adherenceLevel, setAdherenceLevel] = useState([]);
-  const [tbStatus, setTbStatus] = useState([]);
-  const [prepSideEffect, setPrepSideEffect] = useState([]);
   const [TBForms, setTBForms] = useState(false);
   const [addVitalModal, setAddVitalModal] = useState(false);
   const AddVitalToggle = () => setAddVitalModal(!addVitalModal);

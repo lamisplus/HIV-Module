@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   FormGroup,
   Label,
@@ -12,7 +11,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Card } from "@material-ui/core";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
-import { token, url as baseUrl } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-phone-input-2/lib/style.css";
 import "semantic-ui-css/semantic.min.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -84,38 +83,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "TB_TREATMENT_TYPE",
+  "TB_TREATMENT_OUTCOME", 
+  "CLINIC_VISIT_LEVEL_OF_ADHERENCE"
+];
+
 const TBMonitoring = (props) => {
   const classes = useStyles();
+  const { getOptions } = useCodesets(CODESET_KEYS);
   let errors = props.errors
   //const [errors, setErrors] = useState({});
-  const [adherence, setAdherence] = useState([]);
-  const [tbTreatmentType, setTbTreatmentType] = useState([]);
-    const [tbTreatmentOutCome, setTbTreatmentOutCome] = useState([]);
   
-    const TB_TREATMENT_TYPE = () => {
-      axios
-        .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-          setTbTreatmentType(response.data);
-        })
-        .catch((error) => {});
-    };
-    const TB_TREATMENT_OUTCOME = () => {
-      axios
-        .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_OUTCOME`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-          setTbTreatmentOutCome(response.data);
-        })
-        .catch((error) => {});
-    };
   useEffect(() => {
-    TB_TREATMENT_TYPE();
-    TB_TREATMENT_OUTCOME();
-    CLINIC_VISIT_LEVEL_OF_ADHERENCE();
+    // Codeset options are loaded via useCodesets hook
   }, []);
   // TPT Logic
   useEffect(() => {
@@ -124,18 +105,6 @@ const TBMonitoring = (props) => {
   }, []);
 
   // console.log("TB IN TBMONITORING", props.tbObj)
-  //Get list of CLINIC_VISIT_LEVEL_OF_ADHERENCE
-  const CLINIC_VISIT_LEVEL_OF_ADHERENCE = () => {
-    axios
-      .get(
-        `${baseUrl}application-codesets/v2/CLINIC_VISIT_LEVEL_OF_ADHERENCE`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((response) => {
-        setAdherence(response.data);
-      })
-      .catch((error) => {});
-  };
   //let temp = { ...errors }
 
 
@@ -246,7 +215,7 @@ const TBMonitoring = (props) => {
                               disabled={props.action === "view" ? true : false}
                           >
                             <option value="">Select</option>
-                            {tbTreatmentOutCome.map((value) => (
+                            {getOptions("TB_TREATMENT_OUTCOME").map((value) => (
                                 <option key={value.id} value={value.display}>
                                   {value.display}
                                 </option>

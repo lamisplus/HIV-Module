@@ -14,15 +14,19 @@ import UpdatePatientEnrollment from "./main/webapp/jsx/components/Patient/Update
 import { queryClient } from "./main/webapp/utils/queryClient";
 import { QueryClientProvider } from "react-query";
 import CheckedInPatientsAlert from "./main/webapp/jsx/components/Globals/CheckinPatientsAlert";
+import { useRoles } from "./main/webapp/hooks/useRoles";
 
 
 export default function App() {
+  const { hasRole } = useRoles();
+  
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
         <div>
           <ToastContainer />
-          <CheckedInPatientsAlert/>
+          
+          {!hasRole("RDE") && <CheckedInPatientsAlert/>}
 
           <Switch>
             <Route path="/patient-history">

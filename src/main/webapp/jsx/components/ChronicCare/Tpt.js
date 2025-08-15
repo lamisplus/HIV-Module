@@ -18,6 +18,7 @@ import "react-widgets/dist/css/react-widgets.css";
 import {useHistory} from "react-router-dom";
 // import {TiArrowBack} from 'react-icons/ti'
 import {token, url as baseUrl} from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-phone-input-2/lib/style.css";
 import "semantic-ui-css/semantic.min.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -90,11 +91,15 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const CODESET_KEYS = [
+  "TB_TREATMENT_TYPE",
+  "TPT_OUTCOME",
+  "CLINIC_VISIT_LEVEL_OF_ADHERENCE",
+];
+
 const TPT = (props) => {
     const classes = useStyles();
-    const [adherence, setAdherence] = useState([]);
-    const [tbTreatmentType, setTbTreatmentType] = useState([]);
-    const [tptOutCome, setTptOutCome] = useState([]);
+    const { getOptions } = useCodesets(CODESET_KEYS);
     const [contraindicationsState, setContraindicationsState] = useState("");
 
     const [hasMounted, setHasMounted] = useState(false);
@@ -108,28 +113,6 @@ const TPT = (props) => {
     }, []);
 
 
-    const TB_TREATMENT_TYPE = () => {
-        axios
-            .get(`${baseUrl}application-codesets/v2/TB_TREATMENT_TYPE`, {
-                headers: {Authorization: `Bearer ${token}`},
-            })
-            .then((response) => {
-                setTbTreatmentType(response.data);
-            })
-            .catch((error) => {
-            });
-    };
-    const TB_TREATMENT_OUTCOME = () => {
-        axios
-            .get(`${baseUrl}application-codesets/v2/TPT_OUTCOME`, {
-                headers: {Authorization: `Bearer ${token}`},
-            })
-            .then((response) => {
-                setTptOutCome(response.data);
-            })
-            .catch((error) => {
-            });
-    };
 
     const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
 
@@ -165,9 +148,6 @@ const TPT = (props) => {
     };
 
     useEffect(() => {
-        TB_TREATMENT_TYPE();
-        TB_TREATMENT_OUTCOME();
-        CLINIC_VISIT_LEVEL_OF_ADHERENCE();
         AdultRegimenLine();
         ChildRegimenLine();
     }, []);
@@ -259,19 +239,6 @@ const TPT = (props) => {
         }
     }, [hasMounted, props.tpt.contractionForTpt]);
 
-    //Get list of CLINIC_VISIT_LEVEL_OF_ADHERENCE
-    const CLINIC_VISIT_LEVEL_OF_ADHERENCE = () => {
-        axios
-            .get(
-                `${baseUrl}application-codesets/v2/CLINIC_VISIT_LEVEL_OF_ADHERENCE`,
-                {headers: {Authorization: `Bearer ${token}`}}
-            )
-            .then((response) => {
-                setAdherence(response.data);
-            })
-            .catch((error) => {
-            });
-    };
 
     const handleTpt = (e) => {
         const {name, value} = e.target;
@@ -783,7 +750,7 @@ const TPT = (props) => {
                                                         disabled={props.action === "view" ? true : false}
                                                     >
                                                         <option value="">Select</option>
-                                                        {tptOutCome.map(item => <option key={item.id}
+                                                        {getOptions("TPT_OUTCOME").map(item => <option key={item.id}
                                                                                         value={item.display}>
                                                             {item.display}
                                                         </option>)}

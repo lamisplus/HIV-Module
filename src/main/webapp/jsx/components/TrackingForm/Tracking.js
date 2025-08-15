@@ -11,6 +11,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl } from "./../../../api";
 import { token as token } from "./../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import { Spinner } from "reactstrap";
@@ -79,41 +80,34 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "REASON_TRACKING",
+  "TRACKING_DSD_STATUS",
+  "MODE_OF_COMMUNICATION",
+  "PERSON_CONTACTED",
+  "VA_CAUSE_OF_DEATH",
+  "VA_ADULT_CAUSES",
+  "VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES",
+  "VA_ADULT_CAUSES_INJURIES",
+  "VA_CHILD_CAUSES",
+  "VA_CHILD_CAUSES_NON-COMMUNICABLE_DISEASES",
+  "VA_CHILD_CAUSES_INJURIES",
+  "VA_NEONATE_CAUSES",
+  "REASON_DEFAULTING",
+  "REASON_DISCONTINUATION",
+  "BIOMETRIC_STATUS",
+  "CAUSE_DEATH",
+];
+
 const Tracking = (props) => {
   const patientObj = props.patientObj;
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [errors, setErrors] = useState({});
   let temp = { ...errors };
   //const enrollDate = patientObj && patientObj.enrollment ? patientObj.enrollment.dateOfRegistration : null
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
-  const [reasonTracking, setReasonTracking] = useState([]);
-  const [reasonDiscountinuation, setreasonDiscountinuation] = useState([]);
-  const [causeDeath, setcauseDeath] = useState([]);
-  const [reasonLostToFollowUp, setreasonLostToFollowUp] = useState([]);
-  const [reasonDefaulting, setreasonDefaulting] = useState([]);
-  const [personContact, setpersonContact] = useState([]);
-  const [modeCommunication, setmodeCommunication] = useState([]);
-  const [vaCauseOfDeathType, setvaCauseOfDeathType] = useState([]);
-  const [dsdStatus, setdsdStatus] = useState([]);
   const [enrollDate, setEnrollDate] = useState("");
-  const [vaCauseOfDeathTypeAdult, setvaCauseOfDeathTypeAdult] = useState([]);
-  const [
-    vaCauseOfDeathTypeAdultNonCommunicableDiseases,
-    setvaCauseOfDeathTypeAdultNonCommunicableDiseases,
-  ] = useState([]);
-  const [vaCauseOfDeathTypeAdultInjuries, setvaCauseOfDeathTypeAdultInjuries] =
-    useState([]);
-  const [vaCauseOfDeathTypeChild, setvaCauseOfDeathTypeChild] = useState([]);
-  const [
-    vaCauseOfDeathTypeChildNonCommunicableDiseases,
-    setvaCauseOfDeathTypeChildNonCommunicableDiseases,
-  ] = useState([]);
-  const [vaCauseOfDeathTypeNeonate, setvaCauseOfDeathTypeNeonate] = useState(
-    []
-  );
-  const [vaCauseOfDeathTypeChildInjuries, setvaCauseOfDeathTypeChildInjuries] =
-    useState([]);
-  const [currentBiometricStatus, setCurrentBiometricStatus] = useState([]);
  // const [clientTrackingDetails, setClientTrackingDetails] = useState(null);
   const [clientTrackingDetails, setClientTrackingDetails] = useState({
     dsdStatus: "",
@@ -169,29 +163,12 @@ const Tracking = (props) => {
     dateOfObservation: "",
   });
   useEffect(() => {
-    ReasonForTracking();
-    LostToFollowUp();
-    ReasonForDiscountinuation();
-    getBiometricStatus();
-    CauseOfDeath();
-    ReasonForDefaulting();
-    DsdStatus();
-    ModeOfCommunication();
-    PersonContact();
     GetPatientDTOObj();
-    VA_CAUSE_OF_DEATH();
-    VA_ADULT_CAUSES();
-    VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES();
-    VA_ADULT_CAUSES_INJURIES();
-    VA_CHILD_CAUSES();
-    VA_CHILD_CAUSES_NON_COMMUNICABLE_DISEASES();
-    VA_CHILD_CAUSES_INJURIES();
-    VA_NEONATE_CAUSES();
   }, []);
 
   useEffect(() => {
     getClientTrackingDetails();
-  }, [dsdStatus]);
+  }, []);
 
   const GetPatientDTOObj = () => {
     axios
@@ -229,7 +206,8 @@ const Tracking = (props) => {
             const durationOnArtValue = calculateDuration(response.data.durationOnArt);
             let dsdStatusValue = "";
             if (response.data.dsdStatus !== null && response.data.dsdStatus !== "") {
-              dsdStatusValue = response.data.dsdStatus === "Yes" ? dsdStatus[0].display : dsdStatus[1].display;
+              const dsdOptions = getOptions("TRACKING_DSD_STATUS");
+              dsdStatusValue = response.data.dsdStatus === "Yes" ? dsdOptions[0]?.display : dsdOptions[1]?.display;
             }
             let dsdModelValue = "";
             if (response.data.dsdModel !== null && response.data.dsdModel !== "") {
@@ -238,7 +216,7 @@ const Tracking = (props) => {
             setClientTrackingDetails({ ...response.data, durationOnART: durationOnArtValue, dsdStatus: dsdStatusValue });
             setObjValues({
               ...objValues,
-              dsdStatus: response.data.dsdStatus === "Yes" ? dsdStatus[0].code : dsdStatus[1].code,
+              dsdStatus: response.data.dsdStatus === "Yes" ? getOptions("TRACKING_DSD_STATUS")[0]?.code : getOptions("TRACKING_DSD_STATUS")[1]?.code,
               durationOnART: durationOnArtValue,
               dsdModel: dsdModelValue,
               dateLastAppointment: response.data.dateOfLastRefill ? response.data.dateOfLastRefill : "",
@@ -251,226 +229,6 @@ const Tracking = (props) => {
         });
   };
 
-  const ReasonForTracking = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_TRACKING`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setReasonTracking(response.data);
-      })
-      .catch((error) => {
-        
-      });
-  };
-  //TRACKING_DSD_STATUS
-  const DsdStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TRACKING_DSD_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setdsdStatus(response.data);
-      })
-      .catch((error) => {
-        
-      });
-  };
-  //MODE_OF_COMMUNICATION
-  const ModeOfCommunication = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/MODE_OF_COMMUNICATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setmodeCommunication(response.data);
-      })
-      .catch((error) => {
-        
-      });
-  }; //MODE_OF_COMMUNICATION
-  const PersonContact = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PERSON_CONTACTED`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setpersonContact(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  //
-  const VA_CAUSE_OF_DEATH = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VA_CAUSE_OF_DEATH`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-        .then((response) => {
-          const filteredData = response.data.filter(item =>
-              item.display === "Neonates Causes" ||
-              item.display === "Child Causes" ||
-              item.display === "Adult Causes"
-          );
-          setvaCauseOfDeathType(filteredData);
-        })
-      // .then((response) => {
-      //   setvaCauseOfDeathType(response.data);
-
-      // })
-      .catch((error) => {
-
-      });
-  };
-  const VA_ADULT_CAUSES = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VA_ADULT_CAUSES`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setvaCauseOfDeathTypeAdult(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES = () => {
-    axios
-      .get(
-        `${baseUrl}application-codesets/v2/VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((response) => {
-        setvaCauseOfDeathTypeAdultNonCommunicableDiseases(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const VA_ADULT_CAUSES_INJURIES = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VA_ADULT_CAUSES_INJURIES`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setvaCauseOfDeathTypeAdultInjuries(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const VA_CHILD_CAUSES = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VA_CHILD_CAUSES`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setvaCauseOfDeathTypeChild(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const VA_CHILD_CAUSES_NON_COMMUNICABLE_DISEASES = () => {
-    axios
-      .get(
-        `${baseUrl}application-codesets/v2/VA_CHILD_CAUSES_NON-COMMUNICABLE_DISEASES`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((response) => {
-        setvaCauseOfDeathTypeChildNonCommunicableDiseases(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const VA_CHILD_CAUSES_INJURIES = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VA_CHILD_CAUSES_INJURIES`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setvaCauseOfDeathTypeChildInjuries(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const VA_NEONATE_CAUSES = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VA_NEONATE_CAUSES`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setvaCauseOfDeathTypeNeonate(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const ReasonForDefaulting = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_DEFAULTING`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setreasonDefaulting(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const ReasonForDiscountinuation = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_DISCONTINUATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setreasonDiscountinuation(response.data);
-        //setreasonDiscountinuation(response.data.filter((x)=> x.code!=='REASON_DISCONTINUATION_INTERRUPTION_IN_TREATMENT'));
-      })
-      .catch((error) => {
-
-      });
-  };
-  const getBiometricStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/BIOMETRIC_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setCurrentBiometricStatus(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const CauseOfDeath = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CAUSE_DEATH`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setcauseDeath(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
-  const LostToFollowUp = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/REASON_TRACKING`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setreasonLostToFollowUp(response.data);
-      })
-      .catch((error) => {
-
-      });
-  };
   const handleInputChange = (e) => {
     setErrors({ ...temp, [e.target.name]: "" });
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -894,7 +652,7 @@ const Tracking = (props) => {
                       disabled
                     >
                       <option value="">Select</option>
-                      {dsdStatus.map((value) => (
+                      {getOptions("TRACKING_DSD_STATUS").map((value) => (
                         <option key={value.code} value={value.code}>
                           {value.display}
                         </option>
@@ -949,7 +707,7 @@ const Tracking = (props) => {
                       value={objValues.reasonForTracking}
                   >
                     <option value="">Select</option>
-                    {reasonTracking.map((value) => (
+                    {getOptions("REASON_TRACKING").map((value) => (
                         <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
@@ -1111,7 +869,7 @@ const Tracking = (props) => {
                       }}
                     >
                       <option value="">Select</option>
-                      {modeCommunication.map((value) => (
+                      {getOptions("MODE_OF_COMMUNICATION").map((value) => (
                         <option key={value.code} value={value.code}>
                           {value.display}
                         </option>
@@ -1141,7 +899,7 @@ const Tracking = (props) => {
                       }}
                     >
                       <option value="">Select</option>
-                      {personContact.map((value) => (
+                      {getOptions("PERSON_CONTACTED").map((value) => (
                         <option key={value.code} value={value.code}>
                           {value.display}
                         </option>
@@ -1171,7 +929,7 @@ const Tracking = (props) => {
                       }}
                     >
                       <option value="">Select</option>
-                      {reasonDefaulting.map((value) => (
+                      {getOptions("REASON_DEFAULTING").map((value) => (
                         <option key={value.code} value={value.code}>
                           {value.display}
                         </option>
@@ -1410,7 +1168,7 @@ const Tracking = (props) => {
                         }}
                       >
                         <option value="">Select</option>
-                        {reasonDiscountinuation.map((value) => (
+                        {getOptions("REASON_DISCONTINUATION").map((value) => (
                           <option key={value.code} value={value.display}>
                             {value.display}
                           </option>
@@ -1478,7 +1236,7 @@ const Tracking = (props) => {
                             }}
                         >
                           <option value="">Select</option>
-                          {causeDeath.map((value) => (
+                          {getOptions("CAUSE_DEATH").map((value) => (
                               <option key={value.code} value={value.display}>
                                 {value.display}
                               </option>
@@ -1534,7 +1292,7 @@ const Tracking = (props) => {
                             }}
                         >
                           <option value="">Select</option>
-                          {vaCauseOfDeathType.map((value) => (
+                          {getOptions("VA_CAUSE_OF_DEATH_TYPE").map((value) => (
                               <option key={value.code} value={value.display}>
                                 {value.display}
                               </option>
@@ -1568,7 +1326,7 @@ const Tracking = (props) => {
                                 }}
                             >
                               <option value="">Select</option>
-                              {vaCauseOfDeathTypeAdult.map((value) => (
+                              {getOptions("VA_ADULT_CAUSES").map((value) => (
                                   <option key={value.code} value={value.display}>
                                     {value.display}
                                   </option>
@@ -1603,7 +1361,7 @@ const Tracking = (props) => {
                                     }}
                                 >
                                   <option value="">Select</option>
-                                  {vaCauseOfDeathTypeAdultNonCommunicableDiseases.map(
+                                  {getOptions("VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES").map(
                                       (value) => (
                                           <option key={value.code} value={value.display}>
                                             {value.display}
@@ -1640,7 +1398,7 @@ const Tracking = (props) => {
                                     }}
                                 >
                                   <option value="">Select</option>
-                                  {vaCauseOfDeathTypeAdultInjuries.map((value) => (
+                                  {getOptions("VA_ADULT_CAUSES_INJURIES").map((value) => (
                                       <option key={value.code} value={value.display}>
                                         {value.display}
                                       </option>
@@ -1674,7 +1432,7 @@ const Tracking = (props) => {
                                 }}
                             >
                               <option value="">Select</option>
-                              {vaCauseOfDeathTypeChild.map((value) => (
+                              {getOptions("VA_CHILD_CAUSES").map((value) => (
                                   <option key={value.code} value={value.display}>
                                     {value.display}
                                   </option>
@@ -1709,7 +1467,7 @@ const Tracking = (props) => {
                                     }}
                                 >
                                   <option value="">Select</option>
-                                  {vaCauseOfDeathTypeChildNonCommunicableDiseases.map(
+                                  {getOptions("VA_CHILD_CAUSES_NON_COMMUNICABLE_DISEASES").map(
                                       (value) => (
                                           <option key={value.code} value={value.display}>
                                             {value.display}
@@ -1745,7 +1503,7 @@ const Tracking = (props) => {
                                 }}
                             >
                               <option value="">Select</option>
-                              {vaCauseOfDeathTypeNeonate.map((value) => (
+                              {getOptions("VA_NEONATE_CAUSES").map((value) => (
                                   <option key={value.code} value={value.display}>
                                     {value.display}
                                   </option>
@@ -1780,7 +1538,7 @@ const Tracking = (props) => {
                                     }}
                                 >
                                   <option value="">Select</option>
-                                  {vaCauseOfDeathTypeChildInjuries.map((value) => (
+                                  {getOptions("VA_CHILD_CAUSES_INJURIES").map((value) => (
                                       <option key={value.code} value={value.display}>
                                         {value.display}
                                       </option>

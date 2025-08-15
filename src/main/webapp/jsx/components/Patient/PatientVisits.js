@@ -78,6 +78,7 @@ const PatientVisits = (props) => {
   const [patientVisits, setPatientVisits] = useState([]);
   const [allServices, setAllServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPPI, setShowPPI] = useState(true);
 
   const permissions = useMemo(
     () => ({
@@ -285,6 +286,7 @@ const fetchPatientVisits = useCallback(async () => {
         data={patientVisits} 
         icons={tableIcons}
         isLoading={isLoading}
+        showPPI={showPPI}
         onPPIChange={(e) => setShowPPI(!e.target.checked)}
       />
 
