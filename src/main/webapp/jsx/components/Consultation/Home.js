@@ -962,40 +962,42 @@ const ClinicVisit = (props) => {
   };
 
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!validate()) {
-    toast.error("All fields are required", {
-      position: toast.POSITION.BOTTOM_CENTER,
-    });
-    return; // Stop further execution if validation fails
-  }
+    const isValid = validate();
+    if (!isValid) {
+      toast.error("All fields are required", {
+        position: toast.POSITION.BOTTOM_CENTER,
+      });
+      return; // Stop further execution if validation fails
+    }
 
-  setSaving(true);
+    setSaving(true);
 
-  objValues.whoStagingId = who?.stage;
-  objValues.who = who;
-  objValues.visitDate = vital.encounterDate;
-  vital["captureDate"] = vital.encounterDate;
-  objValues.adverseDrugReactions = adrList;
-  objValues.artStatusId = getPatientObj.artCommence.id;
-  objValues.hivEnrollmentId = getPatientObj.enrollment.id;
-  objValues.opportunisticInfections = infectionList;
-  objValues.tbScreen = tbObj;
-  objValues.tbStatus = tbObj.tbStatusId;
-  objValues.viralLoadOrder = testOrderList;
-  objValues.arvdrugsRegimen = arvDrugOrderList;
-  objValues["vitalSignDto"] = vital;
+    try {
+      objValues.whoStagingId = who?.stage;
+      objValues.who = who;
+      objValues.visitDate = vital.encounterDate;
+      vital["captureDate"] = vital.encounterDate;
+      objValues.adverseDrugReactions = adrList;
+      objValues.artStatusId = getPatientObj.artCommence.id;
+      objValues.hivEnrollmentId = getPatientObj.enrollment.id;
+      objValues.opportunisticInfections = infectionList;
+      objValues.tbScreen = tbObj;
+      objValues.tbStatus = tbObj.tbStatusId;
+      objValues.viralLoadOrder = testOrderList;
+      objValues.arvdrugsRegimen = arvDrugOrderList;
+      objValues["vitalSignDto"] = vital;
 
-  axios
-    .post(`${baseUrl}hiv/art/clinic-visit/`, objValues, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    .then((response) => {
+      const response = await axios.post(`${baseUrl}hiv/art/clinic-visit/`, objValues, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       PatientDetailId();
       props.ClinicVisitListHistory();
       setSaving(false);
+      
       toast.success("Clinic Visit (Care card) saved successfully", {
         position: toast.POSITION.BOTTOM_CENTER,
       });
@@ -1003,14 +1005,13 @@ const ClinicVisit = (props) => {
       // Reset form only after successful submission
       resetForm();
       setCareSupportTb(null);
-      setTbStatus(null);
 
       props.setActiveContent({
         ...props.activeContent,
         route: "recent-history",
       });
-    })
-    .catch((error) => {
+
+    } catch (error) {
       setSaving(false);
 
       if (error.response && error.response.data) {
@@ -1036,8 +1037,8 @@ const ClinicVisit = (props) => {
           position: toast.POSITION.BOTTOM_CENTER,
         });
       }
-    });
-};
+    }
+  };
   
   const resetForm = () => {
     setWho({
@@ -2058,7 +2059,7 @@ const ClinicVisit = (props) => {
                     >
                       <option value=""> Select</option>
                       {getOptions("CLINICAL_STAGE").map((value) => (
-                        <option key={value.code} value={value.code}>
+                        <option key={value.code} value={value.id}>
                           {value.display}
                         </option>
                       ))}
@@ -2147,7 +2148,7 @@ const ClinicVisit = (props) => {
                     <option value="select">Select </option>
 
                     {getOptions("FUNCTIONAL _STATUS").map((value) => (
-                      <option key={value.code} value={value.code}>
+                      <option key={value.code} value={value.id}>
                         {value.display}
                       </option>
                     ))}
@@ -2801,7 +2802,7 @@ const ClinicVisit = (props) => {
               name="nextAppointment"
               id="nextAppointment"
               className="col-md-6"
-              value={vital.nextAppointment}
+              value={objValues.nextAppointment}
               onChange={handleInputChange}
               style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
               min={vital.encounterDate}

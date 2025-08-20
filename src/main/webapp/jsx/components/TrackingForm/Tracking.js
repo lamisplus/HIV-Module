@@ -90,7 +90,7 @@ const CODESET_KEYS = [
   "VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES",
   "VA_ADULT_CAUSES_INJURIES",
   "VA_CHILD_CAUSES",
-  "VA_CHILD_CAUSES_NON-COMMUNICABLE_DISEASES",
+  "VA_CHILD_CAUSES_NON_COMMUNICABLE_DISEASES",
   "VA_CHILD_CAUSES_INJURIES",
   "VA_NEONATE_CAUSES",
   "REASON_DEFAULTING",
@@ -167,8 +167,11 @@ const Tracking = (props) => {
   }, []);
 
   useEffect(() => {
-    getClientTrackingDetails();
-  }, []);
+    // Only call getClientTrackingDetails when the DSD status options are loaded
+    if (getOptions("TRACKING_DSD_STATUS").length > 0) {
+      getClientTrackingDetails();
+    }
+  }, [getOptions]);
 
   const GetPatientDTOObj = () => {
     axios
@@ -1199,7 +1202,7 @@ const Tracking = (props) => {
                           }}
                         >
                           <option value="">Select</option>
-                          {currentBiometricStatus.map((value) => (
+                          {getOptions("BIOMETRIC_STATUS").map((value) => (
                             <option key={value.code} value={value.display}>
                               {value.display}
                             </option>
@@ -1292,7 +1295,11 @@ const Tracking = (props) => {
                             }}
                         >
                           <option value="">Select</option>
-                          {getOptions("VA_CAUSE_OF_DEATH_TYPE").map((value) => (
+                          {getOptions("VA_CAUSE_OF_DEATH").filter(item =>
+                              item.display === "Neonates Causes" ||
+                              item.display === "Child Causes" ||
+                              item.display === "Adult Causes"
+                          ).map((value) => (
                               <option key={value.code} value={value.display}>
                                 {value.display}
                               </option>
