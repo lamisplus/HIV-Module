@@ -144,18 +144,28 @@ function PatientCard(props) {
         }
     };
 
-    const fetchPatientMlReport = () => {
-        axios.get(`${baseUrl}hiv/iit-ml/patient/${id}/iit-report`,
-            { headers: { Authorization: `Bearer ${token}` }, })
-            .then((response) => {
-                setPatientMlValue(response.data);
-            }).catch((error) => {
-                if (error.response && error.response.data.apierror.message === "Could not find a matching facility with the provided ID") {
-                    setPatientMlValue((prevValue) => ({ ...prevValue, iit: false }));
-                } else {
-                    console.error("An unexpected error occurred:", error);
-                }
+    const fetchPatientMlReport = async () => {
+        try {
+            const response = await axios.get(`${baseUrl}hiv/iit-ml/patient/${id}/iit-report`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
+            
+            if (response.data) {
+                setPatientMlValue(response.data);
+            }
+        } catch (error) {
+            console.error("Error fetching ML report:", error);
+            
+            // Safe property access with optional chaining
+            const errorMessage = error?.response?.data?.apierror?.message;
+            
+            if (errorMessage === "Could not find a matching facility with the provided ID") {
+                setPatientMlValue((prevValue) => ({ ...prevValue, iit: false }));
+            } else {
+                // Set default values on error to prevent UI breaks
+                setPatientMlValue({ iit: null, chance: null });
+            }
+        }
     }
 
     useEffect(() => {
@@ -269,10 +279,6 @@ function PatientCard(props) {
         return null;
     };
 
-    const isSuppressed = (value) => {
-        if (value === null) return null;
-        return value < 1000;
-    };
 
 
     return (
@@ -604,7 +610,7 @@ function PatientCard(props) {
                                                     </Typography>
                                                 </div>
                                             </Col>
-                                            <Col md={12}>
+                                            {/* <Col md={12}>
                                                 <div>
                                                     <Typography variant="caption">
                                                         <Label style={{ backgroundColor: getTbColor(String(currentTbStatus).toLowerCase()), color: "#fff" }} size="mini">
@@ -613,7 +619,7 @@ function PatientCard(props) {
                                                         </Label>
                                                     </Typography>
                                                 </div>
-                                            </Col>
+                                            </Col> */}
                                         </>
                                     ) : (
                                         <p>Loading Please wait...</p>

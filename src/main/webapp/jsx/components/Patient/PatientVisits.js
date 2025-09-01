@@ -67,6 +67,7 @@ const tableIcons = {
 
 const PatientVisits = (props) => {
   const { patientObj } = props;
+
   const { hasAnyPermission } = usePermissions();
   const [checkinStatus, setCheckinStatus] = useState(false);
   const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
@@ -79,6 +80,23 @@ const PatientVisits = (props) => {
   const [allServices, setAllServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showPPI, setShowPPI] = useState(true);
+
+  const checkInForPMTCTValidation = useMemo(() => {
+    if (!patientObj || !patientObj?.dateOfBirth || patientObj?.sex !== "Female") {
+      return false;
+    }
+    
+    const today = new Date();
+    const birthDate = new Date(patientObj?.dateOfBirth);
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) 
+      ? age - 1 
+      : age;
+    
+    return actualAge >= 5;
+  }, [patientObj]);
 
   const permissions = useMemo(
     () => ({
@@ -95,9 +113,16 @@ const fetchServices = useCallback(async () => {
     });
 
     // Filter out services that contain "PrEP" (case-insensitive)
-    const filteredServices = response.data.filter(
+    let filteredServices = response.data.filter(
       (service) => !service.moduleServiceName.toLowerCase().includes("prep")
     );
+
+    // Filter out PMTCT services if patient doesn't meet PMTCT criteria
+    if (!checkInForPMTCTValidation) {
+      filteredServices = filteredServices.filter(
+        (service) => !service.moduleServiceName.toLowerCase().includes("pmtct")
+      );
+    }
 
     setAllServices(filteredServices);
     setServices(
@@ -111,7 +136,7 @@ const fetchServices = useCallback(async () => {
   } finally {
     setIsLoading(false);
   }
-}, []);
+}, [checkInForPMTCTValidation]);
 
 
 const fetchPatientVisits = useCallback(async () => {
@@ -142,7 +167,7 @@ const fetchPatientVisits = useCallback(async () => {
   useEffect(() => {
     fetchServices();
     fetchPatientVisits();
-  }, [fetchServices, fetchPatientVisits]);
+  }, [fetchServices, fetchPatientVisits, patientObj]);
 
   const handleCheckin = async (e) => {
     e.preventDefault();

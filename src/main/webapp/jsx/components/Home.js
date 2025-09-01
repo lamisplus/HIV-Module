@@ -63,7 +63,7 @@ const Home = () => {
           </li>
         </ol>
       </div>
-      {isRDE && (
+      {/* {isRDE && ( */}
                 <Link to={"register-patient"}>
                   <Button
                     variant="contained"
@@ -75,7 +75,7 @@ const Home = () => {
                     <span style={{ textTransform: "capitalize" }}>New Patient</span>
                   </Button>
                 </Link>
-              )}
+              {/* )} */}
      
       <br />
       <br />
@@ -90,37 +90,37 @@ const Home = () => {
                   onSelect={handleTabSelect}
                   className="mb-3"
                 >
-                  {permissions.canSeeCheckedInPatients && (
+                  {/* {permissions.canSeeCheckedInPatients && ( */}
                     <Tab eventKey="checkedIn" title="Checked-In Patients">
                       <Suspense fallback={<LoadingSpinner />}>
                         {activeTab === "checkedIn" && <CheckedInPatients />}
                       </Suspense>
                     </Tab>
-                  )}
+                  {/* )} */}
             
-                  {permissions.canSeeFindPatients && (
+                  {permissions.canSeeFindPatients && ( 
                     <Tab eventKey="home" title="Find Patients">
                       <Suspense fallback={<LoadingSpinner />}>
                         {activeTab === "home" && <Dashboard />}
                       </Suspense>
                     </Tab>
-                  )}
+                   )} 
 
-                  {permissions.canSeeArtPatients && (
+                  {/* {permissions.canSeeArtPatients && ( */}
                     <Tab eventKey="art-patients" title="ART Patients">
                       <Suspense fallback={<LoadingSpinner />}>
                         {activeTab === "art-patients" && <ArtPatients />}
                       </Suspense>
                     </Tab>
-                  )}
+                  {/* )} */}
 
-                  {permissions.canSeeOvcLinkage && (
+                  {/* {permissions.canSeeOvcLinkage && ( */}
                     <Tab eventKey="list" title="OVC Linkage">
                       <Suspense fallback={<LoadingSpinner />}>
                         {activeTab === "list" && <Ovc />}
                       </Suspense>
                     </Tab>
-                  )}
+                  {/* )} */}
                 </Tabs>
               </div>
             </Card.Body>

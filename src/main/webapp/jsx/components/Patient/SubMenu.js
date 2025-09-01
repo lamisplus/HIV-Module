@@ -115,7 +115,7 @@ const SubMenu = (props) => {
       // RDE takes precedence - if user has RDE role, grant full access except Patient Visits
       if (hasRole("RDE")) {
         return {
-          canSeeInitialEvaluation: !patientObj.clinicalEvaluation,
+          canSeeInitialEvaluation: !patientObj?.clinicalEvaluation,
           canSeeCareAndSupport: true,
           canSeeLaboratory: true,
           canSeeCareCard: true,
@@ -134,7 +134,7 @@ const SubMenu = (props) => {
           hasAnyPermission(
             "adult_initial_clinical_evaluation",
             "pediatric_initial_clinical_evaluation_form"
-          ) && !patientObj.clinicalEvaluation,
+          ) && !patientObj?.clinicalEvaluation,
 
         canSeeCareAndSupport: hasAnyPermission(
           "care_and_support_register",
@@ -168,17 +168,17 @@ const SubMenu = (props) => {
         canSeePatientVisit: hasAnyPermission("view_patient", "all_permissions"),
       };
     },
-    [hasPermission, hasAnyPermission, hasRole, patientObj]
+    [hasPermission, hasAnyPermission, hasRole, patientObj?.clinicalEvaluation, patientObj?.sex, patientObj?.age]
   );
 
   const menuConditions = useMemo(
     () => ({
       isInitialMenu:
-        (patientObj.commenced === false ||
-          patientObj.createBy.toUpperCase() !==
+        (patientObj?.commenced === false ||
+          patientObj?.createBy?.toUpperCase() !==
             "LAMIS DATA MIGRATION SYSTEM") &&
-        (patientObj.commenced !== true ||
-          patientObj.clinicalEvaluation !== true),
+        (patientObj?.commenced !== true ||
+          patientObj?.clinicalEvaluation !== true),
 
       isDeadOrTransferred:
         currentStatus === "DIED (CONFIRMED)" ||
@@ -186,13 +186,13 @@ const SubMenu = (props) => {
 
       canShowOTZ:
         (patientObj?.age >= 10 && patientObj?.age <= 23) ||
-        patientObj.age <= 19,
+        patientObj?.age <= 19,
 
       canShowOTZEnrollment: patientObj?.age >= 10 && patientObj?.age <= 23,
 
-      showPediatricChecklist: patientObj.age <= 19,
+      showPediatricChecklist: patientObj?.age <= 19,
     }),
-    [patientObj, currentStatus]
+    [patientObj?.commenced, patientObj?.createBy, patientObj?.clinicalEvaluation, patientObj?.age, currentStatus]
   );
 
   useEffect(() => {
@@ -579,7 +579,8 @@ const SubMenu = (props) => {
                       </MenuItem>
                     )}
                 </Menu>
-              ) : (
+              ) : 
+              (
                 <Menu size="tiny" color="black" inverted>
                   <MenuItem
                     onClick={menuHandlers.onClickHome}
@@ -594,7 +595,7 @@ const SubMenu = (props) => {
                   {isPatientActive && (
                     <>
                       {permissions.canSeeInitialEvaluation &&
-                        patientObj.createBy.toUpperCase() ===
+                        patientObj?.createBy?.toUpperCase() ===
                           "LAMIS DATA MIGRATION SYSTEM" && (
                           <MenuItem
                             onClick={menuHandlers.loadAdultEvaluation}
