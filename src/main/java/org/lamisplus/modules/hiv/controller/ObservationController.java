@@ -6,13 +6,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.hiv.domain.dto.ObservationDto;
 import org.lamisplus.modules.hiv.domain.dto.TBCompletionStatusDTO;
 import org.lamisplus.modules.hiv.domain.dto.TPtCompletionStatusInfoDTO;
+import org.lamisplus.modules.hiv.domain.dto.ViralLoadEligibilityProjection;
 import org.lamisplus.modules.hiv.repositories.ObservationRepository;
 import org.lamisplus.modules.hiv.service.ObservationService;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,10 +82,8 @@ public class ObservationController {
 
     @GetMapping("/tb-completion-date")
     public ResponseEntity<TBCompletionStatusDTO> getTbPrompt(@RequestParam String personUuid) {
-        TBCompletionStatusDTO tbClientWithoutCompletionDate =
-                observationRepository.findTbClientWithoutCompletionDate(personUuid);
-
-       return ResponseEntity.ok(tbClientWithoutCompletionDate);
+        TBCompletionStatusDTO result = observationRepository.findTbClientWithoutCompletionDate(personUuid);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/current-tb-status")
@@ -90,4 +92,23 @@ public class ObservationController {
         return currentTbStatus.isPresent() ? ResponseEntity.ok(currentTbStatus.get()) : ResponseEntity.ok("");
     }
 
+
+     // Get all eligible patients by facility
+    @GetMapping("/eligible-viral-load/facility/{facilityId}")
+    public ResponseEntity<Map<String, Object>> getAllEligiblePatientsByFacility(@PathVariable Long facilityId) {
+        Map<String, Object> response = observationService.getAllEligiblePatientsByFacility(facilityId);
+        return createResponseEntity(response);
+    }
+
+    /**
+     * Helper method to create ResponseEntity based on service response
+     */
+    private ResponseEntity<Map<String, Object>> createResponseEntity(Map<String, Object> response) {
+        boolean success = (Boolean) response.get("success");
+        if (success) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 }

@@ -3,6 +3,8 @@ package org.lamisplus.modules.hiv.repositories;
 import org.lamisplus.modules.hiv.domain.dto.*;
 import org.lamisplus.modules.hiv.domain.entity.Observation;
 import org.lamisplus.modules.patient.domain.entity.Person;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -266,8 +268,8 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "CROSS JOIN LATERAL jsonb_array_elements(hap.regimens) as obj;")
     List<MedicationInfo> getTransferPatientTreatmentMedication(@Param("uuid") String uuid);
 
-  @Query(value = "SELECT data->'chronicCondition'->>'hypertensive' AS hypertensive_value FROM public.hiv_observation WHERE type = 'Chronic Care' and facility_id = ?1 and person_uuid = ?2  AND archived = 0 AND data->'chronicCondition'->>'hypertensive' = 'Yes' limit 1", nativeQuery = true)
-  Optional<String> getIsHypertensive(Long facilityId, String uuid);
+    @Query(value = "SELECT data->'chronicCondition'->>'hypertensive' AS hypertensive_value FROM public.hiv_observation WHERE type = 'Chronic Care' and facility_id = ?1 and person_uuid = ?2  AND archived = 0 AND data->'chronicCondition'->>'hypertensive' = 'Yes' limit 1", nativeQuery = true)
+    Optional<String> getIsHypertensive(Long facilityId, String uuid);
 
     @Query(value = "SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END FROM hiv_observation o WHERE o.person_uuid = :personUuid AND o.type IN ('ART Transfer In', 'ART Transfer Out') AND (o.data ->> 'encounterDate' IS NOT NULL) AND o.data ->> 'encounterDate' = :encounterDate", nativeQuery = true)
     boolean existsByPersonUuidAndEncounterDate(@Param("personUuid") String personUuid, @Param("encounterDate") String encounterDate);
@@ -284,7 +286,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
     Optional<String> findTptCompletionDateByPersonAndDate(
             @Param("personUuid") String personUuid,
             @Param("dateOfObservation") LocalDate dateOfObservation
-          );
+    );
 
     @Query(value = "SELECT EXISTS (" +
             "SELECT 1 FROM hiv_observation " +
@@ -310,7 +312,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "SELECT he.person_uuid FROM hiv_enrollment he WHERE archived = 0\n" +
             "),\n" +
             "tbStartDate AS (\n" +
-            "SELECT person_uuid, visitDate, tbTreatmentStartDate, status, status_date, CAST(tbTreatmentStartDate + INTERVAL '6 Month' AS DATE) AS intervalDate,\n" +
+            "SELECT person_uuid, visitDate, tbTreatmentStartDate, tbCompletionDate, status, status_date, CAST(tbTreatmentStartDate + INTERVAL '6 Month' AS DATE) AS intervalDate,\n" +
             "(CASE WHEN NOW() >= CAST(tbTreatmentStartDate + INTERVAL '6 Month' AS DATE) THEN TRUE ELSE FALSE END) AS pass6Month\n" +
             "FROM (\n" +
             "SELECT ho.person_uuid, ho.date_of_observation visitDate,  NULLIF(CAST(NULLIF(ho.data->'tbIptScreening'->>'tbTreatmentStartDate', '') AS DATE), NULL) tbTreatmentStartDate, \n" +
@@ -342,13 +344,18 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             ") completeArtStatus\n" +
             ") currentArtStatus ON currentArtStatus.person_uuid = ho.person_uuid\n" +
             "WHERE archived = 0\n" +
-            "AND data->'tbIptScreening'->>'completionDate' ='') subQ WHERE rnkk = 1\n" +
+            ") subQ WHERE rnkk = 1\n" +
             ")\n" +
-            "SELECT tbStart.pass6Month, tbStart.tbTreatmentStartDate, tbStart.visitDate FROM tbImpl\n" +
+            "SELECT tbStart.pass6Month, tbStart.tbTreatmentStartDate, tbStart.visitDate, tbStart.tbCompletionDate,\n" +
+            "CASE WHEN tbStart.pass6Month IS TRUE  AND tbStart.tbCompletionDate = '' THEN true\n" +
+            "WHEN tbStart.pass6Month IS TRUE  AND tbStart.tbCompletionDate != '' THEN false\n" +
+            "WHEN tbStart.pass6Month IS TRUE  THEN true\n" +
+            "END AS showPrompt\n" +
+            "FROM tbImpl\n" +
             "LEFT JOIN tbStartDate tbStart ON tbImpl.person_uuid = tbStart.person_uuid\n" +
             "WHERE tbStart.status IN ('Active') \n" +
             "AND tbImpl.person_uuid = ?1", nativeQuery = true)
-       TBCompletionStatusDTO findTbClientWithoutCompletionDate(String personUuid);
+    TBCompletionStatusDTO findTbClientWithoutCompletionDate(String personUuid);
 
 
     @Query(value = "WITH tbStatusImpl AS (\n" +
@@ -366,4 +373,170 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "LEFT JOIN tbStatus tbStat ON tbImpl.person_uuid = tbStat.person_uuid\n" +
             "WHERE tbImpl.person_uuid = ?1", nativeQuery = true)
     Optional<String> findCurrentTbStatus(String personUuid);
+
+    // get all client eligible for viral load
+    @Query(value = "WITH vlEligibility AS (" +
+            "    SELECT pp.id AS patientId, pp.uuid AS patientUuid, pp.first_name AS firstName, " +
+            "           pp.surname AS lastName, pp.other_name AS otherName, pp.sex AS gender, " +
+            "           pp.date_of_birth AS dateOfBirth, pp.hospital_number AS hospitalNumber, " +
+            "           hac.visit_date AS artStartDate " +
+            "    FROM patient_person pp " +
+            "    INNER JOIN hiv_enrollment h ON pp.uuid = h.person_uuid " +
+            "    INNER JOIN hiv_art_clinical hac ON hac.hiv_enrollment_uuid = h.uuid " +
+            "        AND hac.archived = 0 AND hac.is_commencement = true " +
+            "    WHERE pp.archived = 0 AND pp.facility_id = :facilityId " +
+            "), " +
+            "sample_collection_date AS (" +
+            "    SELECT sample.date_sample_collected AS dateOfViralLoadSampleCollection, " +
+            "           sample.patient_uuid AS personUuid120 " +
+            "    FROM (" +
+            "        SELECT lt.viral_load_indication, sm.facility_id, " +
+            "               CAST(sm.date_sample_collected AS DATE) AS date_sample_collected, " +
+            "               sm.patient_uuid, sm.archived, " +
+            "               ROW_NUMBER() OVER (PARTITION BY sm.patient_uuid ORDER BY sm.date_sample_collected DESC) AS rnkk " +
+            "        FROM laboratory_sample sm " +
+            "        INNER JOIN laboratory_test lt ON lt.id = sm.test_id " +
+            "        WHERE lt.lab_test_id = 16 AND sm.archived = 0 " +
+            "          AND lt.viral_load_indication != 719 " +
+            "          AND sm.date_sample_collected IS NOT NULL " +
+            "          AND sm.facility_id = :facilityId " +
+            "    ) AS sample " +
+            "    WHERE sample.rnkk = 1 " +
+            "      AND (sample.archived IS NULL OR sample.archived = 0) " +
+            "), " +
+            "current_vl_result AS (" +
+            "    SELECT vl_result.dateOfCurrentViralLoadSample, vl_result.person_uuid130, " +
+            "           vl_result.vlFacility, vl_result.viralLoadIndication, " +
+            "           vl_result.currentViralLoad, vl_result.dateOfCurrentViralLoad " +
+            "    FROM (" +
+            "        SELECT CAST(ls.date_sample_collected AS DATE) AS dateOfCurrentViralLoadSample, " +
+            "               sm.patient_uuid AS person_uuid130, " +
+            "               sm.facility_id AS vlFacility, " +
+            "               sm.archived AS vlArchived, " +
+            "               acode.display AS viralLoadIndication, " +
+            "               sm.result_reported AS currentViralLoad, " +
+            "               CAST(sm.date_result_reported AS DATE) AS dateOfCurrentViralLoad, " +
+            "               ROW_NUMBER() OVER (PARTITION BY sm.patient_uuid ORDER BY ls.date_sample_collected DESC) AS rank2 " +
+            "        FROM laboratory_result sm " +
+            "        INNER JOIN laboratory_test lt ON sm.test_id = lt.id " +
+            "        INNER JOIN laboratory_sample ls ON ls.test_id = lt.id " +
+            "        INNER JOIN base_application_codeset acode ON acode.id = lt.viral_load_indication " +
+            "        WHERE lt.lab_test_id = 16 " +
+            "          AND lt.viral_load_indication != 719 " +
+            "          AND sm.date_result_reported IS NOT NULL " +
+            "          AND sm.result_reported IS NOT NULL " +
+            "    ) AS vl_result " +
+            "    WHERE vl_result.rank2 = 1 " +
+            "      AND vl_result.dateOfCurrentViralLoad <= CAST(NOW() AS DATE) " +
+            "      AND (vl_result.vlArchived = 0 OR vl_result.vlArchived IS NULL) " +
+            "), " +
+            "naive_vl_data AS (" +
+            "    SELECT pp.uuid AS nvl_person_uuid, " +
+            "           EXTRACT(YEAR FROM AGE(NOW(), pp.date_of_birth)) AS age, " +
+            "           ph.visit_date, ph.regimen " +
+            "    FROM patient_person pp " +
+            "    INNER JOIN (" +
+            "        SELECT DISTINCT pharm.person_uuid, pharm.visit_date, pharm.regimen " +
+            "        FROM (" +
+            "            SELECT DISTINCT hap.person_uuid, hap.visit_date, hr.description AS regimen, " +
+            "                   ROW_NUMBER() OVER (PARTITION BY hap.person_uuid ORDER BY hap.visit_date DESC) AS row_number " +
+            "            FROM hiv_art_pharmacy hap " +
+            "            INNER JOIN hiv_art_pharmacy_regimens hapr ON hapr.art_pharmacy_id = hap.id " +
+            "            INNER JOIN hiv_regimen hr ON hr.id = hapr.regimens_id " +
+            "            INNER JOIN hiv_regimen_type hrt ON hrt.id = hr.regimen_type_id " +
+            "            INNER JOIN hiv_regimen_resolver hrr ON hrr.regimensys = hr.description " +
+            "            WHERE hap.archived = 0 AND hrt.id IN (1,2,3,4,14,16) AND hap.facility_id = :facilityId " +
+            "        ) AS pharm " +
+            "        WHERE pharm.row_number = 1 " +
+            "    ) AS ph ON ph.person_uuid = pp.uuid " +
+            "    WHERE pp.uuid NOT IN (" +
+            "        SELECT ls.patient_uuid " +
+            "        FROM laboratory_sample ls " +
+            "        INNER JOIN laboratory_test lt ON lt.id = ls.test_id AND lt.lab_test_id = 16 " +
+            "        WHERE ls.archived = 0 AND ls.facility_id = :facilityId " +
+            "        GROUP BY ls.patient_uuid " +
+            "    ) " +
+            "), " +
+            "currentStatus AS (" +
+            "    SELECT person_uuid, " +
+            "           (CASE WHEN hiv_status ILIKE '%DEATH%' OR hiv_status ILIKE '%Died%' THEN 'Died' " +
+            "                 WHEN(status_date > visit_date AND (hiv_status ILIKE '%stop%' OR hiv_status ILIKE '%out%' OR hiv_status ILIKE '%Invalid %' OR hiv_status ILIKE '%ART Transfer In%'))  THEN hiv_status " +
+            "                 ELSE artStatus END) AS status, " +
+            "           (CASE WHEN hiv_status ILIKE '%DEATH%' OR hiv_status ILIKE '%Died%'  THEN status_date " +
+            "                 WHEN(status_date > visit_date AND (hiv_status ILIKE '%stop%' OR hiv_status ILIKE '%out%' OR hiv_status ILIKE '%Invalid %' OR hiv_status ILIKE '%ART Transfer In%')) THEN status_date " +
+            "                 ELSE visit_date END) AS status_date " +
+            "    FROM (" +
+            "        SELECT person_uuid, " +
+            "               (CASE WHEN pharmacy.visitDate + pharmacy.refill_period + INTERVAL '29 day' <= NOW() THEN 'IIT' ELSE 'Active' END) AS artStatus, " +
+            "               (CASE WHEN CAST(pharmacy.visitDate + pharmacy.refill_period + INTERVAL '29 day' AS DATE) <= NOW() THEN CAST(pharmacy.visitDate + pharmacy.refill_period + INTERVAL '29 day' AS DATE) ELSE pharmacy.visitDate END) AS visit_date, " +
+            "               stat.status_date, stat.hiv_status " +
+            "        FROM (" +
+            "            SELECT hap.person_uuid, CAST(hap.visit_date AS DATE) AS visitDate, hap.refill_period, " +
+            "                   ROW_NUMBER() OVER (PARTITION BY hap.person_uuid ORDER BY hap.visit_date DESC) AS rnk " +
+            "            FROM hiv_art_pharmacy hap " +
+            "            INNER JOIN hiv_art_pharmacy_regimens pr ON pr.art_pharmacy_id = hap.id " +
+            "            INNER JOIN hiv_enrollment h ON h.person_uuid = hap.person_uuid AND h.archived = 0 " +
+            "            INNER JOIN hiv_regimen r ON r.id = pr.regimens_id " +
+            "            INNER JOIN hiv_regimen_type rt ON rt.id = r.regimen_type_id " +
+            "            WHERE r.regimen_type_id IN (1,2,3,4,14,16) " +
+            "              AND hap.archived = 0 " +
+            "              AND hap.visit_date <= NOW() " +
+            "              AND hap.facility_id = :facilityId " +
+            "        ) AS pharmacy " +
+            "        LEFT JOIN (" +
+            "            SELECT s.person_id, s.status_date, s.hiv_status " +
+            "            FROM (" +
+            "                SELECT DISTINCT person_id, status_date, hiv_status, " +
+            "                       ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY status_date DESC) AS row_number " +
+            "                FROM hiv_status_tracker " +
+            "                WHERE archived = 0 AND status_date <= NOW() " +
+            "            ) AS s " +
+            "            WHERE s.row_number = 1 " +
+            "        ) AS stat ON stat.person_id = pharmacy.person_uuid " +
+            "        WHERE pharmacy.rnk = 1 " +
+            "    ) AS completeArtStatus " +
+            "), " +
+            "eligibilityCalculation AS (" +
+            "    SELECT vlE.patientId, vlE.patientUuid, vlE.firstName, vlE.lastName, vlE.otherName, " +
+            "           vlE.gender, vlE.dateOfBirth, vlE.hospitalNumber, vlE.artStartDate, " +
+            "           (CASE " +
+            "            WHEN ct.status ILIKE '%IIT%' THEN FALSE " +
+            "            WHEN ct.status ILIKE '%out%' THEN FALSE " +
+            "            WHEN ct.status ILIKE '%DEATH%' THEN FALSE " +
+            "            WHEN ct.status ILIKE '%stop%' THEN FALSE " +
+            "            WHEN (nvd.age >= 15 AND nvd.regimen ILIKE '%DTG%' AND vlE.artStartDate + 91 < NOW() AND ct.status ILIKE '%ACTIVE%') THEN TRUE " +
+            "            WHEN (nvd.age >= 15 AND nvd.regimen NOT ILIKE '%DTG%' AND vlE.artStartDate + 181 < NOW() AND ct.status ILIKE '%ACTIVE%') THEN TRUE " +
+            "            WHEN (nvd.age <= 15 AND vlE.artStartDate + 181 < NOW() AND ct.status ILIKE '%ACTIVE%') THEN TRUE " +
+            "            WHEN CAST(NULLIF(REGEXP_REPLACE(cvlr.currentViralLoad, '[^0-9]', '', 'g'), '') AS INTEGER) IS NULL " +
+            "                 AND scd.dateOfViralLoadSampleCollection IS NULL AND cvlr.dateOfCurrentViralLoad IS NULL " +
+            "                 AND CAST(vlE.artStartDate AS DATE) + 181 < NOW() AND ct.status ILIKE '%ACTIVE%' THEN TRUE " +
+            "            WHEN CAST(NULLIF(REGEXP_REPLACE(cvlr.currentViralLoad, '[^0-9]', '', 'g'), '') AS INTEGER) IS NULL " +
+            "                 AND scd.dateOfViralLoadSampleCollection IS NOT NULL AND cvlr.dateOfCurrentViralLoad IS NULL " +
+            "                 AND CAST(vlE.artStartDate AS DATE) + 91 < NOW() AND ct.status ILIKE '%ACTIVE%' THEN TRUE " +
+            "            WHEN CAST(NULLIF(REGEXP_REPLACE(cvlr.currentViralLoad, '[^0-9]', '', 'g'), '') AS INTEGER) < 1000 " +
+            "                 AND (scd.dateOfViralLoadSampleCollection < cvlr.dateOfCurrentViralLoad OR scd.dateOfViralLoadSampleCollection IS NULL) " +
+            "                 AND CAST(cvlr.dateOfCurrentViralLoad AS DATE) + 181 < NOW() AND ct.status ILIKE '%ACTIVE%' THEN TRUE " +
+            "            WHEN CAST(NULLIF(REGEXP_REPLACE(cvlr.currentViralLoad, '[^0-9]', '', 'g'), '') AS INTEGER) < 1000 " +
+            "                 AND (scd.dateOfViralLoadSampleCollection > cvlr.dateOfCurrentViralLoad OR cvlr.dateOfCurrentViralLoad IS NULL) " +
+            "                 AND CAST(scd.dateOfViralLoadSampleCollection AS DATE) + 91 < NOW() AND ct.status ILIKE '%ACTIVE%' THEN TRUE " +
+            "            WHEN CAST(NULLIF(REGEXP_REPLACE(cvlr.currentViralLoad, '[^0-9]', '', 'g'), '') AS INTEGER) > 1000 " +
+            "                 AND (scd.dateOfViralLoadSampleCollection < cvlr.dateOfCurrentViralLoad OR scd.dateOfViralLoadSampleCollection IS NULL) " +
+            "                 AND CAST(cvlr.dateOfCurrentViralLoad AS DATE) + 91 < NOW() AND ct.status ILIKE '%ACTIVE%' THEN TRUE " +
+            "            WHEN CAST(NULLIF(REGEXP_REPLACE(cvlr.currentViralLoad, '[^0-9]', '', 'g'), '') AS INTEGER) > 1000 " +
+            "                 AND (scd.dateOfViralLoadSampleCollection > cvlr.dateOfCurrentViralLoad OR cvlr.dateOfCurrentViralLoad IS NULL) " +
+            "                 AND CAST(scd.dateOfViralLoadSampleCollection AS DATE) + 91 < NOW() AND ct.status ILIKE '%ACTIVE%' THEN TRUE " +
+            "            ELSE FALSE END) AS vlEligibilityStatus " +
+            "    FROM vlEligibility vlE " +
+            "    LEFT JOIN naive_vl_data nvd ON nvd.nvl_person_uuid = vlE.patientUuid " +
+            "    LEFT JOIN currentStatus ct ON ct.person_uuid = vlE.patientUuid " +
+            "    LEFT JOIN sample_collection_date scd ON scd.personUuid120 = vlE.patientUuid " +
+            "    LEFT JOIN current_vl_result cvlr ON cvlr.person_uuid130 = vlE.patientUuid " +
+            ") " +
+            "SELECT patientId, patientUuid, firstName, lastName, otherName, gender, " +
+            "       dateOfBirth, hospitalNumber, artStartDate, vlEligibilityStatus " +
+            "FROM eligibilityCalculation " +
+            "WHERE vlEligibilityStatus = TRUE " +
+            "ORDER BY patientId",
+            nativeQuery = true)
+    List<ViralLoadEligibilityProjection> findAllEligiblePatientsByFacility(@Param("facilityId") Long facilityId);
 }
