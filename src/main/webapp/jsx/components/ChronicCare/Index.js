@@ -165,7 +165,8 @@ const ChronicCare = (props) => {
   const [tbCompletionTemplate, setTbCompletionTemplate] = useState({
     tbTreatmentStartDate: "",
     pass6Month: false,
-    visitDate:""
+    visitDate:"",
+    showPrompt:false
   });
 
   //GenderBase Object
@@ -407,15 +408,16 @@ const ChronicCare = (props) => {
         },
       })
       .then((response) => {
-        // ✅ Response shape: { tbTreatmentStartDate: "2025-01-08", pass6Month: true }
-        const { tbTreatmentStartDate, pass6Month,  visitDate } = response.data;
+        const { tbTreatmentStartDate, pass6Month,  visitDate, showPrompt } = response.data;
         // Update state
         setTbCompletionTemplate({
           tbTreatmentStartDate,
           pass6Month,
           visitDate,
+          showPrompt
         });
-        setTbTreatmentCompleted(pass6Month);
+        // setTbTreatmentCompleted(pass6Month);
+        setTbTreatmentCompleted(showPrompt);
       })
       .catch((error) => {
         console.error("Error fetching TB completion status", error);
