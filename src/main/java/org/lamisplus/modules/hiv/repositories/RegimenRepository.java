@@ -5,8 +5,9 @@ import org.lamisplus.modules.hiv.domain.entity.RegimenType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RegimenRepository extends JpaRepository<Regimen, Long> {
     List<Regimen> getAllByRegimenTypeAndActiveIsTrue(RegimenType regimenType);
-
+    Optional<Regimen> findByRegimenTypeIdAndDescription(Long id,String description);
 }
