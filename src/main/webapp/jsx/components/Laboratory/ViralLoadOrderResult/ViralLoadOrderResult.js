@@ -6,17 +6,13 @@ import { makeStyles } from '@material-ui/core/styles'
 import SaveIcon from '@material-ui/icons/Save'
 import CancelIcon from '@material-ui/icons/Cancel'
 import "react-widgets/dist/css/react-widgets.css";
-//import moment from "moment";
 import { Spinner } from "reactstrap";
 import { url as baseUrl, token } from "../../../../api";
 import moment from "moment";
-import { List, Label as LabelSui} from 'semantic-ui-react'
-// import IconButton from '@mui/material/IconButton';
-// import DeleteIcon from '@material-ui/icons/Delete';
+import {List, Label as LabelSui, Button} from 'semantic-ui-react'
 import { toast} from "react-toastify";
 import { queryClient } from '../../../../utils/queryClient';
-// import {Alert } from "react-bootstrap";
-// import { Icon,Button, } from 'semantic-ui-react'
+import {Modal} from "react-bootstrap";
 
 
 const useStyles = makeStyles(theme => ({ 
@@ -63,9 +59,7 @@ const useStyles = makeStyles(theme => ({
 
 const Laboratory = (props) => {
     let visitId=""
-    //let labNumberOption=""
     const patientObj = props.patientObj;
-    //const enrollDate = patientObj && patientObj.artCommence ? patientObj.artCommence.visitDate : null
     const [enrollDate, setEnrollDate] = useState("");
     const classes = useStyles();
     const [saving, setSaving] = useState(false);
@@ -85,7 +79,9 @@ const Laboratory = (props) => {
     const [eacStatusObj, setEacStatusObj] = useState()
     const [labNumberOption, setLabNumberOption] = useState("")
     const [labNumbers, setLabNumbers] = useState([]);//
-    const [pcrs, setPcrs] = useState([]);//
+    const [pcrs, setPcrs] = useState([]);
+    const [showModal, setShowModal] = useState({ show: false, message: ""});
+    const [eacCheckResult, setEacCheckResult] = useState(false);
     let temp = { ...errors }
     const [tests, setTests]=useState({
             approvedBy: "",
@@ -116,13 +112,19 @@ const Laboratory = (props) => {
             viralLoadIndication: ""
     })
     useEffect(() => {
-        GetPatientDTOObj()   
+        GetPatientDTOObj()
+        getClientEAC().then(() => {
+        }).catch((error) => {
+            console.error("Error in getClientEAC:", error);
+        });
         CheckLabModule();
         ViraLoadIndication();
         LabTestDetail();
         CheckEACStatus();  
         LabNumbers(); 
-        PCRLabList(); 
+        PCRLabList();
+
+
     }, [props.patientObj.id]);
     //Get list of LabNumbers
     const LabNumbers =()=>{
@@ -180,6 +182,53 @@ const Laboratory = (props) => {
            });
        
     }
+
+    const getClientEAC = () => {
+        return axios
+            .get(`${baseUrl}hiv/eac/patient/${props.patientObj.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((response) => {
+                const eacs = response.data;
+                let result = false;
+                if (!eacs || eacs.length === 0) {
+                    result = true;
+                } else {
+                    const mostRecentSession = eacs.reduce((latest, current) => {
+                        const latestDate = latest.dateOfLastViralLoad ? new Date(latest.dateOfLastViralLoad) : null;
+                        const currentDate = current.dateOfLastViralLoad ? new Date(current.dateOfLastViralLoad) : null;
+                        // If current has no date, keep latest
+                        if (!currentDate) {
+                            return latest;
+                        }
+                        // If latest has no date but current does, use current
+                        if (!latestDate) {
+                            return current;
+                        }
+                        // Both have dates, compare them
+                        return currentDate > latestDate ? current : latest;
+                    });
+                    const status = mostRecentSession.status;
+                    // Check status and return accordingly
+                    if (status === "COMPLETED") {
+                        result = false;
+                    } else if (status === "NOT COMMENCED" || status === "STOPPED") {
+                        result = true;
+                    } else {
+                        result = false;
+                    }
+                }
+
+                setEacCheckResult(result);
+                return result;
+            })
+            .catch((error) => {
+                console.error("Error fetching EAC eacs:", error);
+                setEacCheckResult(false);
+                return false;
+            });
+    };
+
     const LabTestDetail =()=>{
         axios
             .get(`${baseUrl}laboratory/labtests/viral%20load`,
@@ -231,17 +280,20 @@ const Laboratory = (props) => {
             
             });        
     }
-    const handleSelectedTestGroup = e =>{
-        setTests ({...tests,  labTestGroupId: e.target.value});
-        const getTestList= testGroup.filter((x)=> x.id===parseInt(e.target.value))
-        setTest(getTestList[0].labTests)
-    }
-    const handleInputChangeObject = e => {
-        setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
-        setTests ({...tests,  [e.target.name]: e.target.value});
-    }
+
     const handleInputChange = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
+        if(e.target.name === 'viralLoadIndication') {
+            const selectedId = parseInt(e.target.value);
+            const confirmationId = 302;
+            if(selectedId === confirmationId && eacCheckResult === true) {
+                setShowModal({
+                    show: true,
+                    message: "No qualifying EAC session has been recorded for this client.\\n\\nThe 'Confirmation (3-6 months after intense adherence counselling)' indication requires an active EAC session. Please document the EAC session first or select a different indication.\" "
+                });
+                return;
+            }
+        }
         //tests.labNumber
         if(e.target.name==='labNumber'){
             const onlyPositiveNumber = e.target.value //Math.abs(e.target.value)
@@ -257,23 +309,6 @@ const Laboratory = (props) => {
             const dateResultReceived = moment(e.target.value).format("YYYY-MM-DD HH:MM:SS")   //Math.abs(e.target.value)
             setTests ({...tests,  [e.target.name]: dateResultReceived});
         }
-    }
-
-    const handleInputChangeTest = e => {
-        setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
-
-        if(e.target.value==="16"){
-            setShowVLIndication(true)
-            setVlRequired(true)
-            setErrors({...temp, viralLoadIndication:""})
-
-            setTests ({...tests,  labTestId: e.target.value});
-        }else{
-            setShowVLIndication(false)
-            setVlRequired(false)
-            setTests ({...tests,  labTestId: e.target.value});
-        }
-        //setObjValues ({...objValues,  [e.target.name]: e.target.value});
     }
 
       //Validations of the forms
@@ -303,21 +338,13 @@ const Laboratory = (props) => {
         showPcrLabDetail && (temp.sampleLoggedRemotely = tests.sampleLoggedRemotely ? "" : "This field is required")
         showPcrLabDetail &&  (temp.checkedBy = tests.checkedBy ? "" : "This field is required")
         showPcrLabDetail && (temp.approvedBy = tests.approvedBy ? "" : "This field is required")
-        
-        // setErrors({
-        //     ...temp
-        // })
-        // return Object.values(temp).every(x => x == "")
-
           // Update errors with synchronous validations
           setErrors((prevErrors) => ({
               ...prevErrors,
               ...temp,
           }));
-
           // Check if all synchronous validations pass
           const isSyncValid = Object.values(temp).every((x) => x === "");
-
           // Asynchronous validation for sample number
           if (tests.sampleNumber) {
               try {
@@ -347,7 +374,6 @@ const Laboratory = (props) => {
                   return false;
               }
           }
-
           // Return true only if both synchronous and asynchronous validations pass
           return isSyncValid;
     }
@@ -458,6 +484,12 @@ const Laboratory = (props) => {
             setShowPcrLabDetail(false)
         }
     }
+
+    const hideModal = () => {
+        setShowModal({ show: false, message: ""});
+    };
+
+
 
   return (      
       <div >
@@ -1013,7 +1045,47 @@ const Laboratory = (props) => {
                 </form>
            
             </CardBody>
-        </Card> 
+        </Card>
+
+            {showModal.show && (
+                <>
+                    <style>
+                        {`
+              .custom-modal-width .modal-dialog {
+                max-width: 800px;
+                width: 90%;
+              }
+            `}
+                    </style>
+
+                    <Modal
+                        show={showModal.show}
+                        className="fade"
+                        dialogClassName="custom-modal-width"
+                        aria-labelledby="contained-modal-title-vcenter"
+                        centered
+                    >
+                        <Modal.Header>
+                            <Modal.Title>
+                                <span role="img" aria-label="warning">⚠️</span>{" "}
+                                <span className={classes.modalTitle}>No Active EAC Session Documented</span>
+                            </Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <h4>{showModal.message}</h4>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button
+                                style={{ backgroundColor: "#014d88", color: "#fff" }}
+                                onClick={hideModal}
+                            >
+                                Cancel
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                </>
+            )}
+
         </div>             
     </div>
   );
