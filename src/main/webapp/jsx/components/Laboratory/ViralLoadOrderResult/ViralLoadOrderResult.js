@@ -289,7 +289,7 @@ const Laboratory = (props) => {
             if(selectedId === confirmationId && eacCheckResult === true) {
                 setShowModal({
                     show: true,
-                    message: "No qualifying EAC session has been recorded for this client.\\n\\nThe 'Confirmation (3-6 months after intense adherence counselling)' indication requires an active EAC session. Please document the EAC session first or select a different indication.\" "
+                    message: "No qualifying EAC session has been recorded for this client.The 'Confirmation (3-6 months after intense adherence counselling)' indication requires an active EAC session. Please document the EAC session first or select a different indication.\" "
                 });
                 return;
             }
