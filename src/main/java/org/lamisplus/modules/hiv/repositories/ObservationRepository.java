@@ -374,7 +374,16 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "WHERE tbImpl.person_uuid = ?1", nativeQuery = true)
     Optional<String> findCurrentTbStatus(String personUuid);
 
-    // get all client eligible for viral load
+    // get all client eligible for viral load - using materialized view for performance
+    @Query(value = "SELECT patientId, patientUuid, firstName, lastName, otherName, gender, " +
+            "dateOfBirth, hospitalNumber, artStartDate, vlEligibilityStatus " +
+            "FROM mv_viral_load_eligibility " +
+            "WHERE facilityId = :facilityId " +
+            "ORDER BY patientId",
+            nativeQuery = true)
+    List<ViralLoadEligibilityProjection> findAllEligiblePatientsByFacility(@Param("facilityId") Long facilityId);
+
+    // Original complex query - kept for reference and fallback
     @Query(value = "WITH vlEligibility AS (" +
             "    SELECT pp.id AS patientId, pp.uuid AS patientUuid, pp.first_name AS firstName, " +
             "           pp.surname AS lastName, pp.other_name AS otherName, pp.sex AS gender, " +
@@ -538,5 +547,5 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "WHERE vlEligibilityStatus = TRUE " +
             "ORDER BY patientId",
             nativeQuery = true)
-    List<ViralLoadEligibilityProjection> findAllEligiblePatientsByFacility(@Param("facilityId") Long facilityId);
+    List<ViralLoadEligibilityProjection> findAllEligiblePatientsByFacilityLegacy(@Param("facilityId") Long facilityId);
 }

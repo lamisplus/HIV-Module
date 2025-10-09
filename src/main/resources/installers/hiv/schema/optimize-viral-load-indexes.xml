@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="optimize-viral-load-indexes-001" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_patient_person_facility_archived"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_patient_person_facility_archived" tableName="patient_person">
+            <column name="facility_id"/>
+            <column name="archived"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_patient_person_facility_archived" tableName="patient_person"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="optimize-viral-load-indexes-002" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_hiv_enrollment_person_uuid"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_hiv_enrollment_person_uuid" tableName="hiv_enrollment">
+            <column name="person_uuid"/>
+            <column name="archived"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_hiv_enrollment_person_uuid" tableName="hiv_enrollment"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="optimize-viral-load-indexes-003" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_hiv_art_clinical_enrollment_commencement"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_hiv_art_clinical_enrollment_commencement" tableName="hiv_art_clinical">
+            <column name="hiv_enrollment_uuid"/>
+            <column name="is_commencement"/>
+            <column name="archived"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_hiv_art_clinical_enrollment_commencement" tableName="hiv_art_clinical"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="optimize-viral-load-indexes-004" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_laboratory_sample_patient_facility"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_laboratory_sample_patient_facility" tableName="laboratory_sample">
+            <column name="patient_uuid"/>
+            <column name="facility_id"/>
+            <column name="archived"/>
+            <column name="date_sample_collected"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_laboratory_sample_patient_facility" tableName="laboratory_sample"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="optimize-viral-load-indexes-005" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_laboratory_test_lab_test_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_laboratory_test_lab_test_id" tableName="laboratory_test">
+            <column name="lab_test_id"/>
+            <column name="viral_load_indication"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_laboratory_test_lab_test_id" tableName="laboratory_test"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="optimize-viral-load-indexes-006" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_laboratory_result_patient_date"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_laboratory_result_patient_date" tableName="laboratory_result">
+            <column name="patient_uuid"/>
+            <column name="date_result_reported"/>
+            <column name="archived"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_laboratory_result_patient_date" tableName="laboratory_result"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="optimize-viral-load-indexes-007" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_hiv_art_pharmacy_person_facility"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_hiv_art_pharmacy_person_facility" tableName="hiv_art_pharmacy">
+            <column name="person_uuid"/>
+            <column name="facility_id"/>
+            <column name="archived"/>
+            <column name="visit_date"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_hiv_art_pharmacy_person_facility" tableName="hiv_art_pharmacy"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="optimize-viral-load-indexes-008" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_hiv_status_tracker_person_date"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_hiv_status_tracker_person_date" tableName="hiv_status_tracker">
+            <column name="person_id"/>
+            <column name="status_date"/>
+            <column name="archived"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_hiv_status_tracker_person_date" tableName="hiv_status_tracker"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="optimize-viral-load-indexes-009" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_hiv_art_pharmacy_regimens_art_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_hiv_art_pharmacy_regimens_art_id" tableName="hiv_art_pharmacy_regimens">
+            <column name="art_pharmacy_id"/>
+            <column name="regimens_id"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_hiv_art_pharmacy_regimens_art_id" tableName="hiv_art_pharmacy_regimens"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="optimize-viral-load-indexes-010" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_hiv_regimen_type_id"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_hiv_regimen_type_id" tableName="hiv_regimen">
+            <column name="regimen_type_id"/>
+        </createIndex>
+        <rollback>
+            <dropIndex indexName="idx_hiv_regimen_type_id" tableName="hiv_regimen"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
