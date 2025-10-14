@@ -106,7 +106,6 @@ const Eligibility = (props) => {
   const [facilityId, setFacilityId] = useState(null);
   const [lastCd4Result, setLastCd4Result] = useState({});
   const getFacilityId = useFacilityId(baseUrl, token);
-
   const handleEligibility = (e) => {
     props.setEligibility({
       ...props.eligibility,
@@ -310,8 +309,7 @@ const Eligibility = (props) => {
                       id="lastViralLoadResult"
                       value={props.eligibility.lastViralLoadResult}
                       onChange={handleEligibility}
-                      // disabled={props.action === "view" ? true : false}
-                      disabled={true}
+                      disabled={props.entryPointId !== 21}
                     />
                   </InputGroup>
                 </FormGroup>
@@ -321,13 +319,13 @@ const Eligibility = (props) => {
                   <Label>Last Viral Load Result Date</Label>
                   <InputGroup>
                     <Input
-                      type="text"
+                      type="date"
                       name="lastViralLoadResultDate"
                       id="lastViralLoadResultDate"
                       value={props.eligibility.lastViralLoadResultDate}
                       onChange={handleEligibility}
-                      // disabled={props.action === "view" ? true : false}
-                      disabled={true}
+                      disabled={props.entryPointId !== 21}
+                      min={props.entryPointId === 21 && props.enrollDate ? props.enrollDate : undefined}
                     />
                   </InputGroup>
                 </FormGroup>

@@ -156,6 +156,7 @@ const ChronicCare = (props) => {
   const [showTb, setShowTb] = useState(false); //Tpt
   const [showTpt, setShowTpt] = useState(false);
   const [enrollDate, setEnrollDate] = useState("");
+  const [entryPointId, setEntryPointId] = useState(null);
   const [chronicDateExist, setChronicDateExist] = useState(null);
   const [lastDateOfObservation, setlastDateOfObservation] = useState(null);
   const [isUpdate, setIsUpdate] = useState(false);
@@ -367,6 +368,7 @@ const ChronicCare = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
+        setEntryPointId(response.data.enrollment.entryPointId);
         setEnrollDate(response.data.enrollment.dateOfRegistration);
         //setPatientObject(response.data);
       })
@@ -755,6 +757,8 @@ const ChronicCare = (props) => {
                     errors={errors}
                     encounterDate={observation.dateOfObservation}
                     patientObj={patientObj}
+                    entryPointId={entryPointId}
+                    enrollDate={enrollDate}
                   />
                 )}
               </div>
