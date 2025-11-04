@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 @Order(16)
 @Installer(name = "pharmacy-regimen-update-installer",
         description = "Installer for pharmacy regimen updates",
-        version = 2)
+        version = 6)
 public class PharmacyRegimenUpdateInstaller extends AcrossLiquibaseInstaller {
     public PharmacyRegimenUpdateInstaller() {
         super("classpath:installers/hiv/schema/pharmacy-regimen-update.xml");

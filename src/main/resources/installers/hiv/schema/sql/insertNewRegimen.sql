@@ -35,17 +35,6 @@ INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, 
 VALUES (
            'ARV_REGIMEN', '1k', 'TAF+FTC+DTG', 'Adult 1st line', '', 'NDR1k0020');
 
-INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
-VALUES (
-           1017, 'DTG(50mg)', 'Dolutegravir', 1, true, 1);
-
-INSERT INTO hiv_regimen_resolver (regimensys, regimen)
-VALUES (
-           'DTG(50mg)', 'DTG50');
-
-INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
-VALUES (
-           'ARV_REGIMEN', '1k', 'DTG50', 'Adult 1st line', '', 'NDR1k0020');
 
 INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
 VALUES (
@@ -504,18 +493,6 @@ VALUES (
 
 INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
 VALUES (
-           1057, 'ABC(600mg)+3TC(300mg)+ATV/r(300mg/100mg)', 'Abacavir+Lamivudine+Atazanavir/Ritonavir', 4, true, 1);
-
-INSERT INTO hiv_regimen_resolver (regimensys, regimen)
-VALUES (
-           'ABC(600mg)+3TC(300mg)+ATV/r(300mg/100mg)', 'ABC-3TC-ATV/r');
-
-INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
-VALUES (
-           'ARV_REGIMEN', '5f', 'ABC-3TC-ATV/r', 'Paediatric 2nd Line', '', 'NDR5f0137');
-
-INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
-VALUES (
            1058, 'ABC(120mg)+3TC(60mg)+RAL(25mg)', 'Lamivudine+Atazanavir/Ritonavir+Tenofovir+Zidovudine', 4, true, 1);
 
 INSERT INTO hiv_regimen_resolver (regimensys, regimen)
@@ -527,3 +504,242 @@ VALUES (
            'ARV_REGIMEN', '5f', 'ABC-3TC-RAL', 'Paediatric 2nd Line', '', 'NDR5f0136');
 
 
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1059, 'ABC(120mg)+3TC(60mg)+DTG50(50mg)', 'Abacavir+Lamivudine+Dolutegravir', 1, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(120mg)+3TC(60mg)+DTG50(50mg)', 'ABC-3TC-DTG');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1060, 'AZT(120mg)-3TC(60mg)-DTG(50mg)', 'Zidovudine+Lamivudine+Dolutegravir', 1, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(120mg)-3TC(60mg)-DTG(50mg)', 'AZT+3TC+DTG50');
+
+INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+VALUES ('ARV_REGIMEN', '1z', 'AZT+3TC+DTG50', 'Adult 1st line', '', 'NDR1z0038');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1061, 'AZT(120mg)+3TC(60mg)+LPV/r(100/25mg)',  'Zidovudine+Lamivudine+Lopinavir/Ritonavir', 2, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(120mg)+3TC(60mg)+LPV/r(100/25mg)', 'AZT+3TC+LPV/r');
+
+INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+VALUES ('ARV_REGIMEN', '2d', 'AZT+3TC+LPV/r', 'Adult 2nd line', '', 'NDR2d0049');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1062, 'TDF(300mg)+3TC(300mg)+DTG50(50mg)',  'Tenofovir Disoproxil Fumarate+Lamivudine+Dolutegravir', 2, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'TDF(300mg)+3TC(300mg)+DTG50(50mg)', 'TDF+3TC+DTG');
+
+INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+VALUES ('ARV_REGIMEN', '2g', 'TDF+3TC+DTG', 'Adult 2nd line', '', 'NDR2g0057');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1063, 'TDF(300mg)+FTC(200mg)+DTG(50mg)',  'Tenofovir Disoproxil Fumarate+Emtricitabine+Dolutegravir', 2, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'TDF(300mg)+FTC(200mg)+DTG(50mg)', 'TDF-FTC-DTG');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1064, 'ABC(600mg)+3TC(300mg)+LPV/r(200/50mg)',  'Abacavir+Lamivudine+Lopinavir/Ritonavir', 2, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(600mg)+3TC(300mg)+LPV/r(200/50mg)', 'ABC-3TC-LPV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1065, 'ABC(60mg)+3TC(30mg)+DTG(5mg)',  'Abacavir+Lamivudine+Dolutegravir ', 3, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(60mg)+3TC(30mg)+DTG(5mg)', 'ABC-3TC-DTG');
+
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1066, 'AZT(60mg)+3TC(30mg)+LPV/r(100/25mg)',  'Abacavir+Lamivudine+Lopinavir/Ritonavir', 3, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(60mg)+3TC(30mg)+LPV/r(100/25mg)', 'AZT-3TC-LPV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1067, 'AZT(120mg)+3TC(60mg)+LPV/r(100/25mg)',  'Zidovudine+Lamivudine+Lopinavir/Ritonavir', 3, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(120mg)+3TC(60mg)+LPV/r(100/25mg)', 'AZT-3TC-LPV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1068, 'ABC(120mg)+3TC(60mg)+RAL(25mg)',  'Abacavir+Lamivudine+Raltegravir', 3, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(120mg)+3TC(60mg)+RAL(25mg)', 'ABC-3TC-RAL');
+
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1069, 'ABC(60mg)+3TC(30mg)+RAL(25mg)',  'Abacavir+Lamivudine+Raltegravir', 3, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(60mg)+3TC(30mg)+RAL(25mg)', 'ABC-3TC-RAL');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1070, 'ABC(120mg)+3TC(60mg)+EFV(200mg)',  'Abacavir+Lamivudine+Efavirenz', 3, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(120mg)+3TC(60mg)+EFV(200mg)', 'ABC-3TC-EFV');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1071, 'AZT(120mg)+3TC(60mg)+EFV(200mg)',  'Zidovudine+Lamivudine+Efavirenz', 3, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(120mg)+3TC(60mg)+EFV(200mg)', 'AZT-3TC-EFV');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1072, 'AZT(120mg)+3TC(60mg)+LPV/r(100/25mg)',  'Zidovudine+Lamivudine+Lopinavir/Ritonavir', 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(120mg)+3TC(60mg)+LPV/r(100/25mg)', 'AZT-3TC-LPV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1073, 'AZT(60mg)+3TC(30mg)+LPV/r(100/25mg)',  'Zidovudine+Lamivudine+Lopinavir/Ritonavir', 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(60mg)+3TC(30mg)+LPV/r(100/25mg)', 'AZT+3TC+LPV/r');
+
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1074, 'AZT(60mg)+3TC(30mg)+LPV/r(40/10mg)',  'Zidovudine+Lamivudine+Lopinavir/Ritonavir', 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(60mg)+3TC(30mg)+LPV/r(40/10mg)', 'AZT-3TC-LPV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1075, 'AZT(300mg)+3TC(150mg)+ATV/r(300/100mg)',  'Zidovudine+Lamivudine+Atazanavir/Ritonavir' , 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(300mg)+3TC(150mg)+ATV/r(300/100mg)', 'AZT-3TC-ATV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1076, 'ABC(120mg)+3TC(60mg)+LPV/r(100/25mg)',  'Abacavir+Lamivudine+Lopinavir/Ritonavir' , 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(120mg)+3TC(60mg)+LPV/r(100/25mg)', 'ABC-3TC-LPV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1077, 'ABC(60mg)+3TC(30mg)+LPV/r(100/25mg)',  'Abacavir+Lamivudine+Lopinavir/Ritonavir' , 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(60mg)+3TC(30mg)+LPV/r(100/25mg)', 'ABC-3TC-LPV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1078, 'ABC(60mg)+3TC(30mg)+LPV/r(40/10mg)',  'Abacavir+Lamivudine+Lopinavir/Ritonavir' , 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(60mg)+3TC(30mg)+LPV/r(40/10mg)', 'ABC-3TC-LPV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1079, 'ABC(120mg)+3TC(60mg)+RAL(25mg)',  'Abacavir+Lamivudine+Raltegravir' , 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(120mg)+3TC(60mg)+RAL(25mg)', 'ABC-3TC-RAL');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1080, 'ABC(60mg)+3TC(30mg)+RAL(25mg)',  'Abacavir+Lamivudine+Raltegravir' , 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(60mg)+3TC(30mg)+RAL(25mg)', 'ABC-3TC-RAL');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1081, 'TDF(300mg)+3TC(300mg)+DRV/r(400mg/50mg)',  'Tenofovir+Lamivudine+Darunavir/Ritonavir' , 4, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'TDF(300mg)+3TC(300mg)+DRV/r(400mg/50mg)', 'TDF-3TC-DRV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1082, 'ABC(300mg)+3TC(150mg)+DRV/r(600/100mg)',  'Abacavir+Lamivudine+Darunavir+Ritonavir', 16, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(300mg)+3TC(150mg)+DRV/r(600/100mg)', 'ABC+3TC+DRV/r');
+
+INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+VALUES ('ARV_REGIMEN', '6b', 'ABC+3TC+DRV/r', 'Pediatric 3rd line', '', 'NDR6b0154');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1083, 'ABC(60mg)+3TC(30mg)+LPV/r(100/25mg)',  'Abacavir+Lamivudine+Lopinavir/Ritonavir', 3, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'ABC(60mg)+3TC(30mg)+LPV/r(100/25mg)', 'ABC-3TC-LPV/r');
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1084, 'Cotrimoxazole 800mg',  '', 8, true, 1);
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1085, 'Cotrimoxazole 400mg',  '', 8, true, 1);
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1086, 'Cotrimoxazole 120mg', '', 8, true, 1);
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+VALUES (1088, 'AZT(300mg)+3TC(150mg)+DTG(50mg)',  'Zidovudine+Lamivudine+Dolutegravir', 2, true, 1);
+
+INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+VALUES ( 'AZT(300mg)+3TC(150mg)+DTG(50mg)', 'AZT+3TC+DTG');
+
+INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+VALUES ('ARV_REGIMEN', '1z', 'AZT+3TC+DTG', 'Adult 2nd line', '', 'NDR1z0039');

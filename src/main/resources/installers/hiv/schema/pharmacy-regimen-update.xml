@@ -50,4 +50,48 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet failOnError="false" author="Taiwo Gboyegun" id="20251028-001">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="hiv_regimen"/>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM hiv_regimen
+                    WHERE id = 1020 OR description = 'AZT(120mg)+3TC(60mg)+EFV(50mg)'
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sql>
+            DELETE FROM hiv_regimen where description = 'AZT(120mg)+3TC(60mg)+EFV(50mg)'
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Taiwo Gboyegun" id="20251103-002">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="hiv_regimen"/>
+                <not>
+                    <or>
+                        <sqlCheck expectedResult="1">
+                            SELECT COUNT(*) FROM hiv_regimen WHERE id = 1089
+                        </sqlCheck>
+                        <sqlCheck expectedResult="1">
+                            SELECT COUNT(*) FROM hiv_regimen WHERE id = 1090
+                        </sqlCheck>
+                    </or>
+                </not>
+            </and>
+        </preConditions>
+
+        <sql>
+            INSERT INTO hiv_regimen (id, description, composition, regimen_type_id, active, priority)
+            VALUES
+                (1089, 'TDF(300mg)+FTC(200mg)+DRV/r(600mg/100mg)+DTG(50mg)',
+                 'Tenofovir Disoproxil Fumarate+Emtricitabine+Darunavir+Ritonavir+Dolutegravir+Etravirine',
+                 14, true, 1),
+                (1090, 'AZT(300mg)+FTC(200mg)+DRV/r(600mg/100mg)+ETV(200mg)+DTG(50mg)',
+                 'Zidovudine+Emtricitabine+Darunavir+Ritonavir+Etravirine+Dolutegravir',
+                 14, true, 1);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
