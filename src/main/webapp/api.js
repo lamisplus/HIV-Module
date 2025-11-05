@@ -33,6 +33,12 @@ export const wsUrl =
         ? "http://localhost:8789/websocket"
         : "/websocket";
 
+export const audioTranscriptionUrl = process.env.NODE_ENV === "development"
+
+    ? "http://localhost:7860/api/v1"
+
+    : "http://localhost:7860/api/v1";
+
 export const token =
     process.env.NODE_ENV === "development"
         ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJndWVzdEBsYW1pc3BsdXMub3JnIiwiYXV0aCI6IlN1cGVyIEFkbWluLFVzZXIsUkRFIiwibmFtZSI6Ikd1ZXN0IEd1ZXN0IiwiZXhwIjoxNzYyMzQxNzE2fQ.i0F2icPqvS4aqYFa8eTAiJmKW_6k7gb4tnZnGjXMnKoX66qDc8BXbLRNxuh3KoEWJ05gxz4xaoxH6TdMQnALpw":  new URLSearchParams(window.location.search).get("jwt");

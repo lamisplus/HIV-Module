@@ -39,6 +39,8 @@ import { calculate_age_to_number } from "../../../utils";
 import TBScreeningForm from "./TBScreening/Index";
 import DualListBox from "react-dual-listbox";
 // import { resetForm } from "../../../utils/formUtils";
+import ExportRecords from "./ExportRecords";
+import AudioRecorder from "./AudioRecorder";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -1156,6 +1158,8 @@ const ClinicVisit = (props) => {
 
   return (
     <div className={classes.root}>
+      <AudioRecorder  />
+      <ExportRecords />
       <div className="row">
         <div className="col-md-6">
           <h2>Clinic Follow-up Visit</h2>
