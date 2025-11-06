@@ -24,6 +24,7 @@ import useCodesets from "../../../hooks/useCodesets";
 import { toast } from "react-toastify";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 import { calculate_age_to_number } from "../../../utils";
+import Select from "react-select";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -739,17 +740,17 @@ const Pharmacy = (props) => {
       setRegimenTypeTB([]);
     }
   };
-  const handleSelectedRegimenCombination = (e) => {
-    const regimenId = e.target.value;
+  const handleSelectedRegimenCombination = (selectedOption) => {
+    const regimenId = selectedOption ? selectedOption.value : "";
     if (regimenId !== "") {
       RegimenDrug(regimenId);
       setShowRegimen(true);
     } else {
-      setRegimenType([]);
+      // Don't clear regimenType array - just clear the drug list
       RegimenDrug("");
       setShowRegimen(false);
     }
-    setObjValues({ ...objValues, [e.target.name]: e.target.value });
+    setObjValues({ ...objValues, regimenId: regimenId });
   };
   const handleSelectedRegimenCombinationOI = (e) => {
     const regimenId = e.target.value;
@@ -1484,7 +1485,7 @@ const Pharmacy = (props) => {
                   <h4 style={{ color: "#fff" }}>ART DRUGS</h4>
                 </LabelSui>
                 <br />
-                <div className="form-group mb-3 col-xs-5 col-sm-5 col-md-5 col-lg-5">
+                <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                   <FormGroup>
                     <Label>Select Regimen Line </Label>
                     <Input
@@ -1523,30 +1524,38 @@ const Pharmacy = (props) => {
                   </FormGroup>
                 </div>
 
-                <div className="form-group mb-3 col-xs-5 col-sm-5 col-md-5 col-lg-5">
+                <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                   <FormGroup>
                     <Label>Regimen </Label>
 
-                    <Input
-                      type="select"
+                    <Select
                       name="regimenId"
                       id="regimenId"
-                      value={objValues.regimenId}
+                      value={regimenType.find(option => option.value === objValues.regimenId)}
                       onChange={handleSelectedRegimenCombination}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
+                      options={regimenType}
+                      isDisabled={objValues.refillPeriod !== null ? false : true}
+                      placeholder="Search or select regimen..."
+                      isSearchable={true}
+                      isClearable={true}
+                      menuPosition="fixed"
+                      styles={{
+                        control: (baseStyles) => ({
+                          ...baseStyles,
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }),
+                        menu: (baseStyles) => ({
+                          ...baseStyles,
+                          zIndex: 9999,
+                        }),
+                        menuPortal: (baseStyles) => ({
+                          ...baseStyles,
+                          zIndex: 9999,
+                        }),
                       }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
-                    >
-                      <option value="">Select</option>
-
-                      {regimenType.map((value) => (
-                        <option key={value.id} value={value.value}>
-                          {value.label}
-                        </option>
-                      ))}
-                    </Input>
+                      menuPortalTarget={document.body}
+                    />
                   </FormGroup>
                 </div>
 

@@ -35,4 +35,4 @@ export const wsUrl =
 
 export const token =
     process.env.NODE_ENV === "development"
-        ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJndWVzdEBsYW1pc3BsdXMub3JnIiwiYXV0aCI6IlN1cGVyIEFkbWluLFVzZXIsUkRFIiwibmFtZSI6Ikd1ZXN0IEd1ZXN0IiwiZXhwIjoxNzYyMzQxNzE2fQ.i0F2icPqvS4aqYFa8eTAiJmKW_6k7gb4tnZnGjXMnKoX66qDc8BXbLRNxuh3KoEWJ05gxz4xaoxH6TdMQnALpw":  new URLSearchParams(window.location.search).get("jwt");
+        ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJndWVzdEBsYW1pc3BsdXMub3JnIiwiYXV0aCI6IlN1cGVyIEFkbWluLFVzZXIsUkRFIiwibmFtZSI6Ikd1ZXN0IEd1ZXN0IiwiZXhwIjoxNzYyNDQyMjQzfQ.9BCS-nqKcHrHnly9mCNnmWTA4VMFJbP8Iz3rb8fDpd5Ck93E57P97yweE4XR0aXDq3-It5Q3XX3Tc1Q3PivVIQ":  new URLSearchParams(window.location.search).get("jwt");
