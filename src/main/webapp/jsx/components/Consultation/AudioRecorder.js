@@ -515,7 +515,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             formData.append('language', languageSelect);
             formData.append('apply_correction', 'true');
             formData.append('save_transcript', saveForTraining.toString());
-            formData.append('location', "OPD-consultation");
+            formData.append('location', "Care-Card");
             formData.append('patient_id', (patient?.id || 10).toString());
             formData.append('encounter_id', (patient?.visitId || 20).toString());
             formData.append('user_id', (userAccount?.id || '').toString());
@@ -537,7 +537,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             const recordingLength = formatTime(recordingTime);
 
 
-            const newEntry = `\n[Recording ${recordingCount + 1} - ${currentTime} - Duration: ${recordingLength}]\n${result.corrected_transcription || result.raw_transcription}\n`;
+            const newEntry = `\n[Recording ${recordingCount + 1} - ${currentTime} - Duration: ${recordingLength}]\n\n${result.corrected_transcription || result.raw_transcription}\n`;
 
             setAccumulatedTranscription(prev => prev + newEntry);
             setRecordingCount(prev => prev + 1);
@@ -547,8 +547,6 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                 duration: recordingTime,
                 timestamp: currentTime
             }]);
-
-
             resetRecording();
             setError(null);
 
@@ -614,11 +612,11 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
 
     return (
         <>
-            <Tooltip title="Record patient visit note" placement="left">
+            <Tooltip title="Record patient clinical note" placement="left">
                 <div
                     style={{
                         position: 'fixed',
-                        bottom: '32px',
+                        bottom: '90px',
                         right: '32px',
                         zIndex: 1000,
                         backgroundColor: '#004d8a',

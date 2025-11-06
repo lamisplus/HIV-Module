@@ -20,7 +20,7 @@
 
 export const url =
     process.env.NODE_ENV === "development"
-        ? "http://localhost:8789/api/v1/"
+        ? "http://localhost:8383/api/v1/"
         : "/api/v1/";
 
 // export const token =
@@ -30,7 +30,7 @@ export const url =
 
 export const wsUrl =
     process.env.NODE_ENV === "development"
-        ? "http://localhost:8789/websocket"
+        ? "http://localhost:8383/websocket"
         : "/websocket";
 
 export const audioTranscriptionUrl = process.env.NODE_ENV === "development"
@@ -41,4 +41,4 @@ export const audioTranscriptionUrl = process.env.NODE_ENV === "development"
 
 export const token =
     process.env.NODE_ENV === "development"
-        ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJndWVzdEBsYW1pc3BsdXMub3JnIiwiYXV0aCI6IlN1cGVyIEFkbWluLFVzZXIsUkRFIiwibmFtZSI6Ikd1ZXN0IEd1ZXN0IiwiZXhwIjoxNzYyMzQxNzE2fQ.i0F2icPqvS4aqYFa8eTAiJmKW_6k7gb4tnZnGjXMnKoX66qDc8BXbLRNxuh3KoEWJ05gxz4xaoxH6TdMQnALpw":  new URLSearchParams(window.location.search).get("jwt");
+        ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJndWVzdEBsYW1pc3BsdXMub3JnIiwiYXV0aCI6IlN1cGVyIEFkbWluIiwibmFtZSI6Ikd1ZXN0IEd1ZXN0IiwiZXhwIjoxNzYyNDMyMjcxfQ.jdg_6hf8ZjGckSlophMXErypyiChSo8w_PrYrTI59aPwtTQiA84aqbw_9J8F52x38cmlC1bgGNGsI_D2eH3Leg":  new URLSearchParams(window.location.search).get("jwt");

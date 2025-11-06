@@ -28,7 +28,7 @@ import {url as baseUrl, audioTranscriptionUrl} from "../../../api";
 const useStyles = makeStyles((theme) => ({
     floatingButton: {
         position: 'fixed',
-        bottom: '104px', // 32px (AudioRecorder bottom) + 56px (AudioRecorder height) + 16px (gap)
+        bottom: '100px',
         right: '32px',
         zIndex: 1000,
         backgroundColor: '#00796b',
@@ -258,7 +258,7 @@ const ExportRecords = () => {
                 <div
                     style={{
                         position: 'fixed',
-                        bottom: '100px',
+                        bottom: '157px',
                         right: '32px',
                         zIndex: 1000,
                         backgroundColor: '#00796b',

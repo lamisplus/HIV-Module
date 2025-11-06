@@ -41,6 +41,7 @@ import DualListBox from "react-dual-listbox";
 // import { resetForm } from "../../../utils/formUtils";
 import ExportRecords from "./ExportRecords";
 import AudioRecorder from "./AudioRecorder";
+import { format } from "date-fns";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -447,7 +448,7 @@ const ClinicVisit = (props) => {
             : ""
         );
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   const GetCareSupport = () => {
     axios
@@ -459,7 +460,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.type === "Chronic Care")
         );
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //Get the patient current regimen
   const PatientCurrentRegimen = () => {
@@ -474,7 +475,7 @@ const ClinicVisit = (props) => {
         RegimenType(currentRegimenObj.regimenType.id);
         arvDrugObj.regimenDrug = currentRegimenObj.id;
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
   // CRYPTOCOCCAL_SCREENING_STATUS
@@ -486,7 +487,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCryptococcal(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   // CERVICAL_CANCER_SCREENING_STATUS
   const CERVICAL_CANCER_SCREENING_STATUS = () => {
@@ -498,7 +499,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCervicalStatus(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   // CERVICAL_CANCER_TREATMENT
   const CERVICAL_CANCER_TREATMENT = () => {
@@ -509,7 +510,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCervicalTreatment(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   // HEPATITIS_SCREENING_RESULT
   const HEPATITIS_SCREENING_RESULT = () => {
@@ -520,7 +521,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setHepatitis(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   // FAMILY_PLANNING_METHOD
   const FAMILY_PLANNING_METHOD = () => {
@@ -531,20 +532,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setFamilyPlaining(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
-  // PREGANACY_STATUS
-  // const PREGANACY_STATUS = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS	`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setPregnancyStatus(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  //GET VIRAL LOAD INDICATION
+
   const ViraLoadIndication = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
@@ -553,7 +543,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setVLIndication(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
@@ -566,7 +556,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.id === 1 || x.id === 2 || x.id === 14)
         );
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //GET ChildRegimenLine
   const ChildRegimenLine = () => {
@@ -579,7 +569,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.id === 3 || x.id === 4 || x.id === 16)
         );
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //Get list of Test Group
   const TestGroup = () => {
@@ -602,7 +592,7 @@ const ClinicVisit = (props) => {
         });
         setLabTestOptions(testsOptions);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //GET LIST Drug Refill
   async function ClinicVisitList() {
@@ -653,7 +643,7 @@ const ClinicVisit = (props) => {
         setGetPatientObj(response.data);
         patientObj = response.data;
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
 
   //Get list of WhoStaging
@@ -670,10 +660,12 @@ const ClinicVisit = (props) => {
       }
     }
   };
+
   const handleInputChangeRegimenLine = (e) => {
     const regimenId = e.target.value;
     setArvDrugObj({ ...arvDrugObj, [e.target.name]: e.target.value });
   };
+
   const handleInputChangeRegimen = (e) => {
     const regimenId = e.target.value;
     setArvDrugObj({ ...arvDrugObj, [e.target.name]: e.target.value });
@@ -690,7 +682,7 @@ const ClinicVisit = (props) => {
         if (response.data) {
           setRegimenTypeObj(response.data);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     getCharacters();
   }
@@ -927,8 +919,8 @@ const ClinicVisit = (props) => {
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
-  
-      if (patientAge >= 10 && patientObj.sex === "Female") {
+
+    if (patientAge >= 10 && patientObj.sex === "Female") {
       temp.pregnancyStatus = objValues.pregnancyStatus
         ? ""
         : "This field is required";
@@ -956,7 +948,7 @@ const ClinicVisit = (props) => {
       (x) => x.id === parseInt(e.target.value)
     );
     setTest(getTestList[0].labTests);
-  
+
   };
   const handleInputChangeTest = (e) => {
     setErrors({ ...temp, [e.target.name]: "" }); //reset the error message to empty once the field as value
@@ -991,6 +983,26 @@ const ClinicVisit = (props) => {
       objValues.viralLoadOrder = testOrderList;
       objValues.arvdrugsRegimen = arvDrugOrderList;
       objValues["vitalSignDto"] = vital;
+      const userAccount = JSON.parse(localStorage.getItem('user_account'));
+      if (transcriptionProcess?.save_transcript) {
+        try {
+          await handleSaveUsertranscriptFinalDraft(transcriptionProcess.recording_uuid, {
+            user_edited_transcription: objValues?.clinicalNote,
+            transcription_text: transcriptionProcess.corrected_transcription,
+            user_id: userAccount.id,
+            recording_uuid: transcriptionProcess.recording_uuid
+          })
+  
+          // toast.success("Transcription and form saved", {
+          //   position: toast.POSITION.TOP_RIGHT,
+          // });
+        } catch (error) {
+          console.log("Updating transription failed")
+          // toast.error("Error saving Transcription and Form", {
+          //   position: toast.POSITION.TOP_RIGHT,
+          // });
+        }
+      }
 
       const response = await axios.post(`${baseUrl}hiv/art/clinic-visit/`, objValues, {
         headers: { Authorization: `Bearer ${token}` },
@@ -999,7 +1011,7 @@ const ClinicVisit = (props) => {
       PatientDetailId();
       props.ClinicVisitListHistory();
       setSaving(false);
-      
+
       toast.success("Clinic Visit (Care card) saved successfully", {
         position: toast.POSITION.BOTTOM_CENTER,
       });
@@ -1041,7 +1053,7 @@ const ClinicVisit = (props) => {
       }
     }
   };
-  
+
   const resetForm = () => {
     setWho({
       stage: "",
@@ -1156,9 +1168,60 @@ const ClinicVisit = (props) => {
   //   setCareSupportTb("Presumptive TB");
   // }
 
+  const [transcriptionProcess, setTranscriptionProcess] = useState(null)
+
+
+  const handleTranscriptionComplete = (result) => {
+    const currentDate = new Date();
+    const formattedDate = format(currentDate, "EEEE do MMMM, h:mma");
+
+    const transcriptionHeader = `Voice Transcription - ${formattedDate}\nTotal Recordings: ${result.recording_count} | Duration: ${Math.floor(result.total_duration / 60)}:${(result.total_duration % 60).toString().padStart(2, '0')}\n`;
+
+    const transcriptionFooter = `\n=========================END Transcription=================\n`;
+    const transcriptionContent = (result.corrected_transcription || '')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .map(line => `\n${line}\n`)
+      .join('');
+
+    const fullTranscription = transcriptionHeader + transcriptionContent + transcriptionFooter;
+    setObjValues(prevBody => ({
+      ...prevBody,
+      clinicalNote: fullTranscription
+    }));
+    setTranscriptionProcess(result)
+  };
+
+
+  const handleSaveUsertranscriptFinalDraft = async (recordingUuid, updates) => {
+    try {
+      const formData = new FormData();
+      formData.append('user_edited_transcription', updates.user_edited_transcription);
+      formData.append('transcription_text', updates.transcription_text);
+      formData.append('user_id', updates.user_id);
+
+      const response = await axios.put(
+        `${audioTranscriptionUrl}/recordings/${recordingUuid}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.detail || err.message || 'Update failed';
+      console.error('Update error:', errorMessage);
+      throw err;
+    }
+  };
+
+
   return (
     <div className={classes.root}>
-      <AudioRecorder  />
+      <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} patient={props.patientObj} />
       <ExportRecords />
       <div className="row">
         <div className="col-md-6">
@@ -1197,11 +1260,10 @@ const ClinicVisit = (props) => {
                               <Accordion.Toggle
                                 as={Card.Text}
                                 eventKey={`${i}`}
-                                className={`accordion-header ${
-                                  activeAccordionHeaderShadow === 1
+                                className={`accordion-header ${activeAccordionHeaderShadow === 1
                                     ? ""
                                     : "collapsed"
-                                } accordion-header-info`}
+                                  } accordion-header-info`}
                                 onClick={() =>
                                   setActiveAccordionHeaderShadow(
                                     activeAccordionHeaderShadow === 1 ? -1 : i
@@ -1247,7 +1309,7 @@ const ClinicVisit = (props) => {
                                       )}
                                     {visit.vitalSignDto &&
                                       visit.vitalSignDto.respiratoryRate !==
-                                        null && (
+                                      null && (
                                         <List.Item
                                           style={{
                                             paddingBottom: "10px",
@@ -1272,7 +1334,7 @@ const ClinicVisit = (props) => {
                                       )}
                                     {visit.vitalSignDto &&
                                       visit.vitalSignDto.temperature !==
-                                        null && (
+                                      null && (
                                         <List.Item
                                           style={{
                                             paddingBottom: "10px",
@@ -1336,7 +1398,7 @@ const ClinicVisit = (props) => {
                                       )}
                                     {visit.vitalSignDto &&
                                       visit.vitalSignDto.bodyWeight !==
-                                        null && (
+                                      null && (
                                         <List.Item
                                           style={{
                                             paddingBottom: "10px",
@@ -1439,11 +1501,10 @@ const ClinicVisit = (props) => {
                               <Accordion.Toggle
                                 as={Card.Text}
                                 eventKey={`${i}`}
-                                className={`accordion-header ${
-                                  activeAccordionHeaderShadow === 1
+                                className={`accordion-header ${activeAccordionHeaderShadow === 1
                                     ? ""
                                     : "collapsed"
-                                } accordion-header-info`}
+                                  } accordion-header-info`}
                                 onClick={() =>
                                   setActiveAccordionHeaderShadow(
                                     activeAccordionHeaderShadow === 1 ? -1 : i
@@ -2038,7 +2099,7 @@ const ClinicVisit = (props) => {
                 className="form-control"
                 value={objValues.clinicalNote}
                 onChange={handleInputChange}
-                style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                style={{ border: "1px solid #014D88", borderRadius: "0.25rem", height: "200px" }}
               ></textarea>
               {errors.clinicalNote !== "" ? (
                 <span className={classes.error}>{errors.clinicalNote}</span>
@@ -2856,21 +2917,21 @@ function TestOrdersList({
   const vLIndication =
     vLIndicationObj.length > 0
       ? vLIndicationObj.find(
-          (x) => x.code === order.viralLoadIndication
-        )
+        (x) => x.code === order.viralLoadIndication
+      )
       : {};
 
   return (
     <tr>
       <th>
         {testGroupName.groupName == "Others" &&
-        testName.labTestName === "Viral Load"
+          testName.labTestName === "Viral Load"
           ? testName.labTestName
           : testGroupName.groupName}
       </th>
       <th>
         {testGroupName.groupName === "Others" &&
-        testName.labTestName === "Viral Load"
+          testName.labTestName === "Viral Load"
           ? vLIndication.display
           : testName.labTestName}
       </th>
