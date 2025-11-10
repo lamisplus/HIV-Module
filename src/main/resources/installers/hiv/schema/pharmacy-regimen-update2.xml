@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet failOnError="false" author="Taiwo Gboyegun" id="20251105-002">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="hiv_regimen"/>
+                <or>
+                    <sqlCheck expectedResult="3">
+                        SELECT COUNT(*) FROM hiv_regimen WHERE id IN (1086,1089,1090)
+                    </sqlCheck>
+                </or>
+            </and>
+        </preConditions>
+
+        <sql>
+            UPDATE hiv_regimen
+            SET active = false
+            WHERE id IN (1086,1089,1090);
+        </sql>
+    </changeSet>
+
+    <changeSet author="Taiwo Gboyegun" id="20251107-002">
+        <sqlFile dbms="postgresql"
+                 path="sql/insertNewRegimen2.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="false"
+                 stripComments="true"/>
+    </changeSet>
+
+    <changeSet failOnError="false" author="Taiwo Gboyegun" id="20251107-001">
+        <preConditions onFail="CONTINUE">
+            <and>
+                <tableExists tableName="hiv_regimen"/>
+                <sqlCheck expectedResult="1">
+                    SELECT CASE WHEN COUNT(*) >= 1 THEN 1 ELSE 0 END
+                    FROM hiv_regimen
+                    WHERE description IN (
+                    'Isoniazid/Rifampicin (3HR)',
+                    'Isoniazid and Rifapentine-(3HP)',
+                    'Isoniazid-(INH) 300mg',
+                    'Isoniazid 100mg',
+                    'Isoniazid(300mg)/Pyridoxine(25mg)/Cotrimoxazole(960mg)',
+                    'Cotrimoxazole/Isoniazid/Pyridoxine Fixed Dose (CTX/INH/B6 FDC)-(QTIP)',
+                    'Ethambuthol/Isoniazid 400/150mg'
+                    );
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sql>
+            --------------------------------------- Isoniazid Preventive Therapy (IPT) ---------------------------------------
+
+            --Isoniazid and Rifampicin-(3HR)
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Isoniazid/Rifampicin (3HR)', 'INH+RIF(3HR)');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('TB_REGIMEN', 'ISF3HR', 'INH+RIF(3HR)', 'Isoniazid Preventive Therapy (IPT)', '', 'NDRISF3HR0206');
+
+            -- Isoniazid and Rifapentine-(3HP)
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Isoniazid and Rifapentine-(3HP)', 'INH+RIF(3HP)');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('TB_REGIMEN', 'ISF3HP', 'INH+RIF(3HP)', 'Isoniazid Preventive Therapy (IPT)', '', 'NDRISF3HP0206');
+
+            --Isoniazid 300mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Isoniazid-(INH) 300mg', 'INH300');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('TB_REGIMEN', 'H', 'INH300', 'Isoniazid Preventive Therapy (IPT)', '', 'NDRH0190');
+
+            --Isoniazid 100mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Isoniazid 100mg', 'INH100');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('TB_REGIMEN', 'H', 'INH100', 'Isoniazid Preventive Therapy (IPT)', '', 'NDRH0190');
+
+            --Isoniazid(300mg)/Pyridoxine(25mg)/Cotrimoxazole(960mg)
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Isoniazid(300mg)/Pyridoxine(25mg)/Cotrimoxazole(960mg)', 'CTX+INH+PYR');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('TB_REGIMEN', 'CIP96030025', 'CTX+INH+PYR', 'Isoniazid Preventive Therapy (IPT)', '', 'NDRCIP960300250206');
+
+            --Cotrimoxazole/Isoniazid/Pyridoxine Fixed Dose (CTX/INH/B6 FDC)-(QTIP)
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Cotrimoxazole/Isoniazid/Pyridoxine Fixed Dose (CTX/INH/B6 FDC)-(QTIP)', 'CTX+INH+PYR(QTIP)');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('OI_REGIMEN', 'CIP96030025', 'CTX+INH+PYR(QTIP)', 'Isoniazid Preventive Therapy (IPT)', '', 'NDRCIP960300250206');
+
+            --Ethambuthol/Isoniazid 400/150mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Ethambuthol/Isoniazid 400/150mg', 'INH+ETH');
+
+            -- FIXED: Removed leading space from code value
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('TB_REGIMEN', 'HE', 'INH+ETH', 'TB Treatment Adult', '', 'NDRHE0195');
+
+            --Rifampicin/Isoniazid 150/75mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Rifampicin/Isoniazid 150/75mg', 'INH+RIF');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('TB_REGIMEN', 'HR', 'INH+RIF', 'TB Treatment Adult', '', 'NDRHR0196');
+
+            --Rifampicin/Isoniazid/Pyrazinamide/Ethambuthol 150/75/400/275mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Rifampicin/Isoniazid/Pyrazinamide/Ethambuthol 150/75/400/275mg', 'INH+RIF+PZI+ETH');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('TB_REGIMEN', 'HRZE', 'INH+RIF+PZI+ETH', 'TB Treatment Adult', '', 'NDRHRZE0198');
+
+
+            --------------------------------------- TB Treatment Children ---------------------------------------
+
+            --Rifampicin/Isoniazid 60/30mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Rifampicin/Isoniazid 60/30mg', 'INH+RIF');
+
+            -- FIXED: Removed leading space from code value
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('TB_REGIMEN', 'HR', 'INH+RIF', 'TB Treatment Children', '', 'NDRHR0196');
+
+            --------------------------------------- Cotrimoxazole (CTX) Prophylaxis ---------------------------------------
+
+            --Cotrimoxazole 960mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Cotrimoxazole 960mg', 'CTX960');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('OI_REGIMEN', 'CTX960', 'CTX960', 'Cotrimoxazole (CTX) Prophylaxis', '', 'NDRCTX9600182');
+
+
+            --Cotrimoxazole 800mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Cotrimoxazole 800mg', 'CTX800');
+
+            -- FIXED: Removed leading space from code value
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('OI_REGIMEN', 'CTX800', 'CTX800', 'Cotrimoxazole (CTX) Prophylaxis', '', 'NDRCTX8000183');
+
+            --Cotrimoxazole 480mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Cotrimoxazole 480mg', 'CTX480');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('OI_REGIMEN', 'CTX480', 'CTX480', 'Cotrimoxazole (CTX) Prophylaxis', '', 'NDRCTX4800184');
+
+            --Cotrimoxazole 400mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Cotrimoxazole 400mg', 'CTX400');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('OI_REGIMEN', 'CTX400', 'CTX400', 'Cotrimoxazole (CTX) Prophylaxis', '', 'NDRCTX4000185');
+
+            --Cotrimoxazole 240mg/5ml
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Cotrimoxazole 240mg/5ml', 'CTX240');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('OI_REGIMEN', 'CTX240', 'CTX240', 'Cotrimoxazole (CTX) Prophylaxis', '', 'NDRCTX2400186');
+
+            --------------------------------------- OI Treatment ---------------------------------------
+
+            --Fluconazole 50mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Fluconazole 50mg', 'FLUC');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('OI_REGIMEN', 'FLUC', 'FLUC', 'OI Treatment', '', 'NDRFLUC0187');
+
+
+            --Fluconazole 50mg/5ml
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Fluconazole 50mg/5ml', 'FLUC');
+
+
+            --Fluconazole 200mg
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Fluconazole 200mg', 'FLUC');
+
+
+            --Nystatin 100,000iu/ml
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Nystatin 100,000iu/ml', 'NYS');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('OI_REGIMEN', 'NYS', 'NYS', 'OI Treatment', '', 'NDRNYS0206');
+
+            --Nystatin 500,000iu
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES ('Nystatin 500,000iu', 'NYS');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('ARV_REGIMEN', '1c', 'ABC+3TC(or FTC)+DTG', 'Paediatric 1st Line', '', 'NDR1c0009');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
