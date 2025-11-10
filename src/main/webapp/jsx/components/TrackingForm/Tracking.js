@@ -89,14 +89,16 @@ const CODESET_KEYS = [
   "VA_ADULT_CAUSES",
   "VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES",
   "VA_ADULT_CAUSES_INJURIES",
+  "VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES_J44_CHRONIC_RESPIRATORY_DISEASE",
+  "VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES_C50_BREAST_CANCER",
   "VA_CHILD_CAUSES",
-  "VA_CHILD_CAUSES_NON_COMMUNICABLE_DISEASES",
+  "VA_CHILD_CAUSES_NON-COMMUNICABLE_DISEASES",
   "VA_CHILD_CAUSES_INJURIES",
   "VA_NEONATE_CAUSES",
   "REASON_DEFAULTING",
   "REASON_DISCONTINUATION",
   "BIOMETRIC_STATUS",
-  "CAUSE_DEATH",
+  "CAUSE_DEATH"
 ];
 
 const Tracking = (props) => {
@@ -189,7 +191,7 @@ const Tracking = (props) => {
         //
       })
       .catch((error) => {
-        
+
       });
   };
   // CALULATE ART DURATION IN MONTHS
@@ -323,7 +325,7 @@ const Tracking = (props) => {
   });
   const [attemptList, setAttemptList] = useState([]);
   const handleInputChangeAttempt = (e) => {
-    
+
     setErrors({ ...temp, [e.target.name]: "" });
     setAttempt({ ...attempt, [e.target.name]: e.target.value });
   };
@@ -506,7 +508,7 @@ const Tracking = (props) => {
           objValues.statusTracker.hivStatus = objValues.reasonForDiscountinuation;
         }
 
-        
+
         setSaving(true);
 
         axios
@@ -515,7 +517,7 @@ const Tracking = (props) => {
           })
           .then((response) => {
             setSaving(false);
-            
+
             toast.success("Tracking from save successfully", {
               position: toast.POSITION.BOTTOM_CENTER,
             });
@@ -524,13 +526,13 @@ const Tracking = (props) => {
               route: "tracking-form",
               activeTab: "history",
             });
-          
+
             if (objValues.reasonForDiscountinuation === "Death") {
               history.push("/");
             }
           })
           .catch((error) => {
-            
+
             setSaving(false);
             if (error.response && error.response.data) {
               let errorMessage =
@@ -571,7 +573,7 @@ const Tracking = (props) => {
     }
   };
 
-  
+
 
   return (
     <div>
@@ -1333,7 +1335,13 @@ const Tracking = (props) => {
                                 }}
                             >
                               <option value="">Select</option>
-                              {getOptions("VA_ADULT_CAUSES").map((value) => (
+                              {[
+                                ...getOptions("VA_ADULT_CAUSES"),
+                                ...getOptions("VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES"),
+                                  ...getOptions("VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES_J44_CHRONIC_RESPIRATORY_DISEASE"),
+                                  ...getOptions("VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES_C50_BREAST_CANCER"),
+                                ...getOptions("VA_ADULT_CAUSES_INJURIES")
+                              ].map((value) => (
                                   <option key={value.code} value={value.display}>
                                     {value.display}
                                   </option>
@@ -1439,7 +1447,11 @@ const Tracking = (props) => {
                                 }}
                             >
                               <option value="">Select</option>
-                              {getOptions("VA_CHILD_CAUSES").map((value) => (
+                              {[
+                                ...getOptions("VA_CHILD_CAUSES"),
+                                ...getOptions("VA_CHILD_CAUSES_NON-COMMUNICABLE_DISEASES"),
+                                ...getOptions("VA_CHILD_CAUSES_INJURIES")
+                              ].map((value) => (
                                   <option key={value.code} value={value.display}>
                                     {value.display}
                                   </option>
