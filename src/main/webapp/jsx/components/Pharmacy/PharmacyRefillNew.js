@@ -20,9 +20,11 @@ import moment from "moment";
 import { Spinner } from "reactstrap";
 
 import { url as baseUrl, token } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import { toast } from "react-toastify";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 import { calculate_age_to_number } from "../../../utils";
+import Select from "react-select";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -65,10 +67,17 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
+
+const CODESET_KEYS = [
+  "IPT_TYPE",
+  "PREP_SIDE_EFFECTS",
+];
+
 let refillPeriodValue = null;
 
 const Pharmacy = (props) => {
   const patientObj = props.patientObj;
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [selectedCombinedRegimen, setSelectedCombinedRegimen] = useState([]);
   const [enrollDate, setEnrollDate] = useState("");
   const classes = useStyles();
@@ -77,7 +86,6 @@ const Pharmacy = (props) => {
   let temp = { ...errors };
   const [selectedOption, setSelectedOption] = useState([]);
   const [selectedOptionAdr, setSelectedOptionAdr] = useState();
-  const [prepSideEffect, setPrepSideEffect] = useState([]);
   const [dsdModelType, setDsdModelType] = useState([]);
   const [mmdType, setmmdType] = useState();
   const [showmmdType, setShowmmdType] = useState(false);
@@ -157,10 +165,8 @@ const Pharmacy = (props) => {
   });
   useEffect(() => {
     RegimenLine();
-    PrepSideEffect();
     VitalSigns();
     AdultRegimenLine();
-    IPT_TYPE();
     PatientCurrentRegimen();
     OtherDrugs();
     setRegimenList(
@@ -358,17 +364,6 @@ const Pharmacy = (props) => {
     }
   };
 
-  const IPT_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/IPT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setIPT_TYPE(response.data);
-      })
-      .catch((error) => {});
-  };
-  //IPT_TYPE
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
     axios
@@ -431,21 +426,11 @@ const Pharmacy = (props) => {
       })
       .catch((error) => {});
   };
-  //Get list of PrepSideEffect
-  const PrepSideEffect = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPrepSideEffect(
-          Object.entries(response.data).map(([key, value]) => ({
-            label: value.display,
-            value: value.id,
-          }))
-        );
-      })
-      .catch((error) => {});
+  const getFormattedPrepSideEffects = () => {
+    return getOptions("PREP_SIDE_EFFECTS").map(item => ({
+      label: item.display,
+      value: item.id,
+    }));
   };
 
   //Get list of DSD Model Type
@@ -755,17 +740,17 @@ const Pharmacy = (props) => {
       setRegimenTypeTB([]);
     }
   };
-  const handleSelectedRegimenCombination = (e) => {
-    const regimenId = e.target.value;
+  const handleSelectedRegimenCombination = (selectedOption) => {
+    const regimenId = selectedOption ? selectedOption.value : "";
     if (regimenId !== "") {
       RegimenDrug(regimenId);
       setShowRegimen(true);
     } else {
-      setRegimenType([]);
+      // Don't clear regimenType array - just clear the drug list
       RegimenDrug("");
       setShowRegimen(false);
     }
-    setObjValues({ ...objValues, [e.target.name]: e.target.value });
+    setObjValues({ ...objValues, regimenId: regimenId });
   };
   const handleSelectedRegimenCombinationOI = (e) => {
     const regimenId = e.target.value;
@@ -1500,7 +1485,7 @@ const Pharmacy = (props) => {
                   <h4 style={{ color: "#fff" }}>ART DRUGS</h4>
                 </LabelSui>
                 <br />
-                <div className="form-group mb-3 col-xs-5 col-sm-5 col-md-5 col-lg-5">
+                <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                   <FormGroup>
                     <Label>Select Regimen Line </Label>
                     <Input
@@ -1539,30 +1524,38 @@ const Pharmacy = (props) => {
                   </FormGroup>
                 </div>
 
-                <div className="form-group mb-3 col-xs-5 col-sm-5 col-md-5 col-lg-5">
+                <div className="form-group mb-3 col-xs-6 col-sm-6 col-md-6 col-lg-6">
                   <FormGroup>
                     <Label>Regimen </Label>
 
-                    <Input
-                      type="select"
+                    <Select
                       name="regimenId"
                       id="regimenId"
-                      value={objValues.regimenId}
+                      value={regimenType.find(option => option.value === objValues.regimenId)}
                       onChange={handleSelectedRegimenCombination}
-                      style={{
-                        border: "1px solid #014D88",
-                        borderRadius: "0.25rem",
+                      options={regimenType}
+                      isDisabled={objValues.refillPeriod !== null ? false : true}
+                      placeholder="Search or select regimen..."
+                      isSearchable={true}
+                      isClearable={true}
+                      menuPosition="fixed"
+                      styles={{
+                        control: (baseStyles) => ({
+                          ...baseStyles,
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }),
+                        menu: (baseStyles) => ({
+                          ...baseStyles,
+                          zIndex: 9999,
+                        }),
+                        menuPortal: (baseStyles) => ({
+                          ...baseStyles,
+                          zIndex: 9999,
+                        }),
                       }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
-                    >
-                      <option value="">Select</option>
-
-                      {regimenType.map((value) => (
-                        <option key={value.id} value={value.value}>
-                          {value.label}
-                        </option>
-                      ))}
-                    </Input>
+                      menuPortalTarget={document.body}
+                    />
                   </FormGroup>
                 </div>
 
@@ -1942,7 +1935,7 @@ const Pharmacy = (props) => {
                       >
                         <option value="">Select</option>
 
-                        {iptType.map((value) => (
+                        {getOptions("IPT_TYPE").map((value) => (
                           <option key={value.id} value={value.code}>
                             {value.display}
                           </option>

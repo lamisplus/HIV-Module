@@ -27,6 +27,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import { toast } from "react-toastify";
 import { Alert } from "react-bootstrap";
 import { Icon, Button } from "semantic-ui-react";
+import useCodesets from '../../../hooks/useCodesets';
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -70,7 +71,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = ["TEST_ORDER_PRIORITY", "VIRAL_LOAD_INDICATION"];
 const Laboratory = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   let visitId = "";
   const patientObj = props.patientObj;
   const enrollDate =
@@ -107,8 +110,8 @@ const Laboratory = (props) => {
     CheckLabModule();
 
     TestGroup();
-    PriorityOrder();
-    ViraLoadIndication();
+    // PriorityOrder();
+    // ViraLoadIndication();
    
   }, [props.patientObj.id]);
   
@@ -123,16 +126,16 @@ const Laboratory = (props) => {
       .catch((error) => {});
   };
   
-  const PriorityOrder = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TEST_ORDER_PRIORITY`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPriority(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const PriorityOrder = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/TEST_ORDER_PRIORITY`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setPriority(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   
   const CheckLabModule = () => {
     axios
@@ -151,16 +154,16 @@ const Laboratory = (props) => {
       .catch((error) => {});
   };
   
-  const ViraLoadIndication = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setVLIndication(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const ViraLoadIndication = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setVLIndication(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   const handleSelectedTestGroup = (e) => {
     setTests({ ...tests, labTestGroupId: e.target.value });
     const getTestList = testGroup.filter(
@@ -422,7 +425,9 @@ const Laboratory = (props) => {
                               index={index}
                               order={tests}
                               testGroupObj={testGroup}
-                              vLIndicationObj={vLIndication}
+                              vLIndicationObj={getOptions(
+                                "VIRAL_LOAD_INDICATION"
+                              )}
                               removeOrder={removeOrder}
                             />
                           ))}
@@ -558,16 +563,16 @@ const Laboratory = (props) => {
                     <FormGroup>
                       <Label for="priority">Comment</Label>
                       <Input
-                          type="textarea"
-                          name="comments"
-                          id="comments"
-                          value={tests.comments}
-                          onChange={handleInputChange}
-                          style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                      >
-
-                      </Input>
-
+                        type="textarea"
+                        name="comments"
+                        id="comments"
+                        value={tests.comments}
+                        onChange={handleInputChange}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                      ></Input>
                     </FormGroup>
                   </Col>
                 </div>

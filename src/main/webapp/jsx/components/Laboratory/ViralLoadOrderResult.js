@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import { Alert } from "react-bootstrap";
 import { Icon, Button } from "semantic-ui-react";
 import { queryClient } from "../../../utils/queryClient";
+import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -71,6 +72,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "TEST_ORDER_PRIORITY",
+  "VIRAL_LOAD_INDICATION"
+];
+
 const Laboratory = (props) => {
   let visitId = "";
   const patientObj = props.patientObj;
@@ -79,6 +85,7 @@ const Laboratory = (props) => {
       ? patientObj.artCommence.visitDate
       : null;
   const classes = useStyles();
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [buttonHidden, setButtonHidden] = useState(false);
@@ -86,9 +93,7 @@ const Laboratory = (props) => {
   const [testGroup, setTestGroup] = useState([]);
   const [test, setTest] = useState([]);
   const [vlRequired, setVlRequired] = useState(false);
-  const [priority, setPriority] = useState([]);
   //const [currentVisit, setCurrentVisit]=useState(true)
-  const [vLIndication, setVLIndication] = useState([]);
   const [testOrderList, setTestOrderList] = useState([]); //Test Order List
   const [showVLIndication, setShowVLIndication] = useState(false);
   let temp = { ...errors };
@@ -109,8 +114,6 @@ const Laboratory = (props) => {
     CheckLabModule();
 
     TestGroup();
-    PriorityOrder();
-    ViraLoadIndication();
     //PatientVisit();
   }, [props.patientObj.id]);
 
@@ -122,17 +125,6 @@ const Laboratory = (props) => {
       })
       .then((response) => {
         setTestGroup(response.data);
-      })
-      .catch((error) => {});
-  };
-  //Get list of Test Group
-  const PriorityOrder = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TEST_ORDER_PRIORITY`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPriority(response.data);
       })
       .catch((error) => {});
   };
@@ -155,16 +147,6 @@ const Laboratory = (props) => {
       .catch((error) => {});
   };
 
-  const ViraLoadIndication = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setVLIndication(response.data);
-      })
-      .catch((error) => {});
-  };
   const handleSelectedTestGroup = (e) => {
     setTests({ ...tests, labTestGroupId: e.target.value });
     const getTestList = testGroup.filter(
@@ -997,7 +979,7 @@ const Laboratory = (props) => {
                           >
                             <option value="">Select </option>
 
-                            {vLIndication.map((value) => (
+                            {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
                               <option key={value.id} value={value.id}>
                                 {value.display}
                               </option>

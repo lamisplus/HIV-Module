@@ -21,6 +21,7 @@ import ADR from "./ADR/Index";
 import OpportunisticInfection from "./OpportunisticInfection/Index";
 import TBScreening from "./TBScreening/Index";
 import { url as baseUrl, token } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import MatButton from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
 import SaveIcon from "@material-ui/icons/Save";
@@ -38,6 +39,9 @@ import { calculate_age_to_number } from "../../../utils";
 import TBScreeningForm from "./TBScreening/Index";
 import DualListBox from "react-dual-listbox";
 // import { resetForm } from "../../../utils/formUtils";
+import ExportRecords from "./ExportRecords";
+import AudioRecorder from "./AudioRecorder";
+import { format } from "date-fns";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -112,13 +116,34 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "CRYPTOCOCCAL_SCREENING_STATUS",
+  "CERVICAL_CANCER_SCREENING_STATUS",
+  "CERVICAL_CANCER_TREATMENT",
+  "HEPATITIS_SCREENING_RESULT",
+  "FAMILY_PLANNING_METHOD",
+  "PREGNANCY_STATUS",
+  "VIRAL_LOAD_INDICATION",
+  "CLINICAL_STAGE",
+  "TB_STATUS",
+  "FUNCTIONAL _STATUS",
+  "PrEP_LEVEL_OF_ADHERENCE",
+];
+
 const ClinicVisit = (props) => {
   let visitId = "";
   let patientObj = props.patientObj ? props.patientObj : {};
+  const { getOptions } = useCodesets(CODESET_KEYS);
+
+  // Helper function to get filtered pregnancy status (exclude "Post Partum")
+  const getFilteredPregnancyStatus = () => {
+    return getOptions("PREGNANCY_STATUS").filter(
+      (status) => status.display !== "Post Partum"
+    );
+  };
 
   const [errors, setErrors] = useState({});
   const [clinicVisitList, setClinicVisitList] = useState([]);
-  const [vLIndication, setVLIndication] = useState([]);
   const [testOrderList, setTestOrderList] = useState([]); //Test Order List
   const [loading, setLoading] = useState(true);
   const [activeAccordionHeaderShadow, setActiveAccordionHeaderShadow] =
@@ -128,12 +153,8 @@ const ClinicVisit = (props) => {
   const classes = useStyles();
   const [getPatientObj, setGetPatientObj] = useState({});
   const [saving, setSaving] = useState(false);
-  const [clinicalStage, setClinicalStage] = useState([]);
-  const [functionalStatus, setFunctionalStatus] = useState([]);
-  const [adherenceLevel, setAdherenceLevel] = useState([]);
   const [testGroup, setTestGroup] = useState([]);
   const [test, setTest] = useState([]);
-  const [tbStatus, setTbStatus] = useState([]);
   const [adultRegimenLine, setAdultRegimenLine] = useState([]);
   const [childRegimenLine, setChildRegimenLine] = useState([]);
   const [regimenTypeObj, setRegimenTypeObj] = useState([]);
@@ -151,12 +172,6 @@ const ClinicVisit = (props) => {
   const [adrObj, setAdrObj] = useState({ adr: "", adrOnsetDate: "" });
   const [adrList, setAdrList] = useState([]);
   const [arvDrugOrderList, setarvDrugOrderList] = useState([]);
-  const [cryptococcal, setCryptococcal] = useState([]);
-  const [cervicalStatus, setCervicalStatus] = useState([]);
-  const [cervicalTreatment, setCervicalTreatment] = useState([]);
-  const [hepatitis, setHepatitis] = useState([]);
-  const [pregnancyStatus, setPregnancyStatus] = useState([]);
-  const [familyPlaining, setFamilyPlaining] = useState([]);
   const [enrollDate, setEnrollDate] = useState("");
   const [loadClinicHistory, setLoadClinicHistory] = useState(true);
   const [loadVitalHistory, setLoadVitalHistory] = useState(true);
@@ -408,30 +423,17 @@ const ClinicVisit = (props) => {
     /**major duallist imported end here */
   }
   useEffect(() => {
-    FunctionalStatus();
-    WhoStaging();
-    AdherenceLevel();
-    TBStatus();
     VitalSigns();
     PatientDetailId();
-    ViraLoadIndication();
     TestGroup();
     AdultRegimenLine();
     ChildRegimenLine();
-    CRYPTOCOCCAL_SCREENING_STATUS();
-    CERVICAL_CANCER_SCREENING_STATUS();
-    CERVICAL_CANCER_TREATMENT();
-    HEPATITIS_SCREENING_RESULT();
-    // PREGANACY_STATUS();
-    PREGNANCY_STATUS();
-    FAMILY_PLANNING_METHOD();
     GetPatientDTOObj();
     PatientCurrentRegimen();
     GetCareSupport();
     if (props.patientObj.id) {
       ClinicVisitList();
     }
-    //hiv/patient/3
   }, [props.patientObj]);
   const GetPatientDTOObj = () => {
     axios
@@ -446,7 +448,7 @@ const ClinicVisit = (props) => {
             : ""
         );
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   const GetCareSupport = () => {
     axios
@@ -458,7 +460,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.type === "Chronic Care")
         );
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //Get the patient current regimen
   const PatientCurrentRegimen = () => {
@@ -473,7 +475,7 @@ const ClinicVisit = (props) => {
         RegimenType(currentRegimenObj.regimenType.id);
         arvDrugObj.regimenDrug = currentRegimenObj.id;
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
   // CRYPTOCOCCAL_SCREENING_STATUS
@@ -485,7 +487,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCryptococcal(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   // CERVICAL_CANCER_SCREENING_STATUS
   const CERVICAL_CANCER_SCREENING_STATUS = () => {
@@ -497,7 +499,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCervicalStatus(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   // CERVICAL_CANCER_TREATMENT
   const CERVICAL_CANCER_TREATMENT = () => {
@@ -508,7 +510,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setCervicalTreatment(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   // HEPATITIS_SCREENING_RESULT
   const HEPATITIS_SCREENING_RESULT = () => {
@@ -519,7 +521,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setHepatitis(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   // FAMILY_PLANNING_METHOD
   const FAMILY_PLANNING_METHOD = () => {
@@ -530,36 +532,9 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setFamilyPlaining(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
-  // PREGANACY_STATUS
-  // const PREGANACY_STATUS = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS	`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setPregnancyStatus(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  const PREGNANCY_STATUS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        // Filter out "Post Partum" from the response.data array
-        const filteredData = response.data.filter(
-          (status) => status.display !== "Post Partum"
-        );
-        setPregnancyStatus(filteredData);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-  //GET VIRAL LOAD INDICATION
+
   const ViraLoadIndication = () => {
     axios
       .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`, {
@@ -568,7 +543,7 @@ const ClinicVisit = (props) => {
       .then((response) => {
         setVLIndication(response.data);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
@@ -581,7 +556,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.id === 1 || x.id === 2 || x.id === 14)
         );
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //GET ChildRegimenLine
   const ChildRegimenLine = () => {
@@ -594,7 +569,7 @@ const ClinicVisit = (props) => {
           response.data.filter((x) => x.id === 3 || x.id === 4 || x.id === 16)
         );
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //Get list of Test Group
   const TestGroup = () => {
@@ -617,7 +592,7 @@ const ClinicVisit = (props) => {
         });
         setLabTestOptions(testsOptions);
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
   //GET LIST Drug Refill
   async function ClinicVisitList() {
@@ -668,55 +643,13 @@ const ClinicVisit = (props) => {
         setGetPatientObj(response.data);
         patientObj = response.data;
       })
-      .catch((error) => {});
+      .catch((error) => { });
   };
 
   //Get list of WhoStaging
-  const WhoStaging = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CLINICAL_STAGE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setClinicalStage(response.data);
-      })
-      .catch((error) => {});
-  };
   ///GET LIST OF FUNCTIONAL%20_STATUS
   // TB STATUS
-  const TBStatus = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setTbStatus(response.data);
-      })
-      .catch((error) => {});
-  };
 
-  async function FunctionalStatus() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/FUNCTIONAL%20_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setFunctionalStatus(response.data);
-        //setValues(response.data)
-      })
-      .catch((error) => {});
-  }
-  ///Level of Adherence
-  async function AdherenceLevel() {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PrEP_LEVEL_OF_ADHERENCE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setAdherenceLevel(response.data);
-      })
-      .catch((error) => {});
-  }
   const handleInputChange = (e) => {
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
     if (e.target.name === "whoStagingId") {
@@ -727,10 +660,12 @@ const ClinicVisit = (props) => {
       }
     }
   };
+
   const handleInputChangeRegimenLine = (e) => {
     const regimenId = e.target.value;
     setArvDrugObj({ ...arvDrugObj, [e.target.name]: e.target.value });
   };
+
   const handleInputChangeRegimen = (e) => {
     const regimenId = e.target.value;
     setArvDrugObj({ ...arvDrugObj, [e.target.name]: e.target.value });
@@ -747,7 +682,7 @@ const ClinicVisit = (props) => {
         if (response.data) {
           setRegimenTypeObj(response.data);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     getCharacters();
   }
@@ -984,8 +919,8 @@ const ClinicVisit = (props) => {
     temp.nextAppointment = objValues.nextAppointment
       ? ""
       : "This field is required";
-  
-      if (patientAge >= 10 && patientObj.sex === "Female") {
+
+    if (patientAge >= 10 && patientObj.sex === "Female") {
       temp.pregnancyStatus = objValues.pregnancyStatus
         ? ""
         : "This field is required";
@@ -1004,7 +939,6 @@ const ClinicVisit = (props) => {
     setErrors({
       ...temp,
     });
-    console.log("temp:", temp);
     return Object.values(temp).every((x) => x === "");
   };
   // console.log("temp", temp)
@@ -1014,7 +948,7 @@ const ClinicVisit = (props) => {
       (x) => x.id === parseInt(e.target.value)
     );
     setTest(getTestList[0].labTests);
-  
+
   };
   const handleInputChangeTest = (e) => {
     setErrors({ ...temp, [e.target.name]: "" }); //reset the error message to empty once the field as value
@@ -1022,40 +956,62 @@ const ClinicVisit = (props) => {
   };
 
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!validate()) {
-    toast.error("All fields are required", {
-      position: toast.POSITION.BOTTOM_CENTER,
-    });
-    return; // Stop further execution if validation fails
-  }
+    const isValid = validate();
+    if (!isValid) {
+      toast.error("All fields are required", {
+        position: toast.POSITION.BOTTOM_CENTER,
+      });
+      return; // Stop further execution if validation fails
+    }
 
-  setSaving(true);
+    setSaving(true);
 
-  objValues.whoStagingId = who?.stage;
-  objValues.who = who;
-  objValues.visitDate = vital.encounterDate;
-  vital["captureDate"] = vital.encounterDate;
-  objValues.adverseDrugReactions = adrList;
-  objValues.artStatusId = getPatientObj.artCommence.id;
-  objValues.hivEnrollmentId = getPatientObj.enrollment.id;
-  objValues.opportunisticInfections = infectionList;
-  objValues.tbScreen = tbObj;
-  objValues.tbStatus = tbObj.tbStatusId;
-  objValues.viralLoadOrder = testOrderList;
-  objValues.arvdrugsRegimen = arvDrugOrderList;
-  objValues["vitalSignDto"] = vital;
+    try {
+      objValues.whoStagingId = who?.stage;
+      objValues.who = who;
+      objValues.visitDate = vital.encounterDate;
+      vital["captureDate"] = vital.encounterDate;
+      objValues.adverseDrugReactions = adrList;
+      objValues.artStatusId = getPatientObj.artCommence.id;
+      objValues.hivEnrollmentId = getPatientObj.enrollment.id;
+      objValues.opportunisticInfections = infectionList;
+      objValues.tbScreen = tbObj;
+      objValues.tbStatus = tbObj.tbStatusId;
+      objValues.viralLoadOrder = testOrderList;
+      objValues.arvdrugsRegimen = arvDrugOrderList;
+      objValues["vitalSignDto"] = vital;
+      const userAccount = JSON.parse(localStorage.getItem('user_account'));
+      if (transcriptionProcess?.save_transcript) {
+        try {
+          await handleSaveUsertranscriptFinalDraft(transcriptionProcess.recording_uuid, {
+            user_edited_transcription: objValues?.clinicalNote,
+            transcription_text: transcriptionProcess.corrected_transcription,
+            user_id: userAccount.id,
+            recording_uuid: transcriptionProcess.recording_uuid
+          })
+  
+          // toast.success("Transcription and form saved", {
+          //   position: toast.POSITION.TOP_RIGHT,
+          // });
+        } catch (error) {
+          console.log("Updating transription failed")
+          // toast.error("Error saving Transcription and Form", {
+          //   position: toast.POSITION.TOP_RIGHT,
+          // });
+        }
+      }
 
-  axios
-    .post(`${baseUrl}hiv/art/clinic-visit/`, objValues, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    .then((response) => {
+      const response = await axios.post(`${baseUrl}hiv/art/clinic-visit/`, objValues, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       PatientDetailId();
       props.ClinicVisitListHistory();
       setSaving(false);
+
       toast.success("Clinic Visit (Care card) saved successfully", {
         position: toast.POSITION.BOTTOM_CENTER,
       });
@@ -1063,14 +1019,13 @@ const ClinicVisit = (props) => {
       // Reset form only after successful submission
       resetForm();
       setCareSupportTb(null);
-      setTbStatus(null);
 
       props.setActiveContent({
         ...props.activeContent,
         route: "recent-history",
       });
-    })
-    .catch((error) => {
+
+    } catch (error) {
       setSaving(false);
 
       if (error.response && error.response.data) {
@@ -1096,9 +1051,9 @@ const ClinicVisit = (props) => {
           position: toast.POSITION.BOTTOM_CENTER,
         });
       }
-    });
-};
-  
+    }
+  };
+
   const resetForm = () => {
     setWho({
       stage: "",
@@ -1213,8 +1168,61 @@ const ClinicVisit = (props) => {
   //   setCareSupportTb("Presumptive TB");
   // }
 
+  const [transcriptionProcess, setTranscriptionProcess] = useState(null)
+
+
+  const handleTranscriptionComplete = (result) => {
+    const currentDate = new Date();
+    const formattedDate = format(currentDate, "EEEE do MMMM, h:mma");
+
+    const transcriptionHeader = `Voice Transcription - ${formattedDate}\nTotal Recordings: ${result.recording_count} | Duration: ${Math.floor(result.total_duration / 60)}:${(result.total_duration % 60).toString().padStart(2, '0')}\n`;
+
+    const transcriptionFooter = `\n=========================END Transcription=================\n`;
+    const transcriptionContent = (result.corrected_transcription || '')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .map(line => `\n${line}\n`)
+      .join('');
+
+    const fullTranscription = transcriptionHeader + transcriptionContent + transcriptionFooter;
+    setObjValues(prevBody => ({
+      ...prevBody,
+      clinicalNote: fullTranscription
+    }));
+    setTranscriptionProcess(result)
+  };
+
+
+  const handleSaveUsertranscriptFinalDraft = async (recordingUuid, updates) => {
+    try {
+      const formData = new FormData();
+      formData.append('user_edited_transcription', updates.user_edited_transcription);
+      formData.append('transcription_text', updates.transcription_text);
+      formData.append('user_id', updates.user_id);
+
+      const response = await axios.put(
+        `${audioTranscriptionUrl}/recordings/${recordingUuid}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.detail || err.message || 'Update failed';
+      console.error('Update error:', errorMessage);
+      throw err;
+    }
+  };
+
+
   return (
     <div className={classes.root}>
+      <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} patient={props.patientObj} />
+      <ExportRecords />
       <div className="row">
         <div className="col-md-6">
           <h2>Clinic Follow-up Visit</h2>
@@ -1252,11 +1260,10 @@ const ClinicVisit = (props) => {
                               <Accordion.Toggle
                                 as={Card.Text}
                                 eventKey={`${i}`}
-                                className={`accordion-header ${
-                                  activeAccordionHeaderShadow === 1
+                                className={`accordion-header ${activeAccordionHeaderShadow === 1
                                     ? ""
                                     : "collapsed"
-                                } accordion-header-info`}
+                                  } accordion-header-info`}
                                 onClick={() =>
                                   setActiveAccordionHeaderShadow(
                                     activeAccordionHeaderShadow === 1 ? -1 : i
@@ -1302,7 +1309,7 @@ const ClinicVisit = (props) => {
                                       )}
                                     {visit.vitalSignDto &&
                                       visit.vitalSignDto.respiratoryRate !==
-                                        null && (
+                                      null && (
                                         <List.Item
                                           style={{
                                             paddingBottom: "10px",
@@ -1327,7 +1334,7 @@ const ClinicVisit = (props) => {
                                       )}
                                     {visit.vitalSignDto &&
                                       visit.vitalSignDto.temperature !==
-                                        null && (
+                                      null && (
                                         <List.Item
                                           style={{
                                             paddingBottom: "10px",
@@ -1391,7 +1398,7 @@ const ClinicVisit = (props) => {
                                       )}
                                     {visit.vitalSignDto &&
                                       visit.vitalSignDto.bodyWeight !==
-                                        null && (
+                                      null && (
                                         <List.Item
                                           style={{
                                             paddingBottom: "10px",
@@ -1494,11 +1501,10 @@ const ClinicVisit = (props) => {
                               <Accordion.Toggle
                                 as={Card.Text}
                                 eventKey={`${i}`}
-                                className={`accordion-header ${
-                                  activeAccordionHeaderShadow === 1
+                                className={`accordion-header ${activeAccordionHeaderShadow === 1
                                     ? ""
                                     : "collapsed"
-                                } accordion-header-info`}
+                                  } accordion-header-info`}
                                 onClick={() =>
                                   setActiveAccordionHeaderShadow(
                                     activeAccordionHeaderShadow === 1 ? -1 : i
@@ -2093,7 +2099,7 @@ const ClinicVisit = (props) => {
                 className="form-control"
                 value={objValues.clinicalNote}
                 onChange={handleInputChange}
-                style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                style={{ border: "1px solid #014D88", borderRadius: "0.25rem", height: "200px" }}
               ></textarea>
               {errors.clinicalNote !== "" ? (
                 <span className={classes.error}>{errors.clinicalNote}</span>
@@ -2117,8 +2123,8 @@ const ClinicVisit = (props) => {
                       onChange={handleWho}
                     >
                       <option value=""> Select</option>
-                      {clinicalStage.map((value) => (
-                        <option key={value.id} value={value.id}>
+                      {getOptions("CLINICAL_STAGE").map((value) => (
+                        <option key={value.code} value={value.id}>
                           {value.display}
                         </option>
                       ))}
@@ -2206,8 +2212,8 @@ const ClinicVisit = (props) => {
                   >
                     <option value="select">Select </option>
 
-                    {functionalStatus.map((value) => (
-                      <option key={value.id} value={value.id}>
+                    {getOptions("FUNCTIONAL _STATUS").map((value) => (
+                      <option key={value.code} value={value.id}>
                         {value.display}
                       </option>
                     ))}
@@ -2238,8 +2244,8 @@ const ClinicVisit = (props) => {
                   >
                     <option value="select">Select </option>
 
-                    {adherenceLevel.map((value) => (
-                      <option key={value.id} value={value.id}>
+                    {getOptions("PrEP_LEVEL_OF_ADHERENCE").map((value) => (
+                      <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
                     ))}
@@ -2270,7 +2276,7 @@ const ClinicVisit = (props) => {
                   >
                     <option value="select">Select </option>
 
-                    {cryptococcal.map((value) => (
+                    {getOptions("CRYPTOCOCCAL_SCREENING_STATUS").map((value) => (
                       <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
@@ -2291,8 +2297,8 @@ const ClinicVisit = (props) => {
                       required
                       >
                       <option value=""> Select</option>
-                          {tbStatus.map((value) => (
-                              <option key={value.id} value={value.id}>
+                          {getOptions("TB_STATUS").map((value) => (
+                              <option key={value.code} value={value.code}>
                                   {value.display}
                               </option>
                           ))}
@@ -2320,7 +2326,7 @@ const ClinicVisit = (props) => {
                   >
                     <option value="select">Select </option>
 
-                    {hepatitis.map((value) => (
+                    {getOptions("HEPATITIS_SCREENING_RESULT").map((value) => (
                       <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
@@ -2354,7 +2360,7 @@ const ClinicVisit = (props) => {
                         >
                           <option value="select">Select </option>
 
-                          {pregnancyStatus.map((value) => (
+                          {getFilteredPregnancyStatus().map((value) => (
                             <option key={value.code} value={value.code}>
                               {value.display}
                             </option>
@@ -2388,7 +2394,7 @@ const ClinicVisit = (props) => {
                         >
                           <option value="select">Select </option>
 
-                          {cervicalStatus.map((value) => (
+                          {getOptions("CERVICAL_CANCER_SCREENING_STATUS").map((value) => (
                             <option key={value.code} value={value.code}>
                               {value.display}
                             </option>
@@ -2415,7 +2421,7 @@ const ClinicVisit = (props) => {
                         >
                           <option value="select">Select </option>
 
-                          {cervicalTreatment.map((value) => (
+                          {getOptions("CERVICAL_CANCER_TREATMENT").map((value) => (
                             <option key={value.code} value={value.code}>
                               {value.display}
                             </option>
@@ -2519,7 +2525,7 @@ const ClinicVisit = (props) => {
             </Label>
             {/* TB Screening Form */}
             <TBScreeningForm
-              tbStatus={tbStatus}
+              tbStatus={getOptions("TB_STATUS")}
               tbObj={tbObj}
               setTbObj={setTbObj}
               errors={errors}
@@ -2650,8 +2656,8 @@ const ClinicVisit = (props) => {
                   >
                     <option value="select">Select </option>
 
-                    {adherenceLevel.map((value) => (
-                      <option key={value.id} value={value.id}>
+                    {getOptions("PrEP_LEVEL_OF_ADHERENCE").map((value) => (
+                      <option key={value.code} value={value.code}>
                         {value.display}
                       </option>
                     ))}
@@ -2696,7 +2702,7 @@ const ClinicVisit = (props) => {
                           key={index}
                           index={index}
                           regimenObject={regimenObject}
-                          adherenceLevel={adherenceLevel}
+                          adherenceLevel={getOptions("PrEP_LEVEL_OF_ADHERENCE")}
                           removeArvDrugOrder={removeArvDrugOrder}
                         />
                       ))}
@@ -2785,8 +2791,8 @@ const ClinicVisit = (props) => {
                     >
                       <option value="">Select </option>
 
-                      {vLIndication.map((value) => (
-                        <option key={value.id} value={value.id}>
+                      {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
+                        <option key={value.code} value={value.code}>
                           {value.display}
                         </option>
                       ))}
@@ -2831,7 +2837,7 @@ const ClinicVisit = (props) => {
                           index={index}
                           order={tests}
                           testGroupObj={testGroup}
-                          vLIndicationObj={vLIndication}
+                          vLIndicationObj={getOptions("VIRAL_LOAD_INDICATION")}
                           removeOrder={removeOrder}
                         />
                       ))}
@@ -2861,7 +2867,7 @@ const ClinicVisit = (props) => {
               name="nextAppointment"
               id="nextAppointment"
               className="col-md-6"
-              value={vital.nextAppointment}
+              value={objValues.nextAppointment}
               onChange={handleInputChange}
               style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
               min={vital.encounterDate}
@@ -2911,21 +2917,21 @@ function TestOrdersList({
   const vLIndication =
     vLIndicationObj.length > 0
       ? vLIndicationObj.find(
-          (x) => x.id === parseInt(order.viralLoadIndication)
-        )
+        (x) => x.code === order.viralLoadIndication
+      )
       : {};
 
   return (
     <tr>
       <th>
         {testGroupName.groupName == "Others" &&
-        testName.labTestName === "Viral Load"
+          testName.labTestName === "Viral Load"
           ? testName.labTestName
           : testGroupName.groupName}
       </th>
       <th>
         {testGroupName.groupName === "Others" &&
-        testName.labTestName === "Viral Load"
+          testName.labTestName === "Viral Load"
           ? vLIndication.display
           : testName.labTestName}
       </th>
@@ -2953,7 +2959,7 @@ function ArvDrugOrderObjList({
   adherenceLevel,
 }) {
   const adherence = adherenceLevel.find(
-    (x) => x.id === parseInt(regimenObject.regimenAdherance)
+    (x) => x.code === regimenObject.regimenAdherance
   );
 
   return (

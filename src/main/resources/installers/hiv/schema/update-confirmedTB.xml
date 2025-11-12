@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="202501104" author="Gboyegun Taiwo">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM hiv_observation
+                    WHERE data IS NOT NULL
+                      AND (data -> 'tbIptScreening' ->> 'status') = 'Confirmed TB'
+                      AND (data -> 'tbIptScreening' ->> 'outcome') = 'Not Presumptive'
+                ) THEN 1 ELSE 0 END
+            </sqlCheck>
+        </preConditions>
+        <comment>Update tbIptScreening status from 'Confirmed TB' to 'No Signs or symptoms of TB' where outcome is 'Not Presumptive'</comment>
+        <sql>
+            UPDATE hiv_observation
+            SET data = jsonb_set(
+                    data,
+                    '{tbIptScreening,status}',
+                    '"No signs or symptoms of TB"'
+                       )
+            WHERE
+                data IS NOT NULL
+              AND (data -> 'tbIptScreening' ->> 'status') = 'Confirmed TB'
+              AND (data -> 'tbIptScreening' ->> 'outcome') = 'Not Presumptive';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

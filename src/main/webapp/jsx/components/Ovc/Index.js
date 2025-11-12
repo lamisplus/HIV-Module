@@ -7,6 +7,8 @@ import { token, url as baseUrl } from "../../../api";
 import { Tab } from "semantic-ui-react";
 import List from "./List";
 import Patient from "./Patient";
+import {  getPermissions } from "../../../utils/localstorage";
+// import LoadingSpinner from "../../../reuseables/Loading";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -53,6 +55,9 @@ const useStyles = makeStyles((theme) => ({
     fontSize: "11px",
   },
 }));
+
+
+
 function Index(props) {
   const classes = useStyles();
   const [patients, setPatients] = useState([]);
@@ -66,20 +71,22 @@ function Index(props) {
     setPatient(patient);
     setModal(!modal);
   };
+
+
   useEffect(() => {
-    userPermission();
+    const loadPermissions = async () => {
+      try {
+        const perms = await getPermissions();
+        setPermissions(Array.isArray(perms) ? perms : []);
+      } catch (error) {
+        console.error("Error loading permissions:", error);
+        setPermissions([]);
+      }
+    };
+    loadPermissions();
   }, []);
-  //Get list of Finger index
-  const userPermission = () => {
-    axios
-      .get(`${baseUrl}account`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPermissions(response.data.permissions);
-      })
-      .catch((error) => {});
-  };
+
+
   const enablePPIColumns = () => {
     setEnablePPI(!enablePPI);
   };
@@ -118,4 +125,4 @@ function Index(props) {
   );
 }
 
-export default Index;
+export default Index

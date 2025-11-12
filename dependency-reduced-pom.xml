@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.lamisplus.modules</groupId>
   <artifactId>hiv</artifactId>
-  <version>2.4.4</version>
+  <version>2.5.0.1</version>
   <description>HIV Module</description>
   <build>
     <plugins>
@@ -169,13 +169,13 @@
     <dependency>
       <groupId>org.lamisplus.modules</groupId>
       <artifactId>patient</artifactId>
-      <version>2.0.7</version>
+      <version>2.2.0.1</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.lamisplus.modules</groupId>
       <artifactId>triage</artifactId>
-      <version>1.0.0</version>
+      <version>2.2.0.1</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

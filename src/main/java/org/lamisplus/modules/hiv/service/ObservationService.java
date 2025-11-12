@@ -12,6 +12,7 @@ import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.lamisplus.modules.hiv.domain.dto.TPtCompletionStatusInfoDTO;
 import org.lamisplus.modules.hiv.domain.dto.ObservationDto;
+import org.lamisplus.modules.hiv.domain.dto.ViralLoadEligibilityProjection;
 import org.lamisplus.modules.hiv.domain.entity.ArtPharmacy;
 import org.lamisplus.modules.hiv.domain.entity.Observation;
 import org.lamisplus.modules.hiv.repositories.ArtPharmacyRepository;
@@ -21,6 +22,10 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -217,6 +222,7 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
         existingObservation.setType(observationDto.getType());
         existingObservation.setDateOfObservation(observationDto.getDateOfObservation());
         existingObservation.setData(observationDto.getData());
+        existingObservation.setComment(observationDto.getComment());
         processAndUpdateIptFromPharmacy(observationDto, existingObservation.getPerson());
         Observation saveObservation = observationRepository.save(existingObservation);
         observationDto.setId(saveObservation.getId());
@@ -260,6 +266,7 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
                 .type(observation.getType())
                 .visitId(observation.getVisit().getId())
                 .id(observation.getId())
+                .comment(observation.getComment())
                 .build();
     }
 
@@ -321,8 +328,35 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
         }
         return resultList;
 
-
     }
 
+    /**
+     * Get all eligible patients by facility - Returns complete response
+     */
+    public Map<String, Object> getAllEligiblePatientsByFacility(Long facilityId) {
+        try {
+            List<ViralLoadEligibilityProjection> patients =
+                observationRepository.findAllEligiblePatientsByFacility(facilityId);
+            Map<String, Object> response = new HashMap<String, Object>();
+            response.put("success", true);
+            response.put("message", "Eligible patients retrieved successfully for facility " + facilityId);
+            response.put("data", patients);
+            response.put("facilityId", facilityId);
+            response.put("totalRecords", patients.size());
+
+            return response;
+
+        } catch (Exception e) {
+            return buildErrorResponse("Error retrieving eligible patients for facility " + facilityId + ": " + e.getMessage());
+        }
+    }
+
+    private Map<String, Object> buildErrorResponse(String message) {
+        Map<String, Object> errorResponse = new HashMap<String, Object>();
+        errorResponse.put("success", false);
+        errorResponse.put("message", message);
+        errorResponse.put("data", null);
+        return errorResponse;
+    }
 
 }

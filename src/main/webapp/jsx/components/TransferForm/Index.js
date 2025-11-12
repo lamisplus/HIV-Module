@@ -17,6 +17,7 @@ import { Spinner } from "reactstrap";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 import Select from "react-select";
 import { useRowState } from "react-table";
+import { getFacilityId } from "../../../utils/localstorage";
 
 // import moment from "moment";
 
@@ -99,7 +100,8 @@ const Tracking = (props) => {
     const [baselineCDCount, setBaselineCDCount] = useState("");
     const [currentCD4, setCurrentCD4] = useState("");
     const [BMI, setBMI] = useState("");
-    const [facId, setFacId] = useState(localStorage.getItem("facId"))
+    const [facId, setFacId] = useState(null);
+
     const [attemptList, setAttemptList] = useState([]);
     // const [selectedLga, setSelectedLga] = useState("");
     const [reasonForTransfer, setReasonForTransfer] = useState([
@@ -174,7 +176,22 @@ const Tracking = (props) => {
     const [selectedFacility, setSelectedFacility] = useState({});
     const [selectedLga, setSelectedLga] = useState({});
 
+    useEffect(() => {
+        const init = async () => {
+          const facilityId = getFacilityId();
+          setFacId(facilityId);
+        };
+        init();
+      }, []);
 
+
+      useEffect(() => {
+        if (facId) {
+          getTreatmentInfo();
+          getLabResult();
+        }
+      }, [facId]);
+    
     // console.log("paylaod", payload)
     const loadStates1 = () => {
         axios.get(`${baseUrl}organisation-units/parent-organisation-units/1`, {

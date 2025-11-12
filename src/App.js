@@ -13,14 +13,20 @@ import EnrollPatientPage from "./main/webapp/jsx/components/Patient/EnrollPatien
 import UpdatePatientEnrollment from "./main/webapp/jsx/components/Patient/UpdatePatientEnrollment";
 import { queryClient } from "./main/webapp/utils/queryClient";
 import { QueryClientProvider } from "react-query";
-import { ReactQueryDevtools } from "react-query/devtools";
+import CheckedInPatientsAlert from "./main/webapp/jsx/components/Globals/CheckinPatientsAlert";
+import { useRoles } from "./main/webapp/hooks/useRoles";
+
 
 export default function App() {
+  const { hasRole } = useRoles();
+  
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
         <div>
           <ToastContainer />
+          
+          {!hasRole("RDE") && <CheckedInPatientsAlert/>}
 
           <Switch>
             <Route path="/patient-history">
@@ -42,7 +48,6 @@ export default function App() {
           </Switch>
         </div>
       </Router>
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   );
 }

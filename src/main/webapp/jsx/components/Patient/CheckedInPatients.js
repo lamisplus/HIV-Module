@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import MaterialTable from "material-table";
 import axios from "axios";
-import { url as baseUrl, token } from "./../../../api";
+import { url as baseUrl, token, wsUrl } from "./../../../api";
 import { calculate_age } from "../../../utils";
 import { forwardRef } from "react";
 import "semantic-ui-css/semantic.min.css";
@@ -24,11 +24,19 @@ import ViewColumn from "@material-ui/icons/ViewColumn";
 import { Card, CardBody } from "reactstrap";
 import "react-toastify/dist/ReactToastify.css";
 import { makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import ButtonGroup from "@material-ui/core/ButtonGroup";
+import { TiArrowForward } from "react-icons/ti";
 import { MdDashboard } from "react-icons/md";
-import { Menu, MenuList, MenuButton, MenuItem } from "@reach/menu-button";
+
 import "@reach/menu-button/styles.css";
 import { Label } from "semantic-ui-react";
-import moment from "moment";
+import SockJsClient from "react-stomp";
+
+import Spinner from "react-bootstrap/Spinner";
+import { usePermissions } from "../../../hooks/usePermissions";
+import { useCheckedInPatientData } from "../../../hooks/useCheckedInPatientData";
+import CustomTable from "../../../reuseables/CustomTable";
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -97,115 +105,244 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Patients = (props) => {
-  const [patientList, setPatientList] = useState([]);
-  const [patientObj, setpatientObj] = useState([]);
 
-  useEffect(() => {
-    patients();
-  }, []);
-  ///GET LIST OF Patients
-  async function patients() {
-    axios
-      .get(`${baseUrl}patient/checked-in-by-service/hiv-code`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPatientList(response.data);
-      })
-      .catch((error) => {});
-  }
+const CheckedInPatients = (props) => {
+  const { hasPermission } = usePermissions();
+  const [showPPI, setShowPPI] = useState(true);
+  const { fetchPatients } = useCheckedInPatientData(baseUrl, token);
+  const [tableRefreshTrigger, setTableRefreshTrigger] = useState(0);
 
-  const getHospitalNumber = (identifier) => {
-    const identifiers = identifier;
-    const hospitalNumber = identifiers.identifier.find(
-      (obj) => obj.type == "HospitalNumber"
-    );
-    return hospitalNumber ? hospitalNumber.value : "";
+  const permissions = useMemo(
+    () => ({
+      canSeeEnrollButton: hasPermission("hiv_enrollment_register"),
+      canViewDashboard: hasPermission("view_patient"),
+    }),
+    [hasPermission]
+  );
+
+  const onMessageReceived = (msg) => {
+    if (
+      msg &&
+      msg?.toLowerCase()?.includes("check") &&
+      msg?.toLowerCase()?.includes("hiv")
+    ) {
+      setTableRefreshTrigger((prev) => prev + 1);
+    }
+  };
+
+  const handleCheckBox = (e) => {
+    setShowPPI(!e.target.checked);
+  };
+
+  const columns = useMemo(
+    () => [
+      {
+        title: "Patient Name",
+        field: "fullname",
+        hidden: showPPI,
+      },
+      {
+        title: "Hospital Number",
+        field: "hospitalNumber",
+      },
+      {
+        title: "Unique ID",
+        field: "uniqueId",
+      },
+      { title: "Sex", field: "sex" },
+      { title: "Age", field: "age" },
+      {
+        title: "Biometrics",
+        field: "biometricStatus",
+        render: (rowData) =>
+          rowData.biometricStatus === true ? (
+            <Label color="green" size="mini">
+              Biometric Captured
+            </Label>
+          ) : (
+            <Label color="red" size="mini">
+              No Biometric
+            </Label>
+          ),
+      },
+      {
+        title: "ART Status",
+        field: "currentStatus",
+        render: (rowData) => (
+          <Label color="blue" size="mini">
+            {rowData.currentStatus || "Not Enrolled"}
+          </Label>
+        ),
+      },
+      {
+        title: "Actions",
+        field: "actions",
+        render: (rowData) => {
+          const isEnrolled = rowData.isEnrolled;
+
+          return (
+            <div>
+
+              {permissions.canSeeEnrollButton &&
+                !isEnrolled && (
+                  <Link
+                    to={{
+                      pathname: "/enroll-patient",
+                      state: { patientId: rowData.id, patientObj: rowData },
+                    }}
+                  >
+                    <ButtonGroup
+                      variant="contained"
+                      aria-label="split button"
+                      style={{
+                        backgroundColor: "rgb(153, 46, 98)",
+                        height: "30px",
+                        width: "215px",
+                      }}
+                      size="large"
+                    >
+                      <Button
+                        color="primary"
+                        size="small"
+                        aria-label="select merge strategy"
+                        aria-haspopup="menu"
+                        style={{
+                          backgroundColor: "rgb(153, 46, 98)",
+                        }}
+                      >
+                        <TiArrowForward />
+                      </Button>
+                      <Button
+                        style={{
+                          backgroundColor: "rgb(153, 46, 98)",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "12px",
+                            color: "#fff",
+                            fontWeight: "bolder",
+                          }}
+                        >
+                          Enroll Patient
+                        </span>
+                      </Button>
+                    </ButtonGroup>
+                  </Link>
+                )}
+
+
+              {permissions.canViewDashboard && isEnrolled && (
+                <Link
+                  to={{
+                    pathname: "/patient-history",
+                    state: { patientObj: rowData },
+                  }}
+                >
+                  <ButtonGroup
+                    variant="contained"
+                    aria-label="split button"
+                    style={{
+                      backgroundColor: "rgb(153, 46, 98)",
+                      height: "30px",
+                      width: "215px",
+                    }}
+                    size="large"
+                  >
+                    <Button
+                      color="primary"
+                      size="small"
+                      aria-label="select merge strategy"
+                      aria-haspopup="menu"
+                      style={{
+                        backgroundColor: "rgb(153, 46, 98)",
+                      }}
+                    >
+                      <MdDashboard />
+                    </Button>
+                    <Button
+                      style={{
+                        backgroundColor: "rgb(153, 46, 98)",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          color: "#fff",
+                          fontWeight: "bolder",
+                        }}
+                      >
+                        Dashboard
+                      </span>
+                    </Button>
+                  </ButtonGroup>
+                </Link>
+              )}
+            </div>
+          );
+        },
+      },
+    ],
+    [showPPI, permissions.canSeeEnrollButton, permissions.canViewDashboard]
+  );
+
+  const getData = async (query) => {
+    try {
+      const { search, page, pageSize } = query;
+
+      // Fetch the data
+      const data = await fetchPatients({
+        search,
+        page,
+        pageSize,
+      });
+
+      // If there's a search term, filter the results
+      let filteredData = [...(data || [])];
+
+      if (search) {
+        const searchLower = search.toLowerCase();
+        filteredData = filteredData.filter(
+          (patient) =>
+            patient.fullname?.toLowerCase().includes(searchLower) ||
+            patient.hospitalNumber?.toLowerCase().includes(searchLower) ||
+            patient.uniqueId?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return {
+        data: filteredData, 
+        page: page || 0,
+        totalCount: filteredData.length || 0,
+      };
+    } catch (error) {
+      console.error("Error fetching patient data:", error);
+      return {
+        data: [],
+        page: 0,
+        totalCount: 0,
+      };
+    }
   };
 
   return (
     <div>
+      <SockJsClient
+        url={wsUrl}
+        topics={["/topic/checking-in-out-process"]}
+        onMessage={onMessageReceived}
+        debug={true}
+      />
       <Card>
         <CardBody>
-          <MaterialTable
+          <CustomTable
+            key={tableRefreshTrigger}
+            title="HIV Checked In Patients"
+            columns={columns}
+            data={getData}
             icons={tableIcons}
-            title="Find Patient "
-            columns={[
-              // { title: " ID", field: "Id" },
-              {
-                title: "Patient Name",
-                field: "name",
-              },
-              {
-                title: "Hospital Number",
-                field: "hospital_number",
-                filtering: false,
-              },
-              { title: "Gender", field: "gender", filtering: false },
-              { title: "Age", field: "age", filtering: false },
-              { title: "Actions", field: "actions", filtering: false },
-            ]}
-            data={patientList.map((row) => ({
-              name: row.firstName + " " + row.surname,
-              hospital_number: getHospitalNumber(row.identifier),
-              gender: row.gender.display,
-              age:
-                row.dateOfBirth === 0 ||
-                row.dateOfBirth === undefined ||
-                row.dateOfBirth === null ||
-                row.dateOfBirth === ""
-                  ? 0
-                  : calculate_age(row.dateOfBirth),
-
-              actions: (
-                <div>
-                  <Menu>
-                    <MenuButton
-                      style={{
-                        backgroundColor: "#3F51B5",
-                        color: "#fff",
-                        border: "2px solid #3F51B5",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      Actions <span aria-hidden>▾</span>
-                    </MenuButton>
-                    <MenuList style={{ color: "#000000 !important" }}>
-                      <MenuItem style={{ color: "#000 !important" }}>
-                        <Link
-                          to={{
-                            pathname: "/patient-history",
-                            state: { patientObj: row },
-                          }}
-                        >
-                          <MdDashboard size="15" color="black" />{" "}
-                          <span style={{ color: "#000" }}>
-                            Patient Dashboard
-                          </span>
-                        </Link>
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
-                </div>
-              ),
-            }))}
-            options={{
-              headerStyle: {
-                //backgroundColor: "#9F9FA5",
-                color: "#000",
-              },
-              searchFieldStyle: {
-                width: "200%",
-                margingLeft: "250px",
-              },
-              filtering: false,
-              exportButton: false,
-              searchFieldAlignment: "left",
-              pageSizeOptions: [10, 20, 100],
-              pageSize: 10,
-              debounceInterval: 400,
-            }}
+            showPPI={showPPI}
+            onPPIChange={handleCheckBox}
           />
         </CardBody>
       </Card>
@@ -213,4 +350,4 @@ const Patients = (props) => {
   );
 };
 
-export default Patients;
+export default memo(CheckedInPatients);

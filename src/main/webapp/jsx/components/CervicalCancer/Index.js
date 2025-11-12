@@ -8,6 +8,7 @@ import axios from "axios";
 import { toast} from "react-toastify";
 import { url as baseUrl } from "../../../api";
 import { token as token } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import 'react-summernote/dist/react-summernote.css'; // import styles
@@ -81,20 +82,24 @@ const useStyles = makeStyles(theme => ({
     },
 }))
 
+const CODESET_KEYS = [
+  "CERVICAL_CANCER_SCREENING_METHOD",
+  "CERVICAL_CANCER_SCREENING_TYPE",
+  "GROSS_CERVICAL_LESIONS",
+  "CERVICAL_CANCER_POSITIVE",
+  "NEW_SQUAMOCOLUMNAR_JUNCTION_VISIBLE",
+  "REASON_FOR_CERVICAL_CANCER_REFERRAL",
+  "CERVICAL_CANCER_TREATMENT",
+  "CERVICAL_CANCER_RESULT",
+];
+
 const CervicalCancer = (props) => {
     const patientObj = props.patientObj;
+    const { getOptions } = useCodesets(CODESET_KEYS);
     //let history = useHistory();
     const classes = useStyles();
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
-    const [result, setResult] = useState([]);
-    const [method, setMethod] = useState([]);
-    const [areas, setAreas] = useState([]);
-    const [gross, setGross] = useState([]);
-    const [visible, setVisible] = useState([]);
-    const [referrals, setReferrals] = useState([]);
-    const [type, setType] = useState([]);
-    const [screeningType, setScreeningType] = useState([]);
     const [enrollDate, setEnrollDate] = useState("");
     const [objValues, setObjValues] = useState({
                                                     personId:patientObj.id,
@@ -121,16 +126,7 @@ const CervicalCancer = (props) => {
     })
 
     useEffect(() => {
-        //FunctionalStatus();
-        Result();
-        Type();
-        Method();
-        Gross();
-        Referrals();
-        Areas();
-        Visible();
         GetPatientDTOObj();
-        CERVICAL_CANCER_SCREENING_TYPE();
     }, []);
     const GetPatientDTOObj =()=>{
         axios
@@ -146,116 +142,6 @@ const CervicalCancer = (props) => {
 
            });
        
-    }
-    const Method =()=>{
-    axios
-        .get(`${baseUrl}application-codesets/v2/CERVICAL_CANCER_SCREENING_METHOD`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
-            setMethod(response.data);
-        })
-        .catch((error) => {
-        });
-    
-    }
-    const CERVICAL_CANCER_SCREENING_TYPE =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/CERVICAL_CANCER_SCREENING_TYPE`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-                setScreeningType(response.data);
-            })
-            .catch((error) => {
-
-            });
-        
-    }
-    const Gross =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/GROSS_CERVICAL_LESIONS`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-                setGross(response.data);
-            })
-            .catch((error) => {
-
-            });
-        
-    }
-    const Areas =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/CERVICAL_CANCER_POSITIVE`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-                setAreas(response.data);
-            })
-            .catch((error) => {
-
-            });
-        
-    }
-    const Visible =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/NEW_SQUAMOCOLUMNAR_JUNCTION_VISIBLE`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-                setVisible(response.data);
-            })
-            .catch((error) => {
-
-            });
-        
-    }
-    const Referrals =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/REASON_FOR_CERVICAL_CANCER_REFERRAL`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-                setReferrals(response.data);
-            })
-            .catch((error) => {
-
-            });
-        
-    }
-    const Type =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/CERVICAL_CANCER_TREATMENT`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-                setType(response.data);
-            })
-            .catch((error) => {
-
-            });
-        
-    }
-    const Result =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/CERVICAL_CANCER_RESULT`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-                setResult(response.data);
-            })
-            .catch((error) => {
-
-            });
-        
     }
 
     const handleInputChange = e => {
@@ -351,8 +237,8 @@ const CervicalCancer = (props) => {
                                     >
                                         <option value=""> Select</option>
                 
-                                        {method.map((value) => (
-                                            <option key={value.id} value={value.code}>
+                                        {getOptions("CERVICAL_CANCER_SCREENING_METHOD").map((value) => (
+                                            <option key={value.code} value={value.code}>
                                                 {value.display}
                                             </option>
                                         ))}
@@ -409,8 +295,8 @@ const CervicalCancer = (props) => {
                                     >
                                         <option value=""> Select</option>
                 
-                                        {screeningType.map((value) => (
-                                            <option key={value.id} value={value.code}>
+                                        {getOptions("CERVICAL_CANCER_SCREENING_TYPE").map((value) => (
+                                            <option key={value.code} value={value.code}>
                                                 {value.display}
                                             </option>
                                         ))}
@@ -433,8 +319,8 @@ const CervicalCancer = (props) => {
                                     >
                                         <option value=""> </option>
                 
-                                        {result.map((value) => (
-                                            <option key={value.id} value={value.code}>
+                                        {getOptions("CERVICAL_CANCER_RESULT").map((value) => (
+                                            <option key={value.code} value={value.code}>
                                                 {value.display}
                                             </option>
                                         ))}
@@ -459,8 +345,8 @@ const CervicalCancer = (props) => {
                                     >
                                         <option value=""> </option>
                 
-                                        {areas.map((value) => (
-                                            <option key={value.id} value={value.code}>
+                                        {getOptions("CERVICAL_CANCER_POSITIVE").map((value) => (
+                                            <option key={value.code} value={value.code}>
                                                 {value.display}
                                             </option>
                                         ))}
@@ -483,8 +369,8 @@ const CervicalCancer = (props) => {
                                 >
                                     <option value=""> </option>
             
-                                    {visible.map((value) => (
-                                        <option key={value.id} value={value.code}>
+                                    {getOptions("NEW_SQUAMOCOLUMNAR_JUNCTION_VISIBLE").map((value) => (
+                                        <option key={value.code} value={value.code}>
                                             {value.display}
                                         </option>
                                     ))}
@@ -509,8 +395,8 @@ const CervicalCancer = (props) => {
                                     >
                                         <option value=""> </option>
                 
-                                        {gross.map((value) => (
-                                            <option key={value.id} value={value.code}>
+                                        {getOptions("GROSS_CERVICAL_LESIONS").map((value) => (
+                                            <option key={value.code} value={value.code}>
                                                 {value.display}
                                             </option>
                                         ))}
@@ -533,8 +419,8 @@ const CervicalCancer = (props) => {
                                     >
                                         <option value=""> Select</option>
                 
-                                        {type.map((value) => (
-                                            <option key={value.id} value={value.code}>
+                                        {getOptions("CERVICAL_CANCER_TREATMENT").map((value) => (
+                                            <option key={value.code} value={value.code}>
                                                 {value.display}
                                             </option>
                                         ))}
@@ -578,8 +464,8 @@ const CervicalCancer = (props) => {
                                     >
                                         <option value=""> </option>
                 
-                                        {referrals.map((value) => (
-                                            <option key={value.id} value={value.code}>
+                                        {getOptions("REASON_FOR_CERVICAL_CANCER_REFERRAL").map((value) => (
+                                            <option key={value.code} value={value.code}>
                                                 {value.display}
                                             </option>
                                         ))}

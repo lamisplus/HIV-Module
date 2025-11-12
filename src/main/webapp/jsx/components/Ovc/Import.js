@@ -40,8 +40,6 @@ const Import = (props) => {
         formData,
         config
       );
-      console.log(response);
-
       if (response.data === "file not imported successfully") {
         toast.error("File not imported successfully!");
       } else {

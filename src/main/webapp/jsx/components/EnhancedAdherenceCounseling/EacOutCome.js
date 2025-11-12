@@ -68,6 +68,11 @@ const useStyles = makeStyles(theme => ({
     },
     input: {
         display: 'none'
+    },
+    error: {
+        color: 'red',
+        fontSize: '12px',
+        fontWeight: 'bold'
     }
 }))
 
@@ -99,7 +104,9 @@ const EAC = (props) => {
         plan: "",
         visitId: "",
         switchRegimen:"",
-        comment:""
+        comment:"",
+        postViralLoadResult: "",
+        postViralLoadResultDate: ""
     })
     const [switchs, setSwitchs]=useState({
         currentRegimen: "",
@@ -200,30 +207,42 @@ const EAC = (props) => {
     }
 
     useEffect(() => {
-        if (allViralLoad.length >= 2 && eacSession.length >= 3) {
-            const mostRecentViralLoad = allViralLoad.reduce((mostRecent, current) => {
-                const mostRecentDate = mostRecent?.dateResultReceived ? new Date(mostRecent.dateResultReceived) : null;
-                const currentDate = current?.dateResultReceived ? new Date(current.dateResultReceived) : null;
-                // console.log("Comparing Viral Load Dates:", { mostRecentDate, currentDate });
-                return currentDate && (!mostRecentDate || currentDate > mostRecentDate) ? current : mostRecent;
-            });
-
-            const mostRecentEacSession = eacSession.reduce((mostRecent, current) => {
+        // Post viral load should be any viral load taken after completing all 3 EAC sessions
+        if (allViralLoad.length > 0 && eacSession.length >= 3) {
+            // Find the 3rd (last/most recent) EAC session
+            const lastEacSession = eacSession.reduce((mostRecent, current) => {
                 const mostRecentDate = mostRecent?.sessionDate ? new Date(mostRecent.sessionDate) : null;
                 const currentDate = current?.sessionDate ? new Date(current.sessionDate) : null;
-                // console.log("Comparing EAC Session Dates:", { mostRecentDate, currentDate });
                 return currentDate && (!mostRecentDate || currentDate > mostRecentDate) ? current : mostRecent;
             });
 
-            const dateA = mostRecentViralLoad?.dateResultReceived ? new Date(mostRecentViralLoad.dateResultReceived) : null;
-            const dateB = mostRecentEacSession?.sessionDate ? new Date(mostRecentEacSession.sessionDate) : null;
-            if (dateB && (!dateA || dateB > dateA)) {
-                setPostViralLoadObj(null)
-            } else if (dateA) {
-                setPostViralLoadObj(mostRecentViralLoad)
+            const lastEacSessionDate = lastEacSession?.sessionDate ? new Date(lastEacSession.sessionDate) : null;
+
+            if (lastEacSessionDate) {
+                // Filter viral loads that occurred AFTER the last EAC session
+                const viralLoadsAfterEac = allViralLoad.filter(vl => {
+                    const vlDate = vl?.dateResultReceived ? new Date(vl.dateResultReceived) : null;
+                    return vlDate && vlDate > lastEacSessionDate;
+                });
+
+                if (viralLoadsAfterEac.length > 0) {
+                    // If multiple viral loads exist after EAC, get the most recent one
+                    const mostRecentPostVL = viralLoadsAfterEac.reduce((mostRecent, current) => {
+                        const mostRecentDate = mostRecent?.dateResultReceived ? new Date(mostRecent.dateResultReceived) : null;
+                        const currentDate = current?.dateResultReceived ? new Date(current.dateResultReceived) : null;
+                        return currentDate && (!mostRecentDate || currentDate > mostRecentDate) ? current : mostRecent;
+                    });
+                    setPostViralLoadObj(mostRecentPostVL);
+                } else {
+                    // No viral loads after the last EAC session
+                    setPostViralLoadObj(null);
+                }
             } else {
-                setPostViralLoadObj(null)
+                setPostViralLoadObj(null);
             }
+        } else {
+            // If less than 3 EAC sessions or no viral loads, no post viral load
+            setPostViralLoadObj(null);
         }
     }, [allViralLoad, eacSession]);
 
@@ -234,7 +253,9 @@ const EAC = (props) => {
             setObjValues((prevState) => (
                 {
                     ...prevState,
-                    outcome: outcome
+                    outcome: outcome,
+                    postViralLoadResult: postViralLoadObj.result,
+                    postViralLoadResultDate: postViralLoadObj.dateResultReceived
                 }
             ))
         }
@@ -443,6 +464,28 @@ const EAC = (props) => {
     /**** Submit Button Processing  */
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Validate mandatory fields
+        let tempErrors = {};
+        let isValid = true;
+
+        if (!objValues.postViralLoadResult || objValues.postViralLoadResult === "") {
+            tempErrors.postViralLoadResult = "Post Viral Load Result is required";
+            isValid = false;
+        }
+
+        if (!objValues.postViralLoadResultDate || objValues.postViralLoadResultDate === "") {
+            tempErrors.postViralLoadResultDate = "Post Viral Load Result Date is required";
+            isValid = false;
+        }
+
+        setErrors(tempErrors);
+
+        if (!isValid) {
+            toast.error("Please fill all mandatory fields");
+            return;
+        }
+
         setSaving(true);
         // objValues.currentRegimen=currentRegimen && currentRegimen.description ? currentRegimen.description :""
         objValues.currentRegimen = patientRegimenInfo && patientRegimenInfo.currentartregimen ? patientRegimenInfo.currentartregimen : ""
@@ -534,32 +577,37 @@ const EAC = (props) => {
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label>Post Viral Load Result</Label>
+                                    <Label>Post Viral Load Result <span style={{ color: "red" }}> *</span></Label>
                                     <Input
                                         type="text"
-                                        name="viralLoadResult"
-                                        id="viralLoadResult"
+                                        name="postViralLoadResult"
+                                        id="postViralLoadResult"
                                         style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
-                                        // value={currentViralLoad && currentViralLoad.result ? currentViralLoad.result : ""}
-                                        value = {postViralLoadObj?.result}
+                                        value={objValues.postViralLoadResult}
                                         disabled
-                                        onKeyPress={(e) => e.preventDefault()}
+                                        required
                                     />
-
+                                    {errors.postViralLoadResult !== "" ? (
+                                        <span className={classes.error}>{errors.postViralLoadResult}</span>
+                                    ) : ""}
                                 </FormGroup>
                             </div>
                             <div className="form-group mb-3 col-md-6">
                                 <FormGroup>
-                                    <Label for="">Post Viral Load Result Date </Label>
+                                    <Label for="">Post Viral Load Result Date <span style={{ color: "red" }}> *</span></Label>
                                     <Input
                                         type="datetime-local"
-                                        name="dateResultReceived"
-                                        id="dateResultReceived"
-                                        value = {postViralLoadObj && postViralLoadObj.dateResultReceived ?  postViralLoadObj.dateResultReceived :"" }
+                                        name="postViralLoadResultDate"
+                                        id="postViralLoadResultDate"
+                                        value={objValues.postViralLoadResultDate}
                                         style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
                                         disabled
+                                        required
                                         onKeyPress={(e) => e.preventDefault()}
                                     />
+                                    {errors.postViralLoadResultDate !== "" ? (
+                                        <span className={classes.error}>{errors.postViralLoadResultDate}</span>
+                                    ) : ""}
                                 </FormGroup>
                             </div>
                             <hr/>

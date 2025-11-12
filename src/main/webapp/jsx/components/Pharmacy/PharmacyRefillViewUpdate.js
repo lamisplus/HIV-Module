@@ -24,6 +24,7 @@ import { url as baseUrl, token } from "../../../api";
 import { toast } from "react-toastify";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 import { calculate_age_to_number } from "../../../utils";
+import useCodesets from "../../../hooks/useCodesets";
 const useStyles = makeStyles((theme) => ({
   button: {
     margin: theme.spacing(1),
@@ -67,6 +68,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 let refillPeriodValue = null;
 
+const CODESET_KEYS = [
+  "IPT_TYPE",
+  "DSD_MODEL_FACILITY",
+  "DSD_MODEL_COMMUNITY", 
+  "PREP_SIDE_EFFECTS"
+];
+
 const Pharmacy = (props) => {
   const patientObj = props.patientObj;
   const [selectedCombinedRegimen, setSelectedCombinedRegimen] = useState([]);
@@ -75,10 +83,22 @@ const Pharmacy = (props) => {
       ? patientObj.artCommence.visitDate
       : null;
   const classes = useStyles();
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [saving, setSaving] = useState(false);
+  
+  const getFormattedPrepSideEffects = () => {
+    return getOptions("PREP_SIDE_EFFECTS").map(option => ({
+      label: option.display,
+      value: option.id,
+    }));
+  };
+  
+  const getDsdModelOptions = (dsdmodel) => {
+    const key = dsdmodel === "Facility" ? "DSD_MODEL_FACILITY" : "DSD_MODEL_COMMUNITY";
+    return getOptions(key);
+  };
   //const [selectedOption, setSelectedOption] = useState([]);
   const [selectedOptionAdr, setSelectedOptionAdr] = useState();
-  const [prepSideEffect, setPrepSideEffect] = useState([]);
   const [mmdType, setmmdType] = useState();
   const [dsdModelType, setDsdModelType] = useState([]);
   const [showmmdType, setShowmmdType] = useState(false);
@@ -96,7 +116,6 @@ const Pharmacy = (props) => {
   const [tbRegimenLine, setTbRegimenLine] = useState([]);
   //const [othersRegimenLine, setOthersRegimenLine] = useState([]);
   const [childRegimenLine, setChildRegimenLine] = useState([]);
-  const [iptType, setIPT_TYPE] = useState([]);
   const [showIptType, setIptType] = useState(false);
   const [childrenOI, setChildrenOI] = useState([]);
   const [childrenTB, setChildrenTB] = useState([]);
@@ -148,12 +167,10 @@ const Pharmacy = (props) => {
   const [disabledField, setDisabledField] = useState(false);
   useEffect(() => {
     RegimenLine();
-    PrepSideEffect();
     VitalSigns();
     AdultRegimenLine();
     PharmacyRefillDetail();
     CheckEACStatus();
-    IPT_TYPE();
     VitalSigns();
     ChildRegimenLine();
     OtherDrugs();
@@ -169,16 +186,6 @@ const Pharmacy = (props) => {
     }
   }, [iptEligibilty.IPTEligibility, tptCareAndSupportRegimen]);
 
-  const IPT_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/IPT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setIPT_TYPE(response.data);
-      })
-      .catch((error) => {});
-  };
   const GetIptEligibilty = () => {
     //GET IPT ELIGIBILITY
     axios
@@ -297,25 +304,12 @@ const Pharmacy = (props) => {
 
         setObjValues(data);
         setRegimenDrugList(data && data.extra ? data.extra.regimens : []);
-        DsdModelType(objValues.dsdModel);
+        setDsdModelType(getDsdModelOptions(objValues.dsdModel));
         objValues.dsdModelType = data.dsdModelType;
         //}
       })
       .catch((error) => {});
   };
-  //Get list of DSD Model Type
-  function DsdModelType(dsdmodel) {
-    const dsd =
-      dsdmodel === "Facility" ? "DSD_MODEL_FACILITY" : "DSD_MODEL_COMMUNITY";
-    axios
-      .get(`${baseUrl}application-codesets/v2/${dsd}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setDsdModelType(response.data);
-      })
-      .catch((error) => {});
-  }
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
     axios
@@ -383,21 +377,6 @@ const Pharmacy = (props) => {
       .catch((error) => {});
   };
   //Get list of PrepSideEffect
-  const PrepSideEffect = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setPrepSideEffect(
-          Object.entries(response.data).map(([key, value]) => ({
-            label: value.display,
-            value: value.id,
-          }))
-        );
-      })
-      .catch((error) => {});
-  };
   function RegimenType(id) {
     async function getCharacters() {
       try {
@@ -604,7 +583,7 @@ const Pharmacy = (props) => {
   }
   const handleInputChange = (e) => {
     if (e.target.name === "dsdModel" && e.target.value !== "") {
-      DsdModelType(e.target.value);
+      setDsdModelType(getDsdModelOptions(e.target.value));
       setObjValues({ ...objValues, [e.target.name]: e.target.value });
     }
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -1477,7 +1456,7 @@ const Pharmacy = (props) => {
                         >
                           <option value="">Select</option>
 
-                          {iptType.map((value) => (
+                          {getOptions("IPT_TYPE").map((value) => (
                               <option key={value.id} value={value.code}>
                                 {value.display}
                               </option>

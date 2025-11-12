@@ -11,6 +11,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { url as baseUrl } from "./../../../api";
 import { token as token } from "./../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import { Spinner } from "reactstrap";
@@ -182,7 +183,7 @@ const Tracking = (props) => {
     VA_ADULT_CAUSES_NON_COMMUNICABLE_DISEASES();
     VA_ADULT_CAUSES_INJURIES();
     VA_CHILD_CAUSES();
-    VA_CHILD_CAUSES_NON_COMMUNICABLE_DISEASES();
+    VA_CHILD_CAUSES_NON-COMMUNICABLE_DISEASES();
     VA_CHILD_CAUSES_INJURIES();
     VA_NEONATE_CAUSES();
     //GetFormDetail();
@@ -1535,39 +1536,6 @@ const Tracking = (props) => {
                   )}
                 </>
               )}
-              {/*{objValues.reasonForDiscountinuation === "Death" && (*/}
-              {/*  <div className="form-group mb-3 col-md-6">*/}
-              {/*    <FormGroup>*/}
-              {/*      <Label for="">Cause of Death</Label>*/}
-              {/*      <Input*/}
-              {/*        type="select"*/}
-              {/*        name="causeOfDeath"*/}
-              {/*        id="causeOfDeath"*/}
-              {/*        onChange={handleInputChange}*/}
-              {/*        value={objValues.causeOfDeath}*/}
-              {/*        style={{*/}
-              {/*          border: "1px solid #014D88",*/}
-              {/*          borderRadius: "0.25rem",*/}
-              {/*        }}*/}
-              {/*        disabled={disabledField}*/}
-              {/*      >*/}
-              {/*        {causeDeath.map((value) => (*/}
-              {/*          <option key={value.code} value={value.display}>*/}
-              {/*            {value.display}*/}
-              {/*          </option>*/}
-              {/*        ))}*/}
-              {/*      </Input>*/}
-              {/*      {errors.causeOfDeath !== "" ? (*/}
-              {/*        <span className={classes.error}>*/}
-              {/*          {errors.causeOfDeath}*/}
-              {/*        </span>*/}
-              {/*      ) : (*/}
-              {/*        ""*/}
-              {/*      )}*/}
-              {/*    </FormGroup>*/}
-              {/*  </div>*/}
-              {/*)}*/}
-
               {objValues.reasonForDiscountinuation === "Death" &&  (
                   <>
                     <div className="form-group mb-3 col-md-6">
@@ -1678,7 +1646,11 @@ const Tracking = (props) => {
                                 }}
                             >
                               <option value="">Select</option>
-                              {vaCauseOfDeathTypeAdult.map((value) => (
+                              {[
+                                ...vaCauseOfDeathTypeAdult,
+                                ...vaCauseOfDeathTypeAdultNonCommunicableDiseases,
+                                ...vaCauseOfDeathTypeAdultInjuries
+                              ].map((value) => (
                                   <option key={value.code} value={value.display}>
                                     {value.display}
                                   </option>
@@ -1784,7 +1756,11 @@ const Tracking = (props) => {
                                 }}
                             >
                               <option value="">Select</option>
-                              {vaCauseOfDeathTypeChild.map((value) => (
+                              {[
+                                ...vaCauseOfDeathTypeChild,
+                                ...vaCauseOfDeathTypeChildNonCommunicableDiseases,
+                                ...vaCauseOfDeathTypeChildInjuries
+                              ].map((value) => (
                                   <option key={value.code} value={value.display}>
                                     {value.display}
                                   </option>

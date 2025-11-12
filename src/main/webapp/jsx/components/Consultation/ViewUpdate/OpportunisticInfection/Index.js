@@ -9,6 +9,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { toast } from "react-toastify";
 import { url as baseUrl,token } from "./../../../../../api";
 import axios from "axios";
+import useCodesets from "../../../../../hooks/useCodesets";
 
 
 const useStyles = makeStyles(theme => ({
@@ -22,33 +23,35 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+const CODESET_KEYS = ["OPPORTUNISTIC_INFECTION_ILLNESS"];
 const ADR = (props) => {
+    const { getOptions } = useCodesets(CODESET_KEYS);
   const [errors, setErrors] = useState({});
   const classes = useStyles()
   let temp = { ...errors }
   const [prepSideEffect, setPrepSideEffect] = useState([]);
   
-  useEffect(() => {
-    PrepSideEffect();
-  }, []);
+  // useEffect(() => {
+  //   PrepSideEffect();
+  // }, []);
   const handleInfectionInputChange = e => {
   props.setInfection ({...props.infection,  [e.target.name]: e.target.value});
   }
 
-  const PrepSideEffect =()=>{
-    axios
-        .get(`${baseUrl}application-codesets/v2/OPPORTUNISTIC_INFECTION_ILLNESS`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
+  // const PrepSideEffect =()=>{
+  //   axios
+  //       .get(`${baseUrl}application-codesets/v2/OPPORTUNISTIC_INFECTION_ILLNESS`,
+  //           { headers: {"Authorization" : `Bearer ${token}`} }
+  //       )
+  //       .then((response) => {
             
-            setPrepSideEffect(response.data);
-        })
-        .catch((error) => {
+  //           setPrepSideEffect(response.data);
+  //       })
+  //       .catch((error) => {
         
-        });
+  //       });
     
-  }
+  // }
   //Validations of the forms
   const validate = () => {        
     temp.ondateInfection = props.infection.ondateInfection ? "" : "This field is required"
@@ -78,92 +81,110 @@ const ADR = (props) => {
 
   return (
     <div>
-       <div className="row">
-       {props.enableUpdate && (
-        <>
-          <div className="form-group mb-3 col-md-5">
+      <div className="row">
+        {props.enableUpdate && (
+          <>
+            <div className="form-group mb-3 col-md-5">
               <FormGroup>
-              <Label >Onset Date </Label>
-              <Input
+                <Label>Onset Date </Label>
+                <Input
                   type="date"
                   name="ondateInfection"
                   id="ondateInfection"
                   value={props.infection.ondateInfection}
                   onChange={handleInfectionInputChange}
                   max={props.encounterDate}
-                  style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
+                  style={{
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
+                  }}
                   required
                   onKeyPress={(e) => e.preventDefault()}
-                  > 
-              </Input>
-              {errors.ondateInfection !=="" ? (
-                  <span className={classes.error}>{errors.ondateInfection}</span>
-              ) : "" }
+                ></Input>
+                {errors.ondateInfection !== "" ? (
+                  <span className={classes.error}>
+                    {errors.ondateInfection}
+                  </span>
+                ) : (
+                  ""
+                )}
               </FormGroup>
-          </div>
-          <div className="form-group mb-3 col-md-5">        
-          <FormGroup>
-              <Label > Illness</Label>
-              <Input
-                type="select"
-                name="illnessInfection"
-                id="illnessInfection"
-                value={props.infection.illnessInfection}
-                onChange={handleInfectionInputChange}
-                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                required
+            </div>
+            <div className="form-group mb-3 col-md-5">
+              <FormGroup>
+                <Label> Illness</Label>
+                <Input
+                  type="select"
+                  name="illnessInfection"
+                  id="illnessInfection"
+                  value={props.infection.illnessInfection}
+                  onChange={handleInfectionInputChange}
+                  style={{
+                    border: "1px solid #014D88",
+                    borderRadius: "0.25rem",
+                  }}
+                  required
                 >
                   <option value=""> Select</option>
-                    {prepSideEffect.map((value) => (
-                        <option key={value.id} value={value.display}>
-                            {value.display}
-                        </option>
-                    ))} 
-            </Input>
-              {errors.illnessInfection !=="" ? (
-                  <span className={classes.error}>{errors.illnessInfection}</span>
-              ) : "" }
+                  {getOptions("OPPORTUNISTIC_INFECTION_ILLNESS").map(
+                    (value) => (
+                      <option key={value.id} value={value.display}>
+                        {value.display}
+                      </option>
+                    )
+                  )}
+                </Input>
+                {errors.illnessInfection !== "" ? (
+                  <span className={classes.error}>
+                    {errors.illnessInfection}
+                  </span>
+                ) : (
+                  ""
+                )}
               </FormGroup>
-          </div>
-          <div className="form-group mb-3 col-md-2">
-          <LabelSui as='a' color='black'  onClick={addInfection}  size='tiny' style={{ marginTop:35}}>
-              <Icon name='plus' /> Add
-          </LabelSui>
-          </div>
-        </>
+            </div>
+            <div className="form-group mb-3 col-md-2">
+              <LabelSui
+                as="a"
+                color="black"
+                onClick={addInfection}
+                size="tiny"
+                style={{ marginTop: 35 }}
+              >
+                <Icon name="plus" /> Add
+              </LabelSui>
+            </div>
+          </>
         )}
-        {props.infectionList.length >0 
-          ?
-            <List>
-            <div style={{padding:'3px 0px'}} >
-            <Table  striped responsive size="sm" >
-                  <thead  >
-                      <tr >
-                          <th>Illness</th>
-                          <th>OnSetDate</th>
-                          <th ></th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                {props.infectionList.map((relative, index) => (
-
-                  <InfectionList
+        {props.infectionList.length > 0 ? (
+          <List>
+            <div style={{ padding: "3px 0px" }}>
+              <Table striped responsive size="sm">
+                <thead>
+                  <tr>
+                    <th>Illness</th>
+                    <th>OnSetDate</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {props.infectionList.map((relative, index) => (
+                    <InfectionList
                       key={index}
                       index={index}
                       relative={relative}
                       removeInfection={removeInfection}
-                  />
+                    />
                   ))}
-                  </tbody>
-                  </Table>
-                  </div>
-                </List>
-                :
-                ""
-            } 
+                </tbody>
+              </Table>
+            </div>
+          </List>
+        ) : (
+          ""
+        )}
+      </div>
     </div>
-    </div>
-     
   );
 };
 

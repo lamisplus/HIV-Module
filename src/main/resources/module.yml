@@ -15,3 +15,74 @@ webModules:
     name: HivModule
     path: hiv
     position: 99
+permissions:
+  - name: adult_initial_clinical_evaluation
+    description: Adult Initial Clinical Evaluation
+    moduleName: HIVModule
+  - name: pediatric_initial_clinical_evaluation_form
+    description: Pediatric Initial Clinical Evaluation Form
+    moduleName: HIVModule
+  - name: care_card
+    description: Care Card
+    moduleName: HIVModule
+  - name: laboratory_order_and_results_form
+    description: Laboratory Order And Results Form
+    moduleName: HIVModule
+  - name: viral_load_order_and_result_form
+    description: Viral Load Order And Result Form
+    moduleName: HIVModule
+  - name: hiv_care_and_treatment_transfer_form
+    description: HIV Care And Treatment Transfer Form
+    moduleName: HIVModule
+  - name: client_tracking_and_discontinuation_form
+    description: Client Tracking & Discontinuation Form
+    moduleName: HIVModule
+  - name: hiv_enrollment_register
+    description: HIV Enrollment Register
+    moduleName: HIVModule
+  - name: art_register
+    description: ART Register
+    moduleName: HIVModule
+  - name: viral_load_monitoring_register
+    description: Viral Load Monitoring Register
+    moduleName: HIVModule
+  - name: enhanced_adherence_counselling_form
+    description: Enhanced Adherence Counselling Form
+    moduleName: HIVModule
+  - name: eac_monitoring_register
+    description: EAC Monitoring Register
+    moduleName: HIVModule
+  - name: hiv_patient_tracking_register
+    description: HIV Patient Tracking Register
+    moduleName: HIVModule
+  - name: cervical_cancer_screening_form
+    description: Cervical Cancer Screening Form
+    moduleName: HIVModule
+  - name: cervical_cancer_consent_form
+    description: Cervical Cancer Consent Form
+    moduleName: HIVModule
+  - name: cervical_cancer_care_card
+    description: Cervical Cancer Care Card
+    moduleName: HIVModule
+  - name: cervical_cancer_care_register
+    description: Cervical Cancer Care Register
+    moduleName: HIVModule
+  - name: prep_eligibility_forms
+    description: PrEP Eligibility Forms
+    moduleName: HIVModule
+  - name: prep_care_card
+    description: PrEP Care Card
+    moduleName: HIVModule
+  - name: prep_register
+    description: PrEP Register
+    moduleName: HIVModule
+  - name: care_and_support_checklist
+    description: Care And Support Checklist
+    moduleName: HIVModule
+  - name: care_and_support_register
+    description: Care And Support Register
+    moduleName: HIVModule
+  - name: combined_pharmacy_order_form
+    description: Combined Pharmacy Order Form
+    moduleName: HIVModule
+

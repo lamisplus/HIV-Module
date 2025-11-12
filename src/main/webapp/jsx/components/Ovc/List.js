@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import MaterialTable, { MTableToolbar } from "material-table";
 import axios from "axios";
 
@@ -36,6 +36,7 @@ import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
 import moment from "moment";
 //import { FaUserPlus } from "react-icons/fa";
 import { TiArrowForward } from "react-icons/ti";
+import CustomTable from "../../../reuseables/CustomTable";
 
 //Dtate Picker package
 Moment.locale("en");
@@ -109,6 +110,27 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const List = (props) => {
+  const [showPPI, setShowPPI] = useState(true);
+
+    const handleCheckBox = (e) => {
+      setShowPPI(!e.target.checked);
+    };
+
+  const columns = useMemo(
+    () => [
+      {
+        title: "Date",
+        field: "date",
+      },
+      { title: "ID", field: "id", filtering: false },
+      { title: "File Name", field: "filename", filtering: false },
+      { title: "Status", field: "status", filtering: false },
+      { title: "Actions", field: "actions", filtering: false },
+    ],
+
+    [showPPI]
+  );
+
   return (
     <div>
       <Button
@@ -133,42 +155,16 @@ const List = (props) => {
       </Button>
       <br />
       <br />
-      <MaterialTable
-        icons={tableIcons}
+      <CustomTable
         title="OVC Patients Linked to Treatment"
-        columns={[
-          // { title: " ID", field: "Id" },
-          {
-            title: "Date",
-            field: "date",
-          },
-          { title: "ID", field: "id", filtering: false },
-          { title: "File Name", field: "filename", filtering: false },
-          { title: "Status", field: "status", filtering: false },
-          { title: "Actions", field: "actions", filtering: false },
-        ]}
+        columns={columns}
         data={[]}
-        
-        options={{
-          search: true,
-          headerStyle: {
-            backgroundColor: "#014d88",
-            color: "#fff",
-          },
-          searchFieldStyle: {
-            width: "200%",
-            margingLeft: "250px",
-          },
-          filtering: false,
-          exportButton: false,
-          searchFieldAlignment: "left",
-          pageSizeOptions: [10, 20, 100],
-          pageSize: 10,
-          debounceInterval: 400,
-        }}
+        icons={tableIcons}
+        showPPI={showPPI}
+        onPPIChange={handleCheckBox}
       />
     </div>
   );
 };
 
-export default List;
+export default memo(List);
