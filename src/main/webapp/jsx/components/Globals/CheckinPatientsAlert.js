@@ -82,8 +82,8 @@ const CheckedInPatientsAlert = () => {
         aria-label="toggle-sound"
         style={{
           position: "fixed",
-          bottom: "16px",
-          right: "16px",
+          bottom: "32px",
+          right: "39px",
           zIndex: 1000,
           background: "#014d88",
         }}
