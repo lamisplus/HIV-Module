@@ -992,7 +992,7 @@ const ClinicVisit = (props) => {
             user_id: userAccount.id,
             recording_uuid: transcriptionProcess.recording_uuid
           })
-  
+
           // toast.success("Transcription and form saved", {
           //   position: toast.POSITION.TOP_RIGHT,
           // });
@@ -1188,7 +1188,7 @@ const ClinicVisit = (props) => {
     const fullTranscription = transcriptionHeader + transcriptionContent + transcriptionFooter;
     setObjValues(prevBody => ({
       ...prevBody,
-      clinicalNote: fullTranscription
+      clinicalNote: prevBody?.clinicalNote + "\n" + fullTranscription
     }));
     setTranscriptionProcess(result)
   };
@@ -1221,8 +1221,7 @@ const ClinicVisit = (props) => {
 
   return (
     <div className={classes.root}>
-      <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} patient={props.patientObj} />
-      <ExportRecords />
+      {/* <ExportRecords /> */}
       <div className="row">
         <div className="col-md-6">
           <h2>Clinic Follow-up Visit</h2>
@@ -1261,8 +1260,8 @@ const ClinicVisit = (props) => {
                                 as={Card.Text}
                                 eventKey={`${i}`}
                                 className={`accordion-header ${activeAccordionHeaderShadow === 1
-                                    ? ""
-                                    : "collapsed"
+                                  ? ""
+                                  : "collapsed"
                                   } accordion-header-info`}
                                 onClick={() =>
                                   setActiveAccordionHeaderShadow(
@@ -1502,8 +1501,8 @@ const ClinicVisit = (props) => {
                                 as={Card.Text}
                                 eventKey={`${i}`}
                                 className={`accordion-header ${activeAccordionHeaderShadow === 1
-                                    ? ""
-                                    : "collapsed"
+                                  ? ""
+                                  : "collapsed"
                                   } accordion-header-info`}
                                 onClick={() =>
                                   setActiveAccordionHeaderShadow(
@@ -2092,21 +2091,31 @@ const ClinicVisit = (props) => {
             <br />
             <br />
 
-            <div className=" mb-3">
+            <div className="mb-3" style={{ position: 'relative' }}>
               <FormLabelName>Clinical Notes</FormLabelName>
               <textarea
                 name="clinicalNote"
                 className="form-control"
                 value={objValues.clinicalNote}
                 onChange={handleInputChange}
-                style={{ border: "1px solid #014D88", borderRadius: "0.25rem", height: "200px" }}
+                style={{
+                  border: "1px solid #014D88",
+                  borderRadius: "0.25rem",
+                  height: "200px",
+                  paddingRight: "60px"
+                }}
               ></textarea>
               {errors.clinicalNote !== "" ? (
                 <span className={classes.error}>{errors.clinicalNote}</span>
               ) : (
                 ""
               )}
+              <AudioRecorder
+                onTranscriptionComplete={handleTranscriptionComplete}
+                patient={props.patientObj}
+              />
             </div>
+
             <div className="row">
               {/**jsx added begin here */}
               <div className="form-group mb-3 col-md-6">
