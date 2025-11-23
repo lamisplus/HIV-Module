@@ -1177,7 +1177,7 @@ const ClinicVisit = (props) => {
 
     const transcriptionHeader = `Voice Transcription - ${formattedDate}\nTotal Recordings: ${result.recording_count} | Duration: ${Math.floor(result.total_duration / 60)}:${(result.total_duration % 60).toString().padStart(2, '0')}\n`;
 
-    const transcriptionFooter = `\n=========================END Transcription=================\n`;
+    const transcriptionFooter = `\n=========================END=========================\n`;
     const transcriptionContent = (result.corrected_transcription || '')
       .split('\n')
       .map(line => line.trim())
