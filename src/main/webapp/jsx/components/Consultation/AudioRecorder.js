@@ -42,7 +42,7 @@ import {
 import axios from 'axios';
 import { audioTranscriptionUrl } from '../../../api';
 
-// --- WavEncoder Class (Unchanged) ---
+
 class WavEncoder {
     constructor(sampleRate = 16000, numChannels = 1, bitDepth = 16) {
         this.sampleRate = sampleRate;
@@ -95,7 +95,6 @@ class WavEncoder {
     }
 }
 
-// --- AudioProcessor Class (Unchanged) ---
 class AudioProcessor {
     constructor(sampleRate = 16000) {
         this.sampleRate = sampleRate;
@@ -178,7 +177,7 @@ class AudioProcessor {
     }
 }
 
-// --- Updated Styles ---
+
 const useStyles = makeStyles((theme) => ({
     fullscreenDialog: {
         '& .MuiDialog-paper': {
@@ -186,7 +185,7 @@ const useStyles = makeStyles((theme) => ({
             maxHeight: '100%',
             width: '100%',
             height: '100%',
-            backgroundColor: '#f4f6f8', // Softer background
+            backgroundColor: '#f4f6f8',
         },
     },
     dialogContent: {
@@ -234,9 +233,9 @@ const useStyles = makeStyles((theme) => ({
         display: 'flex',
         flexDirection: 'column',
         gap: theme.spacing(2),
-        minHeight: 0, // Important for nested flex scrolling
+        minHeight: 0,
     },
-    // Tabs Styling
+    
     customTabs: {
         backgroundColor: '#fff',
         borderRadius: theme.shape.borderRadius * 2,
@@ -259,7 +258,7 @@ const useStyles = makeStyles((theme) => ({
             },
         },
     },
-    // Recording Card Styles
+    
     recordingCard: {
         padding: theme.spacing(4),
         height: '350px',
@@ -328,7 +327,7 @@ const useStyles = makeStyles((theme) => ({
         marginTop: theme.spacing(1),
         letterSpacing: '-1px',
     },
-    // Controls & Settings
+    
     controlsContainer: {
         padding: theme.spacing(1),
     },
@@ -338,7 +337,7 @@ const useStyles = makeStyles((theme) => ({
         borderRadius: theme.shape.borderRadius * 2,
         padding: theme.spacing(2),
     },
-    // Right Panel Styles
+    
     transcriptionCard: {
         padding: theme.spacing(3),
         borderRadius: theme.shape.borderRadius * 3,
@@ -402,7 +401,7 @@ const useStyles = makeStyles((theme) => ({
         gap: theme.spacing(2),
         fontWeight: 500,
     },
-    // Custom buttons
+    
     largeButton: {
         padding: theme.spacing(1.5, 3),
         fontSize: '1rem',
@@ -453,8 +452,8 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
     const [originalTranscription, setOriginalTranscription] = useState("");
     const [activeTab, setActiveTab] = useState(0);
 
-    // Upload-specific states
-    const [inputMode, setInputMode] = useState(0); // 0 = Record, 1 = Upload
+    
+    const [inputMode, setInputMode] = useState(0); 
     const [uploadedFile, setUploadedFile] = useState(null);
     const [hasPlayedUpload, setHasPlayedUpload] = useState(false);
     const [hasProcessedUpload, setHasProcessedUpload] = useState(false);
@@ -641,7 +640,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
         const file = event.target.files[0];
         if (!file) return;
 
-        const maxSize = 50 * 1024 * 1024; // 50MB
+        const maxSize = 50 * 1024 * 1024;
         if (file.size > maxSize) {
             setError('File size exceeds 50MB limit');
             return;
@@ -665,14 +664,14 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
         setAudioUrl(url);
         setAudioBlob(file);
 
-        // Get audio duration
+        
         const audio = new Audio(url);
         audio.addEventListener('loadedmetadata', () => {
             setRecordingTime(Math.floor(audio.duration));
         });
     };
 
-    // --- BUG FIX: Reset isPlaying state on remove ---
+    
     const handleRemoveUpload = () => {
         if (audioPlayerRef.current) {
             audioPlayerRef.current.pause();
@@ -682,7 +681,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
         setUploadedFile(null);
         setAudioBlob(null);
         setAudioUrl(null);
-        setIsPlaying(false); // Fix: Ensure playing state is reset
+        setIsPlaying(false); 
         setHasPlayedUpload(false);
         setHasProcessedUpload(false);
         setRecordingTime(0);
@@ -728,7 +727,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             formData.append('user_id', (userAccount?.id || '').toString());
             formData.append('facility_id', (userAccount?.currentOrganisationUnitId || '').toString());
 
-            // Step 1: Transcribe
+            
             const transcriptionResponse = await axios.post(
                 `${audioTranscriptionUrl}/transcribe`,
                 formData,
@@ -753,7 +752,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             setOriginalTranscription(transcriptionContent);
             setIsTranscribing(false);
 
-            // Step 2: Generate SOAP Note
+            
             const soapResponse = await axios.post(
                 `${audioTranscriptionUrl}/soap/generate`,
                 { transcription_text: transcriptionContent },
