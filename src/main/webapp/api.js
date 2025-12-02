@@ -11,9 +11,9 @@ export const wsUrl =
 
 export const audioTranscriptionUrl = process.env.NODE_ENV === "development"
 
-    ? "http://3.238.242.92:7860/api/v1"
+    ? "http://18.207.157.18:7860/api/v1"
 
-    : "http://3.238.242.92:7860/api/v1";
+    : "http://18.207.157.18:7860/api/v1";
 
 export const token =
     process.env.NODE_ENV === "development"
