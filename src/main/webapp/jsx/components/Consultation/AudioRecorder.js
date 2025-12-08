@@ -226,7 +226,16 @@ const useStyles = makeStyles((theme) => ({
             flex: 'none',
             width: '100%',
         },
-        overflow: "auto"
+        overflow: "auto",
+        paddingRight: theme.spacing(4),
+    },
+    checkboxContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: theme.spacing(2),
+        [theme.breakpoints.down('sm')]: {
+            flexDirection: 'column',
+        },
     },
     rightPanel: {
         flex: 1,
@@ -235,7 +244,7 @@ const useStyles = makeStyles((theme) => ({
         gap: theme.spacing(2),
         minHeight: 0,
     },
-    
+
     customTabs: {
         backgroundColor: '#fff',
         borderRadius: theme.shape.borderRadius * 2,
@@ -258,7 +267,7 @@ const useStyles = makeStyles((theme) => ({
             },
         },
     },
-    
+
     recordingCard: {
         padding: theme.spacing(4),
         height: '350px',
@@ -327,7 +336,7 @@ const useStyles = makeStyles((theme) => ({
         marginTop: theme.spacing(1),
         letterSpacing: '-1px',
     },
-    
+
     controlsContainer: {
         padding: theme.spacing(1),
     },
@@ -337,7 +346,7 @@ const useStyles = makeStyles((theme) => ({
         borderRadius: theme.shape.borderRadius * 2,
         padding: theme.spacing(2),
     },
-    
+
     transcriptionCard: {
         padding: theme.spacing(3),
         borderRadius: theme.shape.borderRadius * 3,
@@ -401,7 +410,7 @@ const useStyles = makeStyles((theme) => ({
         gap: theme.spacing(2),
         fontWeight: 500,
     },
-    
+
     largeButton: {
         padding: theme.spacing(1.5, 3),
         fontSize: '1rem',
@@ -446,14 +455,14 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
     const [languageSelect] = useState("en");
     const [isPaused, setIsPaused] = useState(false);
     const [isStartingRecording, setIsStartingRecording] = useState(false);
-
+    const [hasConsent, setHasConsent] = useState(false);
     const [transcriptionText, setTranscriptionText] = useState("");
     const [soapNote, setSoapNote] = useState("");
     const [originalTranscription, setOriginalTranscription] = useState("");
     const [activeTab, setActiveTab] = useState(0);
 
-    
-    const [inputMode, setInputMode] = useState(0); 
+
+    const [inputMode, setInputMode] = useState(0);
     const [uploadedFile, setUploadedFile] = useState(null);
     const [hasPlayedUpload, setHasPlayedUpload] = useState(false);
     const [hasProcessedUpload, setHasProcessedUpload] = useState(false);
@@ -664,14 +673,14 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
         setAudioUrl(url);
         setAudioBlob(file);
 
-        
+
         const audio = new Audio(url);
         audio.addEventListener('loadedmetadata', () => {
             setRecordingTime(Math.floor(audio.duration));
         });
     };
 
-    
+
     const handleRemoveUpload = () => {
         if (audioPlayerRef.current) {
             audioPlayerRef.current.pause();
@@ -681,7 +690,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
         setUploadedFile(null);
         setAudioBlob(null);
         setAudioUrl(null);
-        setIsPlaying(false); 
+        setIsPlaying(false);
         setHasPlayedUpload(false);
         setHasProcessedUpload(false);
         setRecordingTime(0);
@@ -727,7 +736,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             formData.append('user_id', (userAccount?.id || '').toString());
             formData.append('facility_id', (userAccount?.currentOrganisationUnitId || '').toString());
 
-            
+
             const transcriptionResponse = await axios.post(
                 `${audioTranscriptionUrl}/transcribe`,
                 formData,
@@ -752,7 +761,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             setOriginalTranscription(transcriptionContent);
             setIsTranscribing(false);
 
-            
+
             const soapResponse = await axios.post(
                 `${audioTranscriptionUrl}/soap/generate`,
                 { transcription_text: transcriptionContent },
@@ -903,9 +912,58 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                 <Tab label="Upload File" icon={<CloudUploadIcon />} iconPosition="start" />
                             </Tabs>
 
+                            {/* Add this container wrapper */}
+                            <div className={classes.checkboxContainer}>
+                                <div className={classes.settingsBox}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={saveForTraining}
+                                                onChange={(e) => setSaveForTraining(e.target.checked)}
+                                                color="primary"
+                                                disabled={isRecording || isStartingRecording}
+                                            />
+                                        }
+                                        label={
+                                            <Box>
+                                                <Typography variant="body2" style={{ fontWeight: 600 }}>
+                                                    Contribute to model improvement
+                                                </Typography>
+                                                <Typography variant="caption" color="textSecondary">
+                                                    Securely save de-identified audio and transcript for training purposes only.
+                                                </Typography>
+                                            </Box>
+                                        }
+                                    />
+                                </div>
+
+                                <div className={classes.settingsBox}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={hasConsent}
+                                                onChange={(e) => setHasConsent(e.target.checked)}
+                                                color="primary"
+                                                disabled={isRecording || isStartingRecording}
+                                            />
+                                        }
+                                        label={
+                                            <Box>
+                                                <Typography variant="body2" style={{ fontWeight: 600 }}>
+                                                    Patient consent obtained
+                                                </Typography>
+                                                <Typography variant="caption" color="textSecondary">
+                                                    I confirm the patient has agreed to be recorded and their session may be transcribed.
+                                                </Typography>
+                                            </Box>
+                                        }
+                                    />
+                                </div>
+                            </div>
+
                             <Fade in={true} timeout={500}>
                                 <Box display="flex" flexDirection="column" gap={3}>
-                                    {/* Record Mode */}
+
                                     {inputMode === 0 && (
                                         <>
                                             <Paper elevation={0} className={getRecordingAreaClass()} onClick={isRecording || isStartingRecording ? null : (!audioBlob ? startRecording : null)}>
@@ -978,11 +1036,31 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
 
                                                 {audioBlob && !isRecording && (
                                                     <Box display="flex" flexDirection="column" gap={3}>
-                                                        <Box display="flex" gap={2}>
-                                                            <Button variant="outlined" className={classes.largeButton} startIcon={isPlaying ? <PauseIcon /> : <PlayIcon />} onClick={togglePlayPause} fullWidth style={{ border: `2px solid ${theme.palette.grey[300]}` }}>
+                                                        <Box display="flex" gap={4}>
+                                                            <Button
+                                                                variant="outlined"
+                                                                className={classes.largeButton}
+                                                                startIcon={isPlaying ? <PauseIcon /> : <PlayIcon />}
+                                                                onClick={togglePlayPause}
+                                                                style={{
+                                                                    border: `2px solid ${theme.palette.grey[300]}`,
+                                                                    flex: 1  // Use flex: 1 instead of fullWidth
+                                                                }}
+                                                            >
                                                                 {isPlaying ? 'Pause Playback' : 'Preview Audio'}
                                                             </Button>
-                                                            <Button variant="outlined" color="secondary" className={classes.largeButton} startIcon={<ReplayIcon />} onClick={resetRecording} fullWidth style={{ border: `2px solid ${theme.palette.error.light}`, color: theme.palette.error.main }}>
+                                                            <Button
+                                                                variant="outlined"
+                                                                color="secondary"
+                                                                className={classes.largeButton}
+                                                                startIcon={<ReplayIcon />}
+                                                                onClick={resetRecording}
+                                                                style={{
+                                                                    border: `2px solid ${theme.palette.error.light}`,
+                                                                    color: theme.palette.error.main,
+                                                                    flex: 1  // Use flex: 1 instead of fullWidth
+                                                                }}
+                                                            >
                                                                 Discard & Retry
                                                             </Button>
                                                         </Box>
@@ -992,7 +1070,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                                             size="large"
                                                             startIcon={isTranscribing || isGeneratingSOAP ? <CircularProgress size={24} color="inherit" /> : <SendIcon />}
                                                             onClick={handleTranscribe}
-                                                            disabled={isTranscribing || isGeneratingSOAP}
+                                                            disabled={isTranscribing || isGeneratingSOAP || !hasConsent}
                                                             fullWidth
                                                             style={{ height: 56, marginTop: 20 }}
                                                         >
@@ -1004,7 +1082,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                         </>
                                     )}
 
-                                    {/* Upload Mode */}
+
                                     {inputMode === 1 && (
                                         <>
                                             {!uploadedFile ? (
@@ -1061,7 +1139,6 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                                         </Box>
                                                     </Paper>
 
-                                                    {/* --- BUG FIX: Improved Spacing in Upload Controls --- */}
                                                     <div className={classes.controlsContainer}>
                                                         <Box display="flex" flexDirection="column" gap={3}>
                                                             <Box display="flex" gap={2}>
@@ -1093,7 +1170,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                                                 size="large"
                                                                 startIcon={isTranscribing || isGeneratingSOAP ? <CircularProgress size={24} color="inherit" /> : <SendIcon />}
                                                                 onClick={handleTranscribe}
-                                                                disabled={!hasPlayedUpload || isTranscribing || isGeneratingSOAP || hasProcessedUpload}
+                                                                disabled={!hasPlayedUpload || isTranscribing || isGeneratingSOAP || hasProcessedUpload || !hasConsent}
                                                                 fullWidth
                                                                 style={{ height: 56, fontSize: '1.1rem', marginTop: 20 }}
                                                             >
@@ -1113,28 +1190,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                         </div>
                                     )}
 
-                                    <div className={classes.settingsBox}>
-                                        <FormControlLabel
-                                            control={
-                                                <Checkbox
-                                                    checked={saveForTraining}
-                                                    onChange={(e) => setSaveForTraining(e.target.checked)}
-                                                    color="primary"
-                                                    disabled={isRecording || isStartingRecording}
-                                                />
-                                            }
-                                            label={
-                                                <Box>
-                                                    <Typography variant="body2" style={{ fontWeight: 600 }}>
-                                                        Contribute to model improvement
-                                                    </Typography>
-                                                    <Typography variant="caption" color="textSecondary">
-                                                        Securely save de-identified audio and transcript for training purposes only.
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                        />
-                                    </div>
+
                                 </Box>
                             </Fade>
                         </div>
@@ -1232,17 +1288,22 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                 </Box>
 
                                 <div className={classes.actionButtons}>
-                                    <Button
-                                        variant="contained"
-                                        className={`${classes.largeButton} ${classes.primaryButton}`}
-                                        startIcon={<CheckCircleIcon />}
-                                        onClick={handleUseContent}
-                                        disabled={!transcriptionText && !soapNote}
-                                        fullWidth
-                                        size="large"
-                                    >
-                                        Confirm & Use {activeTab === 0 ? 'Transcript' : 'SOAP Note'}
-                                    </Button>
+                                    {
+                                        activeTab === 1 && (
+
+                                            <Button
+                                                variant="contained"
+                                                className={`${classes.largeButton} ${classes.primaryButton}`}
+                                                startIcon={<CheckCircleIcon />}
+                                                onClick={handleUseContent}
+                                                disabled={!transcriptionText && !soapNote}
+                                                fullWidth
+                                                size="large"
+                                            >
+                                                Confirm & Use {activeTab === 0 ? 'Transcript' : 'SOAP Note'}
+                                            </Button>
+                                        )
+                                    }
                                     {activeTab === 0 && (
                                         <Button
                                             variant="outlined"
