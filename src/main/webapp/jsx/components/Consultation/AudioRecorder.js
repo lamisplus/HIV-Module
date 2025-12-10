@@ -9,9 +9,7 @@ import {
     Typography,
     Box,
     Paper,
-    Snackbar,
     Tooltip,
-    Divider,
     Chip,
     CircularProgress,
     Tabs,
@@ -29,15 +27,16 @@ import {
     Replay as ReplayIcon,
     Description as DescriptionIcon,
     CheckCircle as CheckCircleIcon,
-    History as HistoryIcon,
     Refresh as RefreshIcon,
     CloudUpload as CloudUploadIcon,
     DeleteOutline as DeleteOutlineIcon,
     AssignmentTurnedIn as AssignmentTurnedInIcon,
 } from '@material-ui/icons';
 import axios from 'axios';
-import { audioTranscriptionUrl } from '../../../api';
+import { toast } from 'react-toastify';
 import ConsentCheckbox from './ConsentCheckbox';
+import { checkServerAvailability } from '../../../../../utils/connectionUtils';
+import ConnectionStatusBadge from './ConnectionStatusBadge';
 
 
 class WavEncoder {
@@ -438,6 +437,19 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+    // Connection State
+    const [connectionState, setConnectionState] = useState({
+        mode: 'checking',
+        isChecking: true,
+        activeApiCall: false,
+    });
+    const [serverConfig, setServerConfig] = useState({
+        transcriptionUrl: '',
+        soapUrl: null,
+        serverBaseUrl: '',
+    });
+
+    // UI State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [audioBlob, setAudioBlob] = useState(null);
@@ -458,20 +470,67 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
     const [originalTranscription, setOriginalTranscription] = useState("");
     const [activeTab, setActiveTab] = useState(0);
 
-
+    // Input Mode
     const [inputMode, setInputMode] = useState(0);
     const [uploadedFile, setUploadedFile] = useState(null);
     const [hasPlayedUpload, setHasPlayedUpload] = useState(false);
     const [hasProcessedUpload, setHasProcessedUpload] = useState(false);
 
+    // Refs
     const audioProcessorRef = useRef(null);
     const timerRef = useRef(null);
     const audioPlayerRef = useRef(null);
     const streamRef = useRef(null);
+    const modeCheckTimeoutRef = useRef(null);
 
     const audioRefs = useRef({
         startRecording: new Audio(`${process.env.PUBLIC_URL}/tape-start.wav`),
     });
+
+    // Check connectivity on modal open
+    useEffect(() => {
+        if (isModalOpen) {
+            checkConnectivity();
+        }
+    }, [isModalOpen]);
+
+    // Network event listeners
+    useEffect(() => {
+        const handleOnline = () => {
+            if (!connectionState.activeApiCall && !isRecording && !isTranscribing && !isGeneratingSOAP) {
+                // Delay check to avoid rapid switching
+                if (modeCheckTimeoutRef.current) {
+                    clearTimeout(modeCheckTimeoutRef.current);
+                }
+                modeCheckTimeoutRef.current = setTimeout(() => {
+                    checkConnectivity(true);
+                }, 2000);
+            }
+        };
+
+        const handleOffline = () => {
+            if (!connectionState.activeApiCall && !isRecording && !isTranscribing && !isGeneratingSOAP) {
+                // Delay check to avoid rapid switching
+                if (modeCheckTimeoutRef.current) {
+                    clearTimeout(modeCheckTimeoutRef.current);
+                }
+                modeCheckTimeoutRef.current = setTimeout(() => {
+                    checkConnectivity(true);
+                }, 2000);
+            }
+        };
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+            if (modeCheckTimeoutRef.current) {
+                clearTimeout(modeCheckTimeoutRef.current);
+            }
+        };
+    }, [connectionState.activeApiCall, isRecording, isTranscribing, isGeneratingSOAP]);
 
     useEffect(() => {
         Object.values(audioRefs.current).forEach((audio) => {
@@ -482,6 +541,72 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             cleanupResources();
         };
     }, []);
+
+    const checkConnectivity = async (isAutoCheck = false) => {
+        const previousMode = connectionState.mode;
+
+        setConnectionState(prev => ({ ...prev, isChecking: true }));
+
+        try {
+            const config = await checkServerAvailability();
+
+            setServerConfig({
+                transcriptionUrl: config.transcriptionUrl,
+                soapUrl: config.soapUrl,
+                serverBaseUrl: config.serverBaseUrl,
+            });
+
+            setConnectionState({
+                mode: config.mode,
+                isChecking: false,
+                activeApiCall: false,
+            });
+
+            // Show notification if mode changed during auto-check
+            if (isAutoCheck && previousMode !== 'checking' && previousMode !== config.mode) {
+                if (config.mode === 'online') {
+                    toast.info('🟢 Connected to online server - SOAP generation now available', {
+                        position: toast.POSITION.TOP_CENTER,
+                        autoClose: 5000,
+                        closeOnClick: false,
+                        hideProgressBar: false,
+                    });
+                } else if (config.mode === 'offline') {
+                    toast.warning('🟠 Switched to offline mode - SOAP generation unavailable', {
+                        position: toast.POSITION.TOP_CENTER,
+                        autoClose: 5000,
+                        closeOnClick: false,
+                        hideProgressBar: false,
+                    });
+                } else if (config.mode === 'unavailable') {
+                    toast.error('❌ No transcription server available', {
+                        position: toast.POSITION.TOP_CENTER,
+                        autoClose: 5000,
+                        closeOnClick: false,
+                        hideProgressBar: false,
+                    });
+                }
+            }
+
+            // If mode changed to offline and user was on SOAP tab, switch to transcript tab
+            if (config.mode === 'offline' && activeTab === 1) {
+                setActiveTab(0);
+            }
+
+        } catch (error) {
+            console.error('Connectivity check failed:', error);
+            setConnectionState({
+                mode: 'unavailable',
+                isChecking: false,
+                activeApiCall: false,
+            });
+            setServerConfig({
+                transcriptionUrl: null,
+                soapUrl: null,
+                serverBaseUrl: null,
+            });
+        }
+    };
 
     const cleanupResources = () => {
         if (timerRef.current) clearInterval(timerRef.current);
@@ -645,10 +770,10 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
-        const maxSize = 50 * 1024 * 1024;
+        const maxSizeText = connectionState.mode === 'online' ? "50MB" : "20MB"
+        const maxSize = connectionState.mode === 'online' ? 50 * 1024 * 1024 : 20 * 1024 * 1024;
         if (file.size > maxSize) {
-            setError('File size exceeds 50MB limit');
+            setError(`File size exceeds ${maxSizeText} limit`);
             return;
         }
 
@@ -670,13 +795,11 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
         setAudioUrl(url);
         setAudioBlob(file);
 
-
         const audio = new Audio(url);
         audio.addEventListener('loadedmetadata', () => {
             setRecordingTime(Math.floor(audio.duration));
         });
     };
-
 
     const handleRemoveUpload = () => {
         if (audioPlayerRef.current) {
@@ -712,9 +835,21 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
     const handleTranscribe = async () => {
         if (!audioBlob) return;
 
+        // Check if server is available
+        if (connectionState.mode === 'unavailable') {
+            setError('No transcription server available. Please check your connection.');
+            return;
+        }
+
         setError(null);
         setIsTranscribing(true);
-        setIsGeneratingSOAP(true);
+
+        // Only set SOAP generating state if in online mode
+        if (connectionState.mode === 'online') {
+            setIsGeneratingSOAP(true);
+        }
+
+        setConnectionState(prev => ({ ...prev, activeApiCall: true }));
 
         try {
             const userAccount = JSON.parse(localStorage.getItem('user_account') || '{}');
@@ -725,7 +860,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             formData.append('model_name', modelSizeSelect);
             formData.append('language', languageSelect);
             formData.append('apply_correction', 'true');
-            formData.append('enable_diarization', 'true');
+            formData.append('enable_diarization', connectionState.mode === 'online' ? 'true' : 'false');
             formData.append('save_transcript', saveForTraining.toString());
             formData.append('location', "HIV-Care-Card");
             formData.append('patient_id', (patient?.id || 10).toString());
@@ -733,9 +868,9 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             formData.append('user_id', (userAccount?.id || '').toString());
             formData.append('facility_id', (userAccount?.currentOrganisationUnitId || '').toString());
 
-
+            // Transcription API call
             const transcriptionResponse = await axios.post(
-                `${audioTranscriptionUrl}/transcribe`,
+                serverConfig.transcriptionUrl,
                 formData,
                 {
                     headers: { 'Content-Type': 'multipart/form-data' },
@@ -758,19 +893,34 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             setOriginalTranscription(transcriptionContent);
             setIsTranscribing(false);
 
+            // Only generate SOAP if in online mode
+            if (connectionState.mode === 'online' && serverConfig.soapUrl) {
+                try {
+                    const soapResponse = await axios.post(
+                        serverConfig.soapUrl,
+                        { transcription_text: transcriptionContent },
+                        {
+                            headers: { 'Content-Type': 'application/json' },
+                            timeout: 300000,
+                        }
+                    );
 
-            const soapResponse = await axios.post(
-                `${audioTranscriptionUrl}/soap/generate`,
-                { transcription_text: transcriptionContent },
-                {
-                    headers: { 'Content-Type': 'application/json' },
-                    timeout: 300000,
+                    setSoapNote(soapResponse.data?.soap_note || soapResponse.data || '');
+                    setIsGeneratingSOAP(false);
+                    setActiveTab(1); // Switch to SOAP tab
+                } catch (soapError) {
+                    setIsGeneratingSOAP(false);
+                    const errorDetail = soapError.response?.data?.detail || soapError.response?.data?.message || soapError.message;
+                    toast.warning(`Transcription completed but SOAP generation failed: ${errorDetail}`, {
+                        position: toast.POSITION.TOP_CENTER,
+                    });
+                    setActiveTab(0); // Stay on transcript tab
                 }
-            );
+            } else {
+                // Offline mode - stay on transcript tab
+                setActiveTab(0);
+            }
 
-            setSoapNote(soapResponse.data?.soap_note || soapResponse.data || '');
-            setIsGeneratingSOAP(false);
-            setActiveTab(0);
             if (inputMode === 1) setHasProcessedUpload(true);
 
         } catch (err) {
@@ -778,21 +928,40 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             setIsGeneratingSOAP(false);
 
             const errorDetail = err.response?.data?.detail || err.response?.data?.message || err.message;
-            setError(`Error: ${errorDetail}`);
+
+            // Show appropriate error message based on mode
+            if (connectionState.mode === 'online') {
+                setError(`Online transcription failed: ${errorDetail}`);
+            } else if (connectionState.mode === 'offline') {
+                setError(`Offline transcription failed: ${errorDetail}. Ensure the local server is running at localhost:7860`);
+            } else {
+                setError(`Transcription error: ${errorDetail}`);
+            }
+        } finally {
+            setConnectionState(prev => ({ ...prev, activeApiCall: false }));
         }
     };
 
     const handleRegenerateSOAP = async () => {
+        // SOAP regeneration only available in online mode
+        if (connectionState.mode !== 'online' || !serverConfig.soapUrl) {
+            toast.error('SOAP generation is only available in online mode', {
+                position: toast.POSITION.TOP_CENTER,
+            });
+            return;
+        }
+
         if (!transcriptionText || transcriptionText === originalTranscription) {
             return;
         }
 
         setError(null);
         setIsGeneratingSOAP(true);
+        setConnectionState(prev => ({ ...prev, activeApiCall: true }));
 
         try {
             const soapResponse = await axios.post(
-                `${audioTranscriptionUrl}/soap/generate`,
+                serverConfig.soapUrl,
                 { transcription_text: transcriptionText },
                 {
                     headers: { 'Content-Type': 'application/json' },
@@ -809,6 +978,8 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
             setIsGeneratingSOAP(false);
             const errorDetail = err.response?.data?.detail || err.response?.data?.message || err.message;
             setError(`Error generating SOAP: ${errorDetail}`);
+        } finally {
+            setConnectionState(prev => ({ ...prev, activeApiCall: false }));
         }
     };
 
@@ -837,28 +1008,26 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
         if (isRecording) stopRecording();
         cleanupResources();
         resetRecording();
-        setHasConsent(false)
-        setIsRecording(false)
-        setAudioBlob(null)
-        setIsPlaying(false)
-        setRecordingTime(0)
-        setSaveForTraining(false)
-        setIsTranscribing(false)
-        setIsGeneratingSOAP(false)
-        setError(false)
-        setIsPaused(false)
-        setIsStartingRecording(false)
-        setTranscriptionText("")
-        setSoapNote("")
-        setOriginalTranscription("")
-        setActiveTab(0)
-        setInputMode(0)
-        setUploadedFile(null)
-        setHasPlayedUpload(false)
-        setHasPlayedUpload(false)
-        setHasProcessedUpload(false)
+        setHasConsent(false);
+        setIsRecording(false);
+        setAudioBlob(null);
+        setIsPlaying(false);
+        setRecordingTime(0);
+        setSaveForTraining(false);
+        setIsTranscribing(false);
+        setIsGeneratingSOAP(false);
+        setError(false);
+        setIsPaused(false);
+        setIsStartingRecording(false);
+        setTranscriptionText("");
+        setSoapNote("");
+        setOriginalTranscription("");
+        setActiveTab(0);
+        setInputMode(0);
+        setUploadedFile(null);
+        setHasPlayedUpload(false);
+        setHasProcessedUpload(false);
         setIsModalOpen(false);
-
     };
 
     const getRecordingAreaClass = () => {
@@ -867,7 +1036,16 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
         return classes.recordingCard;
     };
 
-    const isRegenerateDisabled = !transcriptionText || transcriptionText === originalTranscription || isGeneratingSOAP;
+    const isRegenerateDisabled = !transcriptionText || transcriptionText === originalTranscription || isGeneratingSOAP || connectionState.mode !== 'online';
+
+    // Get button text based on mode
+    const getProcessButtonText = () => {
+        if (isTranscribing) return 'Transcribing Audio...';
+        if (isGeneratingSOAP) return 'Generating SOAP Note...';
+        if (connectionState.mode === 'online') return 'Process Recording';
+        if (connectionState.mode === 'offline') return 'Generate Transcript';
+        return 'Process Recording';
+    };
 
     return (
         <>
@@ -909,9 +1087,13 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                 <div className={classes.dialogContent}>
                     <div className={classes.header}>
                         <Box display="flex" alignItems="center" gap={2}>
-                            <Typography variant="h6" style={{ fontWeight: 700, letterSpacing: '0.5px', color: "white" }}>
-                                Clinical Transcription And SOAP Note Generation
+                            <Typography variant="h6" style={{ fontWeight: 700, letterSpacing: '0.5px', color: "white", marginRight: 20 }}>
+                                Clinical Transcription {connectionState.mode === 'online' ? '& SOAP Note Generation' : ''}
                             </Typography>
+                            <ConnectionStatusBadge
+                                mode={connectionState.mode}
+                                isChecking={connectionState.isChecking}
+                            />
                         </Box>
                         <IconButton onClick={closeModal} style={{ color: 'white' }} edge="end">
                             <CloseIcon />
@@ -930,7 +1112,6 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                 <Tab label="Upload File" icon={<CloudUploadIcon />} iconPosition="start" />
                             </Tabs>
 
-                            {/* Add this container wrapper */}
                             <div className={classes.checkboxContainer}>
                                 <div className={classes.settingsBox}>
                                     <FormControlLabel
@@ -964,7 +1145,6 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
 
                             <Fade in={true} timeout={500}>
                                 <Box display="flex" flexDirection="column" gap={3}>
-
                                     {inputMode === 0 && (
                                         <>
                                             <Paper elevation={0} className={getRecordingAreaClass()} onClick={isRecording || isStartingRecording ? null : (!audioBlob ? startRecording : null)}>
@@ -1045,7 +1225,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                                                 onClick={togglePlayPause}
                                                                 style={{
                                                                     border: `2px solid ${theme.palette.grey[300]}`,
-                                                                    flex: 1  // Use flex: 1 instead of fullWidth
+                                                                    flex: 1
                                                                 }}
                                                             >
                                                                 {isPlaying ? 'Pause Playback' : 'Preview Audio'}
@@ -1059,7 +1239,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                                                 style={{
                                                                     border: `2px solid ${theme.palette.error.light}`,
                                                                     color: theme.palette.error.main,
-                                                                    flex: 1  // Use flex: 1 instead of fullWidth
+                                                                    flex: 1
                                                                 }}
                                                             >
                                                                 Discard & Retry
@@ -1071,18 +1251,17 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                                             size="large"
                                                             startIcon={isTranscribing || isGeneratingSOAP ? <CircularProgress size={24} color="inherit" /> : <SendIcon />}
                                                             onClick={handleTranscribe}
-                                                            disabled={isTranscribing || isGeneratingSOAP || !hasConsent}
+                                                            disabled={isTranscribing || isGeneratingSOAP || !hasConsent || connectionState.mode === 'unavailable'}
                                                             fullWidth
                                                             style={{ height: 56, marginTop: 20 }}
                                                         >
-                                                            {isTranscribing ? 'Transcribing Audio...' : isGeneratingSOAP ? 'Generating SOAP Note...' : 'Process Recording'}
+                                                            {getProcessButtonText()}
                                                         </Button>
                                                     </Box>
                                                 )}
                                             </div>
                                         </>
                                     )}
-
 
                                     {inputMode === 1 && (
                                         <>
@@ -1114,7 +1293,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                                             WAV, MP3, M4A, FLAC, OGG, AAC, WMA, WEBM
                                                         </Typography>
                                                         <Typography variant="caption" color="textSecondary" style={{ display: 'block', marginTop: 16 }}>
-                                                            Maximum file size: 50MB
+                                                            Maximum file size: {connectionState.mode === 'online' ? "50MB" : "20MB"}
                                                         </Typography>
                                                     </Box>
                                                 </Paper>
@@ -1171,11 +1350,11 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                                                 size="large"
                                                                 startIcon={isTranscribing || isGeneratingSOAP ? <CircularProgress size={24} color="inherit" /> : <SendIcon />}
                                                                 onClick={handleTranscribe}
-                                                                disabled={!hasPlayedUpload || isTranscribing || isGeneratingSOAP || hasProcessedUpload || !hasConsent}
+                                                                disabled={!hasPlayedUpload || isTranscribing || isGeneratingSOAP || hasProcessedUpload || !hasConsent || connectionState.mode === 'unavailable'}
                                                                 fullWidth
                                                                 style={{ height: 56, fontSize: '1.1rem', marginTop: 20 }}
                                                             >
-                                                                {isTranscribing ? 'Transcribing...' : isGeneratingSOAP ? 'Generating SOAP...' : hasProcessedUpload ? 'Processing Complete' : 'Process Audio File'}
+                                                                {isTranscribing ? 'Transcribing...' : isGeneratingSOAP ? 'Generating SOAP...' : hasProcessedUpload ? 'Processing Complete' : getProcessButtonText()}
                                                             </Button>
                                                         </Box>
                                                     </div>
@@ -1190,8 +1369,6 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                             <Typography variant="body2">{error}</Typography>
                                         </div>
                                     )}
-
-
                                 </Box>
                             </Fade>
                         </div>
@@ -1206,7 +1383,9 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                     style={{ marginBottom: theme.spacing(3), backgroundColor: theme.palette.grey[50] }}
                                 >
                                     <Tab label="Transcript" icon={<DescriptionIcon />} iconPosition="start" />
-                                    <Tab label="SOAP Note" icon={<AssignmentTurnedInIcon />} iconPosition="start" disabled={!soapNote} />
+                                    {connectionState.mode === 'online' && (
+                                        <Tab label="SOAP Note" icon={<AssignmentTurnedInIcon />} iconPosition="start" disabled={!soapNote} />
+                                    )}
                                 </Tabs>
 
                                 <Box flex={1} display="flex" flexDirection="column" style={{ minHeight: 0 }}>
@@ -1238,10 +1417,10 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                                     <div className={classes.transcriptionEmpty}>
                                                         <DescriptionIcon style={{ fontSize: 80, color: theme.palette.grey[300], marginBottom: 16 }} />
                                                         <Typography variant="h6" color="textSecondary" gutterBottom style={{ fontWeight: 600 }}>
-                                                            No transcript waiting
+                                                            No transcript available
                                                         </Typography>
                                                         <Typography variant="body2" color="textSecondary" align="center">
-                                                            Record or upload audio and click "Process" to generate text.
+                                                            Record or upload audio and click "{getProcessButtonText()}" to generate text.
                                                         </Typography>
                                                     </div>
                                                 )}
@@ -1249,7 +1428,7 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                         </Fade>
                                     )}
 
-                                    {activeTab === 1 && (
+                                    {activeTab === 1 && connectionState.mode === 'online' && (
                                         <Fade in={activeTab === 1}>
                                             <Box flex={1} display="flex" flexDirection="column" style={{ minHeight: 0 }}>
                                                 <div className={classes.transcriptionHeader}>
@@ -1289,23 +1468,18 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                 </Box>
 
                                 <div className={classes.actionButtons}>
-                                    {
-                                        activeTab === 1 && (
-
-                                            <Button
-                                                variant="contained"
-                                                className={`${classes.largeButton} ${classes.primaryButton}`}
-                                                startIcon={<CheckCircleIcon />}
-                                                onClick={handleUseContent}
-                                                disabled={!transcriptionText && !soapNote}
-                                                fullWidth
-                                                size="large"
-                                            >
-                                                Confirm & Use {activeTab === 0 ? 'Transcript' : 'SOAP Note'}
-                                            </Button>
-                                        )
-                                    }
-                                    {activeTab === 0 && (
+                                    <Button
+                                        variant="contained"
+                                        className={`${classes.largeButton} ${classes.primaryButton}`}
+                                        startIcon={<CheckCircleIcon />}
+                                        onClick={handleUseContent}
+                                        disabled={!transcriptionText && !soapNote}
+                                        fullWidth
+                                        size="large"
+                                    >
+                                        Confirm & Use {activeTab === 0 ? 'Transcript' : 'SOAP Note'}
+                                    </Button>
+                                    {activeTab === 0 && connectionState.mode === 'online' && (
                                         <Button
                                             variant="outlined"
                                             color="primary"
