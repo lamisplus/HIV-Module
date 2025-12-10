@@ -3,10 +3,6 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import {
     Dialog,
     IconButton,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
     FormControlLabel,
     Checkbox,
     Button,
@@ -41,6 +37,7 @@ import {
 } from '@material-ui/icons';
 import axios from 'axios';
 import { audioTranscriptionUrl } from '../../../api';
+import ConsentCheckbox from './ConsentCheckbox';
 
 
 class WavEncoder {
@@ -839,8 +836,29 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
     const closeModal = () => {
         if (isRecording) stopRecording();
         cleanupResources();
-        setIsModalOpen(false);
         resetRecording();
+        setHasConsent(false)
+        setIsRecording(false)
+        setAudioBlob(null)
+        setIsPlaying(false)
+        setRecordingTime(0)
+        setSaveForTraining(false)
+        setIsTranscribing(false)
+        setIsGeneratingSOAP(false)
+        setError(false)
+        setIsPaused(false)
+        setIsStartingRecording(false)
+        setTranscriptionText("")
+        setSoapNote("")
+        setOriginalTranscription("")
+        setActiveTab(0)
+        setInputMode(0)
+        setUploadedFile(null)
+        setHasPlayedUpload(false)
+        setHasPlayedUpload(false)
+        setHasProcessedUpload(false)
+        setIsModalOpen(false);
+
     };
 
     const getRecordingAreaClass = () => {
@@ -937,28 +955,11 @@ const AudioRecorder = ({ onTranscriptionComplete, patient }) => {
                                     />
                                 </div>
 
-                                <div className={classes.settingsBox}>
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                checked={hasConsent}
-                                                onChange={(e) => setHasConsent(e.target.checked)}
-                                                color="primary"
-                                                disabled={isRecording || isStartingRecording}
-                                            />
-                                        }
-                                        label={
-                                            <Box>
-                                                <Typography variant="body2" style={{ fontWeight: 600 }}>
-                                                    Patient consent obtained
-                                                </Typography>
-                                                <Typography variant="caption" color="textSecondary">
-                                                    I confirm the patient has agreed to be recorded and their session may be transcribed.
-                                                </Typography>
-                                            </Box>
-                                        }
-                                    />
-                                </div>
+                                <ConsentCheckbox
+                                    hasConsent={hasConsent}
+                                    setHasConsent={setHasConsent}
+                                    disabled={isRecording || isStartingRecording}
+                                />
                             </div>
 
                             <Fade in={true} timeout={500}>

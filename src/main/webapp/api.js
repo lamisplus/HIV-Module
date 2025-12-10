@@ -15,10 +15,10 @@ export const wsUrl =
 
 export const audioTranscriptionUrl = process.env.NODE_ENV === "development"
 
-    ? "http://96.0.40.252:7860/api/v1"
+    ? "http://96.0.47.224:7860/api/v1"
 
-    : "http://96.0.40.252:7860/api/v1";
+    : "http://96.0.47.224:7860/api/v1";
 
 export const token =
     process.env.NODE_ENV === "development"
-        ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJyZGUtdXNlciIsImF1dGgiOiJTdXBlciBBZG1pbixVc2VyLFJERSIsIm5hbWUiOiJyZGUtdXNlciBsYXN0bmFtZSIsImV4cCI6MTc2NTIxNTE5OX0.tqyOIdkcwQ27Ae8P37b1ady9yBZ6Rs_8J1MhxdDIMUfHocCKXWZMuDBXTwmucFo88ZAXC-4hmaDQP_-GuorvIw" : new URLSearchParams(window.location.search).get("jwt");
+        ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJyZGUtdXNlciIsImF1dGgiOiJTdXBlciBBZG1pbixVc2VyLFJERSIsIm5hbWUiOiJyZGUtdXNlciBsYXN0bmFtZSIsImV4cCI6MTc2NTM3OTgzMH0.3ZL5FY4MZB0UN-dNgXWqcPVrdrmiEzC12sPdefgN3VAEocqL214cQJAtnxHOKoNdSTsClpjmfuilx5bvnXYyfQ" : new URLSearchParams(window.location.search).get("jwt");
