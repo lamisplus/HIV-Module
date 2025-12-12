@@ -29,7 +29,7 @@ const checkOnlineServer = async () => {
 const checkOfflineServer = async () => {
     try {
         // Try to ping the offline server
-        await axios.get(`${OFFLINE_SERVER_URL}/health`, {
+        await axios.get(`http://localhost:7860/`, {
             timeout: HEALTH_CHECK_TIMEOUT,
         });
         return true;
