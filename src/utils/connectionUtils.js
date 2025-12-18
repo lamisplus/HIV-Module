@@ -38,6 +38,7 @@ const checkOfflineServer = async () => {
         return false;
     }
 };
+//made minor changes
 
 /**
  * Determine which transcription server to use based on availability
