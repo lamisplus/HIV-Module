@@ -2415,7 +2415,7 @@ const ClinicVisit = (props) => {
                                   key={index}
                                   index={index}
                                   regimenObject={regimenObject}
-                                  adherenceLevel={adherenceLevel}
+                                  adherenceLevel={getOptions("PrEP_LEVEL_OF_ADHERENCE")}
                                   removeArvDrugOrder={removeArvDrugOrder}
                                 />
                               ))}

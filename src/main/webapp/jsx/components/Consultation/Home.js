@@ -435,6 +435,23 @@ const ClinicVisit = (props) => {
       ClinicVisitList();
     }
   }, [props.patientObj]);
+
+  // Auto-calculate next appointment based on visit date and dosage
+  useEffect(() => {
+    if (vital.encounterDate && arvDrugObj.dosage) {
+      const visitDate = moment(vital.encounterDate);
+      const dosageInDays = parseInt(arvDrugObj.dosage);
+
+      if (!isNaN(dosageInDays) && dosageInDays > 0) {
+        const nextAppointmentDate = visitDate.add(dosageInDays, 'days').format('YYYY-MM-DD');
+        setObjValues((prevValues) => ({
+          ...prevValues,
+          nextAppointment: nextAppointmentDate
+        }));
+      }
+    }
+  }, [vital.encounterDate, arvDrugObj.dosage]);
+
   const GetPatientDTOObj = () => {
     axios
       .get(`${baseUrl}hiv/patient/${props.patientObj.id}`, {
@@ -663,7 +680,16 @@ const ClinicVisit = (props) => {
 
   const handleInputChangeRegimenLine = (e) => {
     const regimenId = e.target.value;
-    setArvDrugObj({ ...arvDrugObj, [e.target.name]: e.target.value });
+    // Only allow numbers for dosage field
+    if (e.target.name === "dosage") {
+      const value = e.target.value;
+      // Allow only numbers (and empty string for deletion)
+      if (value === "" || /^\d+$/.test(value)) {
+        setArvDrugObj({ ...arvDrugObj, [e.target.name]: value });
+      }
+    } else {
+      setArvDrugObj({ ...arvDrugObj, [e.target.name]: e.target.value });
+    }
   };
 
   const handleInputChangeRegimen = (e) => {
@@ -2878,9 +2904,11 @@ const ClinicVisit = (props) => {
               className="col-md-6"
               value={objValues.nextAppointment}
               onChange={handleInputChange}
-              style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+              style={{ border: "1px solid #014D88", borderRadius: "0.25rem", backgroundColor: "#f0f0f0" }}
               min={vital.encounterDate}
               onKeyPress={(e) => e.preventDefault()}
+              readOnly
+              title="Auto-calculated based on Visit Date + Dosage"
             />
             {errors.nextAppointment !== "" ? (
               <span className={classes.error}>{errors.nextAppointment}</span>
