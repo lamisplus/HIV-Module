@@ -283,13 +283,21 @@ const Laboratory = (props) => {
         
         if(validate()){
             setSaving(true);
-            tests.labTestGroupId= labTestDetail.labTestGroupId
-            tests.labTestId= labTestDetail.id   
-            //tests.pcrLabSampleNumber=tests.pcrLabName              
-            
-            tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format("YYYY-MM-DD HH:MM:SS")
-            tests.dateResultReceived =tests.dateResultReceived!==null && tests.dateResultReceived!=="" ? moment(tests.dateResultReceived).format("YYYY-MM-DD HH:MM:SS") : ""
-            tests.dateReceivedAtPcrLab =tests.dateReceivedAtPcrLab!==null && tests.dateReceivedAtPcrLab!=="" ? moment(tests.dateReceivedAtPcrLab).format("YYYY-MM-DD HH:MM:SS") : ""
+            const payload = {
+                ...tests,
+                labTestGroupId: 4,
+                labTestId: 16,
+                sampleCollectionDate: tests.sampleCollectionDate
+                    ? moment(tests.sampleCollectionDate).format("YYYY-MM-DD HH:mm:ss")
+                    : "",
+                dateResultReceived: tests.dateResultReceived
+                    ? moment(tests.dateResultReceived).format("YYYY-MM-DD HH:mm:ss")
+                    : "",
+                dateReceivedAtPcrLab: tests.dateReceivedAtPcrLab
+                    ? moment(tests.dateReceivedAtPcrLab).format("YYYY-MM-DD HH:mm:ss")
+                    : "",
+            };
+
             axios.put(`${baseUrl}laboratory/vl-results/${props.activeContent.obj.id}`,tests,
             { headers: {"Authorization" : `Bearer ${token}`}},)
             .then(response => {
