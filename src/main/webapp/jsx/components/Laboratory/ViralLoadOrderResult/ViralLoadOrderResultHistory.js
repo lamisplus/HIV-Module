@@ -31,6 +31,7 @@ import { toast } from "react-toastify";
 import { Dropdown, Button, Menu, Icon } from "semantic-ui-react";
 import { queryClient } from "../../../../utils/queryClient";
 import moment from "moment";
+import { Spinner } from "reactstrap";
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -197,7 +198,19 @@ const LabHistory = (props) => {
   return (
     <div>
       <br />
-      <MaterialTable
+      {props.loading ? (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '400px',
+          flexDirection: 'column'
+        }}>
+          <Spinner color="primary" style={{ width: '3rem', height: '3rem' }} />
+          <p style={{ marginTop: '20px', color: '#014D88', fontSize: '16px' }}>Loading records...</p>
+        </div>
+      ) : (
+        <MaterialTable
         icons={tableIcons}
         title="Laboratory Viral Load Order and Result  History"
         columns={[
@@ -288,6 +301,7 @@ const LabHistory = (props) => {
           debounceInterval: 400,
         }}
       />
+      )}
       <Modal
         show={open}
         toggle={toggle}

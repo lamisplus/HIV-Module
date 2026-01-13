@@ -14,6 +14,7 @@ const divStyle = {
 const LaboratoryModule = (props) => {
     const [key, setKey] = useState('labOrder');
     const [orderList, setOrderList] = useState([])
+    const [loading, setLoading] = useState(false)
     const patientObj = props.patientObj
     useEffect ( () => {
       LabOrders();
@@ -21,18 +22,18 @@ const LaboratoryModule = (props) => {
     }, [props.activeContent.id, props.activeContent.activeTab]);
     //GET Patient Lab order history
     async function LabOrders() {
-      //setLoading(true)
+      setLoading(true)
       axios
           .get(`${baseUrl}laboratory/rde-orders/patients/${props.patientObj.id}`,
           { headers: {"Authorization" : `Bearer ${token}`} }
           )
           .then((response) => {
-              //setLoading(false)
-              setOrderList(response.data);                
+              setLoading(false)
+              setOrderList(response.data);
           })
-          .catch((error) => {  
-              //setLoading(false)  
-          });        
+          .catch((error) => {
+              setLoading(false)
+          });
     }
 
   return (
@@ -56,8 +57,8 @@ const LaboratoryModule = (props) => {
                     <LabOrderResult patientObj={patientObj} setActiveContent={props.setActiveContent} LabOrders={LabOrders}/>
                   </Tab>
                   
-                  <Tab eventKey="history" title=" HISTORY">                   
-                   <LabOrderResultHistory patientObj={patientObj} setActiveContent={props.setActiveContent} orderList={orderList} LabOrders={LabOrders}/> 
+                  <Tab eventKey="history" title=" HISTORY">
+                   <LabOrderResultHistory patientObj={patientObj} setActiveContent={props.setActiveContent} orderList={orderList} LabOrders={LabOrders} loading={loading}/>
                   </Tab>                   
                 </Tabs>
               </div>
