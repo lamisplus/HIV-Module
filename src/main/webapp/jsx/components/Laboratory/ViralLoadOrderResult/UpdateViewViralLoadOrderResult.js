@@ -154,7 +154,8 @@ const Laboratory = (props) => {
             });
         
     }
-
+    console.log("active object in updateViral load ", props.activeContent.obj)
+    console.log("show result in updateViral load ", showResult)
     useEffect(() => {
         const fetchTestResult = (sampleNumber) => {
             if (!sampleNumber) return;
@@ -245,7 +246,7 @@ const Laboratory = (props) => {
     }
     
       //Validations of the forms
-      const validate = () => {  
+      const validate = () => {
         temp.sampleTypeId = tests.sampleTypeId ? "" : "This field is required"
         temp.sampleCollectionDate =  tests.sampleCollectionDate ? "" : "This field is required"
         temp.viralLoadIndication = tests.viralLoadIndication ? "" : "This field is required"
@@ -253,25 +254,29 @@ const Laboratory = (props) => {
         temp.sampleCollectedBy = tests.sampleCollectedBy ? "" : "This field is required"
         temp.dateOrderBy = tests.dateOrderBy ? "" : "This field is required"
         temp.orderBy = tests.orderBy ? "" : "This field is required"
-        showResult && (temp.dateResultReceived = tests.dateResultReceived ? "" : "This field is required")
-        showResult && (temp.assayedBy = tests.assayedBy ? "" : "This field is required")
-        showResult && (temp.result = tests.result ? "" : "This field is required")
-        showResult && (temp.dateAssayedBy = tests.dateAssayedBy ? "" : "This field is required")
 
+        // Only validate result fields if checkbox is checked OR if there's already result data
+        const shouldValidateResult = showObj.hasResult || tests.result || tests.dateResultReceived || tests.assayedBy || tests.dateAssayedBy;
+        shouldValidateResult && (temp.dateResultReceived = tests.dateResultReceived ? "" : "This field is required")
+        shouldValidateResult && (temp.assayedBy = tests.assayedBy ? "" : "This field is required")
+        shouldValidateResult && (temp.result = tests.result ? "" : "This field is required")
+        shouldValidateResult && (temp.dateAssayedBy = tests.dateAssayedBy ? "" : "This field is required")
 
-        showPcrLabDetail && ( temp.dateCheckedBy = tests.dateCheckedBy ? "" : "This field is required")
-        //showPcrLabDetail && (temp.dateCollectedBy =  tests.dateCollectedBy ? "" : "This field is required")
-        //showPcrLabDetail && (temp.orderBy = tests.orderBy ? "" : "This field is required")
-        showPcrLabDetail && (tests.sampleLoggedRemotely ==='1'  || tests.sampleLoggedRemotely ===1 ) && (temp.dateSampleLoggedRemotely = tests.dateSampleLoggedRemotely ? "" : "This field is required")
-        showPcrLabDetail && (temp.dateReceivedAtPcrLab = tests.dateReceivedAtPcrLab ? "" : "This field is required")
-        //showPcrLabDetail && (temp.dateOrderBy = tests.dateOrderBy ? "" : "This field is required")
-        showPcrLabDetail && (temp.pcrLabSampleNumber = tests.pcrLabSampleNumber ? "" : "This field is required")
-        showPcrLabDetail && (temp.pcrLabName =  tests.pcrLabName ? "" : "This field is required")
-        showPcrLabDetail && (temp.dateApproved = tests.dateApproved ? "" : "This field is required")
-        showPcrLabDetail && (temp.sampleLoggedRemotely = tests.sampleLoggedRemotely ? "" : "This field is required")
-        showPcrLabDetail &&  (temp.checkedBy = tests.checkedBy ? "" : "This field is required")
-        showPcrLabDetail && (temp.approvedBy = tests.approvedBy ? "" : "This field is required")
-        //showPcrLabDetail && (temp.sampleCollectedBy = tests.sampleCollectedBy ? "" : "This field is required")
+        // Only validate PCR fields if checkbox is checked OR if there's already PCR data
+        const shouldValidatePCR = showObj.isPcr || tests.pcrLabName || tests.pcrLabSampleNumber || tests.dateReceivedAtPcrLab;
+        shouldValidatePCR && ( temp.dateCheckedBy = tests.dateCheckedBy ? "" : "This field is required")
+        //shouldValidatePCR && (temp.dateCollectedBy =  tests.dateCollectedBy ? "" : "This field is required")
+        //shouldValidatePCR && (temp.orderBy = tests.orderBy ? "" : "This field is required")
+        shouldValidatePCR && (tests.sampleLoggedRemotely ==='1'  || tests.sampleLoggedRemotely ===1 ) && (temp.dateSampleLoggedRemotely = tests.dateSampleLoggedRemotely ? "" : "This field is required")
+        shouldValidatePCR && (temp.dateReceivedAtPcrLab = tests.dateReceivedAtPcrLab ? "" : "This field is required")
+        //shouldValidatePCR && (temp.dateOrderBy = tests.dateOrderBy ? "" : "This field is required")
+        shouldValidatePCR && (temp.pcrLabSampleNumber = tests.pcrLabSampleNumber ? "" : "This field is required")
+        shouldValidatePCR && (temp.pcrLabName =  tests.pcrLabName ? "" : "This field is required")
+        shouldValidatePCR && (temp.dateApproved = tests.dateApproved ? "" : "This field is required")
+        shouldValidatePCR && (temp.sampleLoggedRemotely = tests.sampleLoggedRemotely ? "" : "This field is required")
+        shouldValidatePCR &&  (temp.checkedBy = tests.checkedBy ? "" : "This field is required")
+        shouldValidatePCR && (temp.approvedBy = tests.approvedBy ? "" : "This field is required")
+        //shouldValidatePCR && (temp.sampleCollectedBy = tests.sampleCollectedBy ? "" : "This field is required")
         setErrors({
             ...temp
         })
@@ -328,6 +333,14 @@ const Laboratory = (props) => {
             setShowResult(false)
             setShowObj({...showObj, hasResult:false})
             setShowPcrLabDetail(false)
+            // Clear result field errors when unchecking
+            setErrors({
+                ...errors,
+                dateResultReceived: "",
+                assayedBy: "",
+                result: "",
+                dateAssayedBy: ""
+            })
         }
     }
     const handleCheckBoxPCR =e =>{
@@ -337,6 +350,19 @@ const Laboratory = (props) => {
         }else{
             setShowPcrLabDetail(false)
             setShowObj({...showObj, isPcr:false})
+            // Clear PCR field errors when unchecking
+            setErrors({
+                ...errors,
+                dateCheckedBy: "",
+                dateSampleLoggedRemotely: "",
+                dateReceivedAtPcrLab: "",
+                pcrLabSampleNumber: "",
+                pcrLabName: "",
+                dateApproved: "",
+                sampleLoggedRemotely: "",
+                checkedBy: "",
+                approvedBy: ""
+            })
         }
     }
 
