@@ -2904,11 +2904,10 @@ const ClinicVisit = (props) => {
               className="col-md-6"
               value={objValues.nextAppointment}
               onChange={handleInputChange}
-              style={{ border: "1px solid #014D88", borderRadius: "0.25rem", backgroundColor: "#f0f0f0" }}
+              style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
               min={vital.encounterDate}
               onKeyPress={(e) => e.preventDefault()}
-              readOnly
-              title="Auto-calculated based on Visit Date + Dosage"
+              title="Auto-calculated when Visit Date and Dosage are provided, or enter manually"
             />
             {errors.nextAppointment !== "" ? (
               <span className={classes.error}>{errors.nextAppointment}</span>
