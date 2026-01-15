@@ -154,8 +154,7 @@ const Laboratory = (props) => {
             });
         
     }
-    console.log("active object in updateViral load ", props.activeContent.obj)
-    console.log("show result in updateViral load ", showResult)
+
     useEffect(() => {
         const fetchTestResult = (sampleNumber) => {
             if (!sampleNumber) return;
