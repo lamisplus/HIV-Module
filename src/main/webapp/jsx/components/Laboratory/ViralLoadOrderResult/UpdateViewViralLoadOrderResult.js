@@ -164,7 +164,7 @@ const Laboratory = (props) => {
         })
       .then((response) => {
           const data = response.data
-          const formattedResultDate = data?.resultDate ? moment(data.resultDate).format('YYYY-MM-DDTHH:mm'): '';
+          const formattedResultDate = data?.resultDate ? moment(data.resultDate).format('YYYY-MM-DD HH:mm:ss'): '';
             setTests((prevTests) => ({
                 ...prevTests,
                 result: data?.testResult || props.activeContent.obj? props.activeContent.obj?.result : "",
@@ -302,7 +302,7 @@ const Laboratory = (props) => {
                     : "",
             };
 
-            axios.put(`${baseUrl}laboratory/vl-results/${props.activeContent.obj.id}`,tests,
+            axios.put(`${baseUrl}laboratory/vl-results/${props.activeContent.obj.orderId}`,payload,
             { headers: {"Authorization" : `Bearer ${token}`}},)
             .then(response => {
                 //Please do not remove
