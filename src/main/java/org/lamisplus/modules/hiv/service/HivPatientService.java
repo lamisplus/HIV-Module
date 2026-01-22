@@ -192,14 +192,6 @@ public class HivPatientService {
                 .build();
         patientDTO.setCommenced(p.getCommenced() != null);
         patientDTO.setBiometricStatus(p.getBiometricStatus() != null);
-//        if (p.getCommenced() != null && p.getCommenced()) {
-//            String currentStatus = statusManagementService.getCurrentStatus(p.getId());
-//            patientDTO.setCurrentStatus(currentStatus);
-//        } else if (Boolean.TRUE.equals(p.getIsEnrolled())) {
-//            patientDTO.setCurrentStatus(p.getEnrollmentStatus());
-//        } else {
-//            patientDTO.setCurrentStatus("Not Enrolled");
-//        }
         List<Observation> clinicalEvaluationAndMentalHealth =
                 observationRepository.getClinicalEvaluationAndMentalHealth(p.getPersonUuid());
         if (clinicalEvaluationAndMentalHealth.size() >= 2) {
