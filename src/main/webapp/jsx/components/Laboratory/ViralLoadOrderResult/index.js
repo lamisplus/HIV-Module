@@ -14,6 +14,7 @@ const divStyle = {
 const LaboratoryModule = (props) => {
     const [key, setKey] = useState('home');
     const [orderList, setOrderList] = useState([])
+    const [loading, setLoading] = useState(false)
     const patientObj = props.patientObj
     useEffect ( () => {
       LabOrders();
@@ -21,16 +22,18 @@ const LaboratoryModule = (props) => {
     }, [props.activeContent.id, props.activeContent.activeTab]);
     //GET Patient Lab order history
     const  LabOrders=()=> {
-      //setLoading(true)
+      setLoading(true)
       axios
           .get(`${baseUrl}laboratory/vl-results/patients/${props.patientObj.id}`,
           { headers: {"Authorization" : `Bearer ${token}`} }
           )
           .then((response) => {
-              setOrderList(response.data);                
+              setLoading(false)
+              setOrderList(response.data);
           })
-          .catch((error) => {   
-          });        
+          .catch((error) => {
+              setLoading(false)
+          });
     }
 
   return (
@@ -51,8 +54,8 @@ const LaboratoryModule = (props) => {
                   <Tab eventKey="viralLoad" title="VIRAL LOAD ORDER & RESULT">                   
                     <ViralLoadOrderResult patientObj={patientObj} setActiveContent={props.setActiveContent} activeContent={props.activeContent} LabOrders={LabOrders}/>
                   </Tab>
-                  <Tab eventKey="history" title=" HISTORY">                   
-                    <ViralLoadOrderResultHistory patientObj={patientObj} setActiveContent={props.setActiveContent} orderList={orderList} LabOrders={LabOrders}/>
+                  <Tab eventKey="history" title=" HISTORY">
+                    <ViralLoadOrderResultHistory patientObj={patientObj} setActiveContent={props.setActiveContent} orderList={orderList} LabOrders={LabOrders} loading={loading}/>
                   </Tab>                   
                 </Tabs>
               </div>

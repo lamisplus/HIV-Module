@@ -610,7 +610,7 @@ function PatientCard(props) {
                                                     </Typography>
                                                 </div>
                                             </Col>
-                                            {/* <Col md={12}>
+                                            <Col md={12}>
                                                 <div>
                                                     <Typography variant="caption">
                                                         <Label style={{ backgroundColor: getTbColor(String(currentTbStatus).toLowerCase()), color: "#fff" }} size="mini">
@@ -619,7 +619,7 @@ function PatientCard(props) {
                                                         </Label>
                                                     </Typography>
                                                 </div>
-                                            </Col> */}
+                                            </Col>
                                         </>
                                     ) : (
                                         <p>Loading Please wait...</p>

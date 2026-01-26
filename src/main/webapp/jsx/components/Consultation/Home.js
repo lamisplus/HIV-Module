@@ -435,6 +435,23 @@ const ClinicVisit = (props) => {
       ClinicVisitList();
     }
   }, [props.patientObj]);
+
+  // Auto-calculate next appointment based on visit date and dosage
+  useEffect(() => {
+    if (vital.encounterDate && arvDrugObj.dosage) {
+      const visitDate = moment(vital.encounterDate);
+      const dosageInDays = parseInt(arvDrugObj.dosage);
+
+      if (!isNaN(dosageInDays) && dosageInDays > 0) {
+        const nextAppointmentDate = visitDate.add(dosageInDays, 'days').format('YYYY-MM-DD');
+        setObjValues((prevValues) => ({
+          ...prevValues,
+          nextAppointment: nextAppointmentDate
+        }));
+      }
+    }
+  }, [vital.encounterDate, arvDrugObj.dosage]);
+
   const GetPatientDTOObj = () => {
     axios
       .get(`${baseUrl}hiv/patient/${props.patientObj.id}`, {
@@ -663,7 +680,16 @@ const ClinicVisit = (props) => {
 
   const handleInputChangeRegimenLine = (e) => {
     const regimenId = e.target.value;
-    setArvDrugObj({ ...arvDrugObj, [e.target.name]: e.target.value });
+    // Only allow numbers for dosage field
+    if (e.target.name === "dosage") {
+      const value = e.target.value;
+      // Allow only numbers (and empty string for deletion)
+      if (value === "" || /^\d+$/.test(value)) {
+        setArvDrugObj({ ...arvDrugObj, [e.target.name]: value });
+      }
+    } else {
+      setArvDrugObj({ ...arvDrugObj, [e.target.name]: e.target.value });
+    }
   };
 
   const handleInputChangeRegimen = (e) => {
@@ -992,7 +1018,7 @@ const ClinicVisit = (props) => {
             user_id: userAccount.id,
             recording_uuid: transcriptionProcess.recording_uuid
           })
-  
+
           // toast.success("Transcription and form saved", {
           //   position: toast.POSITION.TOP_RIGHT,
           // });
@@ -1177,7 +1203,7 @@ const ClinicVisit = (props) => {
 
     const transcriptionHeader = `Voice Transcription - ${formattedDate}\nTotal Recordings: ${result.recording_count} | Duration: ${Math.floor(result.total_duration / 60)}:${(result.total_duration % 60).toString().padStart(2, '0')}\n`;
 
-    const transcriptionFooter = `\n=========================END Transcription=================\n`;
+    const transcriptionFooter = `\n=========================END=========================\n`;
     const transcriptionContent = (result.corrected_transcription || '')
       .split('\n')
       .map(line => line.trim())
@@ -1188,7 +1214,7 @@ const ClinicVisit = (props) => {
     const fullTranscription = transcriptionHeader + transcriptionContent + transcriptionFooter;
     setObjValues(prevBody => ({
       ...prevBody,
-      clinicalNote: fullTranscription
+      clinicalNote: prevBody?.clinicalNote + "\n" + fullTranscription
     }));
     setTranscriptionProcess(result)
   };
@@ -1221,8 +1247,7 @@ const ClinicVisit = (props) => {
 
   return (
     <div className={classes.root}>
-      <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} patient={props.patientObj} />
-      <ExportRecords />
+      {/* <ExportRecords /> */}
       <div className="row">
         <div className="col-md-6">
           <h2>Clinic Follow-up Visit</h2>
@@ -1261,8 +1286,8 @@ const ClinicVisit = (props) => {
                                 as={Card.Text}
                                 eventKey={`${i}`}
                                 className={`accordion-header ${activeAccordionHeaderShadow === 1
-                                    ? ""
-                                    : "collapsed"
+                                  ? ""
+                                  : "collapsed"
                                   } accordion-header-info`}
                                 onClick={() =>
                                   setActiveAccordionHeaderShadow(
@@ -1502,8 +1527,8 @@ const ClinicVisit = (props) => {
                                 as={Card.Text}
                                 eventKey={`${i}`}
                                 className={`accordion-header ${activeAccordionHeaderShadow === 1
-                                    ? ""
-                                    : "collapsed"
+                                  ? ""
+                                  : "collapsed"
                                   } accordion-header-info`}
                                 onClick={() =>
                                   setActiveAccordionHeaderShadow(
@@ -2092,21 +2117,31 @@ const ClinicVisit = (props) => {
             <br />
             <br />
 
-            <div className=" mb-3">
+            <div className="mb-3" style={{ position: 'relative' }}>
               <FormLabelName>Clinical Notes</FormLabelName>
               <textarea
                 name="clinicalNote"
                 className="form-control"
                 value={objValues.clinicalNote}
                 onChange={handleInputChange}
-                style={{ border: "1px solid #014D88", borderRadius: "0.25rem", height: "200px" }}
+                style={{
+                  border: "1px solid #014D88",
+                  borderRadius: "0.25rem",
+                  height: "200px",
+                  paddingRight: "60px"
+                }}
               ></textarea>
               {errors.clinicalNote !== "" ? (
                 <span className={classes.error}>{errors.clinicalNote}</span>
               ) : (
                 ""
               )}
+              <AudioRecorder
+                onTranscriptionComplete={handleTranscriptionComplete}
+                patient={props.patientObj}
+              />
             </div>
+
             <div className="row">
               {/**jsx added begin here */}
               <div className="form-group mb-3 col-md-6">
@@ -2872,6 +2907,7 @@ const ClinicVisit = (props) => {
               style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
               min={vital.encounterDate}
               onKeyPress={(e) => e.preventDefault()}
+              title="Auto-calculated when Visit Date and Dosage are provided, or enter manually"
             />
             {errors.nextAppointment !== "" ? (
               <span className={classes.error}>{errors.nextAppointment}</span>

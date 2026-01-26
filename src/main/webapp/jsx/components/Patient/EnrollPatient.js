@@ -558,14 +558,14 @@ const UserRegistration = (props) => {
                             name="firstName"
                             id="firstName"
                             value={
-                              (basicInfo?.firstName !== undefined
-                                ? basicInfo?.firstName
-                                : "") +
-                              " " +
-                              (basicInfo?.surname !== undefined
-                                ? basicInfo?.surname
-                                : "") +
-                              basicInfo?.fullname
+                                (basicInfo?.firstName !== undefined
+                                    ? basicInfo?.firstName
+                                    : "") +
+                                " " +
+                                (basicInfo?.surname !== undefined
+                                    ? basicInfo?.surname
+                                    : "") +
+                                basicInfo?.fullname
                             }
                             onChange={handleInputChangeBasic}
                             style={{

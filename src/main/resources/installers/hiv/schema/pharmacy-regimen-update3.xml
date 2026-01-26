@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet author="Taiwo Gboyegun" id="20251217-001">
+        <comment>Add new HIV drugs (207-224) to hiv_drug table</comment>
+        <sqlFile dbms="postgresql"
+                 path="sql/add_hiv_drugs.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+    <changeSet author="Taiwo Gboyegun" id="20251217-002">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="hiv_drug"/>
+                <sqlCheck expectedResult="3">
+                    SELECT COUNT(*) FROM hiv_drug WHERE id IN (207, 215, 224)
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile dbms="postgresql"
+                 path="sql/add_hiv_regimen_drugs.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <!-- Update regimen_id from 1085 to 1088 -->
+    <changeSet failOnError="false" author="Taiwo Gboyegun" id="20251217-003">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="hiv_regimen_drug"/>
+                <sqlCheck expectedResult="1">
+                    SELECT CASE WHEN COUNT(*) >= 1 THEN 1 ELSE 0 END
+                    FROM hiv_regimen_drug
+                    WHERE regimen_id = 1085
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile dbms="postgresql"
+                 path="sql/update_regimen_1085_to_1088.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <!-- Add additional HIV drugs (225, 226) -->
+    <changeSet author="Taiwo Gboyegun" id="20251217-004">
+        <comment>Add additional HIV drugs (225-226) to hiv_drug table</comment>
+        <sqlFile dbms="postgresql"
+                 path="sql/add_hiv_drugs_batch2.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <!-- Add HIV regimen drug mappings for batch 2 -->
+    <changeSet author="Taiwo Gboyegun" id="20251217-005">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="hiv_drug"/>
+                <sqlCheck expectedResult="2">
+                    SELECT COUNT(*) FROM hiv_drug WHERE id IN (225, 226)
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile dbms="postgresql"
+                 path="sql/add_hiv_regimen_drugs_batch2.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <!-- Add regimen drug mapping for regimen 1085 with drug 223 -->
+    <changeSet author="Taiwo Gboyegun" id="20251217-006">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="hiv_drug"/>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM hiv_drug WHERE id = 223
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sql>
+            INSERT INTO hiv_regimen_drug (id, regimen_id, drug_id) VALUES (1306, 1085, 223);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
