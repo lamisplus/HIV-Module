@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20260127-001" author="gboyeguntaiwo" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+                FROM laboratory_test
+                WHERE lab_test_id IN (71, 73);
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE laboratory_test
+            SET lab_test_id = 51
+            WHERE lab_test_id IN (71, 73);
+
+            DELETE FROM laboratory_labtest
+            WHERE id IN (71, 73, 78);
+        </sql>
+        <rollback>
+            -- Note: Rollback may not be possible if records were permanently deleted
+            -- Manual intervention may be required to restore original lab_test_id values
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
