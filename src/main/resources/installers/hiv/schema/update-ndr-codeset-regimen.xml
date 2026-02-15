@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20260213-001" author="taiwo-data.fi" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+                FROM ndr_code_set
+                WHERE code_description = 'ABC+3TC(or FTC)+DTG' AND code = '1c';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE ndr_code_set
+            SET code_description = 'ABC+3TC+DTG'
+            WHERE code_description = 'ABC+3TC(or FTC)+DTG'
+              AND code = '1c';
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260213-002" author="taiwo-data.fi" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+                FROM hiv_regimen_resolver
+                WHERE regimen = 'ABC+3TC(or FTC)+DTG';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE hiv_regimen_resolver
+            SET regimen = 'ABC+3TC+DTG'
+            WHERE regimen = 'ABC+3TC(or FTC)+DTG';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

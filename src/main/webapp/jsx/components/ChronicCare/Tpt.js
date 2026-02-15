@@ -400,18 +400,27 @@ const TPT = (props) => {
             })
             .then((response) => {
                 const data = response.data;
-                // Filter records where type is "Chronic Care" and everCompletedTpt is 'Yes', if it exists
+                // Filter records where everCompletedTpt is 'Yes' and dateOfTptCompleted is set
                 const filteredRecords = data.filter(
                     (item) =>
                         item.type === "Chronic Care" &&
-                        item.data?.tptMonitoring?.endedTpt === 'Yes'
+                        item.data?.tptMonitoring?.everCompletedTpt === 'Yes' &&
+                        item.data?.tptMonitoring?.dateOfTptCompleted
                 );
                 if (filteredRecords.length > 0) {
                     const mostRecentRecord = filteredRecords.sort(
                         (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
                     )[0];
-                    const { dateTptEnded  } = mostRecentRecord.data.tptMonitoring || {};
-                    setCareAndSupportEncounterDate(dateTptEnded)
+                    const { dateOfTptCompleted } = mostRecentRecord.data.tptMonitoring || {};
+                    if (dateOfTptCompleted) {
+                        setCareAndSupportEncounterDate(dateOfTptCompleted);
+                        setTptCompletionDate(dateOfTptCompleted);
+                        props.setTpt((prev) => ({
+                            ...prev,
+                            everCompletedTpt: "Yes",
+                            dateOfTptCompleted: dateOfTptCompleted,
+                        }));
+                    }
                 }
             })
             .catch((error) => {
@@ -422,8 +431,6 @@ const TPT = (props) => {
     useEffect(() => {
         PATIENT_ENCOUNTER();
     }, []);
-
-
     return (
         <>
             <Card className={classes.root}>

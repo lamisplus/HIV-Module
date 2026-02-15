@@ -487,46 +487,6 @@ const TbTreatmentScreening = (props) => {
                     </div>
                   </>
                 )}
-
-              {/* {(((props.tbObj.diagnosticTestType === "GeneXpert" ||
-                props.tbObj.diagnosticTestType === "Truenat" ||
-                props.tbObj.diagnosticTestType === "Cobas" ||
-                props.tbObj.diagnosticTestType === "TB-LAM" ||
-                props.tbObj.diagnosticTestType === "Smear Microscopy" ||
-                ["TB-LAM"].includes(props.tbObj.diagnosticTestType)) &&
-                (props.tbObj.tbTestResult === "MTB not detected" ||
-                  props.tbObj.tbTestResult === "Negative")) ||
-                (props.tbObj.specimentSent || "").toLowerCase() === "no") && (
-                <>
-                  <div className="form-group mb-3 col-md-6">
-                    <FormGroup>
-                      <Label>Clinically Evaluated </Label>
-                      <InputGroup>
-                        <Input
-                          type="select"
-                          name="clinicallyEvaulated"
-                          id="clinicallyEvaulated"
-                          onChange={props.handleInputChange}
-                          value={props.tbObj.clinicallyEvaulated}
-                          disabled={props.action === "view" ? true : false}
-                        >
-                          <option value="">Select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </Input>
-                      </InputGroup>
-                      {errors.clinicallyEvaulated !== "" ? (
-                        <span className={classes.error}>
-                          {errors.clinicallyEvaulated}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                    </FormGroup>
-                  </div>
-                </>
-              )} */}
-
               {!(
                 props.tbObj.specimentCollectedStatus === "Yes" &&
                 (props.tbObj.specimentSent || "").toLowerCase() === "no"
@@ -575,11 +535,6 @@ const TbTreatmentScreening = (props) => {
                     </div>
                   </>
                 )}
-
-              {/*{((props.tbObj.diagnosticTestType==='GeneXpert' || */}
-              {/*props.tbObj.diagnosticTestType==='Truenat' || props.tbObj.diagnosticTestType==='Cobas' || props.tbObj.diagnosticTestType==='TB-LAM' || props.tbObj.diagnosticTestType==='Smear Microscopy' || props.tbObj.diagnosticTestType==='TB-LAM') &&*/}
-              {/*(props.tbObj.tbTestResult==='MTB not detected' ||*/}
-              {/*props.tbObj.tbTestResult==='Negative' )*/}
 
               {(((props.tbObj.diagnosticTestType === "GeneXpert" ||
                 props.tbObj.diagnosticTestType === "Truenat" ||
@@ -643,11 +598,6 @@ const TbTreatmentScreening = (props) => {
                                 </option>
                               </Input>
                             </InputGroup>
-                            {/*{errors.clinicallyEvaulated !== "" ? (*/}
-                            {/*    <span className={classes.error}>{errors.clinicallyEvaulated}</span>*/}
-                            {/*) : (*/}
-                            {/*    ""*/}
-                            {/*)}*/}
                           </FormGroup>
                         </div>
                       )}
