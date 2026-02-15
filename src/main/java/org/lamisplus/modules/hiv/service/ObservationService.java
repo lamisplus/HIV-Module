@@ -72,7 +72,17 @@ public class ObservationService {
                 observationDto.setVisitId(visit.getId());
                 observationDto.setLatitude(observationDto.getLatitude());
                 observationDto.setLongitude(observationDto.getLongitude());
-                String sourceSupport = observationDto.getSource() == null || observationDto.getSource().isEmpty() ? Constants.WEB_SOURCE : Constants.MOBILE_SOURCE;
+                String rawSource = observationDto.getSource();
+                String sourceSupport;
+                if (rawSource == null || rawSource.isEmpty()) {
+                    sourceSupport = Constants.WEB_SOURCE;
+                } else if (Constants.POC_SOURCE.equalsIgnoreCase(rawSource)) {
+                    sourceSupport = Constants.POC_SOURCE;
+                } else if (rawSource.toLowerCase().contains("mobile")) {
+                    sourceSupport = Constants.MOBILE_SOURCE;
+                } else {
+                    sourceSupport = Constants.WEB_SOURCE;
+                }
                 observationDto.setSource(sourceSupport);
             }
 
@@ -127,42 +137,6 @@ public class ObservationService {
         observationDto.setId(saveObservation.getId());
     }
 
-
-//     private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Person person) {
-//         if (observationDto.getType().equals("Chronic Care")) {
-//             JsonNode tptMonitoring = observationDto.getData().get("tptMonitoring");
-//             JsonNode iptCompletionDate = tptMonitoring.get("date");
-//             JsonNode outComeOfIpt = tptMonitoring.get("outComeOfIpt");
-//             if ((outComeOfIpt != null && !outComeOfIpt.isEmpty()) || (iptCompletionDate != null && !iptCompletionDate.asText().isEmpty())) {
-// //                log.info ("found for IPT out come");
-//                 StringBuilder dateIptCompleted = new StringBuilder();
-//                 StringBuilder iptCompletionStatus = new StringBuilder();
-// //                log.info ("checking if IPT out come has a date");
-//                 if (iptCompletionDate != null) {
-// //                    log.info ("found for IPT out come date");
-//                     dateIptCompleted.append(iptCompletionDate.asText());
-//                 }
-//                 if (outComeOfIpt != null) {
-//                     iptCompletionStatus.append(outComeOfIpt.asText());
-//                 }
-// //                log.info ("fetching current IPT from pharmacy");
-//                 Optional<ArtPharmacy> recentIPtPharmacy =
-//                         pharmacyRepository.getPharmacyIpt(person.getUuid());
-//                 if (recentIPtPharmacy.isPresent()) {
-// //                    log.info ("found current IPT from pharmacy");
-//                     ArtPharmacy artPharmacy = recentIPtPharmacy.get();
-//                     JsonNode ipt = artPharmacy.getIpt();
-//                     ((ObjectNode) ipt).put("dateCompleted", dateIptCompleted.toString());
-//                     ((ObjectNode) ipt).put("completionStatus", iptCompletionStatus.toString());
-//                     artPharmacy.setIpt(ipt);
-// //                    log.info ("updating  current IPT from pharmacy");
-//                     pharmacyRepository.save(artPharmacy);
-// //                    log.info ("update was successful  current pharmacy affected uuid {}", artPharmacy.getUuid());
-//                 }
-
-//             }
-//         }
-//     }
 
 private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Person person) {
     ObjectMapper objectMapper = new ObjectMapper();

@@ -24,6 +24,7 @@ import useCodesets from "../../../hooks/useCodesets";
 import { toast } from "react-toastify";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 import { calculate_age_to_number } from "../../../utils";
+import { getSourceByRole } from "../../../utils/localstorage";
 import Select from "react-select";
 
 const useStyles = makeStyles((theme) => ({
@@ -148,6 +149,7 @@ const Pharmacy = (props) => {
     dsdModelType: "",
     iptType: "",
     visitType: "",
+    source: getSourceByRole() === "POC" ? "POC" : "",
     //drugName:""
   });
   const [vital, setVitalSignDto] = useState({

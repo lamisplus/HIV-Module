@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { FaPlus, FaAngleDown } from "react-icons/fa";
 import { token, url as baseUrl } from "../../../api";
+import { getSourceByRole } from "../../../utils/localstorage";
 import moment from "moment";
 import ChronicConditions from "./ChronicConditions";
 import Eligibilty from "./Eligibilty";
@@ -341,7 +342,8 @@ const ChronicCare = (props) => {
     personId: 0,
     type: "Chronic Care",
     visitId: null,
-    comment: ""
+    comment: "",
+    source: getSourceByRole() === "POC" ? "POC" : "",
   });
 
   useEffect(() => {
