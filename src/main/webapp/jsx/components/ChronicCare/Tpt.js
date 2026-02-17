@@ -92,9 +92,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const CODESET_KEYS = [
-  "TB_TREATMENT_TYPE",
-  "TPT_OUTCOME",
-  "CLINIC_VISIT_LEVEL_OF_ADHERENCE",
+    "TB_TREATMENT_TYPE",
+    "TPT_OUTCOME",
+    "CLINIC_VISIT_LEVEL_OF_ADHERENCE",
 ];
 
 const TPT = (props) => {
@@ -262,12 +262,12 @@ const TPT = (props) => {
                 props.setTpt({
                     ...props.tpt,
                     [name]: value,
-                    dateOfTptCompleted: '', 
+                    dateOfTptCompleted: '',
                 });
             }
         }
         else
-            if (name === 'tbTreatment' && value === '') {
+        if (name === 'tbTreatment' && value === '') {
             props.setTpt({
                 ...props.tpt,
                 [name]: value,
@@ -400,27 +400,18 @@ const TPT = (props) => {
             })
             .then((response) => {
                 const data = response.data;
-                // Filter records where everCompletedTpt is 'Yes' and dateOfTptCompleted is set
+                // Filter records where type is "Chronic Care" and everCompletedTpt is 'Yes', if it exists
                 const filteredRecords = data.filter(
                     (item) =>
                         item.type === "Chronic Care" &&
-                        item.data?.tptMonitoring?.everCompletedTpt === 'Yes' &&
-                        item.data?.tptMonitoring?.dateOfTptCompleted
+                        item.data?.tptMonitoring?.endedTpt === 'Yes'
                 );
                 if (filteredRecords.length > 0) {
                     const mostRecentRecord = filteredRecords.sort(
                         (a, b) => new Date(b.dateOfObservation) - new Date(a.dateOfObservation)
                     )[0];
-                    const { dateOfTptCompleted } = mostRecentRecord.data.tptMonitoring || {};
-                    if (dateOfTptCompleted) {
-                        setCareAndSupportEncounterDate(dateOfTptCompleted);
-                        setTptCompletionDate(dateOfTptCompleted);
-                        props.setTpt((prev) => ({
-                            ...prev,
-                            everCompletedTpt: "Yes",
-                            dateOfTptCompleted: dateOfTptCompleted,
-                        }));
-                    }
+                    const { dateTptEnded  } = mostRecentRecord.data.tptMonitoring || {};
+                    setCareAndSupportEncounterDate(dateTptEnded)
                 }
             })
             .catch((error) => {
@@ -431,6 +422,8 @@ const TPT = (props) => {
     useEffect(() => {
         PATIENT_ENCOUNTER();
     }, []);
+
+
     return (
         <>
             <Card className={classes.root}>
@@ -758,7 +751,7 @@ const TPT = (props) => {
                                                     >
                                                         <option value="">Select</option>
                                                         {getOptions("TPT_OUTCOME").map(item => <option key={item.id}
-                                                                                        value={item.display}>
+                                                                                                       value={item.display}>
                                                             {item.display}
                                                         </option>)}
                                                     </Input>
