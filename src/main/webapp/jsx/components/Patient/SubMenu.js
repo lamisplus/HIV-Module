@@ -295,6 +295,46 @@ const SubMenu = (props) => {
         });
       },
 
+      loadInitializationEvaluation: () => {
+        setActiveItem("initialization-evaluation");
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "initialization-evaluation",
+        });
+      },
+
+      loadEnrollmentAndCommencement: () => {
+        setActiveItem("enrollment-and-commencement");
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "enrollment-and-commencement",
+        });
+      },
+
+      loadCareCardFollowUp: () => {
+        setActiveItem("care-card-follow-up");
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "care-card-follow-up",
+        });
+      },
+
+      loadAdherencePreparation: () => {
+        setActiveItem("adherence-preparation");
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "adherence-preparation",
+        });
+      },
+
+      loadPositiveHealthDignity: () => {
+        setActiveItem("positive-health-dignity");
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "positive-health-dignity",
+        });
+      },
+
       loadArtCommencement: () => {
         setActiveItem("art");
         props.setActiveContent({
@@ -499,6 +539,51 @@ const SubMenu = (props) => {
                 </MenuItem>
               )}
 
+              <MenuItem
+                onClick={menuHandlers.loadInitializationEvaluation}
+                name="initialization-evaluation"
+                active={activeItem === "initialization-evaluation"}
+                title="Initialization Evaluation Form"
+              >
+                Initialization Evaluation Form
+              </MenuItem>
+
+              <MenuItem
+                onClick={menuHandlers.loadEnrollmentAndCommencement}
+                name="enrollment-and-commencement"
+                active={activeItem === "enrollment-and-commencement"}
+                title="Enrollment & ART Commencement"
+              >
+                Enrollment &amp; Commencement
+              </MenuItem>
+
+              <MenuItem
+                onClick={menuHandlers.loadCareCardFollowUp}
+                name="care-card-follow-up"
+                active={activeItem === "care-card-follow-up"}
+                title="Care Card Follow Up"
+              >
+                Care Card Follow Up
+              </MenuItem>
+
+              <MenuItem
+                onClick={menuHandlers.loadAdherencePreparation}
+                name="adherence-preparation"
+                active={activeItem === "adherence-preparation"}
+                title="ART Adherence Preparation"
+              >
+                Adherence Preparation
+              </MenuItem>
+
+              <MenuItem
+                onClick={menuHandlers.loadPositiveHealthDignity}
+                name="positive-health-dignity"
+                active={activeItem === "positive-health-dignity"}
+                title="Care and Support / Positive Health Dignity"
+              >
+                Positive Health Dignity
+              </MenuItem>
+
               {!patientObj.commenced && (
                 <MenuItem
                   onClick={menuHandlers.loadArtCommencement}
@@ -629,6 +714,16 @@ const SubMenu = (props) => {
                         </MenuItem>
                       )}
 
+                      <MenuItem
+                        onClick={menuHandlers.loadCareCardFollowUp}
+                        disabled={patientCurrentStatus}
+                        name="care-card-follow-up"
+                        active={activeItem === "care-card-follow-up"}
+                        title="Care Card Follow Up"
+                      >
+                        Care Card Follow Up
+                      </MenuItem>
+
                       {permissions.canSeeLaboratory && (
                         <Menu.Menu
                           position=""
@@ -701,6 +796,38 @@ const SubMenu = (props) => {
                         >
                           <Dropdown item text="Other Forms">
                             <Dropdown.Menu>
+                              <Dropdown.Item
+                                onClick={menuHandlers.loadInitializationEvaluation}
+                                name="initialization-evaluation"
+                                active={activeItem === "initialization-evaluation"}
+                                title="Initialization Evaluation Form"
+                              >
+                                Initialization Evaluation Form
+                              </Dropdown.Item>
+                              <Dropdown.Item
+                                onClick={menuHandlers.loadEnrollmentAndCommencement}
+                                name="enrollment-and-commencement"
+                                active={activeItem === "enrollment-and-commencement"}
+                                title="Enrollment & ART Commencement"
+                              >
+                                Enrollment &amp; Commencement
+                              </Dropdown.Item>
+                              <Dropdown.Item
+                                onClick={menuHandlers.loadAdherencePreparation}
+                                name="adherence-preparation"
+                                active={activeItem === "adherence-preparation"}
+                                title="ART Adherence Preparation"
+                              >
+                                Adherence Preparation
+                              </Dropdown.Item>
+                              <Dropdown.Item
+                                onClick={menuHandlers.loadPositiveHealthDignity}
+                                name="positive-health-dignity"
+                                active={activeItem === "positive-health-dignity"}
+                                title="Care and Support / Positive Health Dignity"
+                              >
+                                Positive Health Dignity
+                              </Dropdown.Item>
                               <Dropdown.Item
                                 onClick={menuHandlers.loadTrackingForm}
                                 name="tracking"

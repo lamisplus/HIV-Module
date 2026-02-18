@@ -23,6 +23,11 @@ import CervicalCancerUpdate from "./../CervicalCancer/ViewPage";
 import ClientStatusUpdate from "./../ClientStatusUpdate/ClientStatusUpdate";
 import AdultClinicEvaluationForm from "../InitailClinicEvaluation/Adult/Index";
 import ViewAdultClinicEvaluationForm from "../InitailClinicEvaluation/ViewAdultHistory/Index";
+import InitializationEvaluationForm from "../../lamisplus3-in-2/pages/InitializationEvaluation/Index";
+import EnrollmentAndCommencementForm from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Index";
+import CareCardFollowUpForm from "../../lamisplus3-in-2/pages/CareCardFollowUp/Index";
+import AdherencePreparationForm from "../../lamisplus3-in-2/pages/AdherencePreparation/Index";
+import PositiveHealthDignityForm from "../../lamisplus3-in-2/pages/PositiveHealthDignity/Index";
 import MentalHealthScreening from "../MentalHealthScreening/index";
 import LabHistory from "./../Laboratory/LabHistory";
 import PatientHistory from "./../History/PatientHistory";
@@ -355,6 +360,41 @@ function PatientCard(props) {
             />
           )}
           {/* {activeContent.route==='child-evaluation' &&( <ChildClinicEvaluationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)} */}
+          {activeContent.route === "initialization-evaluation" && (
+            <InitializationEvaluationForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "enrollment-and-commencement" && (
+            <EnrollmentAndCommencementForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "care-card-follow-up" && (
+            <CareCardFollowUpForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "adherence-preparation" && (
+            <AdherencePreparationForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "positive-health-dignity" && (
+            <PositiveHealthDignityForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
           {activeContent.route === "mhs" && (
             <MentalHealthScreening
               patientObj={patientObj}
