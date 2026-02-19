@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- Create enrollment_commencement table                                   -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <changeSet id="20250219-ec-01" author="lamisplus-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="enrollment_commencement"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="enrollment_commencement">
+
+            <!-- ── Infrastructure ────────────────────────────────────────── -->
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="uuid" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="unique_id_no" type="VARCHAR(100)"/>
+            <column name="facility_id" type="BIGINT"/>
+            <column name="person_uuid" type="VARCHAR(255)">
+                <constraints nullable="false"
+                             foreignKeyName="fk_ec_person_uuid"
+                             references="patient_person(uuid)"/>
+            </column>
+            <column name="visit_id" type="VARCHAR(255)">
+                <constraints nullable="false"
+                             foreignKeyName="fk_ec_visit"
+                             references="patient_visit(uuid)"/>
+            </column>
+            <column name="vital_sign_uuid" type="VARCHAR(255)">
+                <constraints foreignKeyName="fk_ec_vital_sign"
+                             references="triage_vital_sign(uuid)"/>
+            </column>
+            <column name="is_commencement" type="BOOLEAN" defaultValueBoolean="true"/>
+            <column name="art_status_id" type="BIGINT"/>
+            <column name="status_at_registration_id" type="BIGINT"/>
+            <column name="source" type="VARCHAR(255)"/>
+            <column name="latitude" type="VARCHAR(255)"/>
+            <column name="longitude" type="VARCHAR(255)"/>
+            <column name="archived" type="INTEGER" defaultValueNumeric="0"/>
+
+            <!-- ── Audit ──────────────────────────────────────────────────── -->
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+
+            <!-- ── Registration — HIV Care & Identification ───────────────── -->
+            <column name="date_enrolled_in_hiv_care" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_confirmed_hiv_test" type="DATE"/>
+            <column name="hiv_test_location" type="VARCHAR(255)"/>
+            <column name="mode_of_hiv_test" type="VARCHAR(50)"/>
+            <column name="care_entry_point_id" type="BIGINT"/>
+            <column name="care_entry_point_other" type="VARCHAR(255)"/>
+            <column name="mother_unique_id" type="VARCHAR(100)"/>
+
+            <!-- ── Registration — Demographics ───────────────────────────── -->
+            <column name="occupation" type="VARCHAR(255)"/>
+            <column name="marital_status" type="VARCHAR(50)"/>
+            <column name="educational_level" type="VARCHAR(100)"/>
+
+            <!-- ── Registration — Next of Kin ─────────────────────────────── -->
+            <column name="nok_name" type="VARCHAR(255)"/>
+            <column name="nok_relationship" type="VARCHAR(100)"/>
+            <column name="nok_telephone" type="VARCHAR(50)"/>
+
+            <!-- ── Registration — Prior ART & KP ─────────────────────────── -->
+            <column name="prior_art_code" type="VARCHAR(10)"/>
+            <column name="is_kp" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="kp_typology" type="VARCHAR(100)"/>
+
+            <!-- ── Registration — Transfer Details ───────────────────────── -->
+            <column name="date_transferred_in" type="DATE"/>
+            <column name="facility_transferred_from" type="VARCHAR(255)"/>
+
+            <!-- ── Commencement — Clinical Status ─────────────────────────── -->
+            <column name="clinical_stage_id" type="BIGINT"/>
+            <column name="cd4_at_art_start" type="BIGINT"/>
+            <column name="cd4_lf" type="VARCHAR(10)"/>
+
+            <!-- ── Commencement — ART Dates & Regimen ─────────────────────── -->
+            <column name="date_adherence_counseling_completed" type="DATE"/>
+            <column name="date_art_started" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="regimen_id" type="BIGINT"/>
+
+            <!-- ── Commencement — Vitals ──────────────────────────────────── -->
+            <column name="weight_kg" type="DOUBLE"/>
+            <column name="height_cm" type="DOUBLE"/>
+            <column name="bmi" type="DOUBLE"/>
+            <column name="muac" type="DOUBLE"/>
+            <column name="muac_indication" type="VARCHAR(50)"/>
+            <column name="pregnancy_status" type="VARCHAR(50)"/>
+
+            <!-- ── Commencement — TB Preventive Therapy ───────────────────── -->
+            <column name="tpt_medication" type="VARCHAR(255)"/>
+            <column name="tpt_code" type="VARCHAR(20)"/>
+            <column name="tpt_dose" type="VARCHAR(100)"/>
+            <column name="tpt_start_date" type="DATE"/>
+            <column name="tpt_completion_date" type="DATE"/>
+
+        </createTable>
+    </changeSet>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- Indexes                                                                -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <changeSet id="20250219-ec-02" author="lamisplus-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="enrollment_commencement"/>
+        </preConditions>
+
+        <createIndex indexName="idx_ec_person_uuid"
+                     tableName="enrollment_commencement">
+            <column name="person_uuid"/>
+            <column name="archived"/>
+        </createIndex>
+
+        <createIndex indexName="idx_ec_unique_id_no"
+                     tableName="enrollment_commencement">
+            <column name="unique_id_no"/>
+        </createIndex>
+
+        <createIndex indexName="idx_ec_mother_unique_id"
+                     tableName="enrollment_commencement">
+            <column name="mother_unique_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- Migration — populate from existing hiv_enrollment + hiv_art_clinical  -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <changeSet id="20250219-ec-03" author="lamisplus-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="enrollment_commencement"/>
+            <tableExists tableName="hiv_enrollment"/>
+            <tableExists tableName="hiv_art_clinical"/>
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM enrollment_commencement
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+            INSERT INTO enrollment_commencement (
+                uuid,
+                unique_id_no,
+                facility_id,
+                person_uuid,
+                visit_id,
+                vital_sign_uuid,
+                is_commencement,
+                art_status_id,
+                status_at_registration_id,
+                source,
+                latitude,
+                longitude,
+                archived,
+                created_by,
+                created_date,
+                last_modified_by,
+                last_modified_date,
+                date_enrolled_in_hiv_care,
+                date_confirmed_hiv_test,
+                care_entry_point_id,
+                care_entry_point_other,
+                clinical_stage_id,
+                cd4_at_art_start,
+                date_art_started,
+                regimen_id,
+                pregnancy_status
+            )
+            SELECT
+                e.uuid,
+                e.unique_id                         AS unique_id_no,
+                e.facility_id,
+                e.person_uuid,
+                e.visit_id,
+                c.vital_sign_uuid,
+                TRUE                                AS is_commencement,
+                c.art_status_id,
+                e.status_at_registration_id,
+                e.source,
+                e.latitude,
+                e.longitude,
+                COALESCE(e.archived, 0)             AS archived,
+                e.created_by,
+                e.created_date,
+                e.last_modified_by,
+                e.last_modified_date,
+                e.date_of_registration              AS date_enrolled_in_hiv_care,
+                e.date_confirmed_hiv                AS date_confirmed_hiv_test,
+                e.entry_point_id                    AS care_entry_point_id,
+                e.care_entry_point_other,
+                c.clinical_stage_id,
+                c.cd_4                              AS cd4_at_art_start,
+                c.visit_date                        AS date_art_started,
+                c.regimen_id,
+                c.pregnancy_status
+            FROM hiv_enrollment e
+            JOIN hiv_art_clinical c
+                ON  c.hiv_enrollment_uuid = e.uuid
+                AND c.is_commencement     = TRUE
+                AND c.archived            = 0
+            WHERE e.archived = 0;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
