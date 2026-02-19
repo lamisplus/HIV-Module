@@ -28,6 +28,8 @@ import EnrollmentAndCommencementForm from "../../lamisplus3-in-2/pages/Enrollmen
 import CareCardFollowUpForm from "../../lamisplus3-in-2/pages/CareCardFollowUp/Index";
 import AdherencePreparationForm from "../../lamisplus3-in-2/pages/AdherencePreparation/Index";
 import PositiveHealthDignityForm from "../../lamisplus3-in-2/pages/PositiveHealthDignity/Index";
+import SubstitutionSwitchForm from "../../lamisplus3-in-2/pages/SubstitutionSwitch/Index";
+import DiscontinuationInterruptionForm from "../../lamisplus3-in-2/pages/DiscontinuationInterruption/Index";
 import MentalHealthScreening from "../MentalHealthScreening/index";
 import LabHistory from "./../Laboratory/LabHistory";
 import PatientHistory from "./../History/PatientHistory";
@@ -390,6 +392,20 @@ function PatientCard(props) {
           )}
           {activeContent.route === "positive-health-dignity" && (
             <PositiveHealthDignityForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "substitution-switch" && (
+            <SubstitutionSwitchForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "discontinuation-interruption" && (
+            <DiscontinuationInterruptionForm
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

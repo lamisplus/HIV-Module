@@ -21,8 +21,9 @@ import { Card, CardContent } from "@material-ui/core";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { token, url as baseUrl } from "../../../../api";
-import "semantic-ui-css/semantic.min.css";
-import { Button } from "semantic-ui-react";
+import MatButton from "@material-ui/core/Button";
+import SaveIcon from "@material-ui/icons/Save";
+import CancelIcon from "@material-ui/icons/Cancel";
 import { calculate_age_to_number } from "../../../../utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -152,11 +153,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ACCORDION_STYLES = [
-  { bg: "#1565c0", light: "#e3f2fd" }, // Symptoms Review - blue
-  { bg: "#2e7d32", light: "#e8f5e9" }, // Medical History - green
-  { bg: "#6a1b9a", light: "#f3e5f5" }, // Previously ARV Exposure - purple
-  { bg: "#01579b", light: "#e1f5fe" }, // Physical Examination - sky blue
-  { bg: "#b71c1c", light: "#ffebee" }, // Confirmatory Details - red
+  { bg: "#014d88" },
+  { bg: "#014d88" },
+  { bg: "#014d88" },
+  { bg: "#014d88" },
+  { bg: "#014d88" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -255,13 +256,13 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
         boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         borderRadius: "8px !important",
         "&:before": { display: "none" },
-        border: `1px solid ${style.bg}22`,
+        border: "1px solid #014d88",
       }}
     >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
         sx={{
-          background: `linear-gradient(135deg, ${style.bg}, ${style.bg}cc)`,
+          backgroundColor: "#014d88",
           borderRadius: isOpen ? "8px 8px 0 0" : "8px",
           minHeight: "52px",
           "& .MuiAccordionSummary-content": { margin: "0" },
@@ -271,7 +272,7 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
           {title}
         </Typography>
       </AccordionSummary>
-      <AccordionDetails sx={{ padding: "20px 24px", background: style.light + "55" }}>
+      <AccordionDetails sx={{ padding: "20px 24px", background: "#fff" }}>
         {children}
       </AccordionDetails>
     </Accordion>
@@ -648,25 +649,16 @@ const InitializationEvaluationForm = (props) => {
         {/* ── Page Header ──────────────────────────────────────────────── */}
         <Box
           sx={{
-            background: "linear-gradient(135deg, #014d88, #0288d1)",
-            borderRadius: "8px",
-            padding: "16px 24px",
+            backgroundColor: "#014d88",
+            padding: "14px 20px",
             marginBottom: "20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
           }}
         >
-          <Box>
-            <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "18px" }}>
-              {patientAge < 14
-                ? "Pediatric — Initialization Clinical Evaluation"
-                : "Adult — Initialization Clinical Evaluation"}
-            </Typography>
-            <Typography sx={{ color: "#b3d9f5", fontSize: "13px", marginTop: "2px" }}>
-              Complete all applicable sections below
-            </Typography>
-          </Box>
+          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
+            {patientAge < 14
+              ? "Pediatric — Initialization Clinical Evaluation"
+              : "Adult — Initialization Clinical Evaluation"}
+          </Typography>
         </Box>
 
         {/* ── Visit Details Row ─────────────────────────────────────────── */}
@@ -736,7 +728,7 @@ const InitializationEvaluationForm = (props) => {
                     control: (base) => ({
                       ...base,
                       minHeight: "42px",
-                      borderColor: "#1565c0",
+                      borderColor: "#014d88",
                       fontSize: "14px",
                     }),
                     placeholder: (base) => ({ ...base, color: "#9e9e9e", fontSize: "13px" }),
@@ -753,13 +745,13 @@ const InitializationEvaluationForm = (props) => {
               <Box
                 sx={{
                   background: "#fff",
-                  border: "1px solid #bbdefb",
-                  borderRadius: "8px",
+                  border: "1px solid #014d88",
+                  borderRadius: "4px",
                   padding: "12px 16px",
                   marginBottom: "12px",
                 }}
               >
-                <Typography sx={{ fontWeight: 600, color: "#1565c0", fontSize: "13px", marginBottom: "12px" }}>
+                <Typography sx={{ fontWeight: 600, color: "#014d88", fontSize: "13px", marginBottom: "12px" }}>
                   Added Symptoms ({selectedSymptoms.length})
                 </Typography>
                 {selectedSymptoms.map((symptom, idx) => (
@@ -773,7 +765,7 @@ const InitializationEvaluationForm = (props) => {
                       marginBottom: "8px",
                       background: idx % 2 === 0 ? "#f8fbff" : "#fff",
                       borderRadius: "6px",
-                      border: "1px solid #e3f2fd",
+                      border: "1px solid #dce8f5",
                     }}
                   >
                     <Box sx={{ flex: 1 }}>
@@ -781,7 +773,7 @@ const InitializationEvaluationForm = (props) => {
                         label={symptom.label}
                         size="small"
                         sx={{
-                          background: "#1565c0",
+                          background: "#014d88",
                           color: "#fff",
                           fontWeight: 600,
                           fontSize: "12px",
@@ -818,8 +810,8 @@ const InitializationEvaluationForm = (props) => {
             {selectedSymptoms.length === 0 && (
               <Box
                 sx={{
-                  border: "1px dashed #bbdefb",
-                  borderRadius: "8px",
+                  border: "1px dashed #014d88",
+                  borderRadius: "4px",
                   padding: "20px",
                   textAlign: "center",
                   marginBottom: "12px",
@@ -944,7 +936,7 @@ const InitializationEvaluationForm = (props) => {
             {/* Current Medications */}
             <Divider sx={{ my: 2 }} />
             <SubHeading>Current Medications</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #e8f5e9", borderRadius: "8px", padding: "12px 16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px" }}>
               <CheckGroup name="none" id="meds_none" label="None" checked={currentMeds.none} onChange={handleMeds} />
               {!currentMeds.none && (
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", mt: 1 }}>
@@ -968,7 +960,7 @@ const InitializationEvaluationForm = (props) => {
             {/* Patient Disclosure */}
             <Divider sx={{ my: 2 }} />
             <SubHeading>Patient Has Disclosed / Can Disclose Status To</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #e8f5e9", borderRadius: "8px", padding: "12px 16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px" }}>
               <CheckGroup name="no_one" id="disc_no_one" label="No One" checked={disclosure.no_one} onChange={handleDisclosure} />
               {!disclosure.no_one && (
                 <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", mt: 1 }}>
@@ -1035,7 +1027,7 @@ const InitializationEvaluationForm = (props) => {
             {arvHistory.previous_arv_exposure === "Yes" && (
               <>
                 <SubHeading>ARV Exposure Type</SubHeading>
-                <Box sx={{ background: "#fff", border: "1px solid #f3e5f5", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px" }}>
+                <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
                     <CheckGroup name="earlier_arv_not_transfer" id="arv_earlier" label="Earlier ARV (not a Transfer-in)" checked={arvHistory.earlier_arv_not_transfer} onChange={handleArv} />
                     <CheckGroup name="prep" id="arv_prep" label="PrEP" checked={arvHistory.prep} onChange={handleArv} />
@@ -1079,8 +1071,8 @@ const InitializationEvaluationForm = (props) => {
             <Box
               sx={{
                 background: "#fff",
-                border: "1px solid #b3e5fc",
-                borderRadius: "8px",
+                border: "1px solid #014d88",
+                borderRadius: "4px",
                 padding: "16px",
                 marginBottom: "20px",
               }}
@@ -1200,7 +1192,7 @@ const InitializationEvaluationForm = (props) => {
 
             {/* Assessment */}
             <SubHeading>Assessment</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #ffcdd2", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
                 <CheckGroup name="asymptomatic" id="assess_asymptomatic" label="Asymptomatic" checked={assessment.asymptomatic} onChange={handleAssessment} />
                 <CheckGroup name="symptomatic" id="assess_symptomatic" label="Symptomatic" checked={assessment.symptomatic} onChange={handleAssessment} />
@@ -1231,7 +1223,7 @@ const InitializationEvaluationForm = (props) => {
             {/* Enrol In */}
             <Divider sx={{ my: 2 }} />
             <SubHeading>Enrol In</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #ffcdd2", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
                 <CheckGroup name="enroll_general_followup" id="enroll_general" label="General Medical Follow-up" checked={assessment.enroll_general_followup} onChange={handleAssessment} />
                 <CheckGroup name="enroll_arv_therapy" id="enroll_arv" label="ARV Therapy" checked={assessment.enroll_arv_therapy} onChange={handleAssessment} />
@@ -1242,7 +1234,7 @@ const InitializationEvaluationForm = (props) => {
 
             {/* Plan for ART */}
             <SubHeading>Plan for Antiretroviral Therapy (ART)</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #ffcdd2", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
                 <CheckGroup name="plan_art_ongoing_monitoring" id="plan_ongoing" label="Ongoing Monitoring" checked={assessment.plan_art_ongoing_monitoring} onChange={handleAssessment} />
                 <CheckGroup name="plan_art_postponed" id="plan_postponed" label="ARV Tx Postponed for Clinical Reasons" checked={assessment.plan_art_postponed} onChange={handleAssessment} />
@@ -1302,24 +1294,26 @@ const InitializationEvaluationForm = (props) => {
               marginTop: "8px",
             }}
           >
-            <Button
-              content="Cancel"
-              icon="cancel"
-              labelPosition="left"
-              style={{ backgroundColor: "#78909c", color: "#fff", borderRadius: "6px" }}
+            <MatButton
+              variant="contained"
+              startIcon={<CancelIcon style={{ color: "#fff" }} />}
+              style={{ backgroundColor: "#992E62" }}
               onClick={() =>
                 props.setActiveContent({ ...props.activeContent, route: "recent-history" })
               }
               type="button"
-            />
-            <Button
-              content={saving ? "Saving..." : "Save Record"}
+            >
+              <span style={{ textTransform: "capitalize" }}>Cancel</span>
+            </MatButton>
+            <MatButton
               type="submit"
-              icon="save"
-              labelPosition="right"
-              style={{ backgroundColor: "#014d88", color: "#fff", borderRadius: "6px" }}
+              variant="contained"
+              startIcon={<SaveIcon />}
+              style={{ backgroundColor: "#014d88" }}
               disabled={saving}
-            />
+            >
+              <span style={{ textTransform: "capitalize" }}>{saving ? "Saving..." : "Save"}</span>
+            </MatButton>
           </Box>
         </form>
       </CardContent>

@@ -16,8 +16,10 @@ import { Card, CardContent } from "@material-ui/core";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { token, url as baseUrl } from "../../../../api";
-import "semantic-ui-css/semantic.min.css";
-import { Button } from "semantic-ui-react";
+import MatButton from "@material-ui/core/Button";
+import SaveIcon from "@material-ui/icons/Save";
+import CancelIcon from "@material-ui/icons/Cancel";
+import { calculate_age_to_number } from "../../../../utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -66,6 +68,14 @@ const KP_TYPOLOGY_OPTIONS = [
   "Persons in custodial centers",
 ];
 
+const MODE_OF_HIV_TEST_OPTIONS = [
+  "Rapid Test",
+  "PCR",
+  "Western Blot",
+  "ELISA",
+  "DNA PCR",
+];
+
 const TB_PREVENTIVE_THERAPY_CODES = [
   { value: "6H",   label: "6H — Isoniazid (6 months)" },
   { value: "3HP",  label: "3HP — Isoniazid and Rifapentine" },
@@ -75,27 +85,33 @@ const TB_PREVENTIVE_THERAPY_CODES = [
 
 const CLINICAL_STAGES = ["Stage 1", "Stage 2", "Stage 3", "Stage 4"];
 
+const CD4_LF_OPTIONS = [
+  { value: "<200",  label: "< 200" },
+  { value: ">=200", label: "≥ 200" },
+];
+
 const ACCORDION_STYLES = [
-  { bg: "#1565c0", light: "#e3f2fd" }, // Patient Registration - blue
-  { bg: "#2e7d32", light: "#e8f5e9" }, // Enrollment & ART - green
+  { bg: "#014d88" },
+  { bg: "#014d88" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reusable sub-components  (all defined at module scope — NEVER inside a component)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     "& .form-control": { borderRadius: "0.25rem", height: "41px" },
     "& select": { "-webkit-appearance": "listbox !important" },
-    "& label": { fontSize: "14px", color: "#014d88", fontWeight: "600" },
+    "& label": { fontSize: "14px", color: "#014d88", fontWeight: "bold" },
     "& textarea.form-control": { height: "auto" },
   },
-  error: { color: "#d32f2f", fontSize: "12px", marginTop: "4px" },
+  button: { margin: theme.spacing(1) },
+  error: { color: "#f85032", fontSize: "12px", marginTop: "4px" },
   fieldLabel: {
     fontSize: "13px",
     color: "#014d88",
-    fontWeight: "600",
+    fontWeight: "bold",
     marginBottom: "4px",
     display: "block",
   },
@@ -127,52 +143,6 @@ const Col = ({ size = 3, children }) => (
   <div className={`form-group mb-3 col-md-${size}`}>{children}</div>
 );
 
-const CheckGroup = ({ name, id, label, checked, onChange }) => (
-  <div
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "7px",
-      marginRight: "16px",
-      marginBottom: "8px",
-    }}
-  >
-    <input
-      type="checkbox"
-      name={name}
-      id={id || name}
-      checked={!!checked}
-      onChange={onChange}
-      style={{
-        width: "15px",
-        height: "15px",
-        margin: 0,
-        padding: 0,
-        flexShrink: 0,
-        cursor: "pointer",
-        accentColor: "#014d88",
-        position: "relative",
-        top: 0,
-      }}
-    />
-    <label
-      htmlFor={id || name}
-      style={{
-        margin: 0,
-        padding: 0,
-        cursor: "pointer",
-        fontSize: "13px",
-        color: "#333",
-        fontWeight: "500",
-        lineHeight: 1,
-        userSelect: "none",
-      }}
-    >
-      {label}
-    </label>
-  </div>
-);
-
 const SubHeading = ({ children }) => (
   <div
     style={{
@@ -202,13 +172,13 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
         boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         borderRadius: "8px !important",
         "&:before": { display: "none" },
-        border: `1px solid ${style.bg}22`,
+        border: "1px solid #014d88",
       }}
     >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
         sx={{
-          background: `linear-gradient(135deg, ${style.bg}, ${style.bg}cc)`,
+          backgroundColor: "#014d88",
           borderRadius: isOpen ? "8px 8px 0 0" : "8px",
           minHeight: "52px",
           "& .MuiAccordionSummary-content": { margin: "0" },
@@ -221,7 +191,7 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
         </Typography>
       </AccordionSummary>
       <AccordionDetails
-        sx={{ padding: "20px 24px", background: style.light + "55" }}
+        sx={{ padding: "20px 24px", background: "#fff" }}
       >
         {children}
       </AccordionDetails>
@@ -230,14 +200,46 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BMI helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+const calcBmi = (weightKg, heightCm) => {
+  const w = parseFloat(weightKg);
+  const h = parseFloat(heightCm);
+  if (w > 0 && h > 0) {
+    const hm = h / 100;
+    return (w / (hm * hm)).toFixed(1);
+  }
+  return "";
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MUAC indication helper (pediatric only)
+//  < 12.5 cm  → Underweight
+//  12.5–16 cm → Well Nourished
+//  ≥ 16 cm    → Overweight/Obese
+// ─────────────────────────────────────────────────────────────────────────────
+
+const calcMuacIndication = (muacCm) => {
+  const v = parseFloat(muacCm);
+  if (isNaN(v) || v <= 0) return "";
+  if (v < 12.5) return "Underweight";
+  if (v < 16.0) return "Well Nourished";
+  return "Overweight/Obese";
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
 
 const EnrollmentAndCommencementForm = (props) => {
   const classes = useStyles();
-  const isFemale = ["female", "FEMALE", "Female"].includes(
-    props.patientObj?.sex
-  );
+  const patientAge = calculate_age_to_number(props.patientObj?.dateOfBirth);
+  const isPediatric = patientAge >= 0 && patientAge <= 15;
+  const isInfant    = patientAge < 2;
+  const isFemale    = ["female", "FEMALE", "Female"].includes(props.patientObj?.sex);
+  // Pregnancy / breastfeeding only relevant for adult females
+  const showPregnancyStatus = isFemale && !isPediatric;
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -249,7 +251,7 @@ const EnrollmentAndCommencementForm = (props) => {
     );
   };
 
-  // ── Section 1: Patient Registration Details ────────────────────────────
+  // ── Section 1: Patient Registration Details ─────────────────────────────
   const [registration, setRegistration] = useState({
     date_enrolled_in_hiv_care: "",
     occupation: "",
@@ -262,7 +264,7 @@ const EnrollmentAndCommencementForm = (props) => {
     care_entry_point: "",
     care_entry_point_other: "",
     date_confirmed_hiv_test: "",
-    mode_of_hiv_confirmation: "",
+    mode_of_hiv_test: "",          // renamed from mode_of_hiv_confirmation
     hiv_test_location: "",
     prior_art: "",
     is_kp: "",
@@ -276,59 +278,64 @@ const EnrollmentAndCommencementForm = (props) => {
     setRegistration((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ── Section 2: Enrollment & ART Commencement ───────────────────────────
+  // ── Section 2: Enrollment & ART Commencement ────────────────────────────
   const [commencement, setCommencement] = useState({
     clinical_stage_at_art_start: "",
     cd4_at_art_start: "",
-    cd4_lf_less_200: false,
-    cd4_lf_gte_200: false,
+    cd4_lf: "",                   // merged: "<200" | ">=200"
     date_adherence_counseling_completed: "",
     date_art_started: "",
     first_art_regimen: "",
     weight_kg: "",
     height_cm: "",
-    bmi_muac: "",
-    pregnant: false,
-    breastfeeding: false,
-    tb_preventive_therapy_code: "",
-    tb_preventive_therapy_dose: "",
-    tb_preventive_therapy_start_date: "",
-    tb_preventive_therapy_completion_date: "",
+    bmi: "",                       // auto-calculated; read-only
+    muac: "",                      // pediatric only (mid-upper arm circumference, cm)
+    muac_indication: "",           // auto-derived; read-only
+    pregnancy_status: "",          // merged: "" | "Pregnant" | "Breastfeeding"
+    tb_preventive_therapy: {       // nested object
+      medication: "",
+      code: "",
+      dose: "",
+      start_date: "",
+      completion_date: "",
+    },
   });
 
+  // Auto-recalculate BMI (from weight/height) and MUAC indication (from muac)
   const handleCommencement = (e) => {
-    const { name, type, value, checked } = e.target;
+    const { name, value } = e.target;
+    setCommencement((prev) => {
+      const updated = { ...prev, [name]: value };
+      // BMI
+      const w = name === "weight_kg" ? value : prev.weight_kg;
+      const h = name === "height_cm" ? value : prev.height_cm;
+      updated.bmi = calcBmi(w, h);
+      // MUAC indication
+      const muacVal = name === "muac" ? value : prev.muac;
+      updated.muac_indication = calcMuacIndication(muacVal);
+      return updated;
+    });
+  };
+
+  // Handler for the nested TPT object
+  const handleTpt = (e) => {
+    const { name, value } = e.target;
     setCommencement((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      tb_preventive_therapy: { ...prev.tb_preventive_therapy, [name]: value },
     }));
   };
 
-  // When one CD4 LF checkbox is ticked, clear the other
-  const handleCd4Lf = (e) => {
-    const { name, checked } = e.target;
-    if (name === "cd4_lf_less_200") {
-      setCommencement((prev) => ({
-        ...prev,
-        cd4_lf_less_200: checked,
-        cd4_lf_gte_200: checked ? false : prev.cd4_lf_gte_200,
-      }));
-    } else {
-      setCommencement((prev) => ({
-        ...prev,
-        cd4_lf_gte_200: checked,
-        cd4_lf_less_200: checked ? false : prev.cd4_lf_less_200,
-      }));
-    }
-  };
-
-  // ── Validation ────────────────────────────────────────────────────────
+  // ── Validation ───────────────────────────────────────────────────────────
   const validate = () => {
     const temp = {};
     if (!registration.date_enrolled_in_hiv_care)
       temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care is required";
     if (!registration.care_entry_point)
       temp.care_entry_point = "Care entry point is required";
+    // Mother's Unique ID required for infants (age < 2)
+    if (isInfant && !registration.mother_unique_id)
+      temp.mother_unique_id = "Mother's Unique ID is required for patients under 2 years";
     if (!commencement.date_art_started)
       temp.date_art_started = "Date ART started is required";
     if (!commencement.clinical_stage_at_art_start)
@@ -337,7 +344,7 @@ const EnrollmentAndCommencementForm = (props) => {
     return Object.keys(temp).length === 0;
   };
 
-  // ── Submit ─────────────────────────────────────────────────────────────
+  // ── Submit ───────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
@@ -385,17 +392,27 @@ const EnrollmentAndCommencementForm = (props) => {
         {/* ── Page Header ─────────────────────────────────────────────── */}
         <Box
           sx={{
-            background: "linear-gradient(135deg, #014d88, #0288d1)",
-            borderRadius: "8px",
-            padding: "16px 24px",
+            backgroundColor: "#014d88",
+            padding: "14px 20px",
             marginBottom: "20px",
           }}
         >
-          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "18px" }}>
-            Enrollment &amp; ART Commencement Form
-          </Typography>
-          <Typography sx={{ color: "#b3d9f5", fontSize: "13px", marginTop: "2px" }}>
-            Complete all applicable sections below
+          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
+            ART Enrollment &amp; Commencement
+            {isPediatric && (
+              <span
+                style={{
+                  marginLeft: "12px",
+                  fontSize: "12px",
+                  fontWeight: 400,
+                  background: "rgba(255,255,255,0.2)",
+                  borderRadius: "10px",
+                  padding: "2px 10px",
+                }}
+              >
+                Pediatric
+              </span>
+            )}
           </Typography>
         </Box>
 
@@ -453,18 +470,17 @@ const EnrollmentAndCommencementForm = (props) => {
                 />
               </Col>
               <Col size={3}>
-                <SectionLabel>Mode of HIV Confirmation</SectionLabel>
+                <SectionLabel>Mode of HIV Test</SectionLabel>
                 <Input
                   type="select"
-                  name="mode_of_hiv_confirmation"
-                  value={registration.mode_of_hiv_confirmation}
+                  name="mode_of_hiv_test"
+                  value={registration.mode_of_hiv_test}
                   onChange={handleReg}
                 >
                   <option value="">Select</option>
-                  <option value="Rapid Test">Rapid Test</option>
-                  <option value="PCR">PCR</option>
-                  <option value="Western Blot">Western Blot</option>
-                  <option value="ELISA">ELISA</option>
+                  {MODE_OF_HIV_TEST_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
                 </Input>
               </Col>
             </FieldRow>
@@ -507,14 +523,22 @@ const EnrollmentAndCommencementForm = (props) => {
                 </Col>
               )}
               <Col size={3}>
-                <SectionLabel>Mother's Unique ID</SectionLabel>
+                <SectionLabel>
+                  Mother's Unique ID
+                  {isInfant && <span style={{ color: "red" }}> *</span>}
+                </SectionLabel>
                 <Input
                   type="text"
                   name="mother_unique_id"
                   value={registration.mother_unique_id}
                   onChange={handleReg}
-                  placeholder="Mother's facility ID"
+                  placeholder={isInfant ? "Required for infants < 2 yrs" : "Mother's facility ID"}
                 />
+                {errors.mother_unique_id && (
+                  <span className={classes.error}>
+                    {errors.mother_unique_id}
+                  </span>
+                )}
               </Col>
             </FieldRow>
 
@@ -542,9 +566,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 >
                   <option value="">Select</option>
                   {MARITAL_STATUS_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
+                    <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </Input>
               </Col>
@@ -558,9 +580,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 >
                   <option value="">Select</option>
                   {EDUCATION_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
+                    <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </Input>
               </Col>
@@ -654,9 +674,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   >
                     <option value="">Select</option>
                     {KP_TYPOLOGY_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
+                      <option key={opt} value={opt}>{opt}</option>
                     ))}
                   </Input>
                 </Col>
@@ -721,9 +739,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 >
                   <option value="">Select</option>
                   {CLINICAL_STAGES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
+                    <option key={s} value={s}>{s}</option>
                   ))}
                 </Input>
                 {errors.clinical_stage_at_art_start && (
@@ -743,30 +759,20 @@ const EnrollmentAndCommencementForm = (props) => {
                 />
               </Col>
               <Col size={3}>
-                <SectionLabel>CD4 LF (Low / High)</SectionLabel>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                    paddingTop: "8px",
-                  }}
+                <SectionLabel>CD4 LF</SectionLabel>
+                <Input
+                  type="select"
+                  name="cd4_lf"
+                  value={commencement.cd4_lf}
+                  onChange={handleCommencement}
                 >
-                  <CheckGroup
-                    name="cd4_lf_less_200"
-                    id="cd4_lf_less_200"
-                    label="< 200"
-                    checked={commencement.cd4_lf_less_200}
-                    onChange={handleCd4Lf}
-                  />
-                  <CheckGroup
-                    name="cd4_lf_gte_200"
-                    id="cd4_lf_gte_200"
-                    label="≥ 200"
-                    checked={commencement.cd4_lf_gte_200}
-                    onChange={handleCd4Lf}
-                  />
-                </Box>
+                  <option value="">Select</option>
+                  {CD4_LF_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </Input>
               </Col>
             </FieldRow>
 
@@ -822,8 +828,8 @@ const EnrollmentAndCommencementForm = (props) => {
             <Box
               sx={{
                 background: "#fff",
-                border: "1px solid #c8e6c9",
-                borderRadius: "8px",
+                border: "1px solid #014d88",
+                borderRadius: "4px",
                 padding: "16px",
                 marginBottom: "16px",
               }}
@@ -850,41 +856,83 @@ const EnrollmentAndCommencementForm = (props) => {
                   />
                 </Col>
                 <Col size={3}>
-                  <SectionLabel>BMI / MUAC</SectionLabel>
+                  <SectionLabel>
+                    BMI{" "}
+                    <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0 }}>
+                      (auto-calculated)
+                    </span>
+                  </SectionLabel>
                   <Input
                     type="text"
-                    name="bmi_muac"
-                    value={commencement.bmi_muac}
-                    onChange={handleCommencement}
-                    placeholder="BMI or MUAC value"
+                    name="bmi"
+                    value={commencement.bmi}
+                    readOnly
+                    placeholder="kg/m²"
+                    style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}
                   />
                 </Col>
-                {isFemale && (
+                {/* ── MUAC — pediatric only ──────────────────────────── */}
+                {isPediatric && (
+                  <>
+                    <Col size={2}>
+                      <SectionLabel>MUAC (cm)</SectionLabel>
+                      <Input
+                        type="text"
+                        name="muac"
+                        value={commencement.muac}
+                        onChange={handleCommencement}
+                        placeholder="e.g. 13.5"
+                      />
+                    </Col>
+                    <Col size={3}>
+                      <SectionLabel>
+                        MUAC Indication{" "}
+                        <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0 }}>
+                          (auto-derived)
+                        </span>
+                      </SectionLabel>
+                      <Input
+                        type="text"
+                        name="muac_indication"
+                        value={commencement.muac_indication}
+                        readOnly
+                        placeholder="—"
+                        style={{
+                          fontWeight: 600,
+                          background:
+                            commencement.muac_indication === "Underweight"
+                              ? "#fff3e0"
+                              : commencement.muac_indication === "Well Nourished"
+                              ? "#e8f5e9"
+                              : commencement.muac_indication === "Overweight/Obese"
+                              ? "#fce4ec"
+                              : "#f5f9ff",
+                          color:
+                            commencement.muac_indication === "Underweight"
+                              ? "#e65100"
+                              : commencement.muac_indication === "Well Nourished"
+                              ? "#2e7d32"
+                              : commencement.muac_indication === "Overweight/Obese"
+                              ? "#880e4f"
+                              : "#014d88",
+                        }}
+                      />
+                    </Col>
+                  </>
+                )}
+                {showPregnancyStatus && (
                   <Col size={3}>
-                    <SectionLabel>Reproductive Status</SectionLabel>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                        paddingTop: "8px",
-                      }}
+                    <SectionLabel>Pregnancy Status</SectionLabel>
+                    <Input
+                      type="select"
+                      name="pregnancy_status"
+                      value={commencement.pregnancy_status}
+                      onChange={handleCommencement}
                     >
-                      <CheckGroup
-                        name="pregnant"
-                        id="pregnant"
-                        label="Pregnant"
-                        checked={commencement.pregnant}
-                        onChange={handleCommencement}
-                      />
-                      <CheckGroup
-                        name="breastfeeding"
-                        id="breastfeeding"
-                        label="Breastfeeding"
-                        checked={commencement.breastfeeding}
-                        onChange={handleCommencement}
-                      />
-                    </Box>
+                      <option value="">Not applicable</option>
+                      <option value="Pregnant">Pregnant</option>
+                      <option value="Breastfeeding">Breastfeeding</option>
+                    </Input>
                   </Col>
                 )}
               </div>
@@ -896,19 +944,29 @@ const EnrollmentAndCommencementForm = (props) => {
             <Box
               sx={{
                 background: "#fff",
-                border: "1px solid #c8e6c9",
-                borderRadius: "8px",
+                border: "1px solid #014d88",
+                borderRadius: "4px",
                 padding: "16px",
               }}
             >
               <FieldRow>
-                <Col size={3}>
-                  <SectionLabel>TPT Medication (Code)</SectionLabel>
+                <Col size={4}>
+                  <SectionLabel>TPT Medication (Name)</SectionLabel>
+                  <Input
+                    type="text"
+                    name="medication"
+                    value={commencement.tb_preventive_therapy.medication}
+                    onChange={handleTpt}
+                    placeholder="e.g. Isoniazid, Rifapentine"
+                  />
+                </Col>
+                <Col size={2}>
+                  <SectionLabel>TPT Code</SectionLabel>
                   <Input
                     type="select"
-                    name="tb_preventive_therapy_code"
-                    value={commencement.tb_preventive_therapy_code}
-                    onChange={handleCommencement}
+                    name="code"
+                    value={commencement.tb_preventive_therapy.code}
+                    onChange={handleTpt}
                   >
                     <option value="">Select</option>
                     {TB_PREVENTIVE_THERAPY_CODES.map((opt) => (
@@ -922,28 +980,28 @@ const EnrollmentAndCommencementForm = (props) => {
                   <SectionLabel>Dose</SectionLabel>
                   <Input
                     type="text"
-                    name="tb_preventive_therapy_dose"
-                    value={commencement.tb_preventive_therapy_dose}
-                    onChange={handleCommencement}
+                    name="dose"
+                    value={commencement.tb_preventive_therapy.dose}
+                    onChange={handleTpt}
                     placeholder="e.g. 300mg"
                   />
                 </Col>
-                <Col size={3}>
-                  <SectionLabel>TPT Start Date</SectionLabel>
+                <Col size={2}>
+                  <SectionLabel>Start Date</SectionLabel>
                   <Input
                     type="date"
-                    name="tb_preventive_therapy_start_date"
-                    value={commencement.tb_preventive_therapy_start_date}
-                    onChange={handleCommencement}
+                    name="start_date"
+                    value={commencement.tb_preventive_therapy.start_date}
+                    onChange={handleTpt}
                   />
                 </Col>
-                <Col size={3}>
-                  <SectionLabel>TPT Completion Date</SectionLabel>
+                <Col size={2}>
+                  <SectionLabel>Completion Date</SectionLabel>
                   <Input
                     type="date"
-                    name="tb_preventive_therapy_completion_date"
-                    value={commencement.tb_preventive_therapy_completion_date}
-                    onChange={handleCommencement}
+                    name="completion_date"
+                    value={commencement.tb_preventive_therapy.completion_date}
+                    onChange={handleTpt}
                   />
                 </Col>
               </FieldRow>
@@ -961,15 +1019,11 @@ const EnrollmentAndCommencementForm = (props) => {
               marginTop: "8px",
             }}
           >
-            <Button
-              content="Cancel"
-              icon="cancel"
-              labelPosition="left"
-              style={{
-                backgroundColor: "#78909c",
-                color: "#fff",
-                borderRadius: "6px",
-              }}
+            <MatButton
+              variant="contained"
+              className={classes.button}
+              startIcon={<CancelIcon style={{ color: "#fff" }} />}
+              style={{ backgroundColor: "#992E62" }}
               onClick={() =>
                 props.setActiveContent({
                   ...props.activeContent,
@@ -977,19 +1031,19 @@ const EnrollmentAndCommencementForm = (props) => {
                 })
               }
               type="button"
-            />
-            <Button
-              content={saving ? "Saving..." : "Save Record"}
+            >
+              <span style={{ textTransform: "capitalize" }}>Cancel</span>
+            </MatButton>
+            <MatButton
               type="submit"
-              icon="save"
-              labelPosition="right"
-              style={{
-                backgroundColor: "#014d88",
-                color: "#fff",
-                borderRadius: "6px",
-              }}
+              variant="contained"
+              className={classes.button}
+              startIcon={<SaveIcon />}
+              style={{ backgroundColor: "#014d88" }}
               disabled={saving}
-            />
+            >
+              <span style={{ textTransform: "capitalize" }}>{saving ? "Saving..." : "Save"}</span>
+            </MatButton>
           </Box>
         </form>
       </CardContent>

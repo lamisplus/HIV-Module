@@ -335,6 +335,22 @@ const SubMenu = (props) => {
         });
       },
 
+      loadSubstitutionSwitch: () => {
+        setActiveItem("substitution-switch");
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "substitution-switch",
+        });
+      },
+
+      loadDiscontinuationInterruption: () => {
+        setActiveItem("discontinuation-interruption");
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "discontinuation-interruption",
+        });
+      },
+
       loadArtCommencement: () => {
         setActiveItem("art");
         props.setActiveContent({
@@ -584,6 +600,24 @@ const SubMenu = (props) => {
                 Positive Health Dignity
               </MenuItem>
 
+              <MenuItem
+                onClick={menuHandlers.loadSubstitutionSwitch}
+                name="substitution-switch"
+                active={activeItem === "substitution-switch"}
+                title="Substitutions / Switches"
+              >
+                Substitution / Switch
+              </MenuItem>
+
+              <MenuItem
+                onClick={menuHandlers.loadDiscontinuationInterruption}
+                name="discontinuation-interruption"
+                active={activeItem === "discontinuation-interruption"}
+                title="Discontinuations & Interruptions"
+              >
+                Discontinuation
+              </MenuItem>
+
               {!patientObj.commenced && (
                 <MenuItem
                   onClick={menuHandlers.loadArtCommencement}
@@ -827,6 +861,22 @@ const SubMenu = (props) => {
                                 title="Care and Support / Positive Health Dignity"
                               >
                                 Positive Health Dignity
+                              </Dropdown.Item>
+                              <Dropdown.Item
+                                onClick={menuHandlers.loadSubstitutionSwitch}
+                                name="substitution-switch"
+                                active={activeItem === "substitution-switch"}
+                                title="Substitutions / Switches"
+                              >
+                                Substitution / Switch
+                              </Dropdown.Item>
+                              <Dropdown.Item
+                                onClick={menuHandlers.loadDiscontinuationInterruption}
+                                name="discontinuation-interruption"
+                                active={activeItem === "discontinuation-interruption"}
+                                title="Discontinuations & Interruptions"
+                              >
+                                Discontinuation &amp; Interruption
                               </Dropdown.Item>
                               <Dropdown.Item
                                 onClick={menuHandlers.loadTrackingForm}

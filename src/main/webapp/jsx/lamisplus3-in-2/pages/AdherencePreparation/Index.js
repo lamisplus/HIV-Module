@@ -8,8 +8,9 @@ import { Card, CardContent } from "@material-ui/core";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { token, url as baseUrl } from "../../../../api";
-import "semantic-ui-css/semantic.min.css";
-import { Button } from "semantic-ui-react";
+import MatButton from "@material-ui/core/Button";
+import SaveIcon from "@material-ui/icons/Save";
+import CancelIcon from "@material-ui/icons/Cancel";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -50,11 +51,12 @@ const SERVICES = [
 // Styles
 // ─────────────────────────────────────────────────────────────────────────────
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    "& label": { fontSize: "13px", color: "#014d88", fontWeight: "600" },
-    "& .form-control": { borderRadius: "0.25rem" },
+    "& label": { fontSize: "14px", color: "#014d88", fontWeight: "bold" },
+    "& .form-control": { borderRadius: "0.25rem", height: "41px" },
   },
+  button: { margin: theme.spacing(1) },
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -170,19 +172,9 @@ const AdherencePreparationForm = (props) => {
       <CardContent>
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <Box
-          sx={{
-            background: "linear-gradient(135deg, #014d88, #0288d1)",
-            borderRadius: "8px",
-            padding: "16px 24px",
-            marginBottom: "24px",
-          }}
-        >
-          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "18px" }}>
+        <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "24px" }}>
+          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
             ART Adherence Preparation
-          </Typography>
-          <Typography sx={{ color: "#b3d9f5", fontSize: "13px", marginTop: "2px" }}>
-            Record the date each adherence preparation session was conducted (up to 3 sessions)
           </Typography>
         </Box>
 
@@ -279,9 +271,9 @@ const AdherencePreparationForm = (props) => {
           {/* ── Treatment Supporter Contact Details ───────────────────────── */}
           <Box
             sx={{
-              background: "#e3f2fd",
-              border: "1px solid #90caf9",
-              borderRadius: "8px",
+              background: "#fff",
+              border: "1px solid #014d88",
+              borderRadius: "4px",
               padding: "16px 20px",
               marginBottom: "20px",
             }}
@@ -350,37 +342,27 @@ const AdherencePreparationForm = (props) => {
           )}
 
           {/* ── Action Buttons ────────────────────────────────────────────── */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: "12px",
-              justifyContent: "flex-end",
-              padding: "16px 0",
-              borderTop: "1px solid #e0e0e0",
-            }}
-          >
-            <Button
-              content="Cancel"
-              icon="cancel"
-              labelPosition="left"
-              style={{ backgroundColor: "#78909c", color: "#fff", borderRadius: "6px" }}
-              onClick={() =>
-                props.setActiveContent({
-                  ...props.activeContent,
-                  route: "recent-history",
-                })
-              }
-              type="button"
-            />
-            <Button
-              content={saving ? "Saving..." : "Save Record"}
+          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid #e0e0e0" }}>
+            <MatButton
+              variant="contained"
+              className={classes.button}
+              startIcon={<CancelIcon style={{ color: "#fff" }} />}
+              style={{ backgroundColor: "#992E62" }}
+              onClick={() => props.setActiveContent({ ...props.activeContent, route: "recent-history" })}
+            >
+              <span style={{ textTransform: "capitalize" }}>Cancel</span>
+            </MatButton>
+            <MatButton
               type="submit"
-              icon="save"
-              labelPosition="right"
-              style={{ backgroundColor: "#014d88", color: "#fff", borderRadius: "6px" }}
+              variant="contained"
+              className={classes.button}
+              startIcon={<SaveIcon />}
+              style={{ backgroundColor: "#014d88" }}
               disabled={saving}
-            />
-          </Box>
+            >
+              <span style={{ textTransform: "capitalize" }}>{saving ? "Saving..." : "Save"}</span>
+            </MatButton>
+          </div>
         </form>
       </CardContent>
     </Card>

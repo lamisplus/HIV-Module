@@ -10,8 +10,9 @@ import { Card, CardContent } from "@material-ui/core";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { token, url as baseUrl } from "../../../../api";
-import "semantic-ui-css/semantic.min.css";
-import { Button } from "semantic-ui-react";
+import MatButton from "@material-ui/core/Button";
+import SaveIcon from "@material-ui/icons/Save";
+import CancelIcon from "@material-ui/icons/Cancel";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -72,11 +73,12 @@ const PHD_SERVICES = [
 // Styles
 // ─────────────────────────────────────────────────────────────────────────────
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    "& label": { fontSize: "13px", color: "#014d88", fontWeight: "600" },
-    "& .form-control": { borderRadius: "0.25rem" },
+    "& label": { fontSize: "14px", color: "#014d88", fontWeight: "bold" },
+    "& .form-control": { borderRadius: "0.25rem", height: "41px" },
   },
+  button: { margin: theme.spacing(1) },
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -200,19 +202,9 @@ const PositiveHealthDignityForm = (props) => {
       <CardContent>
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <Box
-          sx={{
-            background: "linear-gradient(135deg, #1b5e20, #2e7d32)",
-            borderRadius: "8px",
-            padding: "16px 24px",
-            marginBottom: "24px",
-          }}
-        >
-          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "18px" }}>
+        <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "24px" }}>
+          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
             Care and Support / Positive Health Dignity and Prevention Services
-          </Typography>
-          <Typography sx={{ color: "#c8e6c9", fontSize: "13px", marginTop: "2px" }}>
-            Indicate the date(s) each service was provided. Use <strong>+</strong> to add multiple visit dates per service.
           </Typography>
         </Box>
 
@@ -231,7 +223,7 @@ const PositiveHealthDignityForm = (props) => {
               }}
             >
               <thead>
-                <tr style={{ background: "#2e7d32", color: "#fff" }}>
+                <tr style={{ background: "#014d88", color: "#fff" }}>
                   <th
                     style={{
                       padding: "12px 18px",
@@ -292,8 +284,8 @@ const PositiveHealthDignityForm = (props) => {
                   <tr
                     key={svc.key}
                     style={{
-                      background: i % 2 === 0 ? "#f1f8e9" : "#ffffff",
-                      borderBottom: "1px solid #dcedc8",
+                      background: i % 2 === 0 ? "#f5f9ff" : "#ffffff",
+                      borderBottom: "1px solid #dce8f5",
                       verticalAlign: "top",
                     }}
                   >
@@ -347,7 +339,7 @@ const PositiveHealthDignityForm = (props) => {
                                 <IconButton
                                   size="small"
                                   onClick={() => removeDate(svc.key, idx)}
-                                  style={{ color: "#c62828", padding: "2px" }}
+                                  style={{ color: "#992E62", padding: "2px" }}
                                 >
                                   <RemoveCircleOutlineIcon
                                     style={{ fontSize: "18px" }}
@@ -363,7 +355,7 @@ const PositiveHealthDignityForm = (props) => {
                           <IconButton
                             size="small"
                             onClick={() => addDate(svc.key)}
-                            style={{ color: "#2e7d32", padding: "2px" }}
+                            style={{ color: "#014d88", padding: "2px" }}
                           >
                             <AddCircleOutlineIcon style={{ fontSize: "20px" }} />
                           </IconButton>
@@ -394,46 +386,27 @@ const PositiveHealthDignityForm = (props) => {
           </div>
 
           {/* ── Action Buttons ────────────────────────────────────────────── */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: "12px",
-              justifyContent: "flex-end",
-              padding: "16px 0",
-              borderTop: "1px solid #e0e0e0",
-              marginTop: "8px",
-            }}
-          >
-            <Button
-              content="Cancel"
-              icon="cancel"
-              labelPosition="left"
-              style={{
-                backgroundColor: "#78909c",
-                color: "#fff",
-                borderRadius: "6px",
-              }}
-              onClick={() =>
-                props.setActiveContent({
-                  ...props.activeContent,
-                  route: "recent-history",
-                })
-              }
-              type="button"
-            />
-            <Button
-              content={saving ? "Saving..." : "Save Record"}
+          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid #e0e0e0", marginTop: "8px" }}>
+            <MatButton
+              variant="contained"
+              className={classes.button}
+              startIcon={<CancelIcon style={{ color: "#fff" }} />}
+              style={{ backgroundColor: "#992E62" }}
+              onClick={() => props.setActiveContent({ ...props.activeContent, route: "recent-history" })}
+            >
+              <span style={{ textTransform: "capitalize" }}>Cancel</span>
+            </MatButton>
+            <MatButton
               type="submit"
-              icon="save"
-              labelPosition="right"
-              style={{
-                backgroundColor: "#2e7d32",
-                color: "#fff",
-                borderRadius: "6px",
-              }}
+              variant="contained"
+              className={classes.button}
+              startIcon={<SaveIcon />}
+              style={{ backgroundColor: "#014d88" }}
               disabled={saving}
-            />
-          </Box>
+            >
+              <span style={{ textTransform: "capitalize" }}>{saving ? "Saving..." : "Save"}</span>
+            </MatButton>
+          </div>
         </form>
       </CardContent>
     </Card>

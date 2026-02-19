@@ -17,8 +17,9 @@ import { Card, CardContent } from "@material-ui/core";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { token, url as baseUrl } from "../../../../api";
-import "semantic-ui-css/semantic.min.css";
-import { Button } from "semantic-ui-react";
+import MatButton from "@material-ui/core/Button";
+import SaveIcon from "@material-ui/icons/Save";
+import CancelIcon from "@material-ui/icons/Cancel";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -170,26 +171,28 @@ const VL_INDICATION_OPTIONS = [
   { value: "8", label: "8 — Other" },
 ];
 
+// Single system color — matches #014d88 used throughout the application
 const ACCORDION_STYLES = [
-  { bg: "#1565c0", light: "#e3f2fd" }, // Visit Info        — blue
-  { bg: "#2e7d32", light: "#e8f5e9" }, // Vitals & Clinical — green
-  { bg: "#6a1b9a", light: "#f3e5f5" }, // Screening         — purple
-  { bg: "#00695c", light: "#e0f2f1" }, // Medications       — teal
-  { bg: "#b71c1c", light: "#ffebee" }, // Lab & Follow-up   — red
+  { bg: "#014d88" },
+  { bg: "#014d88" },
+  { bg: "#014d88" },
+  { bg: "#014d88" },
+  { bg: "#014d88" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sub-components — ALL at module scope (never inside a component)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     "& .form-control": { borderRadius: "0.25rem", height: "41px" },
     "& select": { "-webkit-appearance": "listbox !important" },
-    "& label": { fontSize: "14px", color: "#014d88", fontWeight: "600" },
+    "& label": { fontSize: "14px", color: "#014d88", fontWeight: "bold" },
     "& textarea.form-control": { height: "auto" },
   },
-  error: { color: "#d32f2f", fontSize: "12px", marginTop: "4px" },
+  button: { margin: theme.spacing(1) },
+  error:  { color: "#f85032", fontSize: "11px" },
 }));
 
 const SectionLabel = ({ children }) => (
@@ -260,8 +263,7 @@ const MultiSelect = ({ options, value, onChange, placeholder }) => (
 );
 
 // FormAccordion — module scope only
-const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) => {
-  const style = ACCORDION_STYLES[index] || ACCORDION_STYLES[0];
+const FormAccordion = ({ panel, title, children, expanded, onToggle }) => {
   const isOpen = expanded.includes(panel);
   return (
     <Accordion
@@ -269,26 +271,26 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
       onChange={() => onToggle(panel)}
       sx={{
         marginBottom: "12px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-        borderRadius: "8px !important",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+        borderRadius: "4px !important",
         "&:before": { display: "none" },
-        border: `1px solid ${style.bg}22`,
+        border: "1px solid #014d88",
       }}
     >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
         sx={{
-          background: `linear-gradient(135deg, ${style.bg}, ${style.bg}cc)`,
-          borderRadius: isOpen ? "8px 8px 0 0" : "8px",
-          minHeight: "52px",
+          backgroundColor: "#014d88",
+          borderRadius: isOpen ? "4px 4px 0 0" : "4px",
+          minHeight: "45px",
           "& .MuiAccordionSummary-content": { margin: "0" },
         }}
       >
-        <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "15px", letterSpacing: "0.3px" }}>
+        <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>
           {title}
         </Typography>
       </AccordionSummary>
-      <AccordionDetails sx={{ padding: "20px 24px", background: style.light + "55" }}>
+      <AccordionDetails sx={{ padding: "20px 24px", background: "#fff" }}>
         {children}
       </AccordionDetails>
     </Accordion>
@@ -477,12 +479,9 @@ const CareCardFollowUpForm = (props) => {
       <CardContent>
 
         {/* ── Page Header ──────────────────────────────────────────────── */}
-        <Box sx={{ background: "linear-gradient(135deg, #014d88, #0288d1)", borderRadius: "8px", padding: "16px 24px", marginBottom: "20px" }}>
-          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "18px" }}>
+        <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "20px" }}>
+          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
             Care Card — Follow-Up Visit
-          </Typography>
-          <Typography sx={{ color: "#b3d9f5", fontSize: "13px", marginTop: "2px" }}>
-            Complete all applicable sections below
           </Typography>
         </Box>
 
@@ -534,7 +533,7 @@ const CareCardFollowUpForm = (props) => {
           <FormAccordion panel="vitals" title="Vitals & Clinical Status" index={1} expanded={expanded} onToggle={toggleAccordion}>
 
             <SubHeading>Vitals</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #c8e6c9", borderRadius: "8px", padding: "16px", marginBottom: "16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "16px", marginBottom: "16px" }}>
               <div className="row">
                 <Col size={2}>
                   <SectionLabel>Height (cm)</SectionLabel>
@@ -688,7 +687,7 @@ const CareCardFollowUpForm = (props) => {
 
             {/* ARV */}
             <SubHeading>ARV Drugs</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #b2dfdb", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
                 <Col size={4}>
                   <SectionLabel>Regimen <span style={{ color: "red" }}>*</span></SectionLabel>
@@ -720,7 +719,7 @@ const CareCardFollowUpForm = (props) => {
 
             {/* Cotrimoxazole */}
             <SubHeading>Cotrimoxazole (CTX)</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #b2dfdb", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
                 <Col size={4}>
                   <SectionLabel>Medication</SectionLabel>
@@ -742,7 +741,7 @@ const CareCardFollowUpForm = (props) => {
 
             {/* TB Preventive Therapy */}
             <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #b2dfdb", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
                 <Col size={3}>
                   <SectionLabel>TPT Medication (Code)</SectionLabel>
@@ -790,7 +789,7 @@ const CareCardFollowUpForm = (props) => {
 
             {/* CD4 */}
             <SubHeading>CD4 Count</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #ffcdd2", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
                 <Col size={3}>
                   <SectionLabel>CD4 Count (cells/mm³)</SectionLabel>
@@ -805,7 +804,7 @@ const CareCardFollowUpForm = (props) => {
 
             {/* Viral Load */}
             <SubHeading>Viral Load</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #ffcdd2", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
                 <Col size={3}>
                   <SectionLabel>Viral Load Result (copies/mL)</SectionLabel>
@@ -890,24 +889,27 @@ const CareCardFollowUpForm = (props) => {
           </FormAccordion>
 
           {/* ── Action Buttons ────────────────────────────────────────────── */}
-          <Box sx={{ display: "flex", gap: "12px", justifyContent: "flex-end", padding: "16px 0", borderTop: "1px solid #e0e0e0", marginTop: "8px" }}>
-            <Button
-              content="Cancel"
-              icon="cancel"
-              labelPosition="left"
-              style={{ backgroundColor: "#78909c", color: "#fff", borderRadius: "6px" }}
+          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid #e0e0e0", marginTop: "8px" }}>
+            <MatButton
+              variant="contained"
+              className={classes.button}
+              startIcon={<CancelIcon style={{ color: "#fff" }} />}
+              style={{ backgroundColor: "#992E62" }}
               onClick={() => props.setActiveContent({ ...props.activeContent, route: "recent-history" })}
-              type="button"
-            />
-            <Button
-              content={saving ? "Saving..." : "Save Record"}
+            >
+              <span style={{ textTransform: "capitalize" }}>Cancel</span>
+            </MatButton>
+            <MatButton
               type="submit"
-              icon="save"
-              labelPosition="right"
-              style={{ backgroundColor: "#014d88", color: "#fff", borderRadius: "6px" }}
+              variant="contained"
+              className={classes.button}
+              startIcon={<SaveIcon />}
+              style={{ backgroundColor: "#014d88" }}
               disabled={saving}
-            />
-          </Box>
+            >
+              <span style={{ textTransform: "capitalize" }}>{saving ? "Saving..." : "Save"}</span>
+            </MatButton>
+          </div>
         </form>
       </CardContent>
     </Card>
