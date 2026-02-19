@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/hiv/materialized-view")
+@RequestMapping("/api/v1/hiv/materialized-view")
 @RequiredArgsConstructor
 @Slf4j
 public class MaterializedViewRefreshController {
