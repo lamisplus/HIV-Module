@@ -7,7 +7,7 @@ import lombok.Data;
 public class RegistrationDto {
 
     @JsonProperty("unique_id_no")
-    private String uniqueIdNo;             // patient's hospital unique ID number
+    private String uniqueIdNo;
 
     @JsonProperty("date_enrolled_in_hiv_care")
     private String dateEnrolledInHivCare;
@@ -19,10 +19,10 @@ public class RegistrationDto {
     private String hivTestLocation;
 
     @JsonProperty("mode_of_hiv_test")
-    private String modeOfHivTest;
+    private Long modeOfHivTest;               // Changed from String to Long (codeset ID)
 
     @JsonProperty("care_entry_point")
-    private String careEntryPoint;          // "1"–"9" — resolved to ID in service
+    private Long careEntryPoint;              // Changed from String to Long (codeset ID)
 
     @JsonProperty("care_entry_point_other")
     private String careEntryPointOther;
@@ -30,32 +30,14 @@ public class RegistrationDto {
     @JsonProperty("mother_unique_id")
     private String motherUniqueId;
 
-    @JsonProperty("occupation")
-    private String occupation;
-
-    @JsonProperty("marital_status")
-    private String maritalStatus;
-
-    @JsonProperty("educational_status")
-    private String educationalStatus;
-
-    @JsonProperty("next_of_kin")
-    private String nextOfKin;
-
-    @JsonProperty("next_of_kin_relationship")
-    private String nextOfKinRelationship;
-
-    @JsonProperty("next_of_kin_telephone")
-    private String nextOfKinTelephone;
-
     @JsonProperty("prior_art")
-    private String priorArt;               // "1"–"4"
+    private Long priorArt;                    // Changed from String to Long (codeset ID)
 
     @JsonProperty("is_kp")
-    private String isKp;                   // "Yes" | "No"
+    private String isKp;
 
     @JsonProperty("kp_typology")
-    private String kpTypology;
+    private Long kpTypology;                  // Changed from String to Long (codeset ID)
 
     @JsonProperty("date_transferred_in")
     private String dateTransferredIn;

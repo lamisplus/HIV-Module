@@ -7,13 +7,13 @@ import lombok.Data;
 public class CommencementDto {
 
     @JsonProperty("clinical_stage_at_art_start")
-    private String clinicalStageAtArtStart;   // "Stage 1"–"Stage 4" — resolved to ID in service
+    private Long clinicalStageAtArtStart;
 
     @JsonProperty("cd4_at_art_start")
-    private String cd4AtArtStart;             // numeric string — cast to Long in service
+    private String cd4AtArtStart;
 
     @JsonProperty("cd4_lf")
-    private String cd4Lf;                     // "<200" | ">=200"
+    private Long cd4Lf;
 
     @JsonProperty("date_adherence_counseling_completed")
     private String dateAdherenceCounselingCompleted;
@@ -22,7 +22,7 @@ public class CommencementDto {
     private String dateArtStarted;
 
     @JsonProperty("first_art_regimen")
-    private String firstArtRegimen;           // regimen name — resolved to ID in service
+    private Long firstArtRegimen;
 
     @JsonProperty("weight_kg")
     private String weightKg;
@@ -31,16 +31,19 @@ public class CommencementDto {
     private String heightCm;
 
     @JsonProperty("bmi")
-    private String bmi;                       // pre-calculated by frontend
+    private String bmi;
 
     @JsonProperty("muac")
-    private String muac;                      // pediatric only
+    private String muac;
 
     @JsonProperty("muac_indication")
-    private String muacIndication;            // auto-derived on frontend
+    private String muacIndication;
+
+    @JsonProperty("is_pregnant")
+    private String isPregnant;
 
     @JsonProperty("pregnancy_status")
-    private String pregnancyStatus;           // adult females only
+    private String pregnancyStatus;
 
     @JsonProperty("tb_preventive_therapy")
     private TbPreventiveTherapyDto tbPreventiveTherapy;

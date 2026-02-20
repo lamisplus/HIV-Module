@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Input } from "reactstrap";
 import * as moment from "moment";
@@ -21,25 +21,6 @@ import SaveIcon from "@material-ui/icons/Save";
 import CancelIcon from "@material-ui/icons/Cancel";
 import { calculate_age_to_number } from "../../../../utils";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-const MARITAL_STATUS_OPTIONS = [
-  "Single",
-  "Married",
-  "Divorced",
-  "Separated",
-  "Cohabiting",
-  "Widower",
-];
-
-const EDUCATION_OPTIONS = [
-  "No Education",
-  "Primary Education",
-  "Secondary Education",
-  "Tertiary Education",
-];
 
 const CARE_ENTRY_POINTS = [
   { value: "1", label: "OPD" },
@@ -95,9 +76,6 @@ const ACCORDION_STYLES = [
   { bg: "#014d88" },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Reusable sub-components  (all defined at module scope — NEVER inside a component)
-// ─────────────────────────────────────────────────────────────────────────────
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -244,6 +222,112 @@ const EnrollmentAndCommencementForm = (props) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [expanded, setExpanded] = useState(["registration", "commencement"]);
+  const [codesets, setCodesets] = useState({
+    careEntryPoints: [],
+    priorArt: [],
+    kpTypology: [],
+    clinicalStages: [],
+    mode_of_hiv_test: [],
+    cd4_lf:[]
+  });
+  const [loadingCodesets, setLoadingCodesets] = useState(true);
+  const [regimenLines, setRegimenLines] = useState([]);
+  const [regimens, setRegimens] = useState([]);
+  const [loadingRegimens, setLoadingRegimens] = useState(false);
+
+  // ── Fetch Codesets from API ──────────────────────────────────────────────
+  useEffect(() => {
+    fetchCodesets();
+    fetchRegimenLines();
+  }, []);
+
+  const fetchCodesets = async () => {
+    setLoadingCodesets(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('codes', 'POINT_ENTRY');
+      params.append('codes', 'FACILITY_HTS_TEST_SETTING');
+      params.append('codes', 'TARGET_GROUP');
+      params.append('codes', 'CLINICAL_STAGE');
+      params.append('codes', 'PREVIOUSLY_KNOWN_HIV_+VE_STATUS');
+      params.append('codes', 'VISITECT_CD4_TEST_RESULT');
+
+      const response = await axios.get(
+        `${baseUrl}application-codesets/v2/codeSets?${params}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("Codeset API Response:", response.data);
+
+      setCodesets({
+        careEntryPoints: response.data.POINT_ENTRY || [],
+        priorArt: response.data['PREVIOUSLY_KNOWN_HIV_+VE_STATUS'] || [],
+        kpTypology: response.data.TARGET_GROUP || [],
+        clinicalStages: response.data.CLINICAL_STAGE || [],
+        mode_of_hiv_test: response.data.FACILITY_HTS_TEST_SETTING || [],
+        cd4_lf: response.data.VISITECT_CD4_TEST_RESULT || [],
+      });
+    } catch (error) {
+      console.error("Error fetching codesets:", error);
+      console.error("Error details:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      toast.error("Failed to load dropdown options");
+    } finally {
+      setLoadingCodesets(false);
+    }
+  };
+
+  // Helper to find codeset ID by code pattern
+  const getCodesetIdByCode = (codesetArray, codePattern) => {
+    const found = codesetArray.find(item => item.code?.includes(codePattern));
+    return found ? found.id : null;
+  };
+
+  // Fetch Regimen Lines based on patient age
+  const fetchRegimenLines = async () => {
+    try {
+      const endpoint = isPediatric
+        ? `${baseUrl}hiv/regimen/arv/children`
+        : `${baseUrl}hiv/regimen/arv/adult`;
+
+      const response = await axios.get(endpoint, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Filter for ART regimen lines only
+      const artLines = isPediatric
+        ? response.data.filter((x) => x.id === 3 || x.id === 4 || x.id === 16)
+        : response.data.filter((x) => x.id === 1 || x.id === 2 || x.id === 14);
+
+      setRegimenLines(artLines);
+    } catch (error) {
+      console.error("Error fetching regimen lines:", error);
+      toast.error("Failed to load regimen lines");
+    }
+  };
+
+  // Fetch specific regimens when regimen line is selected
+  const fetchRegimens = async (regimenLineId) => {
+    if (!regimenLineId) {
+      setRegimens([]);
+      return;
+    }
+
+    setLoadingRegimens(true);
+    try {
+      const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setRegimens(response.data || []);
+    } catch (error) {
+      console.error("Error fetching regimens:", error);
+      toast.error("Failed to load regimens");
+      setRegimens([]);
+    } finally {
+      setLoadingRegimens(false);
+    }
+  };
 
   const toggleAccordion = (panel) => {
     setExpanded((prev) =>
@@ -254,12 +338,6 @@ const EnrollmentAndCommencementForm = (props) => {
   // ── Section 1: Patient Registration Details ─────────────────────────────
   const [registration, setRegistration] = useState({
     date_enrolled_in_hiv_care: "",
-    occupation: "",
-    marital_status: "",
-    educational_status: "",
-    next_of_kin: "",
-    next_of_kin_relationship: "",
-    next_of_kin_telephone: "",
     mother_unique_id: "",
     care_entry_point: "",
     care_entry_point_other: "",
@@ -276,23 +354,80 @@ const EnrollmentAndCommencementForm = (props) => {
   const handleReg = (e) => {
     const { name, value } = e.target;
     setRegistration((prev) => ({ ...prev, [name]: value }));
+
+    // Real-time validation — clear error if field becomes valid
+    if (errors[name]) {
+      const newErrors = { ...errors };
+
+      // Always-required fields
+      if (['date_enrolled_in_hiv_care', 'date_confirmed_hiv_test', 'hiv_test_location',
+           'mode_of_hiv_test', 'care_entry_point', 'prior_art'].includes(name)) {
+        if (value && value.trim() !== '') {
+          delete newErrors[name];
+        }
+      }
+
+      // Conditionally required — mother_unique_id
+      if (name === 'mother_unique_id' && isInfant) {
+        if (value && value.trim() !== '') {
+          delete newErrors[name];
+        }
+      }
+
+      // Conditionally required — kp_typology
+      if (name === 'kp_typology' && registration.is_kp === 'Yes') {
+        if (value && value.trim() !== '') {
+          delete newErrors[name];
+        }
+      }
+
+      // Conditionally required — date_transferred_in
+      const transferInId = getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER");
+      if (name === 'date_transferred_in' && registration.care_entry_point == transferInId) {
+        if (value && value.trim() !== '') {
+          delete newErrors[name];
+        }
+      }
+
+      // Conditionally required — facility_transferred_from
+      if (name === 'facility_transferred_from' && registration.date_transferred_in &&
+          registration.date_transferred_in.trim() !== '') {
+        if (value && value.trim() !== '') {
+          delete newErrors[name];
+        }
+      }
+
+      // Special case: If care_entry_point changes away from Transfer-in, clear transfer errors
+      if (name === 'care_entry_point' && value != transferInId) {
+        delete newErrors.date_transferred_in;
+        delete newErrors.facility_transferred_from;
+      }
+
+      // Special case: If is_kp changes to "No", clear kp_typology error
+      if (name === 'is_kp' && value !== 'Yes') {
+        delete newErrors.kp_typology;
+      }
+
+      setErrors(newErrors);
+    }
   };
 
-  // ── Section 2: Enrollment & ART Commencement ────────────────────────────
   const [commencement, setCommencement] = useState({
     clinical_stage_at_art_start: "",
     cd4_at_art_start: "",
-    cd4_lf: "",                   // merged: "<200" | ">=200"
+    cd4_lf: "",
     date_adherence_counseling_completed: "",
     date_art_started: "",
+    regimen_line_id: "",
     first_art_regimen: "",
     weight_kg: "",
     height_cm: "",
-    bmi: "",                       // auto-calculated; read-only
-    muac: "",                      // pediatric only (mid-upper arm circumference, cm)
-    muac_indication: "",           // auto-derived; read-only
-    pregnancy_status: "",          // merged: "" | "Pregnant" | "Breastfeeding"
-    tb_preventive_therapy: {       // nested object
+    bmi: "",
+    muac: "",
+    muac_indication: "",
+    is_pregnant: "",
+    pregnancy_status: "",
+    tb_preventive_therapy: {
       medication: "",
       code: "",
       dose: "",
@@ -301,9 +436,20 @@ const EnrollmentAndCommencementForm = (props) => {
     },
   });
 
-  // Auto-recalculate BMI (from weight/height) and MUAC indication (from muac)
   const handleCommencement = (e) => {
     const { name, value } = e.target;
+
+    // If regimen line changes, fetch regimens for that line
+    if (name === "regimen_line_id") {
+      fetchRegimens(value);
+      setCommencement((prev) => ({
+        ...prev,
+        regimen_line_id: value,
+        first_art_regimen: "" // Clear selected regimen when line changes
+      }));
+      return;
+    }
+
     setCommencement((prev) => {
       const updated = { ...prev, [name]: value };
       // BMI
@@ -315,6 +461,15 @@ const EnrollmentAndCommencementForm = (props) => {
       updated.muac_indication = calcMuacIndication(muacVal);
       return updated;
     });
+
+    if (errors[name]) {
+      const newErrors = { ...errors };
+      if (name === 'date_art_started' && value && value.trim() !== '') {
+        delete newErrors[name];
+      }
+
+      setErrors(newErrors);
+    }
   };
 
   // Handler for the nested TPT object
@@ -329,22 +484,69 @@ const EnrollmentAndCommencementForm = (props) => {
   // ── Validation ───────────────────────────────────────────────────────────
   const validate = () => {
     const temp = {};
-    if (!registration.date_enrolled_in_hiv_care)
+
+    if (!registration.date_enrolled_in_hiv_care || registration.date_enrolled_in_hiv_care.trim() === '') {
       temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care is required";
-    if (!registration.care_entry_point)
+    }
+
+    if (!registration.date_confirmed_hiv_test || registration.date_confirmed_hiv_test.trim() === '') {
+      temp.date_confirmed_hiv_test = "Date of confirmed HIV test is required";
+    }
+
+    if (!registration.hiv_test_location || registration.hiv_test_location.trim() === '') {
+      temp.hiv_test_location = "HIV test location is required";
+    }
+
+    if (!registration.mode_of_hiv_test || registration.mode_of_hiv_test.trim() === '') {
+      temp.mode_of_hiv_test = "Mode of HIV test is required";
+    }
+
+    if (!registration.care_entry_point || registration.care_entry_point.trim() === '') {
       temp.care_entry_point = "Care entry point is required";
-    // Mother's Unique ID required for infants (age < 2)
-    if (isInfant && !registration.mother_unique_id)
-      temp.mother_unique_id = "Mother's Unique ID is required for patients under 2 years";
-    if (!commencement.date_art_started)
+    }
+
+    if (!registration.prior_art || registration.prior_art.trim() === '') {
+      temp.prior_art = "Prior ART status is required";
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // ALWAYS REQUIRED FIELDS (Commencement)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    if (!commencement.date_art_started || commencement.date_art_started.trim() === '') {
       temp.date_art_started = "Date ART started is required";
-    if (!commencement.clinical_stage_at_art_start)
-      temp.clinical_stage_at_art_start = "Clinical stage is required";
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // CONDITIONALLY REQUIRED FIELDS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // 1. Mother's Unique ID — Required if patient age < 2 years (infant)
+    if (isInfant && (!registration.mother_unique_id || registration.mother_unique_id.trim() === '')) {
+      temp.mother_unique_id = "Mother's Unique ID is required for infants (age < 2 years)";
+    }
+
+    // 2. KP Typology — Required if is_kp = "Yes"
+    if (registration.is_kp === 'Yes' && (!registration.kp_typology || registration.kp_typology.trim() === '')) {
+      temp.kp_typology = "KP Typology is required when patient is a Key Population";
+    }
+
+    // 3. Transfer-in date — Required if care_entry_point is Transfer-in
+    const transferInId = getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER");
+    if (registration.care_entry_point == transferInId && (!registration.date_transferred_in || registration.date_transferred_in.trim() === '')) {
+      temp.date_transferred_in = "Transfer-in date is required when care entry point is 'Transfer-in'";
+    }
+
+    // 4. Facility Transferred From — Required if date_transferred_in is provided
+    if (registration.date_transferred_in && registration.date_transferred_in.trim() !== '' &&
+        (!registration.facility_transferred_from || registration.facility_transferred_from.trim() === '')) {
+      temp.facility_transferred_from = "Facility transferred from is required when transfer-in date is provided";
+    }
+
     setErrors(temp);
     return Object.keys(temp).length === 0;
   };
 
-  // ── Submit ───────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
@@ -354,15 +556,13 @@ const EnrollmentAndCommencementForm = (props) => {
     setSaving(true);
     try {
       const payload = {
-        dateOfObservation: commencement.date_art_started,
         personId: props.patientObj.id,
-        type: "Enrollment and ART Commencement",
         data: {
           registration,
           commencement,
         },
       };
-      await axios.post(`${baseUrl}observation`, payload, {
+      await axios.post(`${baseUrl}hiv/enrollment-commencement`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Enrollment and Commencement saved successfully");
@@ -450,17 +650,28 @@ const EnrollmentAndCommencementForm = (props) => {
                 )}
               </Col>
               <Col size={3}>
-                <SectionLabel>Date of Confirmed HIV Test</SectionLabel>
+                <SectionLabel>
+                  Date of Confirmed HIV Test{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
                 <Input
                   type="date"
                   name="date_confirmed_hiv_test"
                   value={registration.date_confirmed_hiv_test}
-                  max={moment(new Date()).format("YYYY-MM-DD")}
+                  max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleReg}
                 />
+                {errors.date_confirmed_hiv_test && (
+                  <span className={classes.error}>
+                    {errors.date_confirmed_hiv_test}
+                  </span>
+                )}
               </Col>
               <Col size={3}>
-                <SectionLabel>HIV Test Location</SectionLabel>
+                <SectionLabel>
+                  HIV Test Location{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
                 <Input
                   type="text"
                   name="hiv_test_location"
@@ -468,20 +679,34 @@ const EnrollmentAndCommencementForm = (props) => {
                   onChange={handleReg}
                   placeholder="e.g. ANC, HTS Site"
                 />
+                {errors.hiv_test_location && (
+                  <span className={classes.error}>
+                    {errors.hiv_test_location}
+                  </span>
+                )}
               </Col>
               <Col size={3}>
-                <SectionLabel>Mode of HIV Test</SectionLabel>
+                <SectionLabel>
+                  Mode of HIV Test{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
                 <Input
                   type="select"
                   name="mode_of_hiv_test"
                   value={registration.mode_of_hiv_test}
                   onChange={handleReg}
+                  disabled={loadingCodesets}
                 >
-                  <option value="">Select</option>
-                  {MODE_OF_HIV_TEST_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
+                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                  {codesets.mode_of_hiv_test.map((opt) => (
+                    <option key={opt.id} value={opt.id}>{opt.display}</option>
                   ))}
                 </Input>
+                {errors.mode_of_hiv_test && (
+                  <span className={classes.error}>
+                    {errors.mode_of_hiv_test}
+                  </span>
+                )}
               </Col>
             </FieldRow>
 
@@ -496,11 +721,12 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="care_entry_point"
                   value={registration.care_entry_point}
                   onChange={handleReg}
+                  disabled={loadingCodesets}
                 >
-                  <option value="">Select</option>
-                  {CARE_ENTRY_POINTS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.value}. {opt.label}
+                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                  {codesets.careEntryPoints.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.display}
                     </option>
                   ))}
                 </Input>
@@ -510,7 +736,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   </span>
                 )}
               </Col>
-              {registration.care_entry_point === "9" && (
+              {registration.care_entry_point == getCodesetIdByCode(codesets.careEntryPoints, "OTHERS") && (
                 <Col size={3}>
                   <SectionLabel>Specify Entry Point</SectionLabel>
                   <Input
@@ -522,112 +748,26 @@ const EnrollmentAndCommencementForm = (props) => {
                   />
                 </Col>
               )}
-              <Col size={3}>
-                <SectionLabel>
-                  Mother's Unique ID
-                  {isInfant && <span style={{ color: "red" }}> *</span>}
-                </SectionLabel>
-                <Input
-                  type="text"
-                  name="mother_unique_id"
-                  value={registration.mother_unique_id}
-                  onChange={handleReg}
-                  placeholder={isInfant ? "Required for infants < 2 yrs" : "Mother's facility ID"}
-                />
-                {errors.mother_unique_id && (
-                  <span className={classes.error}>
-                    {errors.mother_unique_id}
-                  </span>
-                )}
-              </Col>
-            </FieldRow>
-
-            {/* Demographics */}
-            <Divider sx={{ my: 2 }} />
-            <SubHeading>Additional Demographics</SubHeading>
-            <FieldRow>
-              <Col size={3}>
-                <SectionLabel>Occupation</SectionLabel>
-                <Input
-                  type="text"
-                  name="occupation"
-                  value={registration.occupation}
-                  onChange={handleReg}
-                  placeholder="e.g. Farmer, Trader"
-                />
-              </Col>
-              <Col size={3}>
-                <SectionLabel>Marital Status</SectionLabel>
-                <Input
-                  type="select"
-                  name="marital_status"
-                  value={registration.marital_status}
-                  onChange={handleReg}
-                >
-                  <option value="">Select</option>
-                  {MARITAL_STATUS_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </Input>
-              </Col>
-              <Col size={3}>
-                <SectionLabel>Educational Status</SectionLabel>
-                <Input
-                  type="select"
-                  name="educational_status"
-                  value={registration.educational_status}
-                  onChange={handleReg}
-                >
-                  <option value="">Select</option>
-                  {EDUCATION_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </Input>
-              </Col>
-            </FieldRow>
-
-            {/* Next of Kin */}
-            <Divider sx={{ my: 2 }} />
-            <SubHeading>Next of Kin</SubHeading>
-            <FieldRow>
-              <Col size={4}>
-                <SectionLabel>Next of Kin (Full Name)</SectionLabel>
-                <Input
-                  type="text"
-                  name="next_of_kin"
-                  value={registration.next_of_kin}
-                  onChange={handleReg}
-                  placeholder="Full name"
-                />
-              </Col>
-              <Col size={4}>
-                <SectionLabel>Relationship</SectionLabel>
-                <Input
-                  type="select"
-                  name="next_of_kin_relationship"
-                  value={registration.next_of_kin_relationship}
-                  onChange={handleReg}
-                >
-                  <option value="">Select</option>
-                  <option value="Spouse">Spouse</option>
-                  <option value="Parent">Parent</option>
-                  <option value="Child">Child</option>
-                  <option value="Sibling">Sibling</option>
-                  <option value="Friend">Friend</option>
-                  <option value="Guardian">Guardian</option>
-                  <option value="Other">Other</option>
-                </Input>
-              </Col>
-              <Col size={4}>
-                <SectionLabel>Next of Kin Telephone</SectionLabel>
-                <Input
-                  type="text"
-                  name="next_of_kin_telephone"
-                  value={registration.next_of_kin_telephone}
-                  onChange={handleReg}
-                  placeholder="Phone number"
-                />
-              </Col>
+              {isInfant && (
+                <Col size={3}>
+                  <SectionLabel>
+                    Mother's Unique ID
+                    <span style={{ color: "red" }}> *</span>
+                  </SectionLabel>
+                  <Input
+                    type="text"
+                    name="mother_unique_id"
+                    value={registration.mother_unique_id}
+                    onChange={handleReg}
+                    placeholder="Required for infants < 2 yrs"
+                  />
+                  {errors.mother_unique_id && (
+                    <span className={classes.error}>
+                      {errors.mother_unique_id}
+                    </span>
+                  )}
+                </Col>
+              )}
             </FieldRow>
 
             {/* Prior ART & KP Typology */}
@@ -635,20 +775,29 @@ const EnrollmentAndCommencementForm = (props) => {
             <SubHeading>Prior ART &amp; Key Population</SubHeading>
             <FieldRow>
               <Col size={4}>
-                <SectionLabel>Prior ART</SectionLabel>
+                <SectionLabel>
+                  Prior ART{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
                 <Input
                   type="select"
                   name="prior_art"
                   value={registration.prior_art}
                   onChange={handleReg}
+                  disabled={loadingCodesets}
                 >
-                  <option value="">Select</option>
-                  {PRIOR_ART_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.value}. {opt.label}
+                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                  {codesets.priorArt.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.display}
                     </option>
                   ))}
                 </Input>
+                {errors.prior_art && (
+                  <span className={classes.error}>
+                    {errors.prior_art}
+                  </span>
+                )}
               </Col>
               <Col size={2}>
                 <SectionLabel>Is Patient KP?</SectionLabel>
@@ -665,41 +814,62 @@ const EnrollmentAndCommencementForm = (props) => {
               </Col>
               {registration.is_kp === "Yes" && (
                 <Col size={4}>
-                  <SectionLabel>KP Typology</SectionLabel>
+                  <SectionLabel>
+                    KP Typology{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
                   <Input
                     type="select"
                     name="kp_typology"
                     value={registration.kp_typology}
                     onChange={handleReg}
+                    disabled={loadingCodesets}
                   >
-                    <option value="">Select</option>
-                    {KP_TYPOLOGY_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.kpTypology.map((opt) => (
+                      <option key={opt.id} value={opt.id}>{opt.display}</option>
                     ))}
                   </Input>
+                  {errors.kp_typology && (
+                    <span className={classes.error}>
+                      {errors.kp_typology}
+                    </span>
+                  )}
                 </Col>
               )}
             </FieldRow>
 
             {/* Transfer Info */}
-            {(registration.prior_art === "2" ||
-              registration.care_entry_point === "7") && (
+            {registration.care_entry_point == getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER") && (
               <>
                 <Divider sx={{ my: 2 }} />
                 <SubHeading>Transfer Details</SubHeading>
                 <FieldRow>
                   <Col size={3}>
-                    <SectionLabel>Date Transferred In</SectionLabel>
+                    <SectionLabel>
+                      Date Transferred In{" "}
+                      <span style={{ color: "red" }}>*</span>
+                    </SectionLabel>
                     <Input
                       type="date"
                       name="date_transferred_in"
                       value={registration.date_transferred_in}
-                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
                       onChange={handleReg}
                     />
+                    {errors.date_transferred_in && (
+                      <span className={classes.error}>
+                        {errors.date_transferred_in}
+                      </span>
+                    )}
                   </Col>
                   <Col size={5}>
-                    <SectionLabel>Facility Transferred From</SectionLabel>
+                    <SectionLabel>
+                      Facility Transferred From
+                      {registration.date_transferred_in && registration.date_transferred_in.trim() !== "" && (
+                        <span style={{ color: "red" }}> *</span>
+                      )}
+                    </SectionLabel>
                     <Input
                       type="text"
                       name="facility_transferred_from"
@@ -707,15 +877,17 @@ const EnrollmentAndCommencementForm = (props) => {
                       onChange={handleReg}
                       placeholder="Name of sending facility"
                     />
+                    {errors.facility_transferred_from && (
+                      <span className={classes.error}>
+                        {errors.facility_transferred_from}
+                      </span>
+                    )}
                   </Col>
                 </FieldRow>
               </>
             )}
           </FormAccordion>
 
-          {/* ══════════════════════════════════════════════════════════════ */}
-          {/*  SECTION 2 — ENROLLMENT & ART COMMENCEMENT                   */}
-          {/* ══════════════════════════════════════════════════════════════ */}
           <FormAccordion
             panel="commencement"
             title="Enrollment & ART Commencement"
@@ -736,10 +908,11 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="clinical_stage_at_art_start"
                   value={commencement.clinical_stage_at_art_start}
                   onChange={handleCommencement}
+                  disabled={loadingCodesets}
                 >
-                  <option value="">Select</option>
-                  {CLINICAL_STAGES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                  {codesets.clinicalStages.map((opt) => (
+                    <option key={opt.id} value={opt.id}>{opt.display}</option>
                   ))}
                 </Input>
                 {errors.clinical_stage_at_art_start && (
@@ -765,11 +938,12 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="cd4_lf"
                   value={commencement.cd4_lf}
                   onChange={handleCommencement}
+                  disabled={loadingCodesets}
                 >
-                  <option value="">Select</option>
-                  {CD4_LF_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
+                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                  {codesets.cd4_lf.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.display}
                     </option>
                   ))}
                 </Input>
@@ -801,6 +975,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   type="date"
                   name="date_art_started"
                   value={commencement.date_art_started}
+                  min={registration.date_enrolled_in_hiv_care}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleCommencement}
                 />
@@ -810,15 +985,47 @@ const EnrollmentAndCommencementForm = (props) => {
                   </span>
                 )}
               </Col>
-              <Col size={4}>
+            </FieldRow>
+
+            <FieldRow>
+              <Col size={3}>
+                <SectionLabel>{isPediatric ? "Child" : "Adult"} Regimen Line</SectionLabel>
+                <Input
+                  type="select"
+                  name="regimen_line_id"
+                  value={commencement.regimen_line_id}
+                  onChange={handleCommencement}
+                >
+                  <option value="">Select regimen line first...</option>
+                  {regimenLines.map((line) => (
+                    <option key={line.id} value={line.id}>
+                      {line.description}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+              <Col size={5}>
                 <SectionLabel>First ART Regimen</SectionLabel>
                 <Input
-                  type="text"
+                  type="select"
                   name="first_art_regimen"
                   value={commencement.first_art_regimen}
                   onChange={handleCommencement}
-                  placeholder="e.g. TDF/3TC/DTG"
-                />
+                  disabled={!commencement.regimen_line_id || loadingRegimens}
+                >
+                  <option value="">
+                    {!commencement.regimen_line_id
+                      ? "Select regimen line first..."
+                      : loadingRegimens
+                      ? "Loading..."
+                      : "Select regimen..."}
+                  </option>
+                  {regimens.map((regimen) => (
+                    <option key={regimen.id} value={regimen.id}>
+                      {regimen.description}
+                    </option>
+                  ))}
+                </Input>
               </Col>
             </FieldRow>
 
@@ -921,19 +1128,36 @@ const EnrollmentAndCommencementForm = (props) => {
                   </>
                 )}
                 {showPregnancyStatus && (
-                  <Col size={3}>
-                    <SectionLabel>Pregnancy Status</SectionLabel>
-                    <Input
-                      type="select"
-                      name="pregnancy_status"
-                      value={commencement.pregnancy_status}
-                      onChange={handleCommencement}
-                    >
-                      <option value="">Not applicable</option>
-                      <option value="Pregnant">Pregnant</option>
-                      <option value="Breastfeeding">Breastfeeding</option>
-                    </Input>
-                  </Col>
+                  <>
+                    <Col size={2}>
+                      <SectionLabel>Is Pregnant?</SectionLabel>
+                      <Input
+                        type="select"
+                        name="is_pregnant"
+                        value={commencement.is_pregnant}
+                        onChange={handleCommencement}
+                      >
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </Input>
+                    </Col>
+                    {commencement.is_pregnant === "Yes" && (
+                      <Col size={3}>
+                        <SectionLabel>Pregnancy Status</SectionLabel>
+                        <Input
+                          type="select"
+                          name="pregnancy_status"
+                          value={commencement.pregnancy_status}
+                          onChange={handleCommencement}
+                        >
+                          <option value="">Select</option>
+                          <option value="Pregnant">Pregnant</option>
+                          <option value="Breastfeeding">Breastfeeding</option>
+                        </Input>
+                      </Col>
+                    )}
+                  </>
                 )}
               </div>
             </Box>
@@ -992,6 +1216,8 @@ const EnrollmentAndCommencementForm = (props) => {
                     type="date"
                     name="start_date"
                     value={commencement.tb_preventive_therapy.start_date}
+                    min={registration.date_enrolled_in_hiv_care}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     onChange={handleTpt}
                   />
                 </Col>
@@ -1001,6 +1227,8 @@ const EnrollmentAndCommencementForm = (props) => {
                     type="date"
                     name="completion_date"
                     value={commencement.tb_preventive_therapy.completion_date}
+                    min={commencement.tb_preventive_therapy.start_date}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
                     onChange={handleTpt}
                   />
                 </Col>

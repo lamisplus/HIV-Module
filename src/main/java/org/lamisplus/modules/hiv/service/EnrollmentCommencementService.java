@@ -11,16 +11,15 @@ import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.RegistrationD
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.TbPreventiveTherapyDto;
 import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
 import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
-import org.lamisplus.modules.hiv.repositories.RegimenRepository;
 import org.lamisplus.modules.hiv.utility.Constants;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Service
@@ -35,9 +34,7 @@ public class EnrollmentCommencementService {
     private final HandleHIVVisitEncounter hivVisitEncounter;
     private final CurrentUserOrganizationService currentUserOrganizationService;
     private final ApplicationCodesetRepository applicationCodesetRepository;
-    private final RegimenRepository regimenRepository;
 
-    @Transactional
     public EnrollmentCommencement create(EnrollmentCommencementRequestDto request) {
         Person person = resolvePerson(request.getPersonId());
 
@@ -46,15 +43,17 @@ public class EnrollmentCommencementService {
                     EnrollmentCommencement.class, "person", String.valueOf(person.getId()));
         }
 
+        validateRequiredFields(request, person);
+
         EnrollmentCommencement entity = buildEntity(request, person);
         return repository.save(entity);
     }
 
-    @Transactional
     public EnrollmentCommencement update(Long id, EnrollmentCommencementRequestDto request) {
         EnrollmentCommencement existing = getById(id);
         Person person = existing.getPerson();
 
+        validateRequiredFields(request, person);
         EnrollmentCommencement updated = buildEntity(request, person);
         updated.setId(existing.getId());
         updated.setUuid(existing.getUuid());
@@ -77,11 +76,127 @@ public class EnrollmentCommencementService {
                         EnrollmentCommencement.class, "personId", String.valueOf(personId)));
     }
 
-    @Transactional
     public void delete(Long id) {
         EnrollmentCommencement entity = getById(id);
         entity.setArchived(1);
         repository.save(entity);
+    }
+
+
+    private void validateRequiredFields(EnrollmentCommencementRequestDto request, Person person) {
+        RegistrationDto reg = request.getData().getRegistration();
+        CommencementDto com = request.getData().getCommencement();
+
+        if (isNullOrEmpty(reg.getDateEnrolledInHivCare())) {
+            throw new IllegalArgumentException("date_enrolled_in_hiv_care is required");
+        }
+
+        if (isNullOrEmpty(reg.getDateConfirmedHivTest())) {
+            throw new IllegalArgumentException("date_confirmed_hiv_test is required");
+        }
+        LocalDate dateEnrolled = parseDate(reg.getDateEnrolledInHivCare());
+        LocalDate dateConfirmed = parseDate(reg.getDateConfirmedHivTest());
+        if (dateConfirmed != null && dateEnrolled != null && dateConfirmed.isAfter(dateEnrolled)) {
+            throw new IllegalArgumentException(
+                "date_confirmed_hiv_test cannot be after date_enrolled_in_hiv_care");
+        }
+
+        if (isNullOrEmpty(reg.getHivTestLocation())) {
+            throw new IllegalArgumentException("hiv_test_location is required");
+        }
+
+        if (reg.getModeOfHivTest() == null) {
+            throw new IllegalArgumentException("mode_of_hiv_test is required");
+        }
+
+        if (reg.getCareEntryPoint() == null) {
+            throw new IllegalArgumentException("care_entry_point is required");
+        }
+
+        if (reg.getPriorArt() == null) {
+            throw new IllegalArgumentException("prior_art is required");
+        }
+
+        if (isNullOrEmpty(com.getDateArtStarted())) {
+            throw new IllegalArgumentException("date_art_started is required");
+        }
+
+        LocalDate dateArtStarted = parseDate(com.getDateArtStarted());
+        if (dateArtStarted != null && dateEnrolled != null && dateArtStarted.isBefore(dateEnrolled)) {
+            throw new IllegalArgumentException(
+                "date_art_started cannot be before date_enrolled_in_hiv_care");
+        }
+        //  Mother's Unique ID — Required if patient age < 2 years (infant)
+        if (person.getDateOfBirth() != null) {
+            long ageInYears = ChronoUnit.YEARS.between(person.getDateOfBirth(), LocalDate.now());
+            if (ageInYears < 2 && isNullOrEmpty(reg.getMotherUniqueId())) {
+                throw new IllegalArgumentException(
+                    "mother_unique_id is required for infants (age < 2 years)");
+            }
+        }
+
+        //  KP Typology — Required if is_kp = "Yes"
+        if ("Yes".equalsIgnoreCase(reg.getIsKp()) && reg.getKpTypology() == null) {
+            throw new IllegalArgumentException(
+                "kp_typology is required when is_kp = 'Yes'");
+        }
+
+        //  Transfer-in fields — Required if care_entry_point indicates transfer
+        Long careEntryPointId = reg.getCareEntryPoint();
+        if (careEntryPointId != null) {
+            applicationCodesetRepository.findById(careEntryPointId).ifPresent(codeset -> {
+                if (codeset.getCode() != null && codeset.getCode().toUpperCase().contains("TRANSFER")) {
+                    if (isNullOrEmpty(reg.getDateTransferredIn())) {
+                        throw new IllegalArgumentException(
+                            "date_transferred_in is required when care_entry_point is 'Transfer In'");
+                    }
+                }
+            });
+        }
+
+        //  Facility Transferred From — Required if date_transferred_in is provided
+        if (!isNullOrEmpty(reg.getDateTransferredIn()) &&
+            isNullOrEmpty(reg.getFacilityTransferredFrom())) {
+            throw new IllegalArgumentException(
+                "facility_transferred_from is required when date_transferred_in is provided");
+        }
+
+        // Date transferred in must not be after date enrolled in HIV care
+        if (!isNullOrEmpty(reg.getDateTransferredIn())) {
+            LocalDate dateTransferred = parseDate(reg.getDateTransferredIn());
+            if (dateTransferred != null && dateEnrolled != null && dateTransferred.isAfter(dateEnrolled)) {
+                throw new IllegalArgumentException(
+                    "date_transferred_in cannot be after date_enrolled_in_hiv_care");
+            }
+        }
+
+
+        TbPreventiveTherapyDto tpt = com.getTbPreventiveTherapy();
+        if (tpt != null) {
+            // TPT start date must not be before date enrolled in HIV care
+            if (!isNullOrEmpty(tpt.getStartDate())) {
+                LocalDate tptStartDate = parseDate(tpt.getStartDate());
+                if (tptStartDate != null && dateEnrolled != null && tptStartDate.isBefore(dateEnrolled)) {
+                    throw new IllegalArgumentException(
+                        "tpt_start_date cannot be before date_enrolled_in_hiv_care");
+                }
+            }
+
+            // TPT completion date must not be before TPT start date
+            if (!isNullOrEmpty(tpt.getCompletionDate()) && !isNullOrEmpty(tpt.getStartDate())) {
+                LocalDate tptCompletionDate = parseDate(tpt.getCompletionDate());
+                LocalDate tptStartDate = parseDate(tpt.getStartDate());
+                if (tptCompletionDate != null && tptStartDate != null && tptCompletionDate.isBefore(tptStartDate)) {
+                    throw new IllegalArgumentException(
+                        "tpt_completion_date cannot be before tpt_start_date");
+                }
+            }
+        }
+    }
+
+
+    private boolean isNullOrEmpty(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
     private EnrollmentCommencement buildEntity(EnrollmentCommencementRequestDto request, Person person) {
@@ -106,34 +221,29 @@ public class EnrollmentCommencementService {
         entity.setDateEnrolledInHivCare(parseDate(reg.getDateEnrolledInHivCare()));
         entity.setDateConfirmedHivTest(parseDate(reg.getDateConfirmedHivTest()));
         entity.setHivTestLocation(reg.getHivTestLocation());
-        entity.setModeOfHivTest(reg.getModeOfHivTest());
-        entity.setCareEntryPointId(resolveCareEntryPointId(reg.getCareEntryPoint()));
+        entity.setModeOfHivTestId(reg.getModeOfHivTest());              // Direct ID assignment
+        entity.setCareEntryPointId(reg.getCareEntryPoint());            // Direct ID assignment
         entity.setCareEntryPointOther(reg.getCareEntryPointOther());
         entity.setMotherUniqueId(reg.getMotherUniqueId());
-        entity.setOccupation(reg.getOccupation());
-        entity.setMaritalStatus(reg.getMaritalStatus());
-        entity.setEducationalLevel(reg.getEducationalStatus());
-        entity.setNokName(reg.getNextOfKin());
-        entity.setNokRelationship(reg.getNextOfKinRelationship());
-        entity.setNokTelephone(reg.getNextOfKinTelephone());
-        entity.setPriorArtCode(reg.getPriorArt());
+        entity.setPriorArtId(reg.getPriorArt());                        // Direct ID assignment
         entity.setIsKp("Yes".equalsIgnoreCase(reg.getIsKp()));
-        entity.setKpTypology(reg.getKpTypology());
+        entity.setKpTypologyId(reg.getKpTypology());                    // Direct ID assignment
         entity.setDateTransferredIn(parseDate(reg.getDateTransferredIn()));
         entity.setFacilityTransferredFrom(reg.getFacilityTransferredFrom());
 
         // ── Commencement fields ───────────────────────────────────────────────
-        entity.setClinicalStageId(resolveClinicalStageId(com.getClinicalStageAtArtStart()));
+        entity.setClinicalStageId(com.getClinicalStageAtArtStart());    // Direct ID assignment
         entity.setCd4AtArtStart(parseLong(com.getCd4AtArtStart()));
-        entity.setCd4Lf(com.getCd4Lf());
+        entity.setCd4LfId(com.getCd4Lf());                              // Direct ID assignment
         entity.setDateAdherenceCounselingCompleted(parseDate(com.getDateAdherenceCounselingCompleted()));
         entity.setDateArtStarted(artStartDate);
-        entity.setRegimenId(resolveRegimenId(com.getFirstArtRegimen()));
+        entity.setRegimenId(com.getFirstArtRegimen());                  // Direct ID assignment
         entity.setWeightKg(parseDouble(com.getWeightKg()));
         entity.setHeightCm(parseDouble(com.getHeightCm()));
         entity.setBmi(parseDouble(com.getBmi()));
         entity.setMuac(parseDouble(com.getMuac()));
         entity.setMuacIndication(com.getMuacIndication());
+        entity.setIsPregnant("Yes".equalsIgnoreCase(com.getIsPregnant()));
         entity.setPregnancyStatus(com.getPregnancyStatus());
 
         // ── TPT ───────────────────────────────────────────────────────────────
@@ -181,35 +291,5 @@ public class EnrollmentCommencementService {
         } catch (NumberFormatException e) {
             return null;
         }
-    }
-
-
-    private Long resolveCareEntryPointId(String code) {
-        if (code == null || code.trim().isEmpty()) return null;
-        return applicationCodesetRepository
-                .findAllByCodeAndArchived(code, 0)
-                .stream()
-                .filter(cs -> "CARE_ENTRY_POINT".equals(cs.getCodesetGroup()))
-                .findFirst()
-                .map(cs -> cs.getId())
-                .orElse(null);
-    }
-
-
-    private Long resolveClinicalStageId(String display) {
-        if (display == null || display.trim().isEmpty()) return null;
-        return applicationCodesetRepository
-                .findByDisplayAndCodesetGroup(display, "CLINICAL_STAGE")
-                .map(cs -> cs.getId())
-                .orElse(null);
-    }
-
-
-    private Long resolveRegimenId(String regimenDescription) {
-        if (regimenDescription == null || regimenDescription.trim().isEmpty()) return null;
-        return regimenRepository
-                .findByDescriptionAndActiveIsTrue(regimenDescription)
-                .map(r -> r.getId())
-                .orElse(null);
     }
 }

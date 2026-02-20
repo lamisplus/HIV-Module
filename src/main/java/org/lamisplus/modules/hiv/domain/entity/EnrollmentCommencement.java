@@ -21,7 +21,6 @@ import java.time.LocalDate;
 @EqualsAndHashCode(of = "id")
 public class EnrollmentCommencement extends HivAuditEntity implements Persistable<Long>, Serializable {
 
-    // ── Infrastructure ────────────────────────────────────────────────────────
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -65,24 +64,23 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "archived")
     private Integer archived;
 
-    // ── Registration — HIV Care & Identification ──────────────────────────────
     @Column(name = "date_enrolled_in_hiv_care", nullable = false)
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateEnrolledInHivCare;
 
-    @Column(name = "date_confirmed_hiv_test")
+    @Column(name = "date_confirmed_hiv_test", nullable = false)
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateConfirmedHivTest;
 
-    @Column(name = "hiv_test_location")
+    @Column(name = "hiv_test_location", nullable = false)
     private String hivTestLocation;
 
-    @Column(name = "mode_of_hiv_test")
-    private String modeOfHivTest;
+    @Column(name = "mode_of_hiv_test_id", nullable = false)
+    private Long modeOfHivTestId;
 
-    @Column(name = "care_entry_point_id")
+    @Column(name = "care_entry_point_id", nullable = false)
     private Long careEntryPointId;
 
     @Column(name = "care_entry_point_other")
@@ -91,37 +89,15 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "mother_unique_id")
     private String motherUniqueId;
 
-    // ── Registration — Demographics ───────────────────────────────────────────
-    @Column(name = "occupation")
-    private String occupation;
-
-    @Column(name = "marital_status")
-    private String maritalStatus;
-
-    @Column(name = "educational_level")
-    private String educationalLevel;
-
-    // ── Registration — Next of Kin ────────────────────────────────────────────
-    @Column(name = "nok_name")
-    private String nokName;
-
-    @Column(name = "nok_relationship")
-    private String nokRelationship;
-
-    @Column(name = "nok_telephone")
-    private String nokTelephone;
-
-    // ── Registration — Prior ART & Key Population ─────────────────────────────
-    @Column(name = "prior_art_code")
-    private String priorArtCode;
+    @Column(name = "prior_art_id", nullable = false)
+    private Long priorArtId;
 
     @Column(name = "is_kp")
     private Boolean isKp;
 
-    @Column(name = "kp_typology")
-    private String kpTypology;
+    @Column(name = "kp_typology_id")
+    private Long kpTypologyId;
 
-    // ── Registration — Transfer Details ──────────────────────────────────────
     @Column(name = "date_transferred_in")
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -130,17 +106,15 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "facility_transferred_from")
     private String facilityTransferredFrom;
 
-    // ── Commencement — Clinical Status ────────────────────────────────────────
     @Column(name = "clinical_stage_id")
     private Long clinicalStageId;
 
     @Column(name = "cd4_at_art_start")
     private Long cd4AtArtStart;
 
-    @Column(name = "cd4_lf")
-    private String cd4Lf;
+    @Column(name = "cd4_lf_id")
+    private Long cd4LfId;
 
-    // ── Commencement — ART Dates & Regimen ───────────────────────────────────
     @Column(name = "date_adherence_counseling_completed")
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -154,7 +128,6 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "regimen_id")
     private Long regimenId;
 
-    // ── Commencement — Vitals ─────────────────────────────────────────────────
     @Column(name = "weight_kg")
     private Double weightKg;
 
@@ -170,10 +143,12 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "muac_indication")
     private String muacIndication;
 
+    @Column(name = "is_pregnant")
+    private Boolean isPregnant;
+
     @Column(name = "pregnancy_status")
     private String pregnancyStatus;
 
-    // ── Commencement — TB Preventive Therapy ─────────────────────────────────
     @Column(name = "tpt_medication")
     private String tptMedication;
 

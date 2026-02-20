@@ -34,6 +34,7 @@ const SubMenu = (props) => {
   const patientObj = props.patientObj;
 
   const [isOtzEnrollementDone, setIsOtzEnrollementDone] = useState(null);
+  const [isEnrollmentCommencementDone, setIsEnrollmentCommencementDone] = useState(null);
   const [labResult, setLabResult] = useState(null);
   const patientCurrentStatus = patientObj?.currentStatus === "Died (Confirmed)";
   const [currentStatus, setCurrentStatus] = useState(() => {
@@ -202,6 +203,7 @@ const SubMenu = (props) => {
           getOldRecordIfExists(),
           getCurrentLabResult(patientObj.id),
           Observation(),
+          checkEnrollmentCommencement(),
         ]);
       }
     };
@@ -249,6 +251,22 @@ const SubMenu = (props) => {
       setIsOtzEnrollementDone(!!otzData);
     } catch (error) {
       setIsOtzEnrollementDone(false);
+    }
+  };
+
+  const checkEnrollmentCommencement = async () => {
+    try {
+      await axios.get(
+        `${baseUrl}hiv/enrollment-commencement/person/${patientObj?.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setIsEnrollmentCommencementDone(true); // Record exists
+    } catch (error) {
+      if (error.response?.status === 404) {
+        setIsEnrollmentCommencementDone(false); // No record, can fill form
+      } else {
+        setIsEnrollmentCommencementDone(false);
+      }
     }
   };
 
@@ -564,14 +582,16 @@ const SubMenu = (props) => {
                 Initialization Evaluation Form
               </MenuItem>
 
-              <MenuItem
-                onClick={menuHandlers.loadEnrollmentAndCommencement}
-                name="enrollment-and-commencement"
-                active={activeItem === "enrollment-and-commencement"}
-                title="Enrollment & ART Commencement"
-              >
-                Enrollment &amp; Commencement
-              </MenuItem>
+              {!isEnrollmentCommencementDone && (
+                <MenuItem
+                  onClick={menuHandlers.loadEnrollmentAndCommencement}
+                  name="enrollment-and-commencement"
+                  active={activeItem === "enrollment-and-commencement"}
+                  title="Enrollment & ART Commencement"
+                >
+                  Enrollment &amp; Commencement
+                </MenuItem>
+              )}
 
               <MenuItem
                 onClick={menuHandlers.loadCareCardFollowUp}
@@ -838,14 +858,16 @@ const SubMenu = (props) => {
                               >
                                 Initialization Evaluation Form
                               </Dropdown.Item>
-                              <Dropdown.Item
-                                onClick={menuHandlers.loadEnrollmentAndCommencement}
-                                name="enrollment-and-commencement"
-                                active={activeItem === "enrollment-and-commencement"}
-                                title="Enrollment & ART Commencement"
-                              >
-                                Enrollment &amp; Commencement
-                              </Dropdown.Item>
+                              {!isEnrollmentCommencementDone && (
+                                <Dropdown.Item
+                                  onClick={menuHandlers.loadEnrollmentAndCommencement}
+                                  name="enrollment-and-commencement"
+                                  active={activeItem === "enrollment-and-commencement"}
+                                  title="Enrollment & ART Commencement"
+                                >
+                                  Enrollment &amp; Commencement
+                                </Dropdown.Item>
+                              )}
                               <Dropdown.Item
                                 onClick={menuHandlers.loadAdherencePreparation}
                                 name="adherence-preparation"
