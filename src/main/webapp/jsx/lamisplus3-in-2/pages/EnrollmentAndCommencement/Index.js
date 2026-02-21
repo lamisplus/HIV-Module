@@ -234,6 +234,31 @@ const EnrollmentAndCommencementForm = (props) => {
   const [regimenLines, setRegimenLines] = useState([]);
   const [regimens, setRegimens] = useState([]);
   const [loadingRegimens, setLoadingRegimens] = useState(false);
+  const [hasExistingRecord, setHasExistingRecord] = useState(false);
+  const [checkingExisting, setCheckingExisting] = useState(true);
+
+  // ── Check if patient already has enrollment-commencement record ──────────
+  useEffect(() => {
+    checkForExistingRecord();
+  }, [props.patientObj.id]);
+
+  const checkForExistingRecord = async () => {
+    setCheckingExisting(true);
+    try {
+      const response = await axios.get(
+        `${baseUrl}hiv/enrollment-commencement/check-exists/person/${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data === true) {
+        setHasExistingRecord(true);
+        toast.warning("This patient already has an Enrollment & Commencement record. Only one record is allowed per patient.");
+      }
+    } catch (error) {
+      console.error("Error checking for existing record:", error);
+    } finally {
+      setCheckingExisting(false);
+    }
+  };
 
   // ── Fetch Codesets from API ──────────────────────────────────────────────
   useEffect(() => {
@@ -353,7 +378,35 @@ const EnrollmentAndCommencementForm = (props) => {
 
   const handleReg = (e) => {
     const { name, value } = e.target;
-    setRegistration((prev) => ({ ...prev, [name]: value }));
+
+    // Handle dependent field clearing
+    if (name === 'is_kp') {
+      // Clear kp_typology when is_kp changes to "No" or empty
+      if (value !== 'Yes') {
+        setRegistration((prev) => ({
+          ...prev,
+          [name]: value,
+          kp_typology: ""
+        }));
+      } else {
+        setRegistration((prev) => ({ ...prev, [name]: value }));
+      }
+    } else if (name === 'care_entry_point') {
+      // Clear transfer-related fields when care_entry_point changes away from "Transfer In"
+      const transferInId = getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER");
+      if (value != transferInId) {
+        setRegistration((prev) => ({
+          ...prev,
+          [name]: value,
+          date_transferred_in: "",
+          facility_transferred_from: ""
+        }));
+      } else {
+        setRegistration((prev) => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setRegistration((prev) => ({ ...prev, [name]: value }));
+    }
 
     // Real-time validation — clear error if field becomes valid
     if (errors[name]) {
@@ -362,21 +415,21 @@ const EnrollmentAndCommencementForm = (props) => {
       // Always-required fields
       if (['date_enrolled_in_hiv_care', 'date_confirmed_hiv_test', 'hiv_test_location',
            'mode_of_hiv_test', 'care_entry_point', 'prior_art'].includes(name)) {
-        if (value && value.trim() !== '') {
+        if (value && String(value).trim() !== '') {
           delete newErrors[name];
         }
       }
 
       // Conditionally required — mother_unique_id
       if (name === 'mother_unique_id' && isInfant) {
-        if (value && value.trim() !== '') {
+        if (value && String(value).trim() !== '') {
           delete newErrors[name];
         }
       }
 
       // Conditionally required — kp_typology
       if (name === 'kp_typology' && registration.is_kp === 'Yes') {
-        if (value && value.trim() !== '') {
+        if (value && String(value).trim() !== '') {
           delete newErrors[name];
         }
       }
@@ -384,15 +437,15 @@ const EnrollmentAndCommencementForm = (props) => {
       // Conditionally required — date_transferred_in
       const transferInId = getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER");
       if (name === 'date_transferred_in' && registration.care_entry_point == transferInId) {
-        if (value && value.trim() !== '') {
+        if (value && String(value).trim() !== '') {
           delete newErrors[name];
         }
       }
 
       // Conditionally required — facility_transferred_from
       if (name === 'facility_transferred_from' && registration.date_transferred_in &&
-          registration.date_transferred_in.trim() !== '') {
-        if (value && value.trim() !== '') {
+          String(registration.date_transferred_in).trim() !== '') {
+        if (value && String(value).trim() !== '') {
           delete newErrors[name];
         }
       }
@@ -450,21 +503,34 @@ const EnrollmentAndCommencementForm = (props) => {
       return;
     }
 
-    setCommencement((prev) => {
-      const updated = { ...prev, [name]: value };
-      // BMI
-      const w = name === "weight_kg" ? value : prev.weight_kg;
-      const h = name === "height_cm" ? value : prev.height_cm;
-      updated.bmi = calcBmi(w, h);
-      // MUAC indication
-      const muacVal = name === "muac" ? value : prev.muac;
-      updated.muac_indication = calcMuacIndication(muacVal);
-      return updated;
-    });
+    // Handle dependent field clearing for pregnancy
+    if (name === "is_pregnant" && value !== "Yes") {
+      setCommencement((prev) => {
+        const updated = { ...prev, [name]: value, pregnancy_status: "" };
+        const w = prev.weight_kg;
+        const h = prev.height_cm;
+        updated.bmi = calcBmi(w, h);
+        const muacVal = prev.muac;
+        updated.muac_indication = calcMuacIndication(muacVal);
+        return updated;
+      });
+    } else {
+      setCommencement((prev) => {
+        const updated = { ...prev, [name]: value };
+        // BMI
+        const w = name === "weight_kg" ? value : prev.weight_kg;
+        const h = name === "height_cm" ? value : prev.height_cm;
+        updated.bmi = calcBmi(w, h);
+        // MUAC indication
+        const muacVal = name === "muac" ? value : prev.muac;
+        updated.muac_indication = calcMuacIndication(muacVal);
+        return updated;
+      });
+    }
 
     if (errors[name]) {
       const newErrors = { ...errors };
-      if (name === 'date_art_started' && value && value.trim() !== '') {
+      if (name === 'date_art_started' && value && String(value).trim() !== '') {
         delete newErrors[name];
       }
 
@@ -485,61 +551,54 @@ const EnrollmentAndCommencementForm = (props) => {
   const validate = () => {
     const temp = {};
 
-    if (!registration.date_enrolled_in_hiv_care || registration.date_enrolled_in_hiv_care.trim() === '') {
+    if (!registration.date_enrolled_in_hiv_care || String(registration.date_enrolled_in_hiv_care).trim() === '') {
       temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care is required";
     }
 
-    if (!registration.date_confirmed_hiv_test || registration.date_confirmed_hiv_test.trim() === '') {
+    if (!registration.date_confirmed_hiv_test || String(registration.date_confirmed_hiv_test).trim() === '') {
       temp.date_confirmed_hiv_test = "Date of confirmed HIV test is required";
     }
 
-    if (!registration.hiv_test_location || registration.hiv_test_location.trim() === '') {
+    if (!registration.hiv_test_location || String(registration.hiv_test_location).trim() === '') {
       temp.hiv_test_location = "HIV test location is required";
     }
 
-    if (!registration.mode_of_hiv_test || registration.mode_of_hiv_test.trim() === '') {
+    if (!registration.mode_of_hiv_test || String(registration.mode_of_hiv_test).trim() === '') {
       temp.mode_of_hiv_test = "Mode of HIV test is required";
     }
 
-    if (!registration.care_entry_point || registration.care_entry_point.trim() === '') {
+    if (!registration.care_entry_point || String(registration.care_entry_point).trim() === '') {
       temp.care_entry_point = "Care entry point is required";
     }
 
-    if (!registration.prior_art || registration.prior_art.trim() === '') {
+    if (!registration.prior_art || String(registration.prior_art).trim() === '') {
       temp.prior_art = "Prior ART status is required";
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // ALWAYS REQUIRED FIELDS (Commencement)
-    // ═══════════════════════════════════════════════════════════════════════
 
-    if (!commencement.date_art_started || commencement.date_art_started.trim() === '') {
+    if (!commencement.date_art_started || String(commencement.date_art_started).trim() === '') {
       temp.date_art_started = "Date ART started is required";
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // CONDITIONALLY REQUIRED FIELDS
-    // ═══════════════════════════════════════════════════════════════════════
-
     // 1. Mother's Unique ID — Required if patient age < 2 years (infant)
-    if (isInfant && (!registration.mother_unique_id || registration.mother_unique_id.trim() === '')) {
+    if (isInfant && (!registration.mother_unique_id || String(registration.mother_unique_id).trim() === '')) {
       temp.mother_unique_id = "Mother's Unique ID is required for infants (age < 2 years)";
     }
 
     // 2. KP Typology — Required if is_kp = "Yes"
-    if (registration.is_kp === 'Yes' && (!registration.kp_typology || registration.kp_typology.trim() === '')) {
+    if (registration.is_kp === 'Yes' && (!registration.kp_typology || String(registration.kp_typology).trim() === '')) {
       temp.kp_typology = "KP Typology is required when patient is a Key Population";
     }
 
     // 3. Transfer-in date — Required if care_entry_point is Transfer-in
     const transferInId = getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER");
-    if (registration.care_entry_point == transferInId && (!registration.date_transferred_in || registration.date_transferred_in.trim() === '')) {
+    if (registration.care_entry_point == transferInId && (!registration.date_transferred_in || String(registration.date_transferred_in).trim() === '')) {
       temp.date_transferred_in = "Transfer-in date is required when care entry point is 'Transfer-in'";
     }
 
     // 4. Facility Transferred From — Required if date_transferred_in is provided
-    if (registration.date_transferred_in && registration.date_transferred_in.trim() !== '' &&
-        (!registration.facility_transferred_from || registration.facility_transferred_from.trim() === '')) {
+    if (registration.date_transferred_in && String(registration.date_transferred_in).trim() !== '' &&
+        (!registration.facility_transferred_from || String(registration.facility_transferred_from).trim() === '')) {
       temp.facility_transferred_from = "Facility transferred from is required when transfer-in date is provided";
     }
 
@@ -583,6 +642,63 @@ const EnrollmentAndCommencementForm = (props) => {
   // ─────────────────────────────────────────────────────────────────────────
   // Render
   // ─────────────────────────────────────────────────────────────────────────
+
+  // Show loading state while checking for existing record
+  if (checkingExisting) {
+    return (
+      <Card className={classes.root} style={{ borderRadius: "12px" }}>
+        <CardContent>
+          <Box sx={{ textAlign: "center", padding: "40px" }}>
+            <Typography>Checking existing records...</Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show message if record already exists
+  if (hasExistingRecord) {
+    return (
+      <Card className={classes.root} style={{ borderRadius: "12px" }}>
+        <CardContent>
+          <Box
+            sx={{
+              backgroundColor: "#ff9800",
+              padding: "14px 20px",
+              marginBottom: "20px",
+              borderRadius: "8px",
+            }}
+          >
+            <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
+              Record Already Exists
+            </Typography>
+          </Box>
+          <Box sx={{ padding: "20px", textAlign: "center" }}>
+            <Typography sx={{ fontSize: "14px", marginBottom: "20px" }}>
+              This patient already has an Enrollment & Commencement record.
+              This is a one-off form and only one record is allowed per patient.
+            </Typography>
+            <Typography sx={{ fontSize: "14px", marginBottom: "20px" }}>
+              You can view or update the existing record from the Recent Activities history tab.
+            </Typography>
+            <MatButton
+              variant="contained"
+              style={{ backgroundColor: "#014d88", marginTop: "10px" }}
+              onClick={() =>
+                props.setActiveContent({
+                  ...props.activeContent,
+                  route: "recent-history",
+                })
+              }
+            >
+              Go to Recent Activities
+            </MatButton>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card
       className={classes.root}
