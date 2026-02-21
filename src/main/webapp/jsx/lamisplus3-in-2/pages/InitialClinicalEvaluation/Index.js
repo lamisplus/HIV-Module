@@ -13,9 +13,16 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  Alert,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
+import ThermostatIcon from "@mui/icons-material/Thermostat";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import ScaleIcon from "@mui/icons-material/Scale";
+import AirIcon from "@mui/icons-material/Air";
 import { makeStyles } from "@material-ui/core/styles";
 import { Card, CardContent } from "@material-ui/core";
 import { toast } from "react-toastify";
@@ -58,6 +65,61 @@ const SYMPTOM_OPTIONS = [
   { value: "chronic_diarrhoea", label: "Chronic Diarrhoea" },
   { value: "numbness", label: "Numbness / Tingling" },
 ];
+
+// WHO Stage Clinical Criteria Options - these are hardcoded on the frontend
+// Each WHO stage code maps to an array of available clinical criteria
+const WHO_STAGE_CRITERIA_OPTIONS = {
+  "WHO_STAGING_CRITERIA_STAGE_1": [
+    "Asymptomatic",
+    "Persistent Generalized Lymphadenopathy",
+  ],
+  "WHO_STAGING_CRITERIA_STAGE_2": [
+    "Moderate Unexplained Weight Loss (<10% of presumed or measured body weight)",
+    "Recurrent Respiratory Tract Infections (sinusitis, tonsillitis, otitis media, pharyngitis)",
+    "Herpes Zoster",
+    "Angular Cheilitis",
+    "Recurrent Oral Ulceration",
+    "Papular Pruritic Eruptions",
+    "Seborrheic Dermatitis",
+    "Fungal Nail Infections",
+  ],
+  "WHO_STAGING_CRITERIA_STAGE_3": [
+    "Weight loss greater than 10% of body weight",
+    "Unexplained Chronic Diarrhea less than 1 month",
+    "Oral Candidiasis",
+    "TB, Pulmonary (within previous year)",
+    "Severe Bacterial Infections",
+    "Performance scale: 3 bedridden less than 50%",
+    "Unexplained Prolonged Fever",
+    "Oral Hairy Leukoplakia",
+    "Acute Necrotizing Ulcerative Stomatitis, Gingivitis or Periodontitis",
+    "Unexplained Anemia (<8 g/dl), neutropenia, and/or chronic thrombocytopenia",
+  ],
+  "WHO_STAGING_CRITERIA_STAGE_4": [
+    "HIV Wasting Syndrome",
+    "Pneumocystis Pneumonia",
+    "Recurrent Severe Bacterial Pneumonia",
+    "Chronic Herpes Simplex Infection (orolabial, genital or anorectal >1 month)",
+    "Esophageal Candidiasis (or candidiasis of trachea, bronchi or lungs)",
+    "Extrapulmonary Tuberculosis",
+    "Kaposi Sarcoma",
+    "Cytomegalovirus Infection (retinitis or infection of other organs)",
+    "CNS Toxoplasmosis",
+    "HIV Encephalopathy",
+    "Extrapulmonary Cryptococcosis including Meningitis",
+    "Disseminated Non-tuberculosis Mycobacterial Infection",
+    "Progressive Multifocal Leukoencephalopathy",
+    "Chronic Cryptosporidiosis",
+    "Chronic Isosporiasis",
+    "Disseminated Mycosis (extrapulmonary histoplasmosis, coccidioidomycosis)",
+    "Recurrent Septicemia (including non-typhoidal Salmonella)",
+    "Lymphoma (cerebral or B-cell non-Hodgkin)",
+    "Invasive Cervical Carcinoma",
+    "Atypical Disseminated Leishmaniasis",
+    "Symptomatic HIV-associated Nephropathy",
+    "Symptomatic HIV-associated Cardiomyopathy",
+  ],
+};
 
 const SYSTEM_FINDINGS = {
   generalAppearance: [
@@ -160,9 +222,6 @@ const ACCORDION_STYLES = [
   { bg: "#014d88" },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Reusable sub-components
-// ─────────────────────────────────────────────────────────────────────────────
 
 const SectionLabel = ({ children }) => (
   <label
@@ -241,6 +300,154 @@ const SubHeading = ({ children }) => (
     {children}
   </div>
 );
+
+// TransferList Component for WHO Stage Criteria Selection
+const TransferList = ({ availableItems, selectedItems, onTransfer, stageName }) => {
+  const moveToSelected = (item) => {
+    onTransfer([...selectedItems, item]);
+  };
+
+  const moveToAvailable = (item) => {
+    onTransfer(selectedItems.filter((i) => i !== item));
+  };
+
+  const moveAllToSelected = () => {
+    onTransfer([...availableItems]);
+  };
+
+  const moveAllToAvailable = () => {
+    onTransfer([]);
+  };
+
+  const unselectedItems = availableItems.filter((item) => !selectedItems.includes(item));
+
+  return (
+    <Box sx={{ marginTop: "16px" }}>
+      <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#546e7a", marginBottom: "12px" }}>
+        {stageName} options
+      </Typography>
+      <Box sx={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        {/* Available Items List */}
+        <Box
+          sx={{
+            flex: 1,
+            border: "1px solid #e0e0e0",
+            borderRadius: "4px",
+            minHeight: "200px",
+            maxHeight: "300px",
+            overflowY: "auto",
+            padding: "12px",
+            background: "#fafafa",
+          }}
+        >
+          {unselectedItems.length === 0 ? (
+            <Typography sx={{ fontSize: "12px", color: "#9e9e9e", fontStyle: "italic", textAlign: "center", marginTop: "80px" }}>
+              All options selected
+            </Typography>
+          ) : (
+            unselectedItems.map((item, idx) => (
+              <Box
+                key={idx}
+                onClick={() => moveToSelected(item)}
+                sx={{
+                  padding: "8px 10px",
+                  marginBottom: "6px",
+                  background: "#fff",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  "&:hover": {
+                    background: "#e3f2fd",
+                    borderColor: "#014d88",
+                  },
+                }}
+              >
+                {item}
+              </Box>
+            ))
+          )}
+        </Box>
+
+        {/* Transfer Buttons */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <Tooltip title="Move all to selected">
+            <IconButton
+              size="small"
+              onClick={moveAllToSelected}
+              disabled={unselectedItems.length === 0}
+              sx={{
+                border: "1px solid #014d88",
+                borderRadius: "4px",
+                color: "#014d88",
+                "&:disabled": { borderColor: "#ddd", color: "#ddd" },
+              }}
+            >
+              <span style={{ fontSize: "18px", fontWeight: "bold" }}>≫</span>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Move all to available">
+            <IconButton
+              size="small"
+              onClick={moveAllToAvailable}
+              disabled={selectedItems.length === 0}
+              sx={{
+                border: "1px solid #014d88",
+                borderRadius: "4px",
+                color: "#014d88",
+                "&:disabled": { borderColor: "#ddd", color: "#ddd" },
+              }}
+            >
+              <span style={{ fontSize: "18px", fontWeight: "bold" }}>≪</span>
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        {/* Selected Items List */}
+        <Box
+          sx={{
+            flex: 1,
+            border: "1px solid #e0e0e0",
+            borderRadius: "4px",
+            minHeight: "200px",
+            maxHeight: "300px",
+            overflowY: "auto",
+            padding: "12px",
+            background: "#fafafa",
+          }}
+        >
+          {selectedItems.length === 0 ? (
+            <Typography sx={{ fontSize: "12px", color: "#9e9e9e", fontStyle: "italic", textAlign: "center", marginTop: "80px" }}>
+              No options selected
+            </Typography>
+          ) : (
+            selectedItems.map((item, idx) => (
+              <Box
+                key={idx}
+                onClick={() => moveToAvailable(item)}
+                sx={{
+                  padding: "8px 10px",
+                  marginBottom: "6px",
+                  background: "#e3f2fd",
+                  border: "1px solid #014d88",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  "&:hover": {
+                    background: "#fff",
+                    borderColor: "#ddd",
+                  },
+                }}
+              >
+                {item}
+              </Box>
+            ))
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
 // FormAccordion MUST live outside the main component so React never treats it
 // as a new component type on re-render (which would unmount all inputs).
@@ -388,6 +595,73 @@ const InitialClinicalEvaluationForm = (props) => {
   const [errors, setErrors] = useState({});
   const [expanded, setExpanded] = useState(["symptoms", "medical", "arv", "physical", "confirmatory"]);
 
+  // ── Codesets State ────────────────────────────────────────────────────────
+  const [codesets, setCodesets] = useState({
+    tbStatus: [],
+    developmentalAssessment: [],
+    immunisationComplete: [],
+    currentlyPregnant: [],
+    whoStage: [],
+    assessment: [],
+    enrollIn: [],
+    planForArt: [],
+    knownDrugAllergies: [],
+    currentMedications : [],
+    patientDiscloseStatus : []
+
+  });
+  const [loadingCodesets, setLoadingCodesets] = useState(true);
+
+  // ── Fetch Codesets from API ──────────────────────────────────────────────
+  useEffect(() => {
+    fetchCodesets();
+  }, []);
+
+  const fetchCodesets = async () => {
+    setLoadingCodesets(true);
+    try {
+      const params = new URLSearchParams();
+      params.append('codes', 'TB_STATUS');
+      params.append('codes', 'STI_ASSESSED_BY');
+      params.append('codes', 'YES_NO_OUTBREAK');
+      params.append('codes', 'DO_YOU_HAVE_THE_FOLLOWING');
+      params.append('codes', 'WHO_STAGING_CRITERIA');
+      params.append('codes', 'PHYSICAL_EXAM_ASSESSMENT');
+      params.append('codes', 'ENROLL_IN');
+      params.append('codes', 'PLAN_FOR_ART');
+      params.append('codes', 'PERSON_CONTACTED');
+      params.append('codes', 'HIVST_KIT_USER');
+
+      const response = await axios.get(
+        `${baseUrl}application-codesets/v2/codeSets?${params}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("Codeset API Response:", response.data);
+
+      setCodesets({
+        tbStatus: response.data.TB_STATUS || [],
+        developmentalAssessment: response.data.STI_ASSESSED_BY || [],
+        immunisationComplete: response.data.YES_NO_OUTBREAK || [],
+        knownDrugAllergies: response.data.DO_YOU_HAVE_THE_FOLLOWING || [],
+        currentlyPregnant: response.data.YES_NO_OUTBREAK || [],
+        whoStage: response.data.WHO_STAGING_CRITERIA || [],
+        assessment: response.data.PHYSICAL_EXAM_ASSESSMENT || [],
+        enrollIn: response.data.ENROLL_IN || [],
+        planForArt: response.data.PLAN_FOR_ART || [],
+        currentMedications: response.data.PERSON_CONTACTED || [],
+        patientDiscloseStatus: response.data.HIVST_KIT_USER || [],
+      });
+    } catch (error) {
+      console.error("Error fetching codesets:", error);
+      console.error("Error details:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      toast.error("Failed to load dropdown options");
+    } finally {
+      setLoadingCodesets(false);
+    }
+  };
+
   const toggleAccordion = (panel) => {
     setExpanded((prev) =>
       prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
@@ -431,13 +705,27 @@ const InitialClinicalEvaluationForm = (props) => {
     developmental_assessment: "",
     immunisation_complete: "",
     mode_of_infant_feeding: "",
-    known_drug_allergies: "",
     past_medical_history: "",
   });
 
   const handleTb = (e) => {
     const { name, value } = e.target;
-    setTbAssessment((prev) => ({ ...prev, [name]: value }));
+    // Clear TB status if assessed_for_tb is changed to No or empty
+    if (name === "assessed_for_tb" && value !== "Yes") {
+      setTbAssessment((prev) => ({ ...prev, [name]: value, tb_status: "" }));
+    } else {
+      setTbAssessment((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const [knownDrugAllergies, setKnownDrugAllergies] = useState([]);  // Array of selected drug allergy codes
+
+  const handleDrugAllergiesCheckbox = (code, checked) => {
+    setKnownDrugAllergies((prev) => {
+      return checked
+        ? [...prev, code]  // Add code if checked
+        : prev.filter((item) => item !== code);  // Remove code if unchecked
+    });
   };
 
   const [pregnancy, setPregnancy] = useState({
@@ -446,36 +734,103 @@ const InitialClinicalEvaluationForm = (props) => {
     gestational_age: "",
     expected_date_of_delivery: "",
   });
+  const [pregnancyErrors, setPregnancyErrors] = useState({});
+
+  // Calculate gestational age and expected delivery date from LMP
+  const calculatePregnancyDetails = (lmp) => {
+    if (!lmp) return { gestationalAge: "", edd: "" };
+
+    const lmpDate = new Date(lmp);
+    const today = new Date();
+
+    // Calculate gestational age in weeks
+    const diffTime = today - lmpDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const gestationalWeeks = Math.floor(diffDays / 7);
+
+    // Calculate Expected Date of Delivery (LMP + 280 days or 40 weeks)
+    const eddDate = new Date(lmpDate);
+    eddDate.setDate(eddDate.getDate() + 280);
+
+    return {
+      gestationalAge: gestationalWeeks >= 0 ? gestationalWeeks.toString() : "",
+      edd: gestationalWeeks >= 0 ? moment(eddDate).format("YYYY-MM-DD") : "",
+    };
+  };
+
+  // Validate pregnancy fields
+  const validatePregnancyField = (name, value) => {
+    if (!value) return ""; // Allow empty
+
+    if (name === "last_menstrual_period") {
+      const lmpDate = new Date(value);
+      const today = new Date();
+      const maxLMP = new Date();
+      maxLMP.setDate(maxLMP.getDate() - 280); // 40 weeks ago
+
+      if (lmpDate > today) {
+        return "Last Menstrual Period cannot be in the future";
+      }
+      if (lmpDate < maxLMP) {
+        return "Last Menstrual Period cannot be more than 40 weeks ago";
+      }
+    }
+
+    if (name === "expected_date_of_delivery") {
+      const eddDate = new Date(value);
+      const today = new Date();
+
+      if (eddDate < today) {
+        return "Expected Date of Delivery cannot be in the past";
+      }
+    }
+
+    return "";
+  };
 
   const handlePregnancy = (e) => {
     const { name, value } = e.target;
-    setPregnancy((prev) => ({ ...prev, [name]: value }));
+
+    // Validate the field
+    const error = validatePregnancyField(name, value);
+    setPregnancyErrors((prev) => ({ ...prev, [name]: error }));
+
+    // If Last Menstrual Period is changed, calculate gestational age and EDD
+    if (name === "last_menstrual_period") {
+      const { gestationalAge, edd } = calculatePregnancyDetails(value);
+      setPregnancy((prev) => ({
+        ...prev,
+        [name]: value,
+        gestational_age: gestationalAge,
+        expected_date_of_delivery: edd,
+      }));
+
+      // Validate the auto-calculated EDD
+      const eddError = validatePregnancyField("expected_date_of_delivery", edd);
+      setPregnancyErrors((prev) => ({ ...prev, expected_date_of_delivery: eddError }));
+    } else {
+      setPregnancy((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const [currentMeds, setCurrentMeds] = useState({
-    none: false, art: false, ctx: false, anti_tb_drugs: false, other_specify: "",
-  });
+  const [currentMeds, setCurrentMeds] = useState([]);  // Array of selected medication codes
 
-  const handleMeds = (e) => {
-    const { name, type, value, checked } = e.target;
-    if (name === "none" && checked) {
-      setCurrentMeds({ none: true, art: false, ctx: false, anti_tb_drugs: false, other_specify: "" });
-      return;
-    }
-    setCurrentMeds((prev) => ({ ...prev, none: false, [name]: type === "checkbox" ? checked : value }));
+  const handleMedsCheckbox = (code, checked) => {
+    setCurrentMeds((prev) => {
+      return checked
+        ? [...prev, code]  // Add code if checked
+        : prev.filter((item) => item !== code);  // Remove code if unchecked
+    });
   };
 
-  const [disclosure, setDisclosure] = useState({
-    no_one: false, family_member: false, friend: false, spouse: false, spiritual_leader: false, others_specify: "",
-  });
+  const [disclosure, setDisclosure] = useState([]);  // Array of selected disclosure codes
 
-  const handleDisclosure = (e) => {
-    const { name, type, value, checked } = e.target;
-    if (name === "no_one" && checked) {
-      setDisclosure({ no_one: true, family_member: false, friend: false, spouse: false, spiritual_leader: false, others_specify: "" });
-      return;
-    }
-    setDisclosure((prev) => ({ ...prev, no_one: false, [name]: type === "checkbox" ? checked : value }));
+  const handleDisclosureCheckbox = (code, checked) => {
+    setDisclosure((prev) => {
+      return checked
+        ? [...prev, code]  // Add code if checked
+        : prev.filter((item) => item !== code);  // Remove code if unchecked
+    });
   };
 
   const [arvSideEffects, setArvSideEffects] = useState({
@@ -509,10 +864,90 @@ const InitialClinicalEvaluationForm = (props) => {
     temperature: "", bp_systolic: "", bp_diastolic: "",
     pulse: "", weight: "", height: "", head_circumference: "", surface_area: "",
   });
+  const [bmi, setBmi] = useState("");
+  const [vitalsErrors, setVitalsErrors] = useState({});
+
+  // Validate vitals and calculate BMI
+  const validateVital = (name, value) => {
+    if (!value) return ""; // Allow empty values
+
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return "Must be a valid number";
+
+    switch (name) {
+      case "temperature":
+        if (numValue < 35) return "Temperature cannot be less than 35°C";
+        if (numValue > 47) return "Temperature cannot be greater than 47°C";
+        break;
+      case "bp_systolic":
+        if (numValue < 90) return "Systolic pressure cannot be less than 90 mmHg";
+        if (numValue > 240) return "Systolic pressure cannot be greater than 240 mmHg";
+        break;
+      case "bp_diastolic":
+        if (numValue < 60) return "Diastolic pressure cannot be less than 60 mmHg";
+        if (numValue > 140) return "Diastolic pressure cannot be greater than 140 mmHg";
+        break;
+      case "pulse":
+        if (numValue < 40) return "Pulse cannot be less than 40 b/min";
+        if (numValue > 120) return "Pulse cannot be greater than 120 b/min";
+        break;
+      case "weight":
+        if (numValue < 48.26) return "Weight cannot be less than 48.26 kg";
+        if (numValue > 216.408) return "Weight cannot be greater than 216.408 kg";
+        break;
+      case "height":
+        if (numValue < 48.26) return "Height cannot be less than 48.26 cm";
+        if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
+        break;
+      default:
+        break;
+    }
+    return "";
+  };
+
+  // Calculate BMI when weight or height changes
+  const calculateBMI = (weight, height) => {
+    if (weight && height) {
+      const weightNum = parseFloat(weight);
+      const heightNum = parseFloat(height);
+      if (!isNaN(weightNum) && !isNaN(heightNum) && heightNum > 0) {
+        const heightInMeters = heightNum / 100; // Convert cm to meters
+        const bmiValue = weightNum / (heightInMeters * heightInMeters);
+        return bmiValue.toFixed(2);
+      }
+    }
+    return "";
+  };
 
   const handleVitals = (e) => {
     const { name, value } = e.target;
-    setVitals((prev) => ({ ...prev, [name]: value }));
+
+    // Validate the input
+    const error = validateVital(name, value);
+    setVitalsErrors((prev) => ({ ...prev, [name]: error }));
+
+    // Update vitals state
+    const newVitals = { ...vitals, [name]: value };
+    setVitals(newVitals);
+
+    // Calculate BMI if weight or height changed
+    if (name === "weight" || name === "height") {
+      const newBmi = calculateBMI(
+        name === "weight" ? value : vitals.weight,
+        name === "height" ? value : vitals.height
+      );
+      setBmi(newBmi);
+    }
+  };
+
+  // Validate respiratory rate
+  const validateRespiratoryRate = (value) => {
+    if (!value) return "";
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return "Must be a valid number";
+    if (numValue < 10) return "Respiratory rate cannot be less than 10 breaths/min";
+    if (numValue > 70) return "Respiratory rate cannot be greater than 70 breaths/min";
+    return "";
   };
 
   const makeSystem = (extra = {}) => ({ nsf: false, findings: [], other: "", ...extra });
@@ -535,6 +970,11 @@ const InitialClinicalEvaluationForm = (props) => {
   };
 
   const handleSystemExtra = (key, field, value) => {
+    // Validate respiratory rate
+    if (key === "respiratory" && field === "rate") {
+      const error = validateRespiratoryRate(value);
+      setVitalsErrors((prev) => ({ ...prev, respiratory_rate: error }));
+    }
     setSystems((prev) => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
   };
 
@@ -542,20 +982,11 @@ const InitialClinicalEvaluationForm = (props) => {
 
   // ── Section: Confirmatory Details ────────────────────────────────────────
   const [assessment, setAssessment] = useState({
-    asymptomatic: false,
-    symptomatic: false,
-    aids_defining_illness: false,
-    opportunistic_infection: false,
+    assessment_items: [],        // Array of selected assessment codes
     who_stage: "",
-    enroll_general_followup: false,
-    enroll_arv_therapy: false,
-    enroll_ahd_management: false,
-    enroll_pending_lab_results: false,
-    plan_art_ongoing_monitoring: false,
-    plan_art_postponed: false,
-    plan_art_change_treatment: false,
-    plan_art_restart: false,
-    plan_art_start_new: false,
+    who_stage_criteria: [],      // Array of selected clinical criteria for the WHO stage
+    enroll_in_items: [],         // Array of selected enrollment codes
+    plan_for_art_items: [],      // Array of selected ART plan codes
     drugs_in_regimen: "",
     additional_comments: "",
     next_appointment: "",
@@ -563,7 +994,53 @@ const InitialClinicalEvaluationForm = (props) => {
 
   const handleAssessment = (e) => {
     const { name, type, value, checked } = e.target;
-    setAssessment((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+
+    // If WHO stage is being changed, clear the criteria selection
+    if (name === "who_stage") {
+      setAssessment((prev) => ({
+        ...prev,
+        [name]: value,
+        who_stage_criteria: [] // Clear criteria when stage changes
+      }));
+    } else {
+      setAssessment((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    }
+  };
+
+  // Handle WHO Stage criteria transfer
+  const handleWhoStageCriteriaTransfer = (newSelectedCriteria) => {
+    setAssessment((prev) => ({ ...prev, who_stage_criteria: newSelectedCriteria }));
+  };
+
+  // Handle checkbox arrays (assessment, enroll_in, plan_for_art)
+  const handleCheckboxArray = (arrayName, code, checked) => {
+    setAssessment((prev) => {
+      const currentArray = prev[arrayName] || [];
+      const newArray = checked
+        ? [...currentArray, code]  // Add code if checked
+        : currentArray.filter((item) => item !== code);  // Remove code if unchecked
+      return { ...prev, [arrayName]: newArray };
+    });
+  };
+
+  // Helper to check if pregnancy code indicates "Yes"
+  const isPregnant = () => {
+    if (!pregnancy.currently_pregnant) return false;
+
+    // Find the selected option from the codeset
+    const selectedOption = codesets.currentlyPregnant.find(
+      opt => opt.code === pregnancy.currently_pregnant
+    );
+
+    if (selectedOption) {
+      // Check if the display value indicates "Yes"
+      const display = selectedOption.display.toUpperCase();
+      return display === 'YES' || display.includes('YES');
+    }
+
+    // Fallback: Check if code contains "YES" or matches common patterns
+    const code = pregnancy.currently_pregnant.toUpperCase();
+    return code.includes('YES') || code === 'Y' || code === 'PREGNANT';
   };
 
   // ── Effects ──────────────────────────────────────────────────────────────
@@ -585,11 +1062,52 @@ const InitialClinicalEvaluationForm = (props) => {
     }
   }, [props.patientObj?.id]);
 
+  // Clear immunisation_complete if patient is not between 0-2 years
+  useEffect(() => {
+    if (patientAge < 0 || patientAge > 2) {
+      setTbAssessment((prev) => ({ ...prev, immunisation_complete: "" }));
+    }
+  }, [patientAge]);
+
+  // Clear pregnancy details if currently_pregnant is not "Yes"
+  useEffect(() => {
+    if (!isPregnant() && pregnancy.currently_pregnant !== "") {
+      setPregnancy((prev) => ({
+        ...prev,
+        last_menstrual_period: "",
+        gestational_age: "",
+        expected_date_of_delivery: "",
+      }));
+      // Clear pregnancy validation errors
+      setPregnancyErrors({});
+    }
+  }, [pregnancy.currently_pregnant]);
+
   // ── Validation ───────────────────────────────────────────────────────────
   const validate = () => {
     const temp = {};
+
+    // Required fields
     if (!visitDate) temp.visitDate = "Visit date is required";
+    if (!tbAssessment.assessed_for_tb) temp.assessed_for_tb = "Patient Assessed for TB is required";
+    if (!tbAssessment.developmental_assessment) temp.developmental_assessment = "Developmental Assessment is required";
+    if (knownDrugAllergies.length === 0) temp.knownDrugAllergies = "Known Drug Allergies is required (select at least one option)";
+    if (assessment.assessment_items.length === 0) temp.assessment_items = "Assessment is required (select at least one option)";
     if (!assessment.who_stage) temp.who_stage = "WHO Stage is required";
+    if (!assessment.next_appointment) temp.next_appointment = "Next Appointment Date is required";
+
+    // Check for vitals validation errors
+    const hasVitalsErrors = Object.values(vitalsErrors).some(error => error !== "");
+    if (hasVitalsErrors) {
+      temp.vitals = "Please correct all vitals validation errors before submitting";
+    }
+
+    // Check for pregnancy validation errors
+    const hasPregnancyErrors = Object.values(pregnancyErrors).some(error => error !== "");
+    if (hasPregnancyErrors) {
+      temp.pregnancy = "Please correct all pregnancy field validation errors before submitting";
+    }
+
     setErrors(temp);
     return Object.keys(temp).length === 0;
   };
@@ -613,12 +1131,16 @@ const InitialClinicalEvaluationForm = (props) => {
           symptoms: selectedSymptoms,
           otherSymptom,
           tbAssessment,
+          knownDrugAllergies,
           pregnancy: isFemale ? pregnancy : null,
           currentMeds,
           disclosure,
           arvSideEffects,
           arvHistory,
-          vitals,
+          vitals: {
+            ...vitals,
+            bmi,
+          },
           physicalExam: {
             ...systems,
             breastGlands: isFemale ? systems.breastGlands : null,
@@ -847,34 +1369,50 @@ const InitialClinicalEvaluationForm = (props) => {
             <SubHeading>TB &amp; Other Assessments</SubHeading>
             <FieldRow>
               <Col size={3}>
-                <SectionLabel>Patient Assessed for TB?</SectionLabel>
+                <SectionLabel>Patient Assessed for TB? <span style={{ color: "red" }}>*</span></SectionLabel>
                 <Input type="select" name="assessed_for_tb" value={tbAssessment.assessed_for_tb} onChange={handleTb}>
                   <option value="">Select</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                 </Input>
+                {errors.assessed_for_tb && (
+                  <span className={classes.error}>{errors.assessed_for_tb}</span>
+                )}
               </Col>
+              {tbAssessment.assessed_for_tb === "Yes" && (
+                <Col size={3}>
+                  <SectionLabel>TB Status</SectionLabel>
+                  <Input type="select" name="tb_status" value={tbAssessment.tb_status} onChange={handleTb} disabled={loadingCodesets}>
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.tbStatus.map((opt) => (
+                      <option key={opt.id} value={opt.code}>{opt.display}</option>
+                    ))}
+                  </Input>
+                </Col>
+              )}
               <Col size={3}>
-                <SectionLabel>TB Status</SectionLabel>
-                <Input type="text" name="tb_status" value={tbAssessment.tb_status} onChange={handleTb} placeholder="Enter TB status" />
-              </Col>
-              <Col size={3}>
-                <SectionLabel>Developmental Assessment</SectionLabel>
-                <Input type="select" name="developmental_assessment" value={tbAssessment.developmental_assessment} onChange={handleTb}>
-                  <option value="">Select</option>
-                  <option value="Appropriate">Appropriate</option>
-                  <option value="Delayed">Delayed</option>
-                  <option value="Retarded">Retarded</option>
+                <SectionLabel>Developmental Assessment <span style={{ color: "red" }}>*</span></SectionLabel>
+                <Input type="select" name="developmental_assessment" value={tbAssessment.developmental_assessment} onChange={handleTb} disabled={loadingCodesets}>
+                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                  {codesets.developmentalAssessment.map((opt) => (
+                    <option key={opt.id} value={opt.code}>{opt.display}</option>
+                  ))}
                 </Input>
+                {errors.developmental_assessment && (
+                  <span className={classes.error}>{errors.developmental_assessment}</span>
+                )}
               </Col>
-              <Col size={3}>
-                <SectionLabel>Immunisation Complete for Age</SectionLabel>
-                <Input type="select" name="immunisation_complete" value={tbAssessment.immunisation_complete} onChange={handleTb}>
-                  <option value="">Select</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </Input>
-              </Col>
+              {patientAge >= 0 && patientAge <= 2 && (
+                <Col size={3}>
+                  <SectionLabel>Immunisation Complete for Age</SectionLabel>
+                  <Input type="select" name="immunisation_complete" value={tbAssessment.immunisation_complete} onChange={handleTb} disabled={loadingCodesets}>
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.immunisationComplete.map((opt) => (
+                      <option key={opt.id} value={opt.code}>{opt.display}</option>
+                    ))}
+                  </Input>
+                </Col>
+              )}
             </FieldRow>
             <FieldRow>
               {patientAge <= 14 && (
@@ -888,11 +1426,37 @@ const InitialClinicalEvaluationForm = (props) => {
                   </Input>
                 </Col>
               )}
-              <Col size={4}>
-                <SectionLabel>Known Drug Allergies</SectionLabel>
-                <Input type="text" name="known_drug_allergies" value={tbAssessment.known_drug_allergies} onChange={handleTb} placeholder="e.g. Penicillin, Sulfa drugs" />
-              </Col>
-              <Col size={8}>
+            </FieldRow>
+
+            {/* Known Drug Allergies */}
+            <Divider sx={{ my: 2 }} />
+            <SubHeading>Known Drug Allergies <span style={{ color: "red" }}>*</span></SubHeading>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
+              {loadingCodesets ? (
+                <Typography sx={{ fontSize: "13px", color: "#9e9e9e" }}>Loading drug allergies...</Typography>
+              ) : (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  {codesets.knownDrugAllergies.map((opt) => (
+                    <CheckGroup
+                      key={opt.id}
+                      name={`allergy_${opt.code}`}
+                      id={`allergy_${opt.code}`}
+                      label={opt.display}
+                      checked={knownDrugAllergies.includes(opt.code)}
+                      onChange={(e) => handleDrugAllergiesCheckbox(opt.code, e.target.checked)}
+                    />
+                  ))}
+                </Box>
+              )}
+            </Box>
+            {errors.knownDrugAllergies && (
+              <Typography sx={{ fontSize: "12px", color: "#d32f2f", marginTop: "-12px", marginBottom: "16px" }}>
+                {errors.knownDrugAllergies}
+              </Typography>
+            )}
+
+            <FieldRow>
+              <Col size={12}>
                 <SectionLabel>Past Medical History (including hospitalisation and surgery)</SectionLabel>
                 <Input type="textarea" name="past_medical_history" value={tbAssessment.past_medical_history} onChange={handleTb} rows={2} placeholder="Describe relevant past medical history..." style={{ height: "auto" }} />
               </Col>
@@ -906,26 +1470,61 @@ const InitialClinicalEvaluationForm = (props) => {
                 <FieldRow>
                   <Col size={3}>
                     <SectionLabel>Currently Pregnant</SectionLabel>
-                    <Input type="select" name="currently_pregnant" value={pregnancy.currently_pregnant} onChange={handlePregnancy}>
-                      <option value="">Select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                      <option value="Uncertain">Uncertain</option>
+                    <Input type="select" name="currently_pregnant" value={pregnancy.currently_pregnant} onChange={handlePregnancy} disabled={loadingCodesets}>
+                      <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                      {codesets.currentlyPregnant.map((opt) => (
+                        <option key={opt.id} value={opt.code}>{opt.display}</option>
+                      ))}
                     </Input>
                   </Col>
-                  {pregnancy.currently_pregnant === "Yes" && (
+                  {isPregnant() && (
                     <>
                       <Col size={3}>
                         <SectionLabel>Last Menstrual Period</SectionLabel>
-                        <Input type="date" name="last_menstrual_period" value={pregnancy.last_menstrual_period} onChange={handlePregnancy} />
+                        <Input
+                          type="date"
+                          name="last_menstrual_period"
+                          value={pregnancy.last_menstrual_period}
+                          onChange={handlePregnancy}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          style={{ borderColor: pregnancyErrors.last_menstrual_period ? "#d32f2f" : "" }}
+                        />
+                        {pregnancyErrors.last_menstrual_period && (
+                          <span className={classes.error}>{pregnancyErrors.last_menstrual_period}</span>
+                        )}
                       </Col>
                       <Col size={3}>
                         <SectionLabel>Gestational Age (Weeks)</SectionLabel>
-                        <Input type="text" name="gestational_age" value={pregnancy.gestational_age} onChange={handlePregnancy} placeholder="Weeks" />
+                        <Input
+                          type="text"
+                          value={pregnancy.gestational_age}
+                          readOnly
+                          placeholder="Auto-calculated"
+                          style={{
+                            backgroundColor: "#f5f5f5",
+                            cursor: "not-allowed",
+                            fontWeight: pregnancy.gestational_age ? "600" : "400",
+                            color: pregnancy.gestational_age ? "#014d88" : "#9e9e9e"
+                          }}
+                        />
                       </Col>
                       <Col size={3}>
                         <SectionLabel>Expected Date of Delivery</SectionLabel>
-                        <Input type="date" name="expected_date_of_delivery" value={pregnancy.expected_date_of_delivery} onChange={handlePregnancy} />
+                        <Input
+                          type="date"
+                          value={pregnancy.expected_date_of_delivery}
+                          readOnly
+                          style={{
+                            backgroundColor: "#f5f5f5",
+                            cursor: "not-allowed",
+                            fontWeight: pregnancy.expected_date_of_delivery ? "600" : "400",
+                            color: pregnancy.expected_date_of_delivery ? "#014d88" : "#9e9e9e",
+                            borderColor: pregnancyErrors.expected_date_of_delivery ? "#d32f2f" : ""
+                          }}
+                        />
+                        {pregnancyErrors.expected_date_of_delivery && (
+                          <span className={classes.error}>{pregnancyErrors.expected_date_of_delivery}</span>
+                        )}
                       </Col>
                     </>
                   )}
@@ -937,22 +1536,20 @@ const InitialClinicalEvaluationForm = (props) => {
             <Divider sx={{ my: 2 }} />
             <SubHeading>Current Medications</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px" }}>
-              <CheckGroup name="none" id="meds_none" label="None" checked={currentMeds.none} onChange={handleMeds} />
-              {!currentMeds.none && (
-                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", mt: 1 }}>
-                  <CheckGroup name="art" id="meds_art" label="ART" checked={currentMeds.art} onChange={handleMeds} />
-                  <CheckGroup name="ctx" id="meds_ctx" label="CTX" checked={currentMeds.ctx} onChange={handleMeds} />
-                  <CheckGroup name="anti_tb_drugs" id="meds_anti_tb" label="Anti-TB Drugs" checked={currentMeds.anti_tb_drugs} onChange={handleMeds} />
-                  <div style={{ marginLeft: "8px", display: "inline-block" }}>
-                    <Input
-                      type="text"
-                      name="other_specify"
-                      value={currentMeds.other_specify}
-                      onChange={handleMeds}
-                      placeholder="Other (specify)..."
-                      style={{ width: "220px", height: "34px", fontSize: "13px" }}
+              {loadingCodesets ? (
+                <Typography sx={{ fontSize: "13px", color: "#9e9e9e" }}>Loading medication options...</Typography>
+              ) : (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  {codesets.currentMedications.map((opt) => (
+                    <CheckGroup
+                      key={opt.id}
+                      name={`meds_${opt.code}`}
+                      id={`meds_${opt.code}`}
+                      label={opt.display}
+                      checked={currentMeds.includes(opt.code)}
+                      onChange={(e) => handleMedsCheckbox(opt.code, e.target.checked)}
                     />
-                  </div>
+                  ))}
                 </Box>
               )}
             </Box>
@@ -961,23 +1558,20 @@ const InitialClinicalEvaluationForm = (props) => {
             <Divider sx={{ my: 2 }} />
             <SubHeading>Patient Has Disclosed / Can Disclose Status To</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px" }}>
-              <CheckGroup name="no_one" id="disc_no_one" label="No One" checked={disclosure.no_one} onChange={handleDisclosure} />
-              {!disclosure.no_one && (
-                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px", mt: 1 }}>
-                  <CheckGroup name="family_member" id="disc_family" label="Family Member" checked={disclosure.family_member} onChange={handleDisclosure} />
-                  <CheckGroup name="friend" id="disc_friend" label="Friend" checked={disclosure.friend} onChange={handleDisclosure} />
-                  <CheckGroup name="spouse" id="disc_spouse" label="Spouse" checked={disclosure.spouse} onChange={handleDisclosure} />
-                  <CheckGroup name="spiritual_leader" id="disc_spiritual" label="Spiritual Leader" checked={disclosure.spiritual_leader} onChange={handleDisclosure} />
-                  <div style={{ marginLeft: "8px", display: "inline-block" }}>
-                    <Input
-                      type="text"
-                      name="others_specify"
-                      value={disclosure.others_specify}
-                      onChange={handleDisclosure}
-                      placeholder="Others (specify)..."
-                      style={{ width: "220px", height: "34px", fontSize: "13px" }}
+              {loadingCodesets ? (
+                <Typography sx={{ fontSize: "13px", color: "#9e9e9e" }}>Loading disclosure options...</Typography>
+              ) : (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  {codesets.patientDiscloseStatus.map((opt) => (
+                    <CheckGroup
+                      key={opt.id}
+                      name={`disc_${opt.code}`}
+                      id={`disc_${opt.code}`}
+                      label={opt.display}
+                      checked={disclosure.includes(opt.code)}
+                      onChange={(e) => handleDisclosureCheckbox(opt.code, e.target.checked)}
                     />
-                  </div>
+                  ))}
                 </Box>
               )}
             </Box>
@@ -1066,6 +1660,41 @@ const InitialClinicalEvaluationForm = (props) => {
           {/* ══════════════════════════════════════════════════════════════ */}
           <FormAccordion panel="physical" title="Physical Examination" index={3} expanded={expanded} onToggle={toggleAccordion}>
 
+            {/* Informational Tips */}
+            <Box sx={{ marginBottom: "20px" }}>
+              <Alert severity="info" icon={<InfoOutlinedIcon />} sx={{ fontSize: "12px", padding: "12px 16px" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
+                  <Typography sx={{ fontWeight: 600, fontSize: "13px", marginRight: "8px", whiteSpace: "nowrap" }}>
+                    Vital Signs Reference:
+                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <ThermostatIcon sx={{ fontSize: "16px", color: "#0288d1" }} />
+                    <span><strong>Temp:</strong> 35-47°C</span>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <MonitorHeartIcon sx={{ fontSize: "16px", color: "#d32f2f" }} />
+                    <span><strong>BP:</strong> 90-240/60-140</span>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <FavoriteIcon sx={{ fontSize: "16px", color: "#e91e63" }} />
+                    <span><strong>Pulse:</strong> 40-120</span>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <AirIcon sx={{ fontSize: "16px", color: "#00acc1" }} />
+                    <span><strong>Resp Rate:</strong> 10-70</span>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <ScaleIcon sx={{ fontSize: "16px", color: "#7b1fa2" }} />
+                    <span><strong>Weight:</strong> 48.26-216.41kg</span>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <ScaleIcon sx={{ fontSize: "16px", color: "#ff6f00" }} />
+                    <span><strong>Height:</strong> 48.26-216.41cm</span>
+                  </Box>
+                </Box>
+              </Alert>
+            </Box>
+
             {/* Vitals */}
             <SubHeading>Vitals</SubHeading>
             <Box
@@ -1080,28 +1709,109 @@ const InitialClinicalEvaluationForm = (props) => {
               <div className="row">
                 <Col size={2}>
                   <SectionLabel>Temp (°C)</SectionLabel>
-                  <Input type="text" name="temperature" value={vitals.temperature} onChange={handleVitals} placeholder="°C" />
+                  <Input
+                    type="text"
+                    name="temperature"
+                    value={vitals.temperature}
+                    onChange={handleVitals}
+                    placeholder="°C"
+                    style={{ borderColor: vitalsErrors.temperature ? "#d32f2f" : "" }}
+                  />
+                  {vitalsErrors.temperature && (
+                    <span className={classes.error}>{vitalsErrors.temperature}</span>
+                  )}
                 </Col>
                 <div className="form-group mb-3 col-md-3">
                   <SectionLabel>Blood Pressure (mm/Hg)</SectionLabel>
                   <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                    <Input type="text" name="bp_systolic" value={vitals.bp_systolic} onChange={handleVitals} placeholder="Sys" />
+                    <div style={{ flex: 1 }}>
+                      <Input
+                        type="text"
+                        name="bp_systolic"
+                        value={vitals.bp_systolic}
+                        onChange={handleVitals}
+                        placeholder="Sys"
+                        style={{ borderColor: vitalsErrors.bp_systolic ? "#d32f2f" : "" }}
+                      />
+                      {vitalsErrors.bp_systolic && (
+                        <span className={classes.error}>{vitalsErrors.bp_systolic}</span>
+                      )}
+                    </div>
                     <span style={{ color: "#546e7a", fontSize: "18px", fontWeight: 300 }}>/</span>
-                    <Input type="text" name="bp_diastolic" value={vitals.bp_diastolic} onChange={handleVitals} placeholder="Dia" />
+                    <div style={{ flex: 1 }}>
+                      <Input
+                        type="text"
+                        name="bp_diastolic"
+                        value={vitals.bp_diastolic}
+                        onChange={handleVitals}
+                        placeholder="Dia"
+                        style={{ borderColor: vitalsErrors.bp_diastolic ? "#d32f2f" : "" }}
+                      />
+                      {vitalsErrors.bp_diastolic && (
+                        <span className={classes.error}>{vitalsErrors.bp_diastolic}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <Col size={2}>
                   <SectionLabel>Pulse (b/min)</SectionLabel>
-                  <Input type="text" name="pulse" value={vitals.pulse} onChange={handleVitals} placeholder="b/min" />
+                  <Input
+                    type="text"
+                    name="pulse"
+                    value={vitals.pulse}
+                    onChange={handleVitals}
+                    placeholder="b/min"
+                    style={{ borderColor: vitalsErrors.pulse ? "#d32f2f" : "" }}
+                  />
+                  {vitalsErrors.pulse && (
+                    <span className={classes.error}>{vitalsErrors.pulse}</span>
+                  )}
                 </Col>
                 <Col size={2}>
                   <SectionLabel>Weight (kg)</SectionLabel>
-                  <Input type="text" name="weight" value={vitals.weight} onChange={handleVitals} placeholder="kg" />
+                  <Input
+                    type="text"
+                    name="weight"
+                    value={vitals.weight}
+                    onChange={handleVitals}
+                    placeholder="kg"
+                    style={{ borderColor: vitalsErrors.weight ? "#d32f2f" : "" }}
+                  />
+                  {vitalsErrors.weight && (
+                    <span className={classes.error}>{vitalsErrors.weight}</span>
+                  )}
                 </Col>
                 <Col size={2}>
                   <SectionLabel>Height (cm)</SectionLabel>
-                  <Input type="text" name="height" value={vitals.height} onChange={handleVitals} placeholder="cm" />
+                  <Input
+                    type="text"
+                    name="height"
+                    value={vitals.height}
+                    onChange={handleVitals}
+                    placeholder="cm"
+                    style={{ borderColor: vitalsErrors.height ? "#d32f2f" : "" }}
+                  />
+                  {vitalsErrors.height && (
+                    <span className={classes.error}>{vitalsErrors.height}</span>
+                  )}
                 </Col>
+                <Col size={2}>
+                  <SectionLabel>BMI (kg/m²)</SectionLabel>
+                  <Input
+                    type="text"
+                    value={bmi}
+                    readOnly
+                    placeholder="Auto"
+                    style={{
+                      backgroundColor: "#f5f5f5",
+                      cursor: "not-allowed",
+                      fontWeight: bmi ? "600" : "400",
+                      color: bmi ? "#014d88" : "#9e9e9e"
+                    }}
+                  />
+                </Col>
+              </div>
+              <div className="row" style={{ marginTop: "8px" }}>
                 <Col size={2}>
                   <SectionLabel>Head Circumference (cm)</SectionLabel>
                   <Input type="text" name="head_circumference" value={vitals.head_circumference} onChange={handleVitals} placeholder="cm" />
@@ -1136,7 +1846,11 @@ const InitialClinicalEvaluationForm = (props) => {
                       value={systems.respiratory.rate || ""}
                       onChange={(e) => handleSystemExtra("respiratory", "rate", e.target.value)}
                       placeholder="b/min"
+                      style={{ borderColor: vitalsErrors.respiratory_rate ? "#d32f2f" : "" }}
                     />
+                    {vitalsErrors.respiratory_rate && (
+                      <span className={classes.error}>{vitalsErrors.respiratory_rate}</span>
+                    )}
                   </div>
                 )
               }
@@ -1191,15 +1905,30 @@ const InitialClinicalEvaluationForm = (props) => {
           <FormAccordion panel="confirmatory" title="Confirmatory Details" index={4} expanded={expanded} onToggle={toggleAccordion}>
 
             {/* Assessment */}
-            <SubHeading>Assessment</SubHeading>
+            <SubHeading>Assessment <span style={{ color: "red" }}>*</span></SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                <CheckGroup name="asymptomatic" id="assess_asymptomatic" label="Asymptomatic" checked={assessment.asymptomatic} onChange={handleAssessment} />
-                <CheckGroup name="symptomatic" id="assess_symptomatic" label="Symptomatic" checked={assessment.symptomatic} onChange={handleAssessment} />
-                <CheckGroup name="aids_defining_illness" id="assess_aids" label="AIDS Defining Illness" checked={assessment.aids_defining_illness} onChange={handleAssessment} />
-                <CheckGroup name="opportunistic_infection" id="assess_oi" label="Opportunistic Infection" checked={assessment.opportunistic_infection} onChange={handleAssessment} />
-              </Box>
+              {loadingCodesets ? (
+                <Typography sx={{ fontSize: "13px", color: "#9e9e9e" }}>Loading assessment options...</Typography>
+              ) : (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  {codesets.assessment.map((opt) => (
+                    <CheckGroup
+                      key={opt.id}
+                      name={`assessment_${opt.code}`}
+                      id={`assessment_${opt.code}`}
+                      label={opt.display}
+                      checked={assessment.assessment_items.includes(opt.code)}
+                      onChange={(e) => handleCheckboxArray('assessment_items', opt.code, e.target.checked)}
+                    />
+                  ))}
+                </Box>
+              )}
             </Box>
+            {errors.assessment_items && (
+              <Typography sx={{ fontSize: "12px", color: "#d32f2f", marginTop: "-12px", marginBottom: "16px" }}>
+                {errors.assessment_items}
+              </Typography>
+            )}
 
             {/* WHO Stage */}
             <FieldRow>
@@ -1207,12 +1936,11 @@ const InitialClinicalEvaluationForm = (props) => {
                 <SectionLabel>
                   WHO Stage <span style={{ color: "red" }}>*</span>
                 </SectionLabel>
-                <Input type="select" name="who_stage" value={assessment.who_stage} onChange={handleAssessment}>
-                  <option value="">Select WHO Stage</option>
-                  <option value="Stage 1">Stage 1 — Asymptomatic</option>
-                  <option value="Stage 2">Stage 2 — Mild</option>
-                  <option value="Stage 3">Stage 3 — Advanced</option>
-                  <option value="Stage 4">Stage 4 — Severe</option>
+                <Input type="select" name="who_stage" value={assessment.who_stage} onChange={handleAssessment} disabled={loadingCodesets}>
+                  <option value="">{loadingCodesets ? "Loading..." : "Select WHO Stage"}</option>
+                  {codesets.whoStage.map((opt) => (
+                    <option key={opt.id} value={opt.code}>{opt.display}</option>
+                  ))}
                 </Input>
                 {errors.who_stage && (
                   <span className={classes.error}>{errors.who_stage}</span>
@@ -1220,28 +1948,57 @@ const InitialClinicalEvaluationForm = (props) => {
               </Col>
             </FieldRow>
 
+            {/* WHO Stage Criteria - Conditional Transfer List */}
+            {assessment.who_stage && WHO_STAGE_CRITERIA_OPTIONS[assessment.who_stage] && (
+              <TransferList
+                availableItems={WHO_STAGE_CRITERIA_OPTIONS[assessment.who_stage]}
+                selectedItems={assessment.who_stage_criteria}
+                onTransfer={handleWhoStageCriteriaTransfer}
+                stageName={codesets.whoStage.find(opt => opt.code === assessment.who_stage)?.display || assessment.who_stage}
+              />
+            )}
+
             {/* Enrol In */}
             <Divider sx={{ my: 2 }} />
             <SubHeading>Enrol In</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                <CheckGroup name="enroll_general_followup" id="enroll_general" label="General Medical Follow-up" checked={assessment.enroll_general_followup} onChange={handleAssessment} />
-                <CheckGroup name="enroll_arv_therapy" id="enroll_arv" label="ARV Therapy" checked={assessment.enroll_arv_therapy} onChange={handleAssessment} />
-                <CheckGroup name="enroll_ahd_management" id="enroll_ahd" label="AHD Management" checked={assessment.enroll_ahd_management} onChange={handleAssessment} />
-                <CheckGroup name="enroll_pending_lab_results" id="enroll_pending" label="Pending Lab Results" checked={assessment.enroll_pending_lab_results} onChange={handleAssessment} />
-              </Box>
+              {loadingCodesets ? (
+                <Typography sx={{ fontSize: "13px", color: "#9e9e9e" }}>Loading enrollment options...</Typography>
+              ) : (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  {codesets.enrollIn.map((opt) => (
+                    <CheckGroup
+                      key={opt.id}
+                      name={`enroll_${opt.code}`}
+                      id={`enroll_${opt.code}`}
+                      label={opt.display}
+                      checked={assessment.enroll_in_items.includes(opt.code)}
+                      onChange={(e) => handleCheckboxArray('enroll_in_items', opt.code, e.target.checked)}
+                    />
+                  ))}
+                </Box>
+              )}
             </Box>
 
             {/* Plan for ART */}
             <SubHeading>Plan for Antiretroviral Therapy (ART)</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                <CheckGroup name="plan_art_ongoing_monitoring" id="plan_ongoing" label="Ongoing Monitoring" checked={assessment.plan_art_ongoing_monitoring} onChange={handleAssessment} />
-                <CheckGroup name="plan_art_postponed" id="plan_postponed" label="ARV Tx Postponed for Clinical Reasons" checked={assessment.plan_art_postponed} onChange={handleAssessment} />
-                <CheckGroup name="plan_art_change_treatment" id="plan_change" label="Change Treatment" checked={assessment.plan_art_change_treatment} onChange={handleAssessment} />
-                <CheckGroup name="plan_art_restart" id="plan_restart" label="Restart Treatment" checked={assessment.plan_art_restart} onChange={handleAssessment} />
-                <CheckGroup name="plan_art_start_new" id="plan_start_new" label="Start New Treatment" checked={assessment.plan_art_start_new} onChange={handleAssessment} />
-              </Box>
+              {loadingCodesets ? (
+                <Typography sx={{ fontSize: "13px", color: "#9e9e9e" }}>Loading ART plan options...</Typography>
+              ) : (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  {codesets.planForArt.map((opt) => (
+                    <CheckGroup
+                      key={opt.id}
+                      name={`plan_art_${opt.code}`}
+                      id={`plan_art_${opt.code}`}
+                      label={opt.display}
+                      checked={assessment.plan_for_art_items.includes(opt.code)}
+                      onChange={(e) => handleCheckboxArray('plan_for_art_items', opt.code, e.target.checked)}
+                    />
+                  ))}
+                </Box>
+              )}
             </Box>
 
             {/* Drugs, Comments, Appointment */}
@@ -1271,7 +2028,7 @@ const InitialClinicalEvaluationForm = (props) => {
                 />
               </Col>
               <Col size={2}>
-                <SectionLabel>Next Appointment Date</SectionLabel>
+                <SectionLabel>Next Appointment Date <span style={{ color: "red" }}>*</span></SectionLabel>
                 <Input
                   type="date"
                   name="next_appointment"
@@ -1279,11 +2036,25 @@ const InitialClinicalEvaluationForm = (props) => {
                   onChange={handleAssessment}
                   min={moment(new Date()).format("YYYY-MM-DD")}
                 />
+                {errors.next_appointment && (
+                  <span className={classes.error}>{errors.next_appointment}</span>
+                )}
               </Col>
             </FieldRow>
           </FormAccordion>
 
-          {/* ── Action Buttons ────────────────────────────────────────────── */}
+          {/* ── Validation Error Alert ────────────────────────────────────── */}
+          {errors.vitals && (
+            <Alert severity="error" sx={{ marginBottom: "16px" }}>
+              {errors.vitals}
+            </Alert>
+          )}
+          {errors.pregnancy && (
+            <Alert severity="error" sx={{ marginBottom: "16px" }}>
+              {errors.pregnancy}
+            </Alert>
+          )}
+
           <Box
             sx={{
               display: "flex",
