@@ -21,6 +21,9 @@ public class CommencementDto {
     @JsonProperty("date_art_started")
     private String dateArtStarted;
 
+    @JsonProperty("regimen_line_id")
+    private Long regimenLineId;
+
     @JsonProperty("first_art_regimen")
     private Long firstArtRegimen;
 

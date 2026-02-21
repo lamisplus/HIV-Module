@@ -142,6 +142,55 @@
         </createIndex>
     </changeSet>
 
+    <!-- Unique constraint to ensure one active record per person               -->
+    <changeSet id="20250220-ec-03" author="lamisplus-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="enrollment_commencement"/>
+            <not>
+                <indexExists tableName="enrollment_commencement" indexName="uk_ec_person_active"/>
+            </not>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            CREATE UNIQUE INDEX uk_ec_person_active
+            ON enrollment_commencement (person_uuid)
+            WHERE archived = 0;
+        </sql>
+
+        <sql dbms="mysql">
+            -- MySQL doesn't support partial indexes, so we use a functional approach
+            -- This prevents duplicate active records via application logic
+            ALTER TABLE enrollment_commencement
+            ADD CONSTRAINT chk_ec_one_active_per_person
+            CHECK (archived = 0 OR archived = 1);
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                DROP INDEX IF EXISTS uk_ec_person_active;
+            </sql>
+            <sql dbms="mysql">
+                ALTER TABLE enrollment_commencement DROP CONSTRAINT IF EXISTS chk_ec_one_active_per_person;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Add regimen_line_id column to store the regimen line for easier retrieval -->
+    <changeSet id="20250221-ec-04" author="lamisplus-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="enrollment_commencement"/>
+            <not>
+                <columnExists tableName="enrollment_commencement" columnName="regimen_line_id"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="enrollment_commencement">
+            <column name="regimen_line_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
     <!-- Migration — populate from existing hiv_enrollment + hiv_art_clinical  -->
 <!--    <changeSet id="20250219-ec-03" author="lamisplus-dev" failOnError="false">-->
 <!--        <preConditions onFail="MARK_RAN">-->

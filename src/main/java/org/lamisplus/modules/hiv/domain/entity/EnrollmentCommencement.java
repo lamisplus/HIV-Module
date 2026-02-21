@@ -128,6 +128,9 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "regimen_id")
     private Long regimenId;
 
+    @Column(name = "regimen_line_id")
+    private Long regimenLineId;
+
     @Column(name = "weight_kg")
     private Double weightKg;
 
