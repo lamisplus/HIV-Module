@@ -25,6 +25,8 @@ import AdultClinicEvaluationForm from "../InitailClinicEvaluation/Adult/Index";
 import ViewAdultClinicEvaluationForm from "../InitailClinicEvaluation/ViewAdultHistory/Index";
 import InitializationEvaluationForm from "../../lamisplus3-in-2/pages/InitializationEvaluation/Index";
 import EnrollmentAndCommencementForm from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Index";
+import EnrollmentAndCommencementView from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/View";
+import EnrollmentAndCommencementUpdate from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Update";
 import CareCardFollowUpForm from "../../lamisplus3-in-2/pages/CareCardFollowUp/Index";
 import AdherencePreparationForm from "../../lamisplus3-in-2/pages/AdherencePreparation/Index";
 import PositiveHealthDignityForm from "../../lamisplus3-in-2/pages/PositiveHealthDignity/Index";
@@ -371,6 +373,20 @@ function PatientCard(props) {
           )}
           {activeContent.route === "enrollment-and-commencement" && (
             <EnrollmentAndCommencementForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "enrollment-and-commencement-view" && (
+            <EnrollmentAndCommencementView
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "enrollment-and-commencement-update" && (
+            <EnrollmentAndCommencementUpdate
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

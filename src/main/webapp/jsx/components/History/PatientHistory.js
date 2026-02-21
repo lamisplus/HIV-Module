@@ -253,6 +253,14 @@ const PatientnHistory = (props) => {
         activeTab: "home",
         actionType: action,
       });
+    } else if (row.path === "enrollment-commencement") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: action === "view" ? "enrollment-and-commencement-view" : "enrollment-and-commencement-update",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
     } else {
 
     }
@@ -693,6 +701,31 @@ const PatientnHistory = (props) => {
           .catch((error) => {
             setSaving(false);
             toggle();
+            if (error.response && error.response.data) {
+              let errorMessage =
+                  error.response.data.apierror &&
+                  error.response.data.apierror.message !== ""
+                      ? error.response.data.apierror.message
+                      : "Something went wrong, please try again";
+              toast.error(errorMessage);
+            } else {
+              toast.error("Something went wrong. Please try again...");
+            }
+          });
+    } else if (row.path === "enrollment-commencement") {
+      setSaving(true);
+      axios
+          .delete(`${baseUrl}hiv/enrollment-commencement/${row.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => {
+            toast.success("Enrollment and Commencement record deleted successfully");
+            PatientHistory();
+            toggle();
+            setSaving(false);
+          })
+          .catch((error) => {
+            setSaving(false);
             if (error.response && error.response.data) {
               let errorMessage =
                   error.response.data.apierror &&
