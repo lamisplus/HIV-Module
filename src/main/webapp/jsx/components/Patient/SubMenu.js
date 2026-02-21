@@ -577,9 +577,9 @@ const SubMenu = (props) => {
                 onClick={menuHandlers.loadInitializationEvaluation}
                 name="initialization-evaluation"
                 active={activeItem === "initialization-evaluation"}
-                title="Initialization Evaluation Form"
+                title="Initial Clinical Evaluation Form"
               >
-                Initialization Evaluation Form
+                Initial Clinical Evaluation
               </MenuItem>
 
               {!isEnrollmentCommencementDone && (
@@ -854,9 +854,9 @@ const SubMenu = (props) => {
                                 onClick={menuHandlers.loadInitializationEvaluation}
                                 name="initialization-evaluation"
                                 active={activeItem === "initialization-evaluation"}
-                                title="Initialization Evaluation Form"
+                                title="Initial Clinical Evaluation Form"
                               >
-                                Initialization Evaluation Form
+                                Initial Clinical Evaluation
                               </Dropdown.Item>
                               {!isEnrollmentCommencementDone && (
                                 <Dropdown.Item

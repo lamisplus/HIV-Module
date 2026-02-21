@@ -23,7 +23,7 @@ import CervicalCancerUpdate from "./../CervicalCancer/ViewPage";
 import ClientStatusUpdate from "./../ClientStatusUpdate/ClientStatusUpdate";
 import AdultClinicEvaluationForm from "../InitailClinicEvaluation/Adult/Index";
 import ViewAdultClinicEvaluationForm from "../InitailClinicEvaluation/ViewAdultHistory/Index";
-import InitializationEvaluationForm from "../../lamisplus3-in-2/pages/InitializationEvaluation/Index";
+import InitialClinicalEvaluationForm from "../../lamisplus3-in-2/pages/InitialClinicalEvaluation/Index";
 import EnrollmentAndCommencementForm from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Index";
 import EnrollmentAndCommencementView from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/View";
 import EnrollmentAndCommencementUpdate from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Update";
@@ -365,7 +365,7 @@ function PatientCard(props) {
           )}
           {/* {activeContent.route==='child-evaluation' &&( <ChildClinicEvaluationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)} */}
           {activeContent.route === "initialization-evaluation" && (
-            <InitializationEvaluationForm
+            <InitialClinicalEvaluationForm
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

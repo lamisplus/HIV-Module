@@ -378,7 +378,7 @@ const BodySystem = ({ label, systemKey, state, onChange, extraContent }) => {
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-const InitializationEvaluationForm = (props) => {
+const InitialClinicalEvaluationForm = (props) => {
   const classes = useStyles();
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
   const isFemale = ["female", "FEMALE", "Female"].includes(props.patientObj.sex);
@@ -606,7 +606,7 @@ const InitializationEvaluationForm = (props) => {
       const payload = {
         dateOfObservation: visitDate,
         personId: props.patientObj.id,
-        type: "Initialization Clinical Evaluation",
+        type: "Initial Clinical Evaluation",
         data: {
           visitDate,
           clinicianName,
@@ -630,7 +630,7 @@ const InitializationEvaluationForm = (props) => {
       await axios.post(`${baseUrl}observation`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      toast.success("Initialization Evaluation saved successfully");
+      toast.success("Initial Clinical Evaluation saved successfully");
       props.setActiveContent({ ...props.activeContent, route: "recent-history" });
     } catch (err) {
       const msg = err?.response?.data?.apierror?.message || "An error occurred. Please try again.";
@@ -656,8 +656,8 @@ const InitializationEvaluationForm = (props) => {
         >
           <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
             {patientAge < 14
-              ? "Pediatric — Initialization Clinical Evaluation"
-              : "Adult — Initialization Clinical Evaluation"}
+              ? "Pediatric — Initial Clinical Evaluation"
+              : "Adult — Initial Clinical Evaluation"}
           </Typography>
         </Box>
 
@@ -1321,4 +1321,4 @@ const InitializationEvaluationForm = (props) => {
   );
 };
 
-export default InitializationEvaluationForm;
+export default InitialClinicalEvaluationForm;
