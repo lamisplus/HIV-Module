@@ -49,4 +49,9 @@ public class EnrollmentCommencementController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping(value = "/check-exists/person/{personId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Boolean> checkExists(@PathVariable Long personId) {
+        return ResponseEntity.ok(service.hasExistingRecord(personId));
+    }
 }

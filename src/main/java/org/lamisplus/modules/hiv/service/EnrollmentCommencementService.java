@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
-import org.lamisplus.modules.base.domain.repositories.ApplicationCodesetRepository;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.CommencementDto;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.EnrollmentCommencementRequestDto;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.RegistrationDto;
@@ -33,7 +32,6 @@ public class EnrollmentCommencementService {
     private final PersonRepository personRepository;
     private final HandleHIVVisitEncounter hivVisitEncounter;
     private final CurrentUserOrganizationService currentUserOrganizationService;
-    private final ApplicationCodesetRepository applicationCodesetRepository;
 
     public EnrollmentCommencement create(EnrollmentCommencementRequestDto request) {
         Person person = resolvePerson(request.getPersonId());
@@ -64,7 +62,7 @@ public class EnrollmentCommencementService {
     }
 
     public EnrollmentCommencement getById(Long id) {
-        return repository.findById(id)
+        return repository.findByIdAndArchived(id, 0)
                 .orElseThrow(() -> new EntityNotFoundException(
                         EnrollmentCommencement.class, "id", String.valueOf(id)));
     }
@@ -80,6 +78,12 @@ public class EnrollmentCommencementService {
         EnrollmentCommencement entity = getById(id);
         entity.setArchived(1);
         repository.save(entity);
+    }
+
+
+    public boolean hasExistingRecord(Long personId) {
+        Person person = resolvePerson(personId);
+        return repository.existsByPersonAndArchived(person, 0);
     }
 
 
@@ -141,20 +145,7 @@ public class EnrollmentCommencementService {
                 "kp_typology is required when is_kp = 'Yes'");
         }
 
-        //  Transfer-in fields — Required if care_entry_point indicates transfer
-        Long careEntryPointId = reg.getCareEntryPoint();
-        if (careEntryPointId != null) {
-            applicationCodesetRepository.findById(careEntryPointId).ifPresent(codeset -> {
-                if (codeset.getCode() != null && codeset.getCode().toUpperCase().contains("TRANSFER")) {
-                    if (isNullOrEmpty(reg.getDateTransferredIn())) {
-                        throw new IllegalArgumentException(
-                            "date_transferred_in is required when care_entry_point is 'Transfer In'");
-                    }
-                }
-            });
-        }
 
-        //  Facility Transferred From — Required if date_transferred_in is provided
         if (!isNullOrEmpty(reg.getDateTransferredIn()) &&
             isNullOrEmpty(reg.getFacilityTransferredFrom())) {
             throw new IllegalArgumentException(
@@ -237,6 +228,7 @@ public class EnrollmentCommencementService {
         entity.setCd4LfId(com.getCd4Lf());                              // Direct ID assignment
         entity.setDateAdherenceCounselingCompleted(parseDate(com.getDateAdherenceCounselingCompleted()));
         entity.setDateArtStarted(artStartDate);
+        entity.setRegimenLineId(com.getRegimenLineId());                // Direct ID assignment
         entity.setRegimenId(com.getFirstArtRegimen());                  // Direct ID assignment
         entity.setWeightKg(parseDouble(com.getWeightKg()));
         entity.setHeightCm(parseDouble(com.getHeightCm()));
