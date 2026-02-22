@@ -32,6 +32,9 @@ public class EnrollmentCommencementService {
     private final PersonRepository personRepository;
     private final HandleHIVVisitEncounter hivVisitEncounter;
     private final CurrentUserOrganizationService currentUserOrganizationService;
+    private final HIVStatusTrackerService hivStatusTrackerService;
+
+    private static final String ART_START_STATUS = "ART Start";
 
     public EnrollmentCommencement create(EnrollmentCommencementRequestDto request) {
         Person person = resolvePerson(request.getPersonId());
@@ -44,7 +47,12 @@ public class EnrollmentCommencementService {
         validateRequiredFields(request, person);
 
         EnrollmentCommencement entity = buildEntity(request, person);
-        return repository.save(entity);
+        EnrollmentCommencement saved = repository.save(entity);
+
+        // Update HIV Status to ART Start after enrollment commencement
+        hivStatusTrackerService.autoUpdateHIVStatus(person, entity.getVisit(), ART_START_STATUS, entity.getDateArtStarted());
+
+        return saved;
     }
 
     public EnrollmentCommencement update(Long id, EnrollmentCommencementRequestDto request) {

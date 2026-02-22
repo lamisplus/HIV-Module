@@ -256,4 +256,43 @@ public class HIVStatusTrackerService {
         hivStatusTracker.setReasonForInterruption("Self-returned _to_care");
          hivStatusTrackerRepository.save(hivStatusTracker);
     }
+
+
+    public void autoUpdateHIVStatus(Person person, Visit visit, String hivStatus, LocalDate statusDate) {
+        try {
+            log.info("Auto-updating HIV status to '{}' for person: {}", hivStatus, person.getId());
+
+            // Check if the exact same status already exists for this person on this date
+            boolean duplicateExists = hivStatusTrackerRepository
+                    .findAllByPersonAndArchived(person, 0)
+                    .stream()
+                    .anyMatch(s -> s.getStatusDate().equals(statusDate) &&
+                                  s.getHivStatus().equalsIgnoreCase(hivStatus));
+
+            if (duplicateExists) {
+                log.info("Status '{}' already exists for person {} on date {}, skipping duplicate",
+                    hivStatus, person.getId(), statusDate);
+                return;
+            }
+
+            // Create new HIV Status Tracker record
+            HIVStatusTracker statusTracker = HIVStatusTracker.builder()
+                    .person(person)
+                    .visit(visit)
+                    .hivStatus(hivStatus)
+                    .statusDate(statusDate)
+                    .uuid(UUID.randomUUID().toString())
+                    .archived(0)
+                    .auto(true)  // Automatically created by the system
+                    .build();
+            // Set facilityId using setter (not available in builder as it's from parent class)
+            statusTracker.setFacilityId(organizationUtil.getCurrentUserOrganization());
+            hivStatusTrackerRepository.save(statusTracker);
+            log.info("HIV status auto-updated to '{}' successfully for person: {}", hivStatus, person.getId());
+
+        } catch (Exception e) {
+            log.error("Error auto-updating HIV status for person {}: {}", person.getId(), e.getMessage());
+
+        }
+    }
 }

@@ -7,8 +7,8 @@ import org.springframework.core.annotation.Order;
 @Order(100)
 @Installer(
         name = "enrollment-commencement-installer",
-        description = "Creates the enrollment_commencement table",
-        version = 1
+        description = "Creates the enrollment_commencement table and adds regimen_line_id column",
+        version = 2
 )
 public class EnrollmentCommencementInstaller extends AcrossLiquibaseInstaller {
 

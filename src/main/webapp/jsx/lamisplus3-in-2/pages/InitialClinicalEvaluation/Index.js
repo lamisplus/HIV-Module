@@ -495,7 +495,7 @@ const BodySystem = ({ label, systemKey, state, onChange, extraContent }) => {
       findings: [],
       other: "",
       ...(state.rate !== undefined ? { rate: "" } : {}),
-      ...(state.tanner_stage !== undefined ? { tanner_stage: "" } : {}),
+      ...(state.tannerStage !== undefined ? { tannerStage: "" } : {}),
     });
   };
 
@@ -637,7 +637,7 @@ const InitialClinicalEvaluationForm = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Codeset API Response:", response.data);
+      console.log("Codeset  Response:", response.data);
 
       setCodesets({
         tbStatus: response.data.TB_STATUS || [],
@@ -700,19 +700,19 @@ const InitialClinicalEvaluationForm = (props) => {
 
   // ── Section: Medical History ─────────────────────────────────────────────
   const [tbAssessment, setTbAssessment] = useState({
-    assessed_for_tb: "",
-    tb_status: "",
-    developmental_assessment: "",
-    immunisation_complete: "",
-    mode_of_infant_feeding: "",
-    past_medical_history: "",
+    assessedForTb: "",
+    tbStatus: "",
+    developmentalAssessment: "",
+    immunisationComplete: "",
+    modeOfInfantFeeding: "",
+    pastMedicalHistory: "",
   });
 
   const handleTb = (e) => {
     const { name, value } = e.target;
-    // Clear TB status if assessed_for_tb is changed to No or empty
-    if (name === "assessed_for_tb" && value !== "Yes") {
-      setTbAssessment((prev) => ({ ...prev, [name]: value, tb_status: "" }));
+    // Clear TB status if assessedForTb is changed to No or empty
+    if (name === "assessedForTb" && value !== "Yes") {
+      setTbAssessment((prev) => ({ ...prev, [name]: value, tbStatus: "" }));
     } else {
       setTbAssessment((prev) => ({ ...prev, [name]: value }));
     }
@@ -729,10 +729,10 @@ const InitialClinicalEvaluationForm = (props) => {
   };
 
   const [pregnancy, setPregnancy] = useState({
-    currently_pregnant: "",
-    last_menstrual_period: "",
-    gestational_age: "",
-    expected_date_of_delivery: "",
+    currentlyPregnant: "",
+    lastMenstrualPeriod: "",
+    gestationalAge: "",
+    expectedDateOfDelivery: "",
   });
   const [pregnancyErrors, setPregnancyErrors] = useState({});
 
@@ -762,7 +762,7 @@ const InitialClinicalEvaluationForm = (props) => {
   const validatePregnancyField = (name, value) => {
     if (!value) return ""; // Allow empty
 
-    if (name === "last_menstrual_period") {
+    if (name === "lastMenstrualPeriod") {
       const lmpDate = new Date(value);
       const today = new Date();
       const maxLMP = new Date();
@@ -776,7 +776,7 @@ const InitialClinicalEvaluationForm = (props) => {
       }
     }
 
-    if (name === "expected_date_of_delivery") {
+    if (name === "expectedDateOfDelivery") {
       const eddDate = new Date(value);
       const today = new Date();
 
@@ -796,18 +796,18 @@ const InitialClinicalEvaluationForm = (props) => {
     setPregnancyErrors((prev) => ({ ...prev, [name]: error }));
 
     // If Last Menstrual Period is changed, calculate gestational age and EDD
-    if (name === "last_menstrual_period") {
+    if (name === "lastMenstrualPeriod") {
       const { gestationalAge, edd } = calculatePregnancyDetails(value);
       setPregnancy((prev) => ({
         ...prev,
         [name]: value,
-        gestational_age: gestationalAge,
-        expected_date_of_delivery: edd,
+        gestationalAge: gestationalAge,
+        expectedDateOfDelivery: edd,
       }));
 
       // Validate the auto-calculated EDD
-      const eddError = validatePregnancyField("expected_date_of_delivery", edd);
-      setPregnancyErrors((prev) => ({ ...prev, expected_date_of_delivery: eddError }));
+      const eddError = validatePregnancyField("expectedDateOfDelivery", edd);
+      setPregnancyErrors((prev) => ({ ...prev, expectedDateOfDelivery: eddError }));
     } else {
       setPregnancy((prev) => ({ ...prev, [name]: value }));
     }
@@ -834,7 +834,7 @@ const InitialClinicalEvaluationForm = (props) => {
   };
 
   const [arvSideEffects, setArvSideEffects] = useState({
-    has_side_effects: "", side_effects_detail: "", specify_medication: "",
+    hasSideEffects: "", sideEffectsDetail: "", specifyMedication: "",
   });
 
   const handleSideEffects = (e) => {
@@ -844,14 +844,14 @@ const InitialClinicalEvaluationForm = (props) => {
 
   // ── Section: Previously ARV Exposure ────────────────────────────────────
   const [arvHistory, setArvHistory] = useState({
-    previous_arv_exposure: "",
-    earlier_arv_not_transfer: false,
+    previousArvExposure: "",
+    earlierArvNotTransfer: false,
     prep: false,
     pep: false,
     tran: false,
-    name_of_facility: "",
-    duration_of_care_from: "",
-    duration_of_care_to: "",
+    nameOfFacility: "",
+    durationOfCareFrom: "",
+    durationOfCareTo: "",
   });
 
   const handleArv = (e) => {
@@ -861,8 +861,8 @@ const InitialClinicalEvaluationForm = (props) => {
 
   // ── Section: Physical Examination ────────────────────────────────────────
   const [vitals, setVitals] = useState({
-    temperature: "", bp_systolic: "", bp_diastolic: "",
-    pulse: "", weight: "", height: "", head_circumference: "", surface_area: "",
+    temperature: "", bpSystolic: "", bpDiastolic: "",
+    pulse: "", weight: "", height: "", headCircumference: "", surfaceArea: "",
   });
   const [bmi, setBmi] = useState("");
   const [vitalsErrors, setVitalsErrors] = useState({});
@@ -879,11 +879,11 @@ const InitialClinicalEvaluationForm = (props) => {
         if (numValue < 35) return "Temperature cannot be less than 35°C";
         if (numValue > 47) return "Temperature cannot be greater than 47°C";
         break;
-      case "bp_systolic":
+      case "bpSystolic":
         if (numValue < 90) return "Systolic pressure cannot be less than 90 mmHg";
         if (numValue > 240) return "Systolic pressure cannot be greater than 240 mmHg";
         break;
-      case "bp_diastolic":
+      case "bpDiastolic":
         if (numValue < 60) return "Diastolic pressure cannot be less than 60 mmHg";
         if (numValue > 140) return "Diastolic pressure cannot be greater than 140 mmHg";
         break;
@@ -958,7 +958,7 @@ const InitialClinicalEvaluationForm = (props) => {
     cardiovascular: makeSystem(),
     respiratory: makeSystem({ rate: "" }),
     gastrointestinal: makeSystem(),
-    genitalia: makeSystem({ tanner_stage: "" }),
+    genitalia: makeSystem({ tannerStage: "" }),
     breastGlands: makeSystem(),
     skin: makeSystem(),
     neurological: makeSystem(),
@@ -982,25 +982,25 @@ const InitialClinicalEvaluationForm = (props) => {
 
   // ── Section: Confirmatory Details ────────────────────────────────────────
   const [assessment, setAssessment] = useState({
-    assessment_items: [],        // Array of selected assessment codes
-    who_stage: "",
-    who_stage_criteria: [],      // Array of selected clinical criteria for the WHO stage
-    enroll_in_items: [],         // Array of selected enrollment codes
-    plan_for_art_items: [],      // Array of selected ART plan codes
-    drugs_in_regimen: "",
-    additional_comments: "",
-    next_appointment: "",
+    assessmentItems: [],        // Array of selected assessment codes
+    whoStage: "",
+    whoStageCriteria: [],      // Array of selected clinical criteria for the WHO stage
+    enrollInItems: [],         // Array of selected enrollment codes
+    planForArtItems: [],      // Array of selected ART plan codes
+    drugsInRegimen: "",
+    additionalComments: "",
+    nextAppointment: "",
   });
 
   const handleAssessment = (e) => {
     const { name, type, value, checked } = e.target;
 
     // If WHO stage is being changed, clear the criteria selection
-    if (name === "who_stage") {
+    if (name === "whoStage") {
       setAssessment((prev) => ({
         ...prev,
         [name]: value,
-        who_stage_criteria: [] // Clear criteria when stage changes
+        whoStageCriteria: [] // Clear criteria when stage changes
       }));
     } else {
       setAssessment((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
@@ -1009,7 +1009,7 @@ const InitialClinicalEvaluationForm = (props) => {
 
   // Handle WHO Stage criteria transfer
   const handleWhoStageCriteriaTransfer = (newSelectedCriteria) => {
-    setAssessment((prev) => ({ ...prev, who_stage_criteria: newSelectedCriteria }));
+    setAssessment((prev) => ({ ...prev, whoStageCriteria: newSelectedCriteria }));
   };
 
   // Handle checkbox arrays (assessment, enroll_in, plan_for_art)
@@ -1025,11 +1025,11 @@ const InitialClinicalEvaluationForm = (props) => {
 
   // Helper to check if pregnancy code indicates "Yes"
   const isPregnant = () => {
-    if (!pregnancy.currently_pregnant) return false;
+    if (!pregnancy.currentlyPregnant) return false;
 
     // Find the selected option from the codeset
     const selectedOption = codesets.currentlyPregnant.find(
-      opt => opt.code === pregnancy.currently_pregnant
+      opt => opt.code === pregnancy.currentlyPregnant
     );
 
     if (selectedOption) {
@@ -1039,7 +1039,7 @@ const InitialClinicalEvaluationForm = (props) => {
     }
 
     // Fallback: Check if code contains "YES" or matches common patterns
-    const code = pregnancy.currently_pregnant.toUpperCase();
+    const code = pregnancy.currentlyPregnant.toUpperCase();
     return code.includes('YES') || code === 'Y' || code === 'PREGNANT';
   };
 
@@ -1062,26 +1062,28 @@ const InitialClinicalEvaluationForm = (props) => {
     }
   }, [props.patientObj?.id]);
 
-  // Clear immunisation_complete if patient is not between 0-2 years
+  // Clear immunisationComplete if patient is not between 0-2 years
   useEffect(() => {
     if (patientAge < 0 || patientAge > 2) {
-      setTbAssessment((prev) => ({ ...prev, immunisation_complete: "" }));
+      setTbAssessment((prev) => ({ ...prev, immunisationComplete: "" }));
     }
   }, [patientAge]);
 
-  // Clear pregnancy details if currently_pregnant is not "Yes"
+  // Clear pregnancy details if currentlyPregnant is not "Yes"
   useEffect(() => {
-    if (!isPregnant() && pregnancy.currently_pregnant !== "") {
+    if (!isPregnant() && pregnancy.currentlyPregnant !== "") {
       setPregnancy((prev) => ({
         ...prev,
-        last_menstrual_period: "",
-        gestational_age: "",
-        expected_date_of_delivery: "",
+        lastMenstrualPeriod: "",
+        gestationalAge: "",
+        expectedDateOfDelivery: "",
       }));
       // Clear pregnancy validation errors
       setPregnancyErrors({});
     }
-  }, [pregnancy.currently_pregnant]);
+  }, [pregnancy.currentlyPregnant]);
+
+  console.log("selectedSymptoms :", selectedSymptoms)
 
   // ── Validation ───────────────────────────────────────────────────────────
   const validate = () => {
@@ -1089,12 +1091,12 @@ const InitialClinicalEvaluationForm = (props) => {
 
     // Required fields
     if (!visitDate) temp.visitDate = "Visit date is required";
-    if (!tbAssessment.assessed_for_tb) temp.assessed_for_tb = "Patient Assessed for TB is required";
-    if (!tbAssessment.developmental_assessment) temp.developmental_assessment = "Developmental Assessment is required";
+    if (!tbAssessment.assessedForTb) temp.assessedForTb = "Patient Assessed for TB is required";
+    if (!tbAssessment.developmentalAssessment) temp.developmentalAssessment = "Developmental Assessment is required";
     if (knownDrugAllergies.length === 0) temp.knownDrugAllergies = "Known Drug Allergies is required (select at least one option)";
-    if (assessment.assessment_items.length === 0) temp.assessment_items = "Assessment is required (select at least one option)";
-    if (!assessment.who_stage) temp.who_stage = "WHO Stage is required";
-    if (!assessment.next_appointment) temp.next_appointment = "Next Appointment Date is required";
+    if (assessment.assessmentItems.length === 0) temp.assessmentItems = "Assessment is required (select at least one option)";
+    if (!assessment.whoStage) temp.whoStage = "WHO Stage is required";
+    if (!assessment.nextAppointment) temp.nextAppointment = "Next Appointment Date is required";
 
     // Check for vitals validation errors
     const hasVitalsErrors = Object.values(vitalsErrors).some(error => error !== "");
@@ -1149,10 +1151,13 @@ const InitialClinicalEvaluationForm = (props) => {
           assessment,
         },
       };
-      await axios.post(`${baseUrl}observation`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.post(
+        `${baseUrl}hiv/observation/initial-clinical-evaluation`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       toast.success("Initial Clinical Evaluation saved successfully");
+      console.log("Response:", response.data);
       props.setActiveContent({ ...props.activeContent, route: "recent-history" });
     } catch (err) {
       const msg = err?.response?.data?.apierror?.message || "An error occurred. Please try again.";
@@ -1370,19 +1375,19 @@ const InitialClinicalEvaluationForm = (props) => {
             <FieldRow>
               <Col size={3}>
                 <SectionLabel>Patient Assessed for TB? <span style={{ color: "red" }}>*</span></SectionLabel>
-                <Input type="select" name="assessed_for_tb" value={tbAssessment.assessed_for_tb} onChange={handleTb}>
+                <Input type="select" name="assessedForTb" value={tbAssessment.assessedForTb} onChange={handleTb}>
                   <option value="">Select</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                 </Input>
-                {errors.assessed_for_tb && (
-                  <span className={classes.error}>{errors.assessed_for_tb}</span>
+                {errors.assessedForTb && (
+                  <span className={classes.error}>{errors.assessedForTb}</span>
                 )}
               </Col>
-              {tbAssessment.assessed_for_tb === "Yes" && (
+              {tbAssessment.assessedForTb === "Yes" && (
                 <Col size={3}>
                   <SectionLabel>TB Status</SectionLabel>
-                  <Input type="select" name="tb_status" value={tbAssessment.tb_status} onChange={handleTb} disabled={loadingCodesets}>
+                  <Input type="select" name="tbStatus" value={tbAssessment.tbStatus} onChange={handleTb} disabled={loadingCodesets}>
                     <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                     {codesets.tbStatus.map((opt) => (
                       <option key={opt.id} value={opt.code}>{opt.display}</option>
@@ -1392,20 +1397,20 @@ const InitialClinicalEvaluationForm = (props) => {
               )}
               <Col size={3}>
                 <SectionLabel>Developmental Assessment <span style={{ color: "red" }}>*</span></SectionLabel>
-                <Input type="select" name="developmental_assessment" value={tbAssessment.developmental_assessment} onChange={handleTb} disabled={loadingCodesets}>
+                <Input type="select" name="developmentalAssessment" value={tbAssessment.developmentalAssessment} onChange={handleTb} disabled={loadingCodesets}>
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.developmentalAssessment.map((opt) => (
                     <option key={opt.id} value={opt.code}>{opt.display}</option>
                   ))}
                 </Input>
-                {errors.developmental_assessment && (
-                  <span className={classes.error}>{errors.developmental_assessment}</span>
+                {errors.developmentalAssessment && (
+                  <span className={classes.error}>{errors.developmentalAssessment}</span>
                 )}
               </Col>
               {patientAge >= 0 && patientAge <= 2 && (
                 <Col size={3}>
                   <SectionLabel>Immunisation Complete for Age</SectionLabel>
-                  <Input type="select" name="immunisation_complete" value={tbAssessment.immunisation_complete} onChange={handleTb} disabled={loadingCodesets}>
+                  <Input type="select" name="immunisationComplete" value={tbAssessment.immunisationComplete} onChange={handleTb} disabled={loadingCodesets}>
                     <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                     {codesets.immunisationComplete.map((opt) => (
                       <option key={opt.id} value={opt.code}>{opt.display}</option>
@@ -1418,7 +1423,7 @@ const InitialClinicalEvaluationForm = (props) => {
               {patientAge <= 14 && (
                 <Col size={3}>
                   <SectionLabel>Mode of Infant Feeding (≤6 months)</SectionLabel>
-                  <Input type="select" name="mode_of_infant_feeding" value={tbAssessment.mode_of_infant_feeding} onChange={handleTb}>
+                  <Input type="select" name="modeOfInfantFeeding" value={tbAssessment.modeOfInfantFeeding} onChange={handleTb}>
                     <option value="">Select</option>
                     <option value="EBF">EBF</option>
                     <option value="EBMS">EBMS</option>
@@ -1458,7 +1463,7 @@ const InitialClinicalEvaluationForm = (props) => {
             <FieldRow>
               <Col size={12}>
                 <SectionLabel>Past Medical History (including hospitalisation and surgery)</SectionLabel>
-                <Input type="textarea" name="past_medical_history" value={tbAssessment.past_medical_history} onChange={handleTb} rows={2} placeholder="Describe relevant past medical history..." style={{ height: "auto" }} />
+                <Input type="textarea" name="pastMedicalHistory" value={tbAssessment.pastMedicalHistory} onChange={handleTb} rows={2} placeholder="Describe relevant past medical history..." style={{ height: "auto" }} />
               </Col>
             </FieldRow>
 
@@ -1470,7 +1475,7 @@ const InitialClinicalEvaluationForm = (props) => {
                 <FieldRow>
                   <Col size={3}>
                     <SectionLabel>Currently Pregnant</SectionLabel>
-                    <Input type="select" name="currently_pregnant" value={pregnancy.currently_pregnant} onChange={handlePregnancy} disabled={loadingCodesets}>
+                    <Input type="select" name="currentlyPregnant" value={pregnancy.currentlyPregnant} onChange={handlePregnancy} disabled={loadingCodesets}>
                       <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                       {codesets.currentlyPregnant.map((opt) => (
                         <option key={opt.id} value={opt.code}>{opt.display}</option>
@@ -1483,28 +1488,28 @@ const InitialClinicalEvaluationForm = (props) => {
                         <SectionLabel>Last Menstrual Period</SectionLabel>
                         <Input
                           type="date"
-                          name="last_menstrual_period"
-                          value={pregnancy.last_menstrual_period}
+                          name="lastMenstrualPeriod"
+                          value={pregnancy.lastMenstrualPeriod}
                           onChange={handlePregnancy}
                           max={moment(new Date()).format("YYYY-MM-DD")}
-                          style={{ borderColor: pregnancyErrors.last_menstrual_period ? "#d32f2f" : "" }}
+                          style={{ borderColor: pregnancyErrors.lastMenstrualPeriod ? "#d32f2f" : "" }}
                         />
-                        {pregnancyErrors.last_menstrual_period && (
-                          <span className={classes.error}>{pregnancyErrors.last_menstrual_period}</span>
+                        {pregnancyErrors.lastMenstrualPeriod && (
+                          <span className={classes.error}>{pregnancyErrors.lastMenstrualPeriod}</span>
                         )}
                       </Col>
                       <Col size={3}>
                         <SectionLabel>Gestational Age (Weeks)</SectionLabel>
                         <Input
                           type="text"
-                          value={pregnancy.gestational_age}
+                          value={pregnancy.gestationalAge}
                           readOnly
                           placeholder="Auto-calculated"
                           style={{
                             backgroundColor: "#f5f5f5",
                             cursor: "not-allowed",
-                            fontWeight: pregnancy.gestational_age ? "600" : "400",
-                            color: pregnancy.gestational_age ? "#014d88" : "#9e9e9e"
+                            fontWeight: pregnancy.gestationalAge ? "600" : "400",
+                            color: pregnancy.gestationalAge ? "#014d88" : "#9e9e9e"
                           }}
                         />
                       </Col>
@@ -1512,18 +1517,18 @@ const InitialClinicalEvaluationForm = (props) => {
                         <SectionLabel>Expected Date of Delivery</SectionLabel>
                         <Input
                           type="date"
-                          value={pregnancy.expected_date_of_delivery}
+                          value={pregnancy.expectedDateOfDelivery}
                           readOnly
                           style={{
                             backgroundColor: "#f5f5f5",
                             cursor: "not-allowed",
-                            fontWeight: pregnancy.expected_date_of_delivery ? "600" : "400",
-                            color: pregnancy.expected_date_of_delivery ? "#014d88" : "#9e9e9e",
-                            borderColor: pregnancyErrors.expected_date_of_delivery ? "#d32f2f" : ""
+                            fontWeight: pregnancy.expectedDateOfDelivery ? "600" : "400",
+                            color: pregnancy.expectedDateOfDelivery ? "#014d88" : "#9e9e9e",
+                            borderColor: pregnancyErrors.expectedDateOfDelivery ? "#d32f2f" : ""
                           }}
                         />
-                        {pregnancyErrors.expected_date_of_delivery && (
-                          <span className={classes.error}>{pregnancyErrors.expected_date_of_delivery}</span>
+                        {pregnancyErrors.expectedDateOfDelivery && (
+                          <span className={classes.error}>{pregnancyErrors.expectedDateOfDelivery}</span>
                         )}
                       </Col>
                     </>
@@ -1582,21 +1587,21 @@ const InitialClinicalEvaluationForm = (props) => {
             <FieldRow>
               <Col size={3}>
                 <SectionLabel>Side Effects Present?</SectionLabel>
-                <Input type="select" name="has_side_effects" value={arvSideEffects.has_side_effects} onChange={handleSideEffects}>
+                <Input type="select" name="hasSideEffects" value={arvSideEffects.hasSideEffects} onChange={handleSideEffects}>
                   <option value="">Select</option>
                   <option value="None">None</option>
                   <option value="Yes">Yes</option>
                 </Input>
               </Col>
-              {arvSideEffects.has_side_effects === "Yes" && (
+              {arvSideEffects.hasSideEffects === "Yes" && (
                 <>
                   <Col size={5}>
                     <SectionLabel>Side Effects Detail</SectionLabel>
-                    <Input type="textarea" name="side_effects_detail" value={arvSideEffects.side_effects_detail} onChange={handleSideEffects} rows={2} style={{ height: "auto" }} placeholder="Describe side effects..." />
+                    <Input type="textarea" name="sideEffectsDetail" value={arvSideEffects.sideEffectsDetail} onChange={handleSideEffects} rows={2} style={{ height: "auto" }} placeholder="Describe side effects..." />
                   </Col>
                   <Col size={4}>
                     <SectionLabel>Specify Medication(s)</SectionLabel>
-                    <Input type="text" name="specify_medication" value={arvSideEffects.specify_medication} onChange={handleSideEffects} placeholder="Name the medication(s)" />
+                    <Input type="text" name="specifyMedication" value={arvSideEffects.specifyMedication} onChange={handleSideEffects} placeholder="Name the medication(s)" />
                   </Col>
                 </>
               )}
@@ -1610,7 +1615,7 @@ const InitialClinicalEvaluationForm = (props) => {
             <FieldRow>
               <Col size={3}>
                 <SectionLabel>Previous ARV Exposure</SectionLabel>
-                <Input type="select" name="previous_arv_exposure" value={arvHistory.previous_arv_exposure} onChange={handleArv}>
+                <Input type="select" name="previousArvExposure" value={arvHistory.previousArvExposure} onChange={handleArv}>
                   <option value="">Select</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -1618,12 +1623,12 @@ const InitialClinicalEvaluationForm = (props) => {
               </Col>
             </FieldRow>
 
-            {arvHistory.previous_arv_exposure === "Yes" && (
+            {arvHistory.previousArvExposure === "Yes" && (
               <>
                 <SubHeading>ARV Exposure Type</SubHeading>
                 <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                    <CheckGroup name="earlier_arv_not_transfer" id="arv_earlier" label="Earlier ARV (not a Transfer-in)" checked={arvHistory.earlier_arv_not_transfer} onChange={handleArv} />
+                    <CheckGroup name="earlierArvNotTransfer" id="arv_earlier" label="Earlier ARV (not a Transfer-in)" checked={arvHistory.earlierArvNotTransfer} onChange={handleArv} />
                     <CheckGroup name="prep" id="arv_prep" label="PrEP" checked={arvHistory.prep} onChange={handleArv} />
                     <CheckGroup name="pep" id="arv_pep" label="PEP" checked={arvHistory.pep} onChange={handleArv} />
                     <CheckGroup name="tran" id="arv_tran" label="Transfer-in" checked={arvHistory.tran} onChange={handleArv} />
@@ -1634,21 +1639,21 @@ const InitialClinicalEvaluationForm = (props) => {
                 <FieldRow>
                   <Col size={4}>
                     <SectionLabel>Name of Facility</SectionLabel>
-                    <Input type="text" name="name_of_facility" value={arvHistory.name_of_facility} onChange={handleArv} placeholder="Facility where patient received ARV" />
+                    <Input type="text" name="nameOfFacility" value={arvHistory.nameOfFacility} onChange={handleArv} placeholder="Facility where patient received ARV" />
                   </Col>
                   <Col size={4}>
                     <SectionLabel>Duration of Care From</SectionLabel>
-                    <Input type="date" name="duration_of_care_from" value={arvHistory.duration_of_care_from} onChange={handleArv} />
+                    <Input type="date" name="durationOfCareFrom" value={arvHistory.durationOfCareFrom} onChange={handleArv} />
                   </Col>
                   <Col size={4}>
                     <SectionLabel>Duration of Care To</SectionLabel>
-                    <Input type="date" name="duration_of_care_to" value={arvHistory.duration_of_care_to} onChange={handleArv} />
+                    <Input type="date" name="durationOfCareTo" value={arvHistory.durationOfCareTo} onChange={handleArv} />
                   </Col>
                 </FieldRow>
               </>
             )}
 
-            {arvHistory.previous_arv_exposure === "No" && (
+            {arvHistory.previousArvExposure === "No" && (
               <Box sx={{ padding: "16px", textAlign: "center", color: "#9e9e9e", fontSize: "13px" }}>
                 No previous ARV exposure recorded.
               </Box>
@@ -1727,28 +1732,28 @@ const InitialClinicalEvaluationForm = (props) => {
                     <div style={{ flex: 1 }}>
                       <Input
                         type="text"
-                        name="bp_systolic"
-                        value={vitals.bp_systolic}
+                        name="bpSystolic"
+                        value={vitals.bpSystolic}
                         onChange={handleVitals}
                         placeholder="Sys"
-                        style={{ borderColor: vitalsErrors.bp_systolic ? "#d32f2f" : "" }}
+                        style={{ borderColor: vitalsErrors.bpSystolic ? "#d32f2f" : "" }}
                       />
-                      {vitalsErrors.bp_systolic && (
-                        <span className={classes.error}>{vitalsErrors.bp_systolic}</span>
+                      {vitalsErrors.bpSystolic && (
+                        <span className={classes.error}>{vitalsErrors.bpSystolic}</span>
                       )}
                     </div>
                     <span style={{ color: "#546e7a", fontSize: "18px", fontWeight: 300 }}>/</span>
                     <div style={{ flex: 1 }}>
                       <Input
                         type="text"
-                        name="bp_diastolic"
-                        value={vitals.bp_diastolic}
+                        name="bpDiastolic"
+                        value={vitals.bpDiastolic}
                         onChange={handleVitals}
                         placeholder="Dia"
-                        style={{ borderColor: vitalsErrors.bp_diastolic ? "#d32f2f" : "" }}
+                        style={{ borderColor: vitalsErrors.bpDiastolic ? "#d32f2f" : "" }}
                       />
-                      {vitalsErrors.bp_diastolic && (
-                        <span className={classes.error}>{vitalsErrors.bp_diastolic}</span>
+                      {vitalsErrors.bpDiastolic && (
+                        <span className={classes.error}>{vitalsErrors.bpDiastolic}</span>
                       )}
                     </div>
                   </div>
@@ -1814,11 +1819,11 @@ const InitialClinicalEvaluationForm = (props) => {
               <div className="row" style={{ marginTop: "8px" }}>
                 <Col size={2}>
                   <SectionLabel>Head Circumference (cm)</SectionLabel>
-                  <Input type="text" name="head_circumference" value={vitals.head_circumference} onChange={handleVitals} placeholder="cm" />
+                  <Input type="text" name="headCircumference" value={vitals.headCircumference} onChange={handleVitals} placeholder="cm" />
                 </Col>
                 <Col size={2}>
                   <SectionLabel>Surface Area (cm²)</SectionLabel>
-                  <Input type="text" name="surface_area" value={vitals.surface_area} onChange={handleVitals} placeholder="cm²" />
+                  <Input type="text" name="surfaceArea" value={vitals.surfaceArea} onChange={handleVitals} placeholder="cm²" />
                 </Col>
               </div>
             </Box>
@@ -1867,8 +1872,8 @@ const InitialClinicalEvaluationForm = (props) => {
                     <SectionLabel>Tanner Stage</SectionLabel>
                     <Input
                       type="text"
-                      value={systems.genitalia.tanner_stage || ""}
-                      onChange={(e) => handleSystemExtra("genitalia", "tanner_stage", e.target.value)}
+                      value={systems.genitalia.tannerStage || ""}
+                      onChange={(e) => handleSystemExtra("genitalia", "tannerStage", e.target.value)}
                       placeholder="Stage"
                     />
                   </div>
@@ -1917,16 +1922,16 @@ const InitialClinicalEvaluationForm = (props) => {
                       name={`assessment_${opt.code}`}
                       id={`assessment_${opt.code}`}
                       label={opt.display}
-                      checked={assessment.assessment_items.includes(opt.code)}
-                      onChange={(e) => handleCheckboxArray('assessment_items', opt.code, e.target.checked)}
+                      checked={assessment.assessmentItems.includes(opt.code)}
+                      onChange={(e) => handleCheckboxArray('assessmentItems', opt.code, e.target.checked)}
                     />
                   ))}
                 </Box>
               )}
             </Box>
-            {errors.assessment_items && (
+            {errors.assessmentItems && (
               <Typography sx={{ fontSize: "12px", color: "#d32f2f", marginTop: "-12px", marginBottom: "16px" }}>
-                {errors.assessment_items}
+                {errors.assessmentItems}
               </Typography>
             )}
 
@@ -1936,25 +1941,25 @@ const InitialClinicalEvaluationForm = (props) => {
                 <SectionLabel>
                   WHO Stage <span style={{ color: "red" }}>*</span>
                 </SectionLabel>
-                <Input type="select" name="who_stage" value={assessment.who_stage} onChange={handleAssessment} disabled={loadingCodesets}>
+                <Input type="select" name="whoStage" value={assessment.whoStage} onChange={handleAssessment} disabled={loadingCodesets}>
                   <option value="">{loadingCodesets ? "Loading..." : "Select WHO Stage"}</option>
                   {codesets.whoStage.map((opt) => (
                     <option key={opt.id} value={opt.code}>{opt.display}</option>
                   ))}
                 </Input>
-                {errors.who_stage && (
-                  <span className={classes.error}>{errors.who_stage}</span>
+                {errors.whoStage && (
+                  <span className={classes.error}>{errors.whoStage}</span>
                 )}
               </Col>
             </FieldRow>
 
             {/* WHO Stage Criteria - Conditional Transfer List */}
-            {assessment.who_stage && WHO_STAGE_CRITERIA_OPTIONS[assessment.who_stage] && (
+            {assessment.whoStage && WHO_STAGE_CRITERIA_OPTIONS[assessment.whoStage] && (
               <TransferList
-                availableItems={WHO_STAGE_CRITERIA_OPTIONS[assessment.who_stage]}
-                selectedItems={assessment.who_stage_criteria}
+                availableItems={WHO_STAGE_CRITERIA_OPTIONS[assessment.whoStage]}
+                selectedItems={assessment.whoStageCriteria}
                 onTransfer={handleWhoStageCriteriaTransfer}
-                stageName={codesets.whoStage.find(opt => opt.code === assessment.who_stage)?.display || assessment.who_stage}
+                stageName={codesets.whoStage.find(opt => opt.code === assessment.whoStage)?.display || assessment.whoStage}
               />
             )}
 
@@ -1972,8 +1977,8 @@ const InitialClinicalEvaluationForm = (props) => {
                       name={`enroll_${opt.code}`}
                       id={`enroll_${opt.code}`}
                       label={opt.display}
-                      checked={assessment.enroll_in_items.includes(opt.code)}
-                      onChange={(e) => handleCheckboxArray('enroll_in_items', opt.code, e.target.checked)}
+                      checked={assessment.enrollInItems.includes(opt.code)}
+                      onChange={(e) => handleCheckboxArray('enrollInItems', opt.code, e.target.checked)}
                     />
                   ))}
                 </Box>
@@ -1993,8 +1998,8 @@ const InitialClinicalEvaluationForm = (props) => {
                       name={`plan_art_${opt.code}`}
                       id={`plan_art_${opt.code}`}
                       label={opt.display}
-                      checked={assessment.plan_for_art_items.includes(opt.code)}
-                      onChange={(e) => handleCheckboxArray('plan_for_art_items', opt.code, e.target.checked)}
+                      checked={assessment.planForArtItems.includes(opt.code)}
+                      onChange={(e) => handleCheckboxArray('planForArtItems', opt.code, e.target.checked)}
                     />
                   ))}
                 </Box>
@@ -2007,8 +2012,8 @@ const InitialClinicalEvaluationForm = (props) => {
                 <SectionLabel>Drugs in Regimen</SectionLabel>
                 <Input
                   type="textarea"
-                  name="drugs_in_regimen"
-                  value={assessment.drugs_in_regimen}
+                  name="drugsInRegimen"
+                  value={assessment.drugsInRegimen}
                   onChange={handleAssessment}
                   rows={2}
                   placeholder="List drugs in regimen..."
@@ -2019,8 +2024,8 @@ const InitialClinicalEvaluationForm = (props) => {
                 <SectionLabel>Additional Comments</SectionLabel>
                 <Input
                   type="textarea"
-                  name="additional_comments"
-                  value={assessment.additional_comments}
+                  name="additionalComments"
+                  value={assessment.additionalComments}
                   onChange={handleAssessment}
                   rows={2}
                   placeholder="Any additional comments..."
@@ -2031,13 +2036,13 @@ const InitialClinicalEvaluationForm = (props) => {
                 <SectionLabel>Next Appointment Date <span style={{ color: "red" }}>*</span></SectionLabel>
                 <Input
                   type="date"
-                  name="next_appointment"
-                  value={assessment.next_appointment}
+                  name="nextAppointment"
+                  value={assessment.nextAppointment}
                   onChange={handleAssessment}
                   min={moment(new Date()).format("YYYY-MM-DD")}
                 />
-                {errors.next_appointment && (
-                  <span className={classes.error}>{errors.next_appointment}</span>
+                {errors.nextAppointment && (
+                  <span className={classes.error}>{errors.nextAppointment}</span>
                 )}
               </Col>
             </FieldRow>
