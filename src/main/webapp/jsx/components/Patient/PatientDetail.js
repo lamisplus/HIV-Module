@@ -24,6 +24,7 @@ import ClientStatusUpdate from "./../ClientStatusUpdate/ClientStatusUpdate";
 import AdultClinicEvaluationForm from "../InitailClinicEvaluation/Adult/Index";
 import ViewAdultClinicEvaluationForm from "../InitailClinicEvaluation/ViewAdultHistory/Index";
 import InitialClinicalEvaluationForm from "../../lamisplus3-in-2/pages/InitialClinicalEvaluation/Index";
+import InitialClinicalEvaluationView from "../../lamisplus3-in-2/pages/InitialClinicalEvaluation/View";
 import EnrollmentAndCommencementForm from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Index";
 import EnrollmentAndCommencementView from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/View";
 import EnrollmentAndCommencementUpdate from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Update";
@@ -194,11 +195,13 @@ function PatientCard(props) {
           "Isoniazid and Rifampicin-(3HR)",
         ];
 
-        const matchingObject = response?.data?.find((item) =>
-          item.pharmacyData.regimens.some((regimen) =>
-            drugsOfInterest.includes(regimen.name)
-          )
-        );
+        const matchingObject = Array.isArray(response?.data)
+          ? response.data.find((item) =>
+              item.pharmacyData.regimens.some((regimen) =>
+                drugsOfInterest.includes(regimen.name)
+              )
+            )
+          : null;
 
         if (matchingObject) {
           const { observationData, pharmacyData, visitDate } = matchingObject;
@@ -364,8 +367,15 @@ function PatientCard(props) {
             />
           )}
           {/* {activeContent.route==='child-evaluation' &&( <ChildClinicEvaluationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)} */}
-          {activeContent.route === "initialization-evaluation" && (
+          {activeContent.route === "initial-clinical-evaluation" && (
             <InitialClinicalEvaluationForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "initial-clinical-evaluation-view" && (
+            <InitialClinicalEvaluationView
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
