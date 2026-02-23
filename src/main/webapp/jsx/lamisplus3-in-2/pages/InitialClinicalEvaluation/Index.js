@@ -594,6 +594,8 @@ const InitialClinicalEvaluationForm = (props) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [expanded, setExpanded] = useState(["symptoms", "medical", "arv", "physical", "confirmatory"]);
+  const [recordId, setRecordId] = useState(null);  // Track record ID for updates
+  const [loadingRecord, setLoadingRecord] = useState(false);  // Loading state for fetching existing record
 
   // ── Codesets State ────────────────────────────────────────────────────────
   const [codesets, setCodesets] = useState({
@@ -1062,6 +1064,94 @@ const InitialClinicalEvaluationForm = (props) => {
     }
   }, [props.patientObj?.id]);
 
+  // Fetch existing record when in update mode
+  useEffect(() => {
+    if (props.activeContent?.actionType === "update" && props.activeContent?.id) {
+      fetchExistingRecord(props.activeContent.id);
+    }
+  }, [props.activeContent?.id, props.activeContent?.actionType]);
+
+  const fetchExistingRecord = async (id) => {
+    setLoadingRecord(true);
+    try {
+      const response = await axios.get(
+        `${baseUrl}hiv/observation/initial-clinical-evaluation/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const record = response.data;
+      setRecordId(record.id);
+      populateForm(record.data);
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.apierror?.message ||
+        "Failed to load record for editing";
+      toast.error(msg);
+      props.setActiveContent({ ...props.activeContent, route: "recent-history" });
+    } finally {
+      setLoadingRecord(false);
+    }
+  };
+
+  const populateForm = (data) => {
+    // Basic information
+    if (data.visitDate) setVisitDate(data.visitDate);
+    if (data.clinicianName) setClinicianName(data.clinicianName);
+
+    // Symptoms
+    if (data.symptoms) setSelectedSymptoms(data.symptoms);
+    if (data.otherSymptom) setOtherSymptom(data.otherSymptom);
+
+    // TB Assessment
+    if (data.tbAssessment) setTbAssessment(data.tbAssessment);
+
+    // Known Drug Allergies
+    if (data.knownDrugAllergies) setKnownDrugAllergies(data.knownDrugAllergies);
+
+    // Pregnancy
+    if (data.pregnancy && isFemale) setPregnancy(data.pregnancy);
+
+    // Current Medications
+    if (data.currentMeds) setCurrentMeds(data.currentMeds);
+
+    // Disclosure
+    if (data.disclosure) setDisclosure(data.disclosure);
+
+    // ARV Side Effects
+    if (data.arvSideEffects) setArvSideEffects(data.arvSideEffects);
+
+    // ARV History
+    if (data.arvHistory) setArvHistory(data.arvHistory);
+
+    // Vitals
+    if (data.vitals) {
+      const { bmi: bmiValue, ...vitalData } = data.vitals;
+      setVitals(vitalData);
+      if (bmiValue) setBmi(bmiValue);
+    }
+
+    // Physical Exam / Systems
+    if (data.physicalExam) {
+      const { additionalFindings: addFindings, ...systemsData } = data.physicalExam;
+      setSystems(systemsData);
+      if (addFindings) setAdditionalFindings(addFindings);
+    }
+
+    // Assessment - ensure all arrays are properly initialized
+    if (data.assessment) {
+      setAssessment({
+        assessmentItems: data.assessment.assessmentItems || [],
+        whoStage: data.assessment.whoStage || "",
+        whoStageCriteria: data.assessment.whoStageCriteria || [],
+        enrollInItems: data.assessment.enrollInItems || [],
+        planForArtItems: data.assessment.planForArtItems || [],
+        drugsInRegimen: data.assessment.drugsInRegimen || "",
+        additionalComments: data.assessment.additionalComments || "",
+        nextAppointment: data.assessment.nextAppointment || "",
+      });
+    }
+  };
+
   // Clear immunisationComplete if patient is not between 0-2 years
   useEffect(() => {
     if (patientAge < 0 || patientAge > 2) {
@@ -1151,16 +1241,36 @@ const InitialClinicalEvaluationForm = (props) => {
           assessment,
         },
       };
-      const response = await axios.post(
-        `${baseUrl}hiv/observation/initial-clinical-evaluation`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+
+      // Add ID to payload if updating
+      if (recordId) {
+        payload.id = recordId;
+      }
+
+      const response = recordId
+        ? await axios.put(
+            `${baseUrl}hiv/observation/initial-clinical-evaluation/${recordId}`,
+            payload,
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+        : await axios.post(
+            `${baseUrl}hiv/observation/initial-clinical-evaluation`,
+            payload,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+      toast.success(
+        recordId
+          ? "Initial Clinical Evaluation updated successfully"
+          : "Initial Clinical Evaluation saved successfully"
       );
-      toast.success("Initial Clinical Evaluation saved successfully");
       console.log("Response:", response.data);
       props.setActiveContent({ ...props.activeContent, route: "recent-history" });
     } catch (err) {
-      const msg = err?.response?.data?.apierror?.message || "An error occurred. Please try again.";
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.apierror?.message ||
+        "An error occurred. Please try again.";
       toast.error(msg);
     } finally {
       setSaving(false);
@@ -1170,6 +1280,24 @@ const InitialClinicalEvaluationForm = (props) => {
   // ─────────────────────────────────────────────────────────────────────────
   // Render
   // ─────────────────────────────────────────────────────────────────────────
+
+  // Show loading state while fetching existing record
+  if (loadingRecord) {
+    return (
+      <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible" }}>
+        <CardContent>
+          <Box sx={{ textAlign: "center", padding: "40px" }}>
+            <Typography sx={{ fontSize: "16px", color: "#014d88" }}>
+              Loading record for editing...
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const isUpdateMode = recordId !== null;
+
   return (
     <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible" }}>
       <CardContent>
@@ -1185,6 +1313,20 @@ const InitialClinicalEvaluationForm = (props) => {
             {patientAge < 14
               ? "Pediatric — Initial Clinical Evaluation"
               : "Adult — Initial Clinical Evaluation"}
+            {isUpdateMode && (
+              <span
+                style={{
+                  marginLeft: "12px",
+                  fontSize: "12px",
+                  fontWeight: 400,
+                  background: "rgba(255,255,255,0.2)",
+                  borderRadius: "10px",
+                  padding: "2px 10px",
+                }}
+              >
+                Edit Mode
+              </span>
+            )}
           </Typography>
         </Box>
 
@@ -1922,7 +2064,7 @@ const InitialClinicalEvaluationForm = (props) => {
                       name={`assessment_${opt.code}`}
                       id={`assessment_${opt.code}`}
                       label={opt.display}
-                      checked={assessment.assessmentItems.includes(opt.code)}
+                      checked={assessment.assessmentItems?.includes(opt.code) || false}
                       onChange={(e) => handleCheckboxArray('assessmentItems', opt.code, e.target.checked)}
                     />
                   ))}
@@ -1977,7 +2119,7 @@ const InitialClinicalEvaluationForm = (props) => {
                       name={`enroll_${opt.code}`}
                       id={`enroll_${opt.code}`}
                       label={opt.display}
-                      checked={assessment.enrollInItems.includes(opt.code)}
+                      checked={assessment.enrollInItems?.includes(opt.code) || false}
                       onChange={(e) => handleCheckboxArray('enrollInItems', opt.code, e.target.checked)}
                     />
                   ))}
@@ -1998,7 +2140,7 @@ const InitialClinicalEvaluationForm = (props) => {
                       name={`plan_art_${opt.code}`}
                       id={`plan_art_${opt.code}`}
                       label={opt.display}
-                      checked={assessment.planForArtItems.includes(opt.code)}
+                      checked={assessment.planForArtItems?.includes(opt.code) || false}
                       onChange={(e) => handleCheckboxArray('planForArtItems', opt.code, e.target.checked)}
                     />
                   ))}

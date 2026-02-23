@@ -314,10 +314,10 @@ const SubMenu = (props) => {
       },
 
       loadInitializationEvaluation: () => {
-        setActiveItem("initialization-evaluation");
+        setActiveItem("initial-clinical-evaluation");
         props.setActiveContent({
           ...props.activeContent,
-          route: "initialization-evaluation",
+          route: "initial-clinical-evaluation",
         });
       },
 
