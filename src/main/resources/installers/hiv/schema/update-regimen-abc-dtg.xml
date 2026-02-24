@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet id="20260223-001" author="gboyeguntaiwo">
+        <comment>Update ABC-3TC-DTG to ABC+3TC+DTG in hiv_regimen_resolver table</comment>
+        <sql>
+            UPDATE hiv_regimen_resolver
+            SET regimen = 'ABC+3TC+DTG'
+            WHERE regimen = 'ABC-3TC-DTG';
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260223-002" author="gboyeguntaiwo">
+        <comment>Update ABC-3TC-DTG to ABC+3TC+DTG in ndr_code_set table</comment>
+        <sql>
+            UPDATE ndr_code_set
+            SET code_description = 'ABC+3TC+DTG'
+            WHERE code_description = 'ABC-3TC-DTG';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
