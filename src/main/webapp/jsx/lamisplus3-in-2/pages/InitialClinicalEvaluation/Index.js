@@ -159,6 +159,7 @@ const SYSTEM_FINDINGS = {
     { value: "genital_discharge", label: "Genital Discharge" },
     { value: "genital_ulcer_lesion", label: "Genital Ulcer/Lesion" },
     { value: "lymphadenopathy", label: "Lymphadenopathy" },
+    { value: "tanner_stage", label: "Tanner Stage" },
   ],
   breastGlands: [
     { value: "lumps_masses", label: "Lumps / Masses" },
@@ -544,7 +545,7 @@ const BodySystem = ({ label, systemKey, state, onChange, extraContent }) => {
       {!state.nsf && (
         <div className="row">
           {extraContent}
-          <div className={`form-group mb-2 col-md-${extraContent ? "6" : "8"}`}>
+          <div className={`form-group mb-2 col-md-${extraContent ? "6" : (systemKey === "genitalia" && !state.findings?.some(f => f.value === "tanner_stage") ? "12" : "8")}`}>
             <SectionLabel>Findings</SectionLabel>
             <ReactSelect
               isMulti
@@ -560,16 +561,19 @@ const BodySystem = ({ label, systemKey, state, onChange, extraContent }) => {
               }}
             />
           </div>
-          <div className="form-group mb-2 col-md-4">
-            <SectionLabel>Other (specify)</SectionLabel>
-            <Input
-              type="text"
-              value={state.other}
-              onChange={handleOther}
-              placeholder="Additional findings..."
-              style={{ fontSize: "13px" }}
-            />
-          </div>
+          {/* Show Other field for all systems except Genitalia, or for Genitalia only when Tanner Stage is selected */}
+          {(systemKey !== "genitalia" || state.findings?.some(f => f.value === "tanner_stage")) && (
+            <div className="form-group mb-2 col-md-4">
+              <SectionLabel>{systemKey === "genitalia" && state.findings?.some(f => f.value === "tanner_stage") ? "Tanner Stage (specify)" : "Other (specify)"}</SectionLabel>
+              <Input
+                type="text"
+                value={state.other}
+                onChange={handleOther}
+                placeholder={systemKey === "genitalia" && state.findings?.some(f => f.value === "tanner_stage") ? "e.g., Stage 1, Stage 2..." : "Additional findings..."}
+                style={{ fontSize: "13px" }}
+              />
+            </div>
+          )}
         </div>
       )}
       {state.nsf && (
@@ -864,7 +868,7 @@ const InitialClinicalEvaluationForm = (props) => {
   // ── Section: Physical Examination ────────────────────────────────────────
   const [vitals, setVitals] = useState({
     temperature: "", bpSystolic: "", bpDiastolic: "",
-    pulse: "", weight: "", height: "", headCircumference: "", surfaceArea: "",
+    pulse: "", respiratoryRate: "", weight: "", height: "", headCircumference: "", surfaceArea: "",
   });
   const [bmi, setBmi] = useState("");
   const [vitalsErrors, setVitalsErrors] = useState({});
@@ -892,6 +896,10 @@ const InitialClinicalEvaluationForm = (props) => {
       case "pulse":
         if (numValue < 40) return "Pulse cannot be less than 40 b/min";
         if (numValue > 120) return "Pulse cannot be greater than 120 b/min";
+        break;
+      case "respiratoryRate":
+        if (numValue < 10) return "Respiratory rate cannot be less than 10 breaths/min";
+        if (numValue > 70) return "Respiratory rate cannot be greater than 70 breaths/min";
         break;
       case "weight":
         if (numValue < 48.26) return "Weight cannot be less than 48.26 kg";
@@ -942,23 +950,13 @@ const InitialClinicalEvaluationForm = (props) => {
     }
   };
 
-  // Validate respiratory rate
-  const validateRespiratoryRate = (value) => {
-    if (!value) return "";
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) return "Must be a valid number";
-    if (numValue < 10) return "Respiratory rate cannot be less than 10 breaths/min";
-    if (numValue > 70) return "Respiratory rate cannot be greater than 70 breaths/min";
-    return "";
-  };
-
   const makeSystem = (extra = {}) => ({ nsf: false, findings: [], other: "", ...extra });
 
   const [systems, setSystems] = useState({
     generalAppearance: makeSystem(),
     headEyeEnt: makeSystem(),
     cardiovascular: makeSystem(),
-    respiratory: makeSystem({ rate: "" }),
+    respiratory: makeSystem(),
     gastrointestinal: makeSystem(),
     genitalia: makeSystem({ tannerStage: "" }),
     breastGlands: makeSystem(),
@@ -972,11 +970,6 @@ const InitialClinicalEvaluationForm = (props) => {
   };
 
   const handleSystemExtra = (key, field, value) => {
-    // Validate respiratory rate
-    if (key === "respiratory" && field === "rate") {
-      const error = validateRespiratoryRate(value);
-      setVitalsErrors((prev) => ({ ...prev, respiratory_rate: error }));
-    }
     setSystems((prev) => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
   };
 
@@ -1341,7 +1334,7 @@ const InitialClinicalEvaluationForm = (props) => {
           }}
         >
           <div className="row">
-            <div className="form-group mb-0 col-md-4">
+            <div className="form-group mb-0 col-md-3">
               <FormGroup>
                 <label className={classes.fieldLabel}>
                   Visit Date <span style={{ color: "red" }}>*</span>
@@ -1358,7 +1351,7 @@ const InitialClinicalEvaluationForm = (props) => {
                 )}
               </FormGroup>
             </div>
-            <div className="form-group mb-0 col-md-4">
+            <div className="form-group mb-0 col-md-3">
               <FormGroup>
                 <label className={classes.fieldLabel}>Clinician Name</label>
                 <Input
@@ -1369,7 +1362,83 @@ const InitialClinicalEvaluationForm = (props) => {
                 />
               </FormGroup>
             </div>
+            {isFemale && patientAge > 14 && (
+              <>
+                <div className="form-group mb-0 col-md-2">
+                  <FormGroup>
+                    <label className={classes.fieldLabel}>Currently Pregnant</label>
+                    <Input type="select" name="currentlyPregnant" value={pregnancy.currentlyPregnant} onChange={handlePregnancy} disabled={loadingCodesets}>
+                      <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                      {codesets.currentlyPregnant.map((opt) => (
+                        <option key={opt.id} value={opt.code}>{opt.display}</option>
+                      ))}
+                    </Input>
+                  </FormGroup>
+                </div>
+                {isPregnant() && (
+                  <>
+                    <div className="form-group mb-0 col-md-2">
+                      <FormGroup>
+                        <label className={classes.fieldLabel}>Last Menstrual Period</label>
+                        <Input
+                          type="date"
+                          name="lastMenstrualPeriod"
+                          value={pregnancy.lastMenstrualPeriod}
+                          onChange={handlePregnancy}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          style={{ borderColor: pregnancyErrors.lastMenstrualPeriod ? "#d32f2f" : "" }}
+                        />
+                        {pregnancyErrors.lastMenstrualPeriod && (
+                          <span className={classes.error}>{pregnancyErrors.lastMenstrualPeriod}</span>
+                        )}
+                      </FormGroup>
+                    </div>
+                    <div className="form-group mb-0 col-md-2">
+                      <FormGroup>
+                        <label className={classes.fieldLabel}>Gestational Age (Weeks)</label>
+                        <Input
+                          type="text"
+                          value={pregnancy.gestationalAge}
+                          readOnly
+                          placeholder="Auto"
+                          style={{
+                            backgroundColor: "#f5f5f5",
+                            cursor: "not-allowed",
+                            fontWeight: pregnancy.gestationalAge ? "600" : "400",
+                            color: pregnancy.gestationalAge ? "#014d88" : "#9e9e9e"
+                          }}
+                        />
+                      </FormGroup>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
           </div>
+          {isFemale && patientAge > 14 && isPregnant() && (
+            <div className="row" style={{ marginTop: "12px" }}>
+              <div className="form-group mb-0 col-md-3">
+                <FormGroup>
+                  <label className={classes.fieldLabel}>Expected Date of Delivery</label>
+                  <Input
+                    type="date"
+                    value={pregnancy.expectedDateOfDelivery}
+                    readOnly
+                    style={{
+                      backgroundColor: "#f5f5f5",
+                      cursor: "not-allowed",
+                      fontWeight: pregnancy.expectedDateOfDelivery ? "600" : "400",
+                      color: pregnancy.expectedDateOfDelivery ? "#014d88" : "#9e9e9e",
+                      borderColor: pregnancyErrors.expectedDateOfDelivery ? "#d32f2f" : ""
+                    }}
+                  />
+                  {pregnancyErrors.expectedDateOfDelivery && (
+                    <span className={classes.error}>{pregnancyErrors.expectedDateOfDelivery}</span>
+                  )}
+                </FormGroup>
+              </div>
+            </div>
+          )}
         </Box>
 
         <form onSubmit={handleSubmit}>
@@ -1609,76 +1678,6 @@ const InitialClinicalEvaluationForm = (props) => {
               </Col>
             </FieldRow>
 
-            {/* Pregnancy */}
-            {isFemale && patientAge > 14 && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <SubHeading>Pregnancy Information</SubHeading>
-                <FieldRow>
-                  <Col size={3}>
-                    <SectionLabel>Currently Pregnant</SectionLabel>
-                    <Input type="select" name="currentlyPregnant" value={pregnancy.currentlyPregnant} onChange={handlePregnancy} disabled={loadingCodesets}>
-                      <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                      {codesets.currentlyPregnant.map((opt) => (
-                        <option key={opt.id} value={opt.code}>{opt.display}</option>
-                      ))}
-                    </Input>
-                  </Col>
-                  {isPregnant() && (
-                    <>
-                      <Col size={3}>
-                        <SectionLabel>Last Menstrual Period</SectionLabel>
-                        <Input
-                          type="date"
-                          name="lastMenstrualPeriod"
-                          value={pregnancy.lastMenstrualPeriod}
-                          onChange={handlePregnancy}
-                          max={moment(new Date()).format("YYYY-MM-DD")}
-                          style={{ borderColor: pregnancyErrors.lastMenstrualPeriod ? "#d32f2f" : "" }}
-                        />
-                        {pregnancyErrors.lastMenstrualPeriod && (
-                          <span className={classes.error}>{pregnancyErrors.lastMenstrualPeriod}</span>
-                        )}
-                      </Col>
-                      <Col size={3}>
-                        <SectionLabel>Gestational Age (Weeks)</SectionLabel>
-                        <Input
-                          type="text"
-                          value={pregnancy.gestationalAge}
-                          readOnly
-                          placeholder="Auto-calculated"
-                          style={{
-                            backgroundColor: "#f5f5f5",
-                            cursor: "not-allowed",
-                            fontWeight: pregnancy.gestationalAge ? "600" : "400",
-                            color: pregnancy.gestationalAge ? "#014d88" : "#9e9e9e"
-                          }}
-                        />
-                      </Col>
-                      <Col size={3}>
-                        <SectionLabel>Expected Date of Delivery</SectionLabel>
-                        <Input
-                          type="date"
-                          value={pregnancy.expectedDateOfDelivery}
-                          readOnly
-                          style={{
-                            backgroundColor: "#f5f5f5",
-                            cursor: "not-allowed",
-                            fontWeight: pregnancy.expectedDateOfDelivery ? "600" : "400",
-                            color: pregnancy.expectedDateOfDelivery ? "#014d88" : "#9e9e9e",
-                            borderColor: pregnancyErrors.expectedDateOfDelivery ? "#d32f2f" : ""
-                          }}
-                        />
-                        {pregnancyErrors.expectedDateOfDelivery && (
-                          <span className={classes.error}>{pregnancyErrors.expectedDateOfDelivery}</span>
-                        )}
-                      </Col>
-                    </>
-                  )}
-                </FieldRow>
-              </>
-            )}
-
             {/* Current Medications */}
             <Divider sx={{ my: 2 }} />
             <SubHeading>Current Medications</SubHeading>
@@ -1853,9 +1852,10 @@ const InitialClinicalEvaluationForm = (props) => {
                 marginBottom: "20px",
               }}
             >
+              {/* Row 1: Temperature, BP, Pulse, Respiratory Rate */}
               <div className="row">
-                <Col size={2}>
-                  <SectionLabel>Temp (°C)</SectionLabel>
+                <Col size={3}>
+                  <SectionLabel>Temperature (°C)</SectionLabel>
                   <Input
                     type="text"
                     name="temperature"
@@ -1869,7 +1869,7 @@ const InitialClinicalEvaluationForm = (props) => {
                   )}
                 </Col>
                 <div className="form-group mb-3 col-md-3">
-                  <SectionLabel>Blood Pressure (mm/Hg)</SectionLabel>
+                  <SectionLabel>Blood Pressure (mmHg)</SectionLabel>
                   <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                     <div style={{ flex: 1 }}>
                       <Input
@@ -1900,21 +1900,39 @@ const InitialClinicalEvaluationForm = (props) => {
                     </div>
                   </div>
                 </div>
-                <Col size={2}>
-                  <SectionLabel>Pulse (b/min)</SectionLabel>
+                <Col size={3}>
+                  <SectionLabel>Pulse (bpm)</SectionLabel>
                   <Input
                     type="text"
                     name="pulse"
                     value={vitals.pulse}
                     onChange={handleVitals}
-                    placeholder="b/min"
+                    placeholder="bpm"
                     style={{ borderColor: vitalsErrors.pulse ? "#d32f2f" : "" }}
                   />
                   {vitalsErrors.pulse && (
                     <span className={classes.error}>{vitalsErrors.pulse}</span>
                   )}
                 </Col>
-                <Col size={2}>
+                <Col size={3}>
+                  <SectionLabel>Respiratory Rate (breaths/min)</SectionLabel>
+                  <Input
+                    type="text"
+                    name="respiratoryRate"
+                    value={vitals.respiratoryRate}
+                    onChange={handleVitals}
+                    placeholder="breaths/min"
+                    style={{ borderColor: vitalsErrors.respiratoryRate ? "#d32f2f" : "" }}
+                  />
+                  {vitalsErrors.respiratoryRate && (
+                    <span className={classes.error}>{vitalsErrors.respiratoryRate}</span>
+                  )}
+                </Col>
+              </div>
+
+              {/* Row 2: Weight, Height, BMI */}
+              <div className="row" style={{ marginTop: "8px" }}>
+                <Col size={3}>
                   <SectionLabel>Weight (kg)</SectionLabel>
                   <Input
                     type="text"
@@ -1928,7 +1946,7 @@ const InitialClinicalEvaluationForm = (props) => {
                     <span className={classes.error}>{vitalsErrors.weight}</span>
                   )}
                 </Col>
-                <Col size={2}>
+                <Col size={3}>
                   <SectionLabel>Height (cm)</SectionLabel>
                   <Input
                     type="text"
@@ -1942,13 +1960,13 @@ const InitialClinicalEvaluationForm = (props) => {
                     <span className={classes.error}>{vitalsErrors.height}</span>
                   )}
                 </Col>
-                <Col size={2}>
+                <Col size={3}>
                   <SectionLabel>BMI (kg/m²)</SectionLabel>
                   <Input
                     type="text"
                     value={bmi}
                     readOnly
-                    placeholder="Auto"
+                    placeholder="Auto-calculated"
                     style={{
                       backgroundColor: "#f5f5f5",
                       cursor: "not-allowed",
@@ -1958,14 +1976,28 @@ const InitialClinicalEvaluationForm = (props) => {
                   />
                 </Col>
               </div>
+
+              {/* Row 3: Head Circumference, Surface Area */}
               <div className="row" style={{ marginTop: "8px" }}>
-                <Col size={2}>
+                <Col size={3}>
                   <SectionLabel>Head Circumference (cm)</SectionLabel>
-                  <Input type="text" name="headCircumference" value={vitals.headCircumference} onChange={handleVitals} placeholder="cm" />
+                  <Input
+                    type="text"
+                    name="headCircumference"
+                    value={vitals.headCircumference}
+                    onChange={handleVitals}
+                    placeholder="cm"
+                  />
                 </Col>
-                <Col size={2}>
-                  <SectionLabel>Surface Area (cm²)</SectionLabel>
-                  <Input type="text" name="surfaceArea" value={vitals.surfaceArea} onChange={handleVitals} placeholder="cm²" />
+                <Col size={3}>
+                  <SectionLabel>Surface Area (m²)</SectionLabel>
+                  <Input
+                    type="text"
+                    name="surfaceArea"
+                    value={vitals.surfaceArea}
+                    onChange={handleVitals}
+                    placeholder="m²"
+                  />
                 </Col>
               </div>
             </Box>
@@ -1984,23 +2016,6 @@ const InitialClinicalEvaluationForm = (props) => {
               systemKey="respiratory"
               state={systems.respiratory}
               onChange={handleSystem}
-              extraContent={
-                !systems.respiratory.nsf && (
-                  <div className="form-group mb-2 col-md-2">
-                    <SectionLabel>Rate (breaths/min)</SectionLabel>
-                    <Input
-                      type="text"
-                      value={systems.respiratory.rate || ""}
-                      onChange={(e) => handleSystemExtra("respiratory", "rate", e.target.value)}
-                      placeholder="b/min"
-                      style={{ borderColor: vitalsErrors.respiratory_rate ? "#d32f2f" : "" }}
-                    />
-                    {vitalsErrors.respiratory_rate && (
-                      <span className={classes.error}>{vitalsErrors.respiratory_rate}</span>
-                    )}
-                  </div>
-                )
-              }
             />
             <BodySystem label="Gastrointestinal" systemKey="gastrointestinal" state={systems.gastrointestinal} onChange={handleSystem} />
             <BodySystem
@@ -2008,19 +2023,6 @@ const InitialClinicalEvaluationForm = (props) => {
               systemKey="genitalia"
               state={systems.genitalia}
               onChange={handleSystem}
-              extraContent={
-                !systems.genitalia.nsf && (
-                  <div className="form-group mb-2 col-md-2">
-                    <SectionLabel>Tanner Stage</SectionLabel>
-                    <Input
-                      type="text"
-                      value={systems.genitalia.tannerStage || ""}
-                      onChange={(e) => handleSystemExtra("genitalia", "tannerStage", e.target.value)}
-                      placeholder="Stage"
-                    />
-                  </div>
-                )
-              }
             />
             {isFemale && (
               <BodySystem label="Breasts / Glands" systemKey="breastGlands" state={systems.breastGlands} onChange={handleSystem} />

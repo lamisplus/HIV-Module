@@ -269,15 +269,15 @@ const InitialClinicalEvaluationView = (props) => {
           </Typography>
         </Box>
 
-        {/* ══════════════════════════════════════════════════════════════ */}
-        {/*  SECTION 1 — BASIC INFORMATION                               */}
-        {/* ══════════════════════════════════════════════════════════════ */}
-        <FormAccordion
-          panel="basic"
-          title="Basic Information"
-          index={0}
-          expanded={expanded}
-          onToggle={toggleAccordion}
+        {/* ── Visit Details ─────────────────────────────────────────────── */}
+        <Box
+          sx={{
+            background: "#f5f7fa",
+            border: "1px solid #e0e8f0",
+            borderRadius: "8px",
+            padding: "16px 20px",
+            marginBottom: "20px",
+          }}
         >
           <FieldRow>
             <Col size={3}>
@@ -294,8 +294,59 @@ const InitialClinicalEvaluationView = (props) => {
                 classes={classes}
               />
             </Col>
+            {evalData.pregnancy && evalData.pregnancy.currentlyPregnant && (
+              <>
+                <Col size={2}>
+                  <FieldDisplay
+                    label="Currently Pregnant"
+                    value={getYesNo(evalData.pregnancy.currentlyPregnant)}
+                    classes={classes}
+                  />
+                </Col>
+                {(evalData.pregnancy.currentlyPregnant === "Yes" || evalData.pregnancy.currentlyPregnant === true) && (
+                  <>
+                    <Col size={2}>
+                      <FieldDisplay
+                        label="Last Menstrual Period"
+                        value={formatDate(evalData.pregnancy.lastMenstrualPeriod)}
+                        classes={classes}
+                      />
+                    </Col>
+                    <Col size={2}>
+                      <FieldDisplay
+                        label="Gestational Age (Weeks)"
+                        value={evalData.pregnancy.gestationalAge}
+                        classes={classes}
+                      />
+                    </Col>
+                  </>
+                )}
+              </>
+            )}
           </FieldRow>
+          {evalData.pregnancy && (evalData.pregnancy.currentlyPregnant === "Yes" || evalData.pregnancy.currentlyPregnant === true) && (
+            <FieldRow style={{ marginTop: "12px" }}>
+              <Col size={3}>
+                <FieldDisplay
+                  label="Expected Date of Delivery"
+                  value={formatDate(evalData.pregnancy.expectedDateOfDelivery)}
+                  classes={classes}
+                />
+              </Col>
+            </FieldRow>
+          )}
+        </Box>
 
+        {/* ══════════════════════════════════════════════════════════════ */}
+        {/*  SECTION 1 — BASIC INFORMATION                               */}
+        {/* ══════════════════════════════════════════════════════════════ */}
+        <FormAccordion
+          panel="basic"
+          title="Basic Information"
+          index={0}
+          expanded={expanded}
+          onToggle={toggleAccordion}
+        >
           <SubHeading>Symptoms</SubHeading>
           <FieldRow>
             <Col size={12}>
@@ -377,52 +428,15 @@ const InitialClinicalEvaluationView = (props) => {
         </FormAccordion>
 
         {/* ══════════════════════════════════════════════════════════════ */}
-        {/*  SECTION 3 — PREGNANCY & MEDICATION                          */}
+        {/*  SECTION 3 — MEDICATION HISTORY                              */}
         {/* ══════════════════════════════════════════════════════════════ */}
         <FormAccordion
           panel="pregnancy"
-          title="Pregnancy & Medication History"
+          title="Medication History"
           index={2}
           expanded={expanded}
           onToggle={toggleAccordion}
         >
-          {evalData.pregnancy && (
-            <>
-              <SubHeading>Pregnancy Status</SubHeading>
-              <FieldRow>
-                <Col size={3}>
-                  <FieldDisplay
-                    label="Currently Pregnant"
-                    value={getYesNo(evalData.pregnancy.currentlyPregnant)}
-                    classes={classes}
-                  />
-                </Col>
-                <Col size={3}>
-                  <FieldDisplay
-                    label="Last Menstrual Period"
-                    value={formatDate(evalData.pregnancy.lastMenstrualPeriod)}
-                    classes={classes}
-                  />
-                </Col>
-                <Col size={3}>
-                  <FieldDisplay
-                    label="Gestational Age (weeks)"
-                    value={evalData.pregnancy.gestationalAge}
-                    classes={classes}
-                  />
-                </Col>
-                <Col size={3}>
-                  <FieldDisplay
-                    label="Expected Delivery Date"
-                    value={formatDate(evalData.pregnancy.expectedDateOfDelivery)}
-                    classes={classes}
-                  />
-                </Col>
-              </FieldRow>
-              <Divider sx={{ my: 2 }} />
-            </>
-          )}
-
           <SubHeading>Drug Allergies & Current Medications</SubHeading>
           <FieldRow>
             <Col size={12}>
@@ -624,6 +638,13 @@ const InitialClinicalEvaluationView = (props) => {
                 </Col>
               </FieldRow>
               <FieldRow>
+                <Col size={3}>
+                  <FieldDisplay
+                    label="Respiratory Rate (breaths/min)"
+                    value={evalData.vitals.respiratoryRate}
+                    classes={classes}
+                  />
+                </Col>
                 <Col size={3}>
                   <FieldDisplay
                     label="Weight (kg)"

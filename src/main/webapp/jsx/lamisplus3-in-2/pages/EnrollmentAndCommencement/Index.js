@@ -480,17 +480,20 @@ const EnrollmentAndCommencementForm = (props) => {
     muac_indication: "",
     is_pregnant: "",
     pregnancy_status: "",
+    tpt_started: false,
     tb_preventive_therapy: {
       medication: "",
       code: "",
       dose: "",
       start_date: "",
+      tpt_completed: "",
       completion_date: "",
     },
   });
 
   const handleCommencement = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const inputValue = type === 'checkbox' ? checked : value;
 
     // If regimen line changes, fetch regimens for that line
     if (name === "regimen_line_id") {
@@ -499,6 +502,23 @@ const EnrollmentAndCommencementForm = (props) => {
         ...prev,
         regimen_line_id: value,
         first_art_regimen: "" // Clear selected regimen when line changes
+      }));
+      return;
+    }
+
+    // Handle TPT Started checkbox - clear TPT fields when unchecked
+    if (name === "tpt_started") {
+      setCommencement((prev) => ({
+        ...prev,
+        tpt_started: checked,
+        tb_preventive_therapy: checked ? prev.tb_preventive_therapy : {
+          medication: "",
+          code: "",
+          dose: "",
+          start_date: "",
+          tpt_completed: "",
+          completion_date: "",
+        },
       }));
       return;
     }
@@ -516,7 +536,7 @@ const EnrollmentAndCommencementForm = (props) => {
       });
     } else {
       setCommencement((prev) => {
-        const updated = { ...prev, [name]: value };
+        const updated = { ...prev, [name]: inputValue };
         // BMI
         const w = name === "weight_kg" ? value : prev.weight_kg;
         const h = name === "height_cm" ? value : prev.height_cm;
@@ -541,10 +561,23 @@ const EnrollmentAndCommencementForm = (props) => {
   // Handler for the nested TPT object
   const handleTpt = (e) => {
     const { name, value } = e.target;
-    setCommencement((prev) => ({
-      ...prev,
-      tb_preventive_therapy: { ...prev.tb_preventive_therapy, [name]: value },
-    }));
+
+    // If TPT Completed changes to "No" or empty, clear completion date
+    if (name === "tpt_completed" && value !== "Yes") {
+      setCommencement((prev) => ({
+        ...prev,
+        tb_preventive_therapy: {
+          ...prev.tb_preventive_therapy,
+          tpt_completed: value,
+          completion_date: "",
+        },
+      }));
+    } else {
+      setCommencement((prev) => ({
+        ...prev,
+        tb_preventive_therapy: { ...prev.tb_preventive_therapy, [name]: value },
+      }));
+    }
   };
 
   // ── Validation ───────────────────────────────────────────────────────────
@@ -714,7 +747,7 @@ const EnrollmentAndCommencementForm = (props) => {
           }}
         >
           <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
-            ART Enrollment &amp; Commencement
+            Enrollment &amp; ART Commencement
             {isPediatric && (
               <span
                 style={{
@@ -739,7 +772,7 @@ const EnrollmentAndCommencementForm = (props) => {
           {/* ══════════════════════════════════════════════════════════════ */}
           <FormAccordion
             panel="registration"
-            title="Patient Registration Details"
+            title="Enrollment"
             index={0}
             expanded={expanded}
             onToggle={toggleAccordion}
@@ -827,7 +860,7 @@ const EnrollmentAndCommencementForm = (props) => {
             </FieldRow>
 
             <FieldRow>
-              <Col size={3}>
+              <Col size={4}>
                 <SectionLabel>
                   Care Entry Point{" "}
                   <span style={{ color: "red" }}>*</span>
@@ -853,7 +886,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 )}
               </Col>
               {registration.care_entry_point == getCodesetIdByCode(codesets.careEntryPoints, "OTHERS") && (
-                <Col size={3}>
+                <Col size={4}>
                   <SectionLabel>Specify Entry Point</SectionLabel>
                   <Input
                     type="text"
@@ -865,7 +898,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 </Col>
               )}
               {isInfant && (
-                <Col size={3}>
+                <Col size={4}>
                   <SectionLabel>
                     Mother's Unique ID
                     <span style={{ color: "red" }}> *</span>
@@ -887,8 +920,6 @@ const EnrollmentAndCommencementForm = (props) => {
             </FieldRow>
 
             {/* Prior ART & KP Typology */}
-            <Divider sx={{ my: 2 }} />
-            <SubHeading>Prior ART &amp; Key Population</SubHeading>
             <FieldRow>
               <Col size={4}>
                 <SectionLabel>
@@ -1006,7 +1037,7 @@ const EnrollmentAndCommencementForm = (props) => {
 
           <FormAccordion
             panel="commencement"
-            title="Enrollment & ART Commencement"
+            title="ART Commencement"
             index={1}
             expanded={expanded}
             onToggle={toggleAccordion}
@@ -1105,7 +1136,7 @@ const EnrollmentAndCommencementForm = (props) => {
 
             <FieldRow>
               <Col size={3}>
-                <SectionLabel>{isPediatric ? "Child" : "Adult"} Regimen Line</SectionLabel>
+                <SectionLabel>{isPediatric ? "Child" : "Adult"} First ART Regimen Line</SectionLabel>
                 <Input
                   type="select"
                   name="regimen_line_id"
@@ -1281,75 +1312,131 @@ const EnrollmentAndCommencementForm = (props) => {
             {/* TB Preventive Therapy */}
             <Divider sx={{ my: 2 }} />
             <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
-            <Box
-              sx={{
-                background: "#fff",
-                border: "1px solid #014d88",
-                borderRadius: "4px",
-                padding: "16px",
-              }}
-            >
-              <FieldRow>
-                <Col size={4}>
-                  <SectionLabel>TPT Medication (Name)</SectionLabel>
-                  <Input
-                    type="text"
-                    name="medication"
-                    value={commencement.tb_preventive_therapy.medication}
-                    onChange={handleTpt}
-                    placeholder="e.g. Isoniazid, Rifapentine"
+
+            {/* TPT Started Checkbox */}
+            <FieldRow>
+              <Col size={12}>
+                <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
+                  <input
+                    type="checkbox"
+                    id="tpt_started"
+                    name="tpt_started"
+                    checked={commencement.tpt_started}
+                    onChange={handleCommencement}
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      marginRight: "8px",
+                      cursor: "pointer"
+                    }}
                   />
-                </Col>
-                <Col size={2}>
-                  <SectionLabel>TPT Code</SectionLabel>
-                  <Input
-                    type="select"
-                    name="code"
-                    value={commencement.tb_preventive_therapy.code}
-                    onChange={handleTpt}
+                  <label
+                    htmlFor="tpt_started"
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#014d88",
+                      cursor: "pointer",
+                      margin: 0
+                    }}
                   >
-                    <option value="">Select</option>
-                    {TB_PREVENTIVE_THERAPY_CODES.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </Input>
-                </Col>
-                <Col size={2}>
-                  <SectionLabel>Dose</SectionLabel>
-                  <Input
-                    type="text"
-                    name="dose"
-                    value={commencement.tb_preventive_therapy.dose}
-                    onChange={handleTpt}
-                    placeholder="e.g. 300mg"
-                  />
-                </Col>
-                <Col size={2}>
-                  <SectionLabel>Start Date</SectionLabel>
-                  <Input
-                    type="date"
-                    name="start_date"
-                    value={commencement.tb_preventive_therapy.start_date}
-                    min={registration.date_enrolled_in_hiv_care}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    onChange={handleTpt}
-                  />
-                </Col>
-                <Col size={2}>
-                  <SectionLabel>Completion Date</SectionLabel>
-                  <Input
-                    type="date"
-                    name="completion_date"
-                    value={commencement.tb_preventive_therapy.completion_date}
-                    min={commencement.tb_preventive_therapy.start_date}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                    onChange={handleTpt}
-                  />
-                </Col>
-              </FieldRow>
-            </Box>
+                    TPT Started
+                  </label>
+                </div>
+              </Col>
+            </FieldRow>
+
+            {/* TPT Details - Only show if TPT Started is checked */}
+            {commencement.tpt_started && (
+              <Box
+                sx={{
+                  background: "#fff",
+                  border: "1px solid #014d88",
+                  borderRadius: "4px",
+                  padding: "16px",
+                }}
+              >
+                <FieldRow>
+                  <Col size={4}>
+                    <SectionLabel>TPT Medication (Name)</SectionLabel>
+                    <Input
+                      type="text"
+                      name="medication"
+                      value={commencement.tb_preventive_therapy.medication}
+                      onChange={handleTpt}
+                      placeholder="e.g. Isoniazid, Rifapentine"
+                    />
+                  </Col>
+                  <Col size={2}>
+                    <SectionLabel>TPT Code</SectionLabel>
+                    <Input
+                      type="select"
+                      name="code"
+                      value={commencement.tb_preventive_therapy.code}
+                      onChange={handleTpt}
+                    >
+                      <option value="">Select</option>
+                      {TB_PREVENTIVE_THERAPY_CODES.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+                  <Col size={2}>
+                    <SectionLabel>Dose</SectionLabel>
+                    <Input
+                      type="text"
+                      name="dose"
+                      value={commencement.tb_preventive_therapy.dose}
+                      onChange={handleTpt}
+                      placeholder="e.g. 300mg"
+                    />
+                  </Col>
+                  <Col size={2}>
+                    <SectionLabel>Start Date</SectionLabel>
+                    <Input
+                      type="date"
+                      name="start_date"
+                      value={commencement.tb_preventive_therapy.start_date}
+                      min={registration.date_enrolled_in_hiv_care}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      onChange={handleTpt}
+                    />
+                  </Col>
+                  <Col size={2}>
+                    <SectionLabel>TPT Completed</SectionLabel>
+                    <Input
+                      type="select"
+                      name="tpt_completed"
+                      value={commencement.tb_preventive_therapy.tpt_completed}
+                      onChange={handleTpt}
+                    >
+                      <option value="">Select</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </Input>
+                  </Col>
+                </FieldRow>
+
+                {/* Completion Date - Only show if TPT Completed is Yes */}
+                {commencement.tb_preventive_therapy.tpt_completed === "Yes" && (
+                  <FieldRow>
+                    <Col size={3}>
+                      <SectionLabel>Completion Date</SectionLabel>
+                      <Input
+                        type="date"
+                        name="completion_date"
+                        value={commencement.tb_preventive_therapy.completion_date}
+                        min={commencement.tb_preventive_therapy.start_date}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
+                        onChange={handleTpt}
+                      />
+                    </Col>
+                  </FieldRow>
+                )}
+              </Box>
+            )}
           </FormAccordion>
 
           {/* ── Action Buttons ─────────────────────────────────────────── */}
