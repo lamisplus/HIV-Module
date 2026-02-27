@@ -1080,6 +1080,23 @@ const CareCardFollowUpForm = (props) => {
     }
     setSaving(true);
     try {
+      // Transform arvList to match backend expected format
+      const arvdrugsRegimen = arvList.map((arv) => {
+        const regimenLine = arv.regimen_line ? getRegimenLineDisplay(arv.regimen_line) : "";
+        const regimenIndex = arvList.indexOf(arv);
+        const regimenName = arv.regimen ? getRegimenDisplay(arv.regimen, regimenIndex) : "";
+
+        return {
+          regimenLine: arv.regimen_line,
+          regimenDrug: arv.regimen,
+          regimenLineName: regimenLine,
+          regimenDrugName: regimenName,
+          dosage: arv.dose,
+          regimenAdherance: arv.adherence,
+          whyPoorFairAdherence: arv.why_poor_fair_adherence || ""
+        };
+      });
+
       const payload = {
         dateOfObservation: visitInfo.visit_date,
         personId: props.patientObj.id,
@@ -1092,7 +1109,7 @@ const CareCardFollowUpForm = (props) => {
             cervical_cancer_screening: isFemale ? cervical_cancer_screening : null,
             cervical_cancer_treatment: isFemale ? cervical_cancer_treatment : null,
           },
-          arvList,
+          arvdrugsRegimen,  // Changed from arvList to match backend
           cotrimoxazole: ctx,
           tpt,
           otherDrugs,
@@ -1505,27 +1522,21 @@ const CareCardFollowUpForm = (props) => {
               </div>
             )}
 
-            <TableContainer component={Paper} sx={{ marginBottom: "16px", border: "1px solid #014d88" }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: "#014d88" }}>
-                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>#</TableCell>
-                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen Line</TableCell>
-                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen</TableCell>
-                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Adherence</TableCell>
-                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Dose</TableCell>
-                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px", textAlign: "center" }}>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {arvList.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} sx={{ textAlign: "center", padding: "20px", color: "#9e9e9e", fontStyle: "italic" }}>
-                        No ARV regimens added. Click "Add ARV Regimen" to add one.
-                      </TableCell>
+            {arvList.length > 0 && (
+              <TableContainer component={Paper} sx={{ marginBottom: "16px", border: "1px solid #014d88" }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: "#014d88" }}>
+                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>#</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen Line</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Adherence</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Dose</TableCell>
+                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px", textAlign: "center" }}>Actions</TableCell>
                     </TableRow>
-                  ) : (
-                    arvList.map((arv, index) => (
+                  </TableHead>
+                  <TableBody>
+                    {arvList.map((arv, index) => (
                       <TableRow key={index} sx={{ "&:hover": { backgroundColor: "#f5f5f5" } }}>
                         <TableCell sx={{ fontSize: "13px" }}>{index + 1}</TableCell>
                         <TableCell sx={{ fontSize: "13px" }}>
@@ -1561,11 +1572,11 @@ const CareCardFollowUpForm = (props) => {
                           </Tooltip>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
 
             {/* Add ARV Modal */}
             <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)} maxWidth="md" fullWidth>
