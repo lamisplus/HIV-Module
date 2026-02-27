@@ -740,20 +740,20 @@ const PositiveHealthDignityForm = (props) => {
                   variant="contained"
                   className={classes.button}
                   startIcon={<CancelIcon style={{ color: "#fff" }} />}
-                  style={{ backgroundColor: "#992E62" }}
+                  style={{ backgroundColor: "#992E62", color: "#fff" }}
                   onClick={() => props.setActiveContent({ ...props.activeContent, route: "recent-history" })}
               >
-                <span style={{ textTransform: "capitalize" }}>Cancel</span>
+                <span style={{ textTransform: "capitalize", color: "#fff" }}>Cancel</span>
               </MatButton>
               <MatButton
                   type="submit"
                   variant="contained"
                   className={classes.button}
-                  startIcon={<SaveIcon />}
-                  style={{ backgroundColor: "#014d88" }}
+                  startIcon={<SaveIcon style={{ color: "#fff" }} />}
+                  style={{ backgroundColor: "#014d88", color: "#fff" }}
                   disabled={saving}
               >
-                <span style={{ textTransform: "capitalize" }}>{saving ? "Saving..." : "Save"}</span>
+                <span style={{ textTransform: "capitalize", color: "#fff" }}>{saving ? "Saving..." : "Save"}</span>
               </MatButton>
             </div>
           </form>

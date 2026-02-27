@@ -361,14 +361,6 @@ const SubMenu = (props) => {
         });
       },
 
-      loadDiscontinuationInterruption: () => {
-        setActiveItem("discontinuation-interruption");
-        props.setActiveContent({
-          ...props.activeContent,
-          route: "discontinuation-interruption",
-        });
-      },
-
       loadArtCommencement: () => {
         setActiveItem("art");
         props.setActiveContent({
@@ -629,15 +621,6 @@ const SubMenu = (props) => {
                 Substitution / Switch
               </MenuItem>
 
-              <MenuItem
-                onClick={menuHandlers.loadDiscontinuationInterruption}
-                name="discontinuation-interruption"
-                active={activeItem === "discontinuation-interruption"}
-                title="Discontinuations & Interruptions"
-              >
-                Discontinuation
-              </MenuItem>
-
               {!patientObj.commenced && (
                 <MenuItem
                   onClick={menuHandlers.loadArtCommencement}
@@ -891,14 +874,6 @@ const SubMenu = (props) => {
                                 title="Substitutions / Switches"
                               >
                                 Substitution / Switch
-                              </Dropdown.Item>
-                              <Dropdown.Item
-                                onClick={menuHandlers.loadDiscontinuationInterruption}
-                                name="discontinuation-interruption"
-                                active={activeItem === "discontinuation-interruption"}
-                                title="Discontinuations & Interruptions"
-                              >
-                                Discontinuation &amp; Interruption
                               </Dropdown.Item>
                               <Dropdown.Item
                                 onClick={menuHandlers.loadTrackingForm}

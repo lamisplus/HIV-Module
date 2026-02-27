@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Input } from "reactstrap";
 import * as moment from "moment";
@@ -10,6 +10,8 @@ import {
   Typography,
   Box,
   Divider,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { makeStyles } from "@material-ui/core/styles";
@@ -24,54 +26,6 @@ import CancelIcon from "@material-ui/icons/Cancel";
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
-
-const WHO_STAGES = ["Stage 1", "Stage 2", "Stage 3", "Stage 4"];
-
-const TB_STATUS_OPTIONS = [
-  { value: "1", label: "1 — No signs or symptoms of TB" },
-  { value: "2", label: "2 — Presumptive TB, referred for evaluation" },
-  { value: "3", label: "3 — Confirmed TB, on TB treatment" },
-  { value: "4", label: "4 — TB treatment completed" },
-  { value: "5", label: "5 — Currently on TPT" },
-  { value: "6", label: "6 — Currently on IPT / INH prophylaxis" },
-];
-
-const CERVICAL_CANCER_OPTIONS = [
-  { value: "0", label: "0 — Not screened" },
-  { value: "1", label: "1 — Screen negative (normal)" },
-  { value: "2", label: "2 — Screen positive (low grade)" },
-  { value: "3", label: "3 — Screen positive (high grade)" },
-  { value: "4", label: "4 — Suspected cancer" },
-  { value: "5", label: "5 — Referred" },
-];
-
-const FAMILY_PLANNING_OPTIONS = [
-  { value: "0", label: "0 — None" },
-  { value: "1", label: "1 — Oral Contraceptives" },
-  { value: "2", label: "2 — Injectables" },
-  { value: "3", label: "3 — Implant / Norplant" },
-  { value: "4", label: "4 — IUD" },
-  { value: "5", label: "5 — Male / Female Condom" },
-  { value: "6", label: "6 — Male / Female Sterilization" },
-  { value: "7", label: "7 — Natural Family Planning" },
-  { value: "8", label: "8 — Emergency Contraception" },
-  { value: "9", label: "9 — Other" },
-];
-
-const DISCLOSURE_STATUS_OPTIONS = [
-  { value: "0", label: "0 — Not yet disclosed" },
-  { value: "1", label: "1 — Disclosed (full)" },
-  { value: "2", label: "2 — Partial disclosure (patient knows they are ill)" },
-  { value: "3", label: "3 — Not applicable (adult > 18 years)" },
-];
-
-const HEPATITIS_STATUS_OPTIONS = [
-  "Negative",
-  "Positive (Hepatitis B)",
-  "Positive (Hepatitis C)",
-  "Positive (Hepatitis B + C)",
-  "Not tested",
-];
 
 const OI_CONDITIONS = [
   { value: "bacterial_pneumonia",    label: "Bacterial Pneumonia" },
@@ -113,45 +67,79 @@ const SIDE_EFFECTS = [
   { value: "other",                 label: "Other" },
 ];
 
-const ARV_REGIMENS = [
-  { group: "First Line — Adults", options: [
-    { value: "TDF/3TC/DTG",   label: "TDF/3TC/DTG" },
-    { value: "TDF/3TC/EFV",   label: "TDF/3TC/EFV" },
-    { value: "TDF/3TC/NVP",   label: "TDF/3TC/NVP" },
-    { value: "AZT/3TC/DTG",   label: "AZT/3TC/DTG" },
-    { value: "AZT/3TC/EFV",   label: "AZT/3TC/EFV" },
-    { value: "AZT/3TC/NVP",   label: "AZT/3TC/NVP" },
-    { value: "ABC/3TC/DTG",   label: "ABC/3TC/DTG" },
-    { value: "ABC/3TC/EFV",   label: "ABC/3TC/EFV" },
-    { value: "ABC/3TC/NVP",   label: "ABC/3TC/NVP" },
-  ]},
-  { group: "Second Line — Adults", options: [
-    { value: "TDF/3TC/ATV/r", label: "TDF/3TC/ATV/r" },
-    { value: "TDF/3TC/LPV/r", label: "TDF/3TC/LPV/r" },
-    { value: "AZT/3TC/ATV/r", label: "AZT/3TC/ATV/r" },
-    { value: "AZT/3TC/LPV/r", label: "AZT/3TC/LPV/r" },
-    { value: "ABC/3TC/LPV/r", label: "ABC/3TC/LPV/r" },
-  ]},
-  { group: "Third Line", options: [
-    { value: "DRV/r + RAL + others", label: "DRV/r + RAL + others" },
-    { value: "Other (specify)",       label: "Other (specify)" },
-  ]},
-  { group: "Paediatric", options: [
-    { value: "ABC/3TC/DTG (Ped)",  label: "ABC/3TC/DTG (Ped)" },
-    { value: "ABC/3TC/LPV/r (Ped)",label: "ABC/3TC/LPV/r (Ped)" },
-    { value: "AZT/3TC/NVP (Ped)", label: "AZT/3TC/NVP (Ped)" },
-    { value: "AZT/3TC/LPV/r (Ped)",label: "AZT/3TC/LPV/r (Ped)" },
-    { value: "TDF/3TC/DTG (Ped)",  label: "TDF/3TC/DTG (Ped)" },
-  ]},
-];
-
-const ARV_REGIMEN_FLAT = ARV_REGIMENS.flatMap((g) => g.options);
-
 const ADHERENCE_OPTIONS = [
   { value: "G", label: "G — Good (≥ 95%)" },
   { value: "F", label: "F — Fair (85 – 94%)" },
   { value: "P", label: "P — Poor (< 85%)" },
 ];
+
+const PAEDIATRIC_DISCLOSURE_OPTIONS = [
+  { id: 2000, code: "PAEDIATRIC_DISCLOSURE_OFFERED", display: "Offered Disclosure" },
+  { id: 2001, code: "PAEDIATRIC_DISCLOSURE_ACCEPTED", display: "Accepted Disclosure" },
+  { id: 2002, code: "PAEDIATRIC_DISCLOSURE_COMMENCED_PARTIAL", display: "Commenced (Partial disclosure)" },
+  { id: 2003, code: "PAEDIATRIC_DISCLOSURE_COMPLETED_FULL", display: "Completed (Full disclosure)" },
+];
+
+const DSD_STATUS_OPTIONS = [
+  { id: 3000, code: "DSD_STATUS_FACILITY_BASED", display: "Facility-Based" },
+  { id: 3001, code: "DSD_STATUS_NON_DEVOLVED", display: "Non-devolved" },
+  { id: 3002, code: "DSD_STATUS_NOT_ELIGIBLE", display: "Not-Eligible" },
+  { id: 3003, code: "DSD_STATUS_COMMUNITY_BASED", display: "Community-Based" },
+];
+
+// WHO Stage Clinical Criteria Options - these are hardcoded on the frontend
+// Each WHO stage code maps to an array of available clinical criteria
+const WHO_STAGE_CRITERIA_OPTIONS = {
+  "WHO_STAGING_CRITERIA_STAGE_1": [
+    "Asymptomatic",
+    "Persistent Generalized Lymphadenopathy",
+  ],
+  "WHO_STAGING_CRITERIA_STAGE_2": [
+    "Moderate Unexplained Weight Loss (<10% of presumed or measured body weight)",
+    "Recurrent Respiratory Tract Infections (sinusitis, tonsillitis, otitis media, pharyngitis)",
+    "Herpes Zoster",
+    "Angular Cheilitis",
+    "Recurrent Oral Ulceration",
+    "Papular Pruritic Eruptions",
+    "Seborrheic Dermatitis",
+    "Fungal Nail Infections",
+  ],
+  "WHO_STAGING_CRITERIA_STAGE_3": [
+    "Weight loss greater than 10% of body weight",
+    "Unexplained Chronic Diarrhea less than 1 month",
+    "Oral Candidiasis",
+    "TB, Pulmonary (within previous year)",
+    "Severe Bacterial Infections",
+    "Unexplained Prolonged Fever",
+    "Oral Hairy Leukoplakia",
+    "Acute Necrotizing Ulcerative Stomatitis, Gingivitis or Periodontitis",
+    "Unexplained Anemia (<8 g/dl), neutropenia, and/or chronic thrombocytopenia",
+  ],
+  "WHO_STAGING_CRITERIA_STAGE_4": [
+    "HIV Wasting Syndrome",
+    "Pneumocystis Pneumonia",
+    "Recurrent Severe Bacterial Pneumonia",
+    "Chronic Herpes Simplex Infection (orolabial, genital or anorectal >1 month)",
+    "Esophageal Candidiasis (or candidiasis of trachea, bronchi or lungs)",
+    "Extrapulmonary Tuberculosis",
+    "Kaposi Sarcoma",
+    "Cytomegalovirus Disease (retinitis or infection of organs other than liver, spleen or lymph nodes)",
+    "Central Nervous System Toxoplasmosis",
+    "HIV Encephalopathy",
+    "Cryptococcosis, Extrapulmonary (including meningitis)",
+    "Disseminated Non-tuberculous Mycobacteria Infection",
+    "Progressive Multifocal Leukoencephalopathy (PML)",
+    "Chronic Cryptosporidiosis (with diarrhea)",
+    "Chronic Isosporiasis",
+    "Disseminated Mycosis (coccidiomycosis, histoplasmosis)",
+    "Recurrent Non-typhoidal Salmonella Bacteremia",
+    "Lymphoma (cerebral or B-cell non-Hodgkin)",
+    "Invasive Cervical Carcinoma",
+    "Atypical Disseminated Leishmaniasis",
+    "Symptomatic HIV-associated Nephropathy",
+    "Symptomatic HIV-associated Cardiomyopathy",
+  ],
+};
 
 const TPT_CODES = [
   { value: "6H",   label: "6H — Isoniazid (6 months)" },
@@ -169,6 +157,27 @@ const VL_INDICATION_OPTIONS = [
   { value: "6", label: "6 — Clinical / Immunological failure" },
   { value: "7", label: "7 — PMTCT" },
   { value: "8", label: "8 — Other" },
+];
+
+const EAC_OPTIONS = [
+  "None",
+  "1st EAC",
+  "2nd EAC",
+  "3rd EAC",
+  "Additional EAC",
+];
+
+const TYPE_OF_APPOINTMENT_OPTIONS = [
+  { id: 4000, code: "TYPE_OF_APPOINTMENT_CONDUCT", display: "Conduct" },
+  { id: 4001, code: "TYPE_OF_APPOINTMENT_HOSPITALISED", display: "Hospitalised" },
+  { id: 4002, code: "TYPE_OF_APPOINTMENT_REFER", display: "Refer" },
+];
+
+const HEALTH_INSURANCE_OPTIONS = [
+  { id: 5000, code: "HEALTH_INSURANCE_NHIA", display: "NHIA" },
+  { id: 5001, code: "HEALTH_INSURANCE_BHCPF", display: "BHCPF" },
+  { id: 5002, code: "HEALTH_INSURANCE_SHIA", display: "SHIA" },
+  { id: 5003, code: "HEALTH_INSURANCE_PRIVATE_HMO", display: "Private Insurance -HMO" },
 ];
 
 // Single system color — matches #014d88 used throughout the application
@@ -262,6 +271,154 @@ const MultiSelect = ({ options, value, onChange, placeholder }) => (
   />
 );
 
+// TransferList Component for WHO Stage Criteria Selection
+const TransferList = ({ availableItems, selectedItems, onTransfer, stageName }) => {
+  const moveToSelected = (item) => {
+    onTransfer([...selectedItems, item]);
+  };
+
+  const moveToAvailable = (item) => {
+    onTransfer(selectedItems.filter((i) => i !== item));
+  };
+
+  const moveAllToSelected = () => {
+    onTransfer([...availableItems]);
+  };
+
+  const moveAllToAvailable = () => {
+    onTransfer([]);
+  };
+
+  const unselectedItems = availableItems.filter((item) => !selectedItems.includes(item));
+
+  return (
+    <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
+      <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#546e7a", marginBottom: "12px" }}>
+        {stageName} options
+      </Typography>
+      <Box sx={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        {/* Available Items List */}
+        <Box
+          sx={{
+            flex: 1,
+            border: "1px solid #e0e0e0",
+            borderRadius: "4px",
+            minHeight: "200px",
+            maxHeight: "300px",
+            overflowY: "auto",
+            padding: "12px",
+            background: "#fafafa",
+          }}
+        >
+          {unselectedItems.length === 0 ? (
+            <Typography sx={{ fontSize: "12px", color: "#9e9e9e", fontStyle: "italic", textAlign: "center", marginTop: "80px" }}>
+              All options selected
+            </Typography>
+          ) : (
+            unselectedItems.map((item, idx) => (
+              <Box
+                key={idx}
+                onClick={() => moveToSelected(item)}
+                sx={{
+                  padding: "8px 10px",
+                  marginBottom: "6px",
+                  background: "#fff",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  "&:hover": {
+                    background: "#e3f2fd",
+                    borderColor: "#014d88",
+                  },
+                }}
+              >
+                {item}
+              </Box>
+            ))
+          )}
+        </Box>
+
+        {/* Transfer Buttons */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <Tooltip title="Move all to selected">
+            <IconButton
+              size="small"
+              onClick={moveAllToSelected}
+              disabled={unselectedItems.length === 0}
+              sx={{
+                border: "1px solid #014d88",
+                borderRadius: "4px",
+                color: "#014d88",
+                "&:disabled": { borderColor: "#ddd", color: "#ddd" },
+              }}
+            >
+              <span style={{ fontSize: "18px", fontWeight: "bold" }}>≫</span>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Move all to available">
+            <IconButton
+              size="small"
+              onClick={moveAllToAvailable}
+              disabled={selectedItems.length === 0}
+              sx={{
+                border: "1px solid #014d88",
+                borderRadius: "4px",
+                color: "#014d88",
+                "&:disabled": { borderColor: "#ddd", color: "#ddd" },
+              }}
+            >
+              <span style={{ fontSize: "18px", fontWeight: "bold" }}>≪</span>
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        {/* Selected Items List */}
+        <Box
+          sx={{
+            flex: 1,
+            border: "1px solid #e0e0e0",
+            borderRadius: "4px",
+            minHeight: "200px",
+            maxHeight: "300px",
+            overflowY: "auto",
+            padding: "12px",
+            background: "#fafafa",
+          }}
+        >
+          {selectedItems.length === 0 ? (
+            <Typography sx={{ fontSize: "12px", color: "#9e9e9e", fontStyle: "italic", textAlign: "center", marginTop: "80px" }}>
+              No options selected
+            </Typography>
+          ) : (
+            selectedItems.map((item, idx) => (
+              <Box
+                key={idx}
+                onClick={() => moveToAvailable(item)}
+                sx={{
+                  padding: "8px 10px",
+                  marginBottom: "6px",
+                  background: "#e3f2fd",
+                  border: "1px solid #014d88",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  "&:hover": {
+                    background: "#fff",
+                    borderColor: "#ddd",
+                  },
+                }}
+              >
+                {item}
+              </Box>
+            ))
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
 // FormAccordion — module scope only
 const FormAccordion = ({ panel, title, children, expanded, onToggle }) => {
   const isOpen = expanded.includes(panel);
@@ -305,15 +462,155 @@ const CareCardFollowUpForm = (props) => {
   const classes = useStyles();
   const isFemale = ["female", "FEMALE", "Female"].includes(props.patientObj?.sex);
 
+  // Determine if patient is pediatric or adult based on age
+  // Pediatric: age < 15 years (use MUAC)
+  // Adult: age >= 15 years (use BMI)
+  const patientAge = props.patientObj?.age || 0;
+  const isPediatric = patientAge < 15;
+
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [expanded, setExpanded] = useState(["visit", "vitals", "screening", "medications", "lab"]);
+  const [expanded, setExpanded] = useState(["visit", "vitals", "medications", "lab"]);
+
+  // Codesets from application
+  const [yesNoCodeset, setYesNoCodeset] = useState([]);
+  const [familyPlanningMethodCodeset, setFamilyPlanningMethodCodeset] = useState([]);
+  const [whoStagingCodeset, setWhoStagingCodeset] = useState([]);
+  const [pregnancyStatusCodeset, setPregnancyStatusCodeset] = useState([]);
+  const [tbStatusCodeset, setTbStatusCodeset] = useState([]);
+  const [cervicalCancerCodeset, setCervicalCancerCodeset] = useState([]);
+  const [cervicalCancerTreatmentCodeset, setCervicalCancerTreatmentCodeset] = useState([]);
+  const [hepatitisCodeset, setHepatitisCodeset] = useState([]);
+  const [cryptococcalCodeset, setCryptococcalCodeset] = useState([]);
+  const [opportunisticInfectionCodeset, setOpportunisticInfectionCodeset] = useState([]);
+  const [whyPoorFairAdherenceCodeset, setWhyPoorFairAdherenceCodeset] = useState([]);
+  const [functionalStatusCodeset, setFunctionalStatusCodeset] = useState([]);
+  const [dsdModelFacilityCodeset, setDsdModelFacilityCodeset] = useState([]);
+  const [dsdModelCommunityCodeset, setDsdModelCommunityCodeset] = useState([]);
+  const [labOrderIndicationCodeset, setLabOrderIndicationCodeset] = useState([]);
+  const [labTestGroups, setLabTestGroups] = useState([]);
+  const [labTestOptions, setLabTestOptions] = useState([]);
+
+  // Regimen data from API
+  const [adultRegimenLine, setAdultRegimenLine] = useState([]);
+  const [childRegimenLine, setChildRegimenLine] = useState([]);
+  const [regimenType, setRegimenType] = useState([]);
 
   const toggleAccordion = (panel) => {
     setExpanded((prev) =>
       prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
     );
   };
+
+  // Fetch codesets on component mount
+  useEffect(() => {
+    const fetchCodesets = async () => {
+      try {
+        // Fetch multiple codesets in a single request
+        const params = new URLSearchParams();
+        params.append('codes', 'YES_NO_OUTBREAK');
+        params.append('codes', 'FAMILY_PLANNING_METHOD');
+        params.append('codes', 'WHO_STAGING_CRITERIA');
+        params.append('codes', 'PREGNANCY_STATUS');
+        params.append('codes', 'TB_STATUS');
+        params.append('codes', 'CERVICAL_CANCER_SCREENING_STATUS');
+        params.append('codes', 'CERVICAL_CANCER_TREATMENT');
+        params.append('codes', 'HEPATITIS_SCREENING_RESULT');
+        params.append('codes', 'CRYPTOCOCCAL_SCREENING_STATUS');
+        params.append('codes', 'OPPORTUNISTIC_INFECTION_ILLNESS');
+        params.append('codes', 'WHY_POOR_FAIR_ADHERENCE');
+        params.append('codes', 'FUNCTIONAL _STATUS');
+        params.append('codes', 'DSD_MODEL_FACILITY');
+        params.append('codes', 'DSD_MODEL_COMMUNITY');
+        params.append('codes', 'LAB_ORDER_INDICATION');
+
+        const response = await axios.get(
+          `${baseUrl}application-codesets/v2/codeSets?${params}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        console.log("Codesets Response:", response.data);
+
+        // Extract individual codesets from response object
+        const data = response.data || {};
+
+        setYesNoCodeset(data.YES_NO_OUTBREAK || []);
+        setFamilyPlanningMethodCodeset(data.FAMILY_PLANNING_METHOD || []);
+        setWhoStagingCodeset(data.WHO_STAGING_CRITERIA || []);
+        setPregnancyStatusCodeset(data.PREGNANCY_STATUS || []);
+        setTbStatusCodeset(data.TB_STATUS || []);
+        setCervicalCancerCodeset(data.CERVICAL_CANCER_SCREENING_STATUS || []);
+        setCervicalCancerTreatmentCodeset(data.CERVICAL_CANCER_TREATMENT || []);
+        setHepatitisCodeset(data.HEPATITIS_SCREENING_RESULT || []);
+        setCryptococcalCodeset(data.CRYPTOCOCCAL_SCREENING_STATUS || []);
+        setOpportunisticInfectionCodeset(data.OPPORTUNISTIC_INFECTION_ILLNESS || []);
+        setWhyPoorFairAdherenceCodeset(data.WHY_POOR_FAIR_ADHERENCE || []);
+        setFunctionalStatusCodeset(data['FUNCTIONAL _STATUS'] || []);
+        setDsdModelFacilityCodeset(data.DSD_MODEL_FACILITY || []);
+        setDsdModelCommunityCodeset(data.DSD_MODEL_COMMUNITY || []);
+        setLabOrderIndicationCodeset(data.LAB_ORDER_INDICATION || []);
+      } catch (error) {
+        console.error("Error fetching codesets:", error);
+        toast.error("Failed to load form options. Please refresh.");
+      }
+    };
+
+    const fetchAdultRegimenLine = async () => {
+      try {
+        const response = await axios.get(`${baseUrl}hiv/regimen/arv/adult`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const artRegimen = response.data.filter(
+          (x) => x.id === 1 || x.id === 2 || x.id === 14
+        );
+        setAdultRegimenLine(artRegimen);
+      } catch (error) {
+        console.error("Error fetching adult regimen line:", error);
+      }
+    };
+
+    const fetchChildRegimenLine = async () => {
+      try {
+        const response = await axios.get(`${baseUrl}hiv/regimen/arv/children`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const artRegimenChildren = response.data.filter(
+          (x) => x.id === 3 || x.id === 4 || x.id === 16
+        );
+        setChildRegimenLine(artRegimenChildren);
+      } catch (error) {
+        console.error("Error fetching child regimen line:", error);
+      }
+    };
+
+    const fetchLabTestGroups = async () => {
+      try {
+        const response = await axios.get(`${baseUrl}laboratory/labtestgroups`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setLabTestGroups(response.data);
+
+        // Transform lab test groups into options for ReactSelect
+        const options = response.data.flatMap(group =>
+          group.labTests.map(test => ({
+            value: test.id,
+            label: `${test.labTestName} (${test.unit || 'N/A'})`,
+            groupName: group.groupName
+          }))
+        );
+
+        setLabTestOptions(options);
+      } catch (error) {
+        console.error("Error fetching lab test groups:", error);
+      }
+    };
+
+    fetchCodesets();
+    fetchAdultRegimenLine();
+    fetchChildRegimenLine();
+    fetchLabTestGroups();
+  }, []);
 
   // ── Section 1: Visit Information ────────────────────────────────────────
   const [visitInfo, setVisitInfo] = useState({
@@ -334,49 +631,149 @@ const CareCardFollowUpForm = (props) => {
     bp_systolic: "",
     bp_diastolic: "",
     pregnancy_breastfeeding_status: "",
-    family_planning: "",
+    family_planning_status: "",
+    on_family_planning: "",
   });
+
+  // Calculate BMI for adults or MUAC for pediatrics
+  const calculateBmiMuac = (height, weight) => {
+    const heightNum = parseFloat(height);
+    const weightNum = parseFloat(weight);
+
+    if (!heightNum || heightNum <= 0 || !weightNum || weightNum <= 0) {
+      return "";
+    }
+
+    if (isPediatric) {
+      // For pediatric patients: calculate MUAC using formula
+      // MUAC (cm) = √[(weight_kg × 4) / (height_cm × 0.01 × π)]
+      // Alternative simplified formula: MUAC ≈ (weight / height) × constant
+      // Standard pediatric MUAC estimation: MUAC = (weight(kg) × 314) / height(cm)
+      const muac = (weightNum * 314) / heightNum;
+      return muac.toFixed(1); // Return MUAC with 1 decimal place
+    } else {
+      // For adults: calculate BMI = weight (kg) / (height (m))²
+      const heightInMeters = heightNum / 100; // Convert cm to meters
+      const bmi = weightNum / (heightInMeters * heightInMeters);
+      return bmi.toFixed(1); // Return BMI with 1 decimal place
+    }
+  };
+
   const handleVitals = (e) => {
     const { name, value } = e.target;
-    setVitals((prev) => ({ ...prev, [name]: value }));
+    const updatedVitals = { ...vitals, [name]: value };
+
+    // Auto-calculate BMI/MUAC when height or weight changes
+    if (name === "height_cm" || name === "weight_kg") {
+      const newHeight = name === "height_cm" ? value : vitals.height_cm;
+      const newWeight = name === "weight_kg" ? value : vitals.weight_kg;
+      updatedVitals.bmi_muac = calculateBmiMuac(newHeight, newWeight);
+    }
+
+    // Clear "On Family Planning" when Family Planning Status changes to No/Unknown
+    if (name === "family_planning_status") {
+      console.log("Family Planning Status selected:", value);
+      // If not YES, clear the on_family_planning field
+      if (value !== "YES_NO_OUTBREAK_YES" && !value?.endsWith("_YES")) {
+        updatedVitals.on_family_planning = "";
+      }
+    }
+
+    setVitals(updatedVitals);
   };
 
   const [clinical, setClinical] = useState({
+    paediatric_disclosure: "",
+    functional_status: "",
     who_stage: "",
+    who_stage_criteria: [],
     tb_status: "",
-    disclosure_status: "",
+    cryptococcal_status: "",
     hepatitis_status: "",
     oral_problems: "",
+    noted_side_effect: "",
+    dsd_status: "",
+    dsd_model: "",
+    date_devolved: "",
   });
   const handleClinical = (e) => {
     const { name, value } = e.target;
-    setClinical((prev) => ({ ...prev, [name]: value }));
+
+    // If WHO stage is being changed, clear the criteria selection
+    if (name === "who_stage") {
+      setClinical((prev) => ({
+        ...prev,
+        [name]: value,
+        who_stage_criteria: [] // Clear criteria when stage changes
+      }));
+    } else if (name === "dsd_status") {
+      // If DSD status is being changed, clear the DSD model and date devolved
+      const shouldClearDate = !value.includes("FACILITY_BASED") && !value.includes("COMMUNITY_BASED");
+      setClinical((prev) => ({
+        ...prev,
+        [name]: value,
+        dsd_model: "", // Clear DSD model when status changes
+        date_devolved: shouldClearDate ? "" : prev.date_devolved // Clear date if not facility/community
+      }));
+    } else {
+      setClinical((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  // ── Section 3: Screening & Conditions ───────────────────────────────────
+  // Handle WHO Stage criteria transfer
+  const handleWhoStageCriteriaTransfer = (newSelectedCriteria) => {
+    setClinical((prev) => ({ ...prev, who_stage_criteria: newSelectedCriteria }));
+  };
+
+  // ── Cervical Cancer (Female patients only) ───────────────────────────────
   const [cervical_cancer_screening, setCervicalCancer] = useState("");
-  const [oi_conditions, setOiConditions] = useState([]);
-  const [noted_side_effects, setSideEffects] = useState([]);
+  const [cervical_cancer_treatment, setCervicalCancerTreatment] = useState("");
 
   // ── Section 4: Medications ───────────────────────────────────────────────
   const [arv, setArv] = useState({
+    regimen_line: "",
     regimen: "",
     adherence: "",
     dose: "",
+    why_poor_fair_adherence: "",
   });
+
   const handleArv = (e) => {
     const { name, value } = e.target;
-    setArv((prev) => ({ ...prev, [name]: value }));
+    const updatedArv = { ...arv, [name]: value };
+
+    // Clear why_poor_fair_adherence if adherence is not Poor or Fair
+    if (name === "adherence") {
+      if (value !== "P" && value !== "F") {
+        updatedArv.why_poor_fair_adherence = "";
+      }
+    }
+
+    setArv(updatedArv);
   };
 
-  const [ctx, setCtx] = useState({
-    medication: "",
-    dose: "",
-    adherence: "",
-  });
+  // Handle regimen line selection and fetch regimen types
+  const handleRegimenLineSelect = async (e) => {
+    const regimenLineId = e.target.value;
+    setArv({ ...arv, regimen_line: regimenLineId, regimen: "" });
+
+    if (regimenLineId) {
+      try {
+        const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setRegimenType(response.data);
+      } catch (error) {
+        console.error("Error fetching regimen types:", error);
+      }
+    } else {
+      setRegimenType([]);
+    }
+  };
+
+  const [ctx, setCtx] = useState("");
   const handleCtx = (e) => {
-    const { name, value } = e.target;
-    setCtx((prev) => ({ ...prev, [name]: value }));
+    setCtx(e.target.value);
   };
 
   const [tpt, setTpt] = useState({
@@ -393,25 +790,40 @@ const CareCardFollowUpForm = (props) => {
   const [otherDrugs, setOtherDrugs] = useState("");
 
   // ── Section 5: Lab Results & Follow-up ──────────────────────────────────
+  const [cd4Ordered, setCd4Ordered] = useState(false);
+  const [viralLoadOrdered, setViralLoadOrdered] = useState(false);
   const [lab, setLab] = useState({
     cd4_count: "",
     cd4_date: "",
     viral_load_result: "",
     viral_load_date: "",
     viral_load_indication: "",
-    eac_1st_date: "",
-    eac_2nd_date: "",
-    eac_3rd_date: "",
+    eac: "",
     rbs: "",
-    other_tests_done: "",
+    other_tests_done: [],
+    type_of_appointment: "",
   });
   const handleLab = (e) => {
     const { name, value } = e.target;
-    setLab((prev) => ({ ...prev, [name]: value }));
+    const updatedLab = { ...lab, [name]: value };
+
+    // Clear EAC if viral load result is <= 1000
+    if (name === "viral_load_result") {
+      const vlValue = parseFloat(value);
+      if (isNaN(vlValue) || vlValue <= 1000) {
+        updatedLab.eac = "";
+      }
+    }
+
+    setLab(updatedLab);
+  };
+
+  const handleOtherTestsChange = (selectedOptions) => {
+    setLab((prev) => ({ ...prev, other_tests_done: selectedOptions || [] }));
   };
 
   const [followUp, setFollowUp] = useState({
-    current_on_medication: "",
+    health_insurance_coverage: "",
     next_appointment_date: "",
   });
   const handleFollowUp = (e) => {
@@ -447,14 +859,17 @@ const CareCardFollowUpForm = (props) => {
           clinical: {
             ...clinical,
             cervical_cancer_screening: isFemale ? cervical_cancer_screening : null,
-            oi_conditions,
-            noted_side_effects,
+            cervical_cancer_treatment: isFemale ? cervical_cancer_treatment : null,
           },
           arv,
           cotrimoxazole: ctx,
           tpt,
           otherDrugs,
-          lab,
+          lab: {
+            ...lab,
+            cd4_ordered: cd4Ordered,
+            viral_load_ordered: viralLoadOrdered,
+          },
           followUp,
         },
       };
@@ -492,7 +907,7 @@ const CareCardFollowUpForm = (props) => {
           {/* ══════════════════════════════════════════════════════════════ */}
           <FormAccordion panel="visit" title="Visit Information" index={0} expanded={expanded} onToggle={toggleAccordion}>
             <FieldRow>
-              <Col size={3}>
+              <Col size={4}>
                 <SectionLabel>Visit Date <span style={{ color: "red" }}>*</span></SectionLabel>
                 <Input
                   type="date"
@@ -503,7 +918,7 @@ const CareCardFollowUpForm = (props) => {
                 />
                 {errors.visit_date && <span className={classes.error}>{errors.visit_date}</span>}
               </Col>
-              <Col size={3}>
+              <Col size={4}>
                 <SectionLabel>Duration on ART (Months)</SectionLabel>
                 <Input
                   type="number"
@@ -525,6 +940,50 @@ const CareCardFollowUpForm = (props) => {
                 />
               </Col>
             </FieldRow>
+            {isFemale && (
+              <>
+                <FieldRow>
+                  <Col size={6}>
+                    <SectionLabel>Pregnancy / Breastfeeding</SectionLabel>
+                    <Input type="select" name="pregnancy_breastfeeding_status" value={vitals.pregnancy_breastfeeding_status} onChange={handleVitals}>
+                      <option value="">Select</option>
+                      {pregnancyStatusCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+                  <Col size={6}>
+                    <SectionLabel>Family Planning Status</SectionLabel>
+                    <Input type="select" name="family_planning_status" value={vitals.family_planning_status} onChange={handleVitals}>
+                      <option value="">Select</option>
+                      {yesNoCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+                </FieldRow>
+                {(vitals.family_planning_status === "YES_NO_OUTBREAK_YES" ||
+                  vitals.family_planning_status?.endsWith("_YES")) && (
+                  <FieldRow>
+                    <Col size={6}>
+                      <SectionLabel>On Family Planning</SectionLabel>
+                      <Input type="select" name="on_family_planning" value={vitals.on_family_planning} onChange={handleVitals}>
+                        <option value="">Select</option>
+                        {familyPlanningMethodCodeset.map((option) => (
+                          <option key={option.id} value={option.code}>
+                            {option.display}
+                          </option>
+                        ))}
+                      </Input>
+                    </Col>
+                  </FieldRow>
+                )}
+              </>
+            )}
           </FormAccordion>
 
           {/* ══════════════════════════════════════════════════════════════ */}
@@ -534,178 +993,313 @@ const CareCardFollowUpForm = (props) => {
 
             <SubHeading>Vitals</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "16px", marginBottom: "16px" }}>
-              <div className="row">
-                <Col size={2}>
+              <FieldRow>
+                <Col size={3}>
                   <SectionLabel>Height (cm)</SectionLabel>
-                  <Input type="text" name="height_cm" value={vitals.height_cm} onChange={handleVitals} placeholder="cm" />
+                  <Input
+                    type="number"
+                    name="height_cm"
+                    value={vitals.height_cm}
+                    onChange={handleVitals}
+                    placeholder="cm"
+                    min="0"
+                    step="0.1"
+                  />
                 </Col>
-                <Col size={2}>
+                <Col size={3}>
                   <SectionLabel>Weight (kg)</SectionLabel>
-                  <Input type="text" name="weight_kg" value={vitals.weight_kg} onChange={handleVitals} placeholder="kg" />
+                  <Input
+                    type="number"
+                    name="weight_kg"
+                    value={vitals.weight_kg}
+                    onChange={handleVitals}
+                    placeholder="kg"
+                    min="0"
+                    step="0.1"
+                  />
                 </Col>
-                <Col size={2}>
-                  <SectionLabel>BMI / MUAC</SectionLabel>
-                  <Input type="text" name="bmi_muac" value={vitals.bmi_muac} onChange={handleVitals} placeholder="Value" />
+                <Col size={3}>
+                  <SectionLabel>
+                    {isPediatric ? "MUAC (cm)" : "BMI"}
+                    <span style={{ fontSize: "10px", color: "#666", fontWeight: "normal", marginLeft: "4px" }}>
+                      (Auto-calculated)
+                    </span>
+                  </SectionLabel>
+                  <Input
+                    type="text"
+                    name="bmi_muac"
+                    value={vitals.bmi_muac}
+                    onChange={handleVitals}
+                    placeholder="Auto-calculated"
+                    readOnly
+                    style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
+                  />
                 </Col>
-                <div className="form-group mb-3 col-md-3">
+                <Col size={3}>
                   <SectionLabel>Blood Pressure (mmHg)</SectionLabel>
                   <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                    <Input type="text" name="bp_systolic" value={vitals.bp_systolic} onChange={handleVitals} placeholder="Sys" />
+                    <Input type="number" name="bp_systolic" value={vitals.bp_systolic} onChange={handleVitals} placeholder="Sys" min="0" />
                     <span style={{ color: "#546e7a", fontSize: "18px", fontWeight: 300 }}>/</span>
-                    <Input type="text" name="bp_diastolic" value={vitals.bp_diastolic} onChange={handleVitals} placeholder="Dia" />
+                    <Input type="number" name="bp_diastolic" value={vitals.bp_diastolic} onChange={handleVitals} placeholder="Dia" min="0" />
                   </div>
-                </div>
-                {isFemale && (
-                  <>
-                    <Col size={2}>
-                      <SectionLabel>Pregnancy / Breastfeeding</SectionLabel>
-                      <Input type="select" name="pregnancy_breastfeeding_status" value={vitals.pregnancy_breastfeeding_status} onChange={handleVitals}>
-                        <option value="">Select</option>
-                        <option value="P">P — Pregnant</option>
-                        <option value="B">B — Breastfeeding</option>
-                        <option value="N">N — Not Applicable</option>
-                      </Input>
-                    </Col>
-                    <Col size={3}>
-                      <SectionLabel>Family Planning</SectionLabel>
-                      <Input type="select" name="family_planning" value={vitals.family_planning} onChange={handleVitals}>
-                        <option value="">Select</option>
-                        {FAMILY_PLANNING_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>{o.label}</option>
-                        ))}
-                      </Input>
-                    </Col>
-                  </>
-                )}
-              </div>
+                </Col>
+              </FieldRow>
             </Box>
 
             <SubHeading>Clinical Status</SubHeading>
             <FieldRow>
-              <Col size={3}>
+              <Col size={4}>
+                <SectionLabel>Paediatric and Adolescent Disclosure</SectionLabel>
+                <Input type="select" name="paediatric_disclosure" value={clinical.paediatric_disclosure} onChange={handleClinical}>
+                  <option value="">Select</option>
+                  {PAEDIATRIC_DISCLOSURE_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+              <Col size={4}>
+                <SectionLabel>Functional Status</SectionLabel>
+                <Input type="select" name="functional_status" value={clinical.functional_status} onChange={handleClinical}>
+                  <option value="">Select</option>
+                  {functionalStatusCodeset.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+              <Col size={4}>
                 <SectionLabel>WHO Clinical Stage</SectionLabel>
                 <Input type="select" name="who_stage" value={clinical.who_stage} onChange={handleClinical}>
                   <option value="">Select</option>
-                  {WHO_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {whoStagingCodeset.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
                 </Input>
               </Col>
+            </FieldRow>
+
+            {/* WHO Stage Criteria - Conditional Transfer List */}
+            {clinical.who_stage && WHO_STAGE_CRITERIA_OPTIONS[clinical.who_stage] && (
+              <TransferList
+                availableItems={WHO_STAGE_CRITERIA_OPTIONS[clinical.who_stage]}
+                selectedItems={clinical.who_stage_criteria}
+                onTransfer={handleWhoStageCriteriaTransfer}
+                stageName={whoStagingCodeset.find(opt => opt.code === clinical.who_stage)?.display || clinical.who_stage}
+              />
+            )}
+
+            <FieldRow>
               <Col size={3}>
                 <SectionLabel>TB Status</SectionLabel>
                 <Input type="select" name="tb_status" value={clinical.tb_status} onChange={handleClinical}>
                   <option value="">Select</option>
-                  {TB_STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {tbStatusCodeset.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
                 </Input>
               </Col>
               <Col size={3}>
-                <SectionLabel>Disclosure Status</SectionLabel>
-                <Input type="select" name="disclosure_status" value={clinical.disclosure_status} onChange={handleClinical}>
+                <SectionLabel>Cryptococcal Status</SectionLabel>
+                <Input type="select" name="cryptococcal_status" value={clinical.cryptococcal_status} onChange={handleClinical}>
                   <option value="">Select</option>
-                  {DISCLOSURE_STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {cryptococcalCodeset.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
                 </Input>
               </Col>
-              <Col size={3}>
-                <SectionLabel>Hepatitis Status</SectionLabel>
-                <Input type="select" name="hepatitis_status" value={clinical.hepatitis_status} onChange={handleClinical}>
-                  <option value="">Select</option>
-                  {HEPATITIS_STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-                </Input>
-              </Col>
-            </FieldRow>
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>Oral Problems</SectionLabel>
-                <Input
-                  type="text"
-                  name="oral_problems"
-                  value={clinical.oral_problems}
-                  onChange={handleClinical}
-                  placeholder="e.g. Oral candidiasis, ulcers, gingivitis..."
-                />
-              </Col>
-            </FieldRow>
-          </FormAccordion>
-
-          {/* ══════════════════════════════════════════════════════════════ */}
-          {/*  SECTION 3 — SCREENING & CONDITIONS                          */}
-          {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion panel="screening" title="Screening & Conditions" index={2} expanded={expanded} onToggle={toggleAccordion}>
-
-            {isFemale && (
-              <>
-                <SubHeading>Cervical Cancer Screening</SubHeading>
-                <FieldRow>
-                  <Col size={4}>
-                    <SectionLabel>Screening Result</SectionLabel>
+              {isFemale && (
+                <>
+                  <Col size={3}>
+                    <SectionLabel>Cervical Cancer Status</SectionLabel>
                     <Input
                       type="select"
                       value={cervical_cancer_screening}
                       onChange={(e) => setCervicalCancer(e.target.value)}
                     >
                       <option value="">Select</option>
-                      {CERVICAL_CANCER_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
+                      {cervicalCancerCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
                       ))}
                     </Input>
                   </Col>
-                </FieldRow>
-                <Divider sx={{ my: 2 }} />
-              </>
-            )}
-
-            <SubHeading>Opportunistic Infections / AIDS-Defining Conditions</SubHeading>
-            <FieldRow>
-              <Col size={12}>
-                <SectionLabel>OI / AID Conditions Present</SectionLabel>
-                <MultiSelect
-                  options={OI_CONDITIONS}
-                  value={oi_conditions}
-                  onChange={setOiConditions}
-                  placeholder="Search and select conditions..."
-                />
+                  <Col size={3}>
+                    <SectionLabel>Cervical Cancer Treatment</SectionLabel>
+                    <Input
+                      type="select"
+                      value={cervical_cancer_treatment}
+                      onChange={(e) => setCervicalCancerTreatment(e.target.value)}
+                    >
+                      <option value="">Select</option>
+                      {cervicalCancerTreatmentCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+                </>
+              )}
+              <Col size={isFemale ? 12 : 6}>
+                <SectionLabel>Hepatitis Status</SectionLabel>
+                <Input type="select" name="hepatitis_status" value={clinical.hepatitis_status} onChange={handleClinical}>
+                  <option value="">Select</option>
+                  {hepatitisCodeset.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
+                </Input>
               </Col>
             </FieldRow>
-
-            <Divider sx={{ my: 2 }} />
-            <SubHeading>Noted Side Effects</SubHeading>
             <FieldRow>
-              <Col size={12}>
-                <SectionLabel>Drug Side Effects Noted</SectionLabel>
-                <MultiSelect
-                  options={SIDE_EFFECTS}
-                  value={noted_side_effects}
-                  onChange={setSideEffects}
-                  placeholder="Search and select side effects..."
+              <Col size={3}>
+                <SectionLabel>Other OIs/ Other Problems</SectionLabel>
+                <Input
+                  type="select"
+                  name="oral_problems"
+                  value={clinical.oral_problems}
+                  onChange={handleClinical}
+                >
+                  <option value="">Select</option>
+                  {opportunisticInfectionCodeset.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+              <Col size={3}>
+                <SectionLabel>Noted Side Effect</SectionLabel>
+                <Input
+                  type="text"
+                  name="noted_side_effect"
+                  value={clinical.noted_side_effect}
+                  onChange={handleClinical}
+                  placeholder="e.g. Nausea, rash, hepatotoxicity..."
                 />
               </Col>
+              <Col size={3}>
+                <SectionLabel>DSD Status</SectionLabel>
+                <Input
+                  type="select"
+                  name="dsd_status"
+                  value={clinical.dsd_status}
+                  onChange={handleClinical}
+                >
+                  <option value="">Select</option>
+                  {DSD_STATUS_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+              {clinical.dsd_status === "DSD_STATUS_FACILITY_BASED" && (
+                <Col size={3}>
+                  <SectionLabel>Facility Based DSD Model</SectionLabel>
+                  <Input
+                    type="select"
+                    name="dsd_model"
+                    value={clinical.dsd_model}
+                    onChange={handleClinical}
+                  >
+                    <option value="">Select</option>
+                    {dsdModelFacilityCodeset.map((option) => (
+                      <option key={option.id} value={option.code}>
+                        {option.display}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
+              )}
+              {clinical.dsd_status === "DSD_STATUS_COMMUNITY_BASED" && (
+                <Col size={3}>
+                  <SectionLabel>Community Based DSD Model</SectionLabel>
+                  <Input
+                    type="select"
+                    name="dsd_model"
+                    value={clinical.dsd_model}
+                    onChange={handleClinical}
+                  >
+                    <option value="">Select</option>
+                    {dsdModelCommunityCodeset.map((option) => (
+                      <option key={option.id} value={option.code}>
+                        {option.display}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
+              )}
+              {(clinical.dsd_status === "DSD_STATUS_FACILITY_BASED" || clinical.dsd_status === "DSD_STATUS_COMMUNITY_BASED") && (
+                <Col size={3}>
+                  <SectionLabel>Date Devolved</SectionLabel>
+                  <Input
+                    type="date"
+                    name="date_devolved"
+                    value={clinical.date_devolved}
+                    onChange={handleClinical}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                  />
+                </Col>
+              )}
             </FieldRow>
           </FormAccordion>
 
           {/* ══════════════════════════════════════════════════════════════ */}
-          {/*  SECTION 4 — MEDICATIONS                                     */}
+          {/*  SECTION 3 — MEDICATIONS                                     */}
           {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion panel="medications" title="Medications" index={3} expanded={expanded} onToggle={toggleAccordion}>
+          <FormAccordion panel="medications" title="Medications" index={2} expanded={expanded} onToggle={toggleAccordion}>
 
             {/* ARV */}
             <SubHeading>ARV Drugs</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
-                <Col size={4}>
-                  <SectionLabel>Regimen <span style={{ color: "red" }}>*</span></SectionLabel>
-                  <Input type="select" name="regimen" value={arv.regimen} onChange={handleArv}>
-                    <option value="">Select regimen</option>
-                    {ARV_REGIMENS.map((group) => (
-                      <optgroup key={group.group} label={group.group}>
-                        {group.options.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <Col size={3}>
+                  <SectionLabel>Regimen Line <span style={{ color: "red" }}>*</span></SectionLabel>
+                  <Input type="select" name="regimen_line" value={arv.regimen_line} onChange={handleRegimenLineSelect}>
+                    <option value="">Select</option>
+                    {patientAge >= 15 && (
+                      <>
+                        {adultRegimenLine.map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.description}
+                          </option>
                         ))}
-                      </optgroup>
-                    ))}
+                      </>
+                    )}
+                    {patientAge < 15 && (
+                      <>
+                        {childRegimenLine.map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.description}
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </Input>
                   {errors.arv_regimen && <span className={classes.error}>{errors.arv_regimen}</span>}
                 </Col>
                 <Col size={3}>
-                  <SectionLabel>Dose</SectionLabel>
-                  <Input type="text" name="dose" value={arv.dose} onChange={handleArv} placeholder="e.g. 1 tablet daily" />
+                  <SectionLabel>Regimen</SectionLabel>
+                  <Input type="select" name="regimen" value={arv.regimen} onChange={handleArv}>
+                    <option value="">Select</option>
+                    {regimenType.map((value) => (
+                      <option key={value.id} value={value.id}>
+                        {value.description}
+                      </option>
+                    ))}
+                  </Input>
                 </Col>
                 <Col size={3}>
                   <SectionLabel>Adherence</SectionLabel>
@@ -714,27 +1308,35 @@ const CareCardFollowUpForm = (props) => {
                     {ADHERENCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </Input>
                 </Col>
+                <Col size={3}>
+                  <SectionLabel>Dose</SectionLabel>
+                  <Input type="text" name="dose" value={arv.dose} onChange={handleArv} placeholder="e.g. 1 tablet daily" />
+                </Col>
               </FieldRow>
+              {(arv.adherence === "P" || arv.adherence === "F") && (
+                <FieldRow>
+                  <Col size={6}>
+                    <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
+                    <Input type="select" name="why_poor_fair_adherence" value={arv.why_poor_fair_adherence} onChange={handleArv}>
+                      <option value="">Select</option>
+                      {whyPoorFairAdherenceCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+                </FieldRow>
+              )}
             </Box>
 
             {/* Cotrimoxazole */}
             <SubHeading>Cotrimoxazole (CTX)</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
-                <Col size={4}>
-                  <SectionLabel>Medication</SectionLabel>
-                  <Input type="text" name="medication" value={ctx.medication} onChange={handleCtx} placeholder="e.g. Cotrimoxazole 960mg" />
-                </Col>
-                <Col size={3}>
+                <Col size={12}>
                   <SectionLabel>Dose</SectionLabel>
-                  <Input type="text" name="dose" value={ctx.dose} onChange={handleCtx} placeholder="e.g. 1 tablet daily" />
-                </Col>
-                <Col size={3}>
-                  <SectionLabel>Adherence</SectionLabel>
-                  <Input type="select" name="adherence" value={ctx.adherence} onChange={handleCtx}>
-                    <option value="">Select</option>
-                    {ADHERENCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </Input>
+                  <Input type="text" value={ctx} onChange={handleCtx} placeholder="e.g. 1 tablet daily, 960mg" />
                 </Col>
               </FieldRow>
             </Box>
@@ -743,14 +1345,14 @@ const CareCardFollowUpForm = (props) => {
             <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
-                <Col size={3}>
+                <Col size={4}>
                   <SectionLabel>TPT Medication (Code)</SectionLabel>
                   <Input type="select" name="code" value={tpt.code} onChange={handleTpt}>
                     <option value="">Select</option>
                     {TPT_CODES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </Input>
                 </Col>
-                <Col size={2}>
+                <Col size={3}>
                   <SectionLabel>Dose</SectionLabel>
                   <Input type="text" name="dose" value={tpt.dose} onChange={handleTpt} placeholder="e.g. 300mg" />
                 </Col>
@@ -758,7 +1360,7 @@ const CareCardFollowUpForm = (props) => {
                   <SectionLabel>Start Date</SectionLabel>
                   <Input type="date" name="start_date" value={tpt.start_date} onChange={handleTpt} />
                 </Col>
-                <Col size={3}>
+                <Col size={2}>
                   <SectionLabel>Completion Date</SectionLabel>
                   <Input type="date" name="completion_date" value={tpt.completion_date} onChange={handleTpt} />
                 </Col>
@@ -767,81 +1369,116 @@ const CareCardFollowUpForm = (props) => {
 
             {/* Other Drugs */}
             <SubHeading>Other Drugs Prescribed</SubHeading>
-            <FieldRow>
-              <Col size={10}>
-                <SectionLabel>Other Medications</SectionLabel>
-                <Input
-                  type="textarea"
-                  value={otherDrugs}
-                  onChange={(e) => setOtherDrugs(e.target.value)}
-                  rows={2}
-                  placeholder="List any other drugs prescribed at this visit..."
-                  style={{ height: "auto" }}
-                />
-              </Col>
-            </FieldRow>
+            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
+              <FieldRow>
+                <Col size={12}>
+                  <SectionLabel>Other Medications</SectionLabel>
+                  <Input
+                    type="textarea"
+                    value={otherDrugs}
+                    onChange={(e) => setOtherDrugs(e.target.value)}
+                    rows={2}
+                    placeholder="List any other drugs prescribed at this visit..."
+                    style={{ height: "auto" }}
+                  />
+                </Col>
+              </FieldRow>
+            </Box>
           </FormAccordion>
 
           {/* ══════════════════════════════════════════════════════════════ */}
-          {/*  SECTION 5 — LAB RESULTS & FOLLOW-UP                         */}
+          {/*  SECTION 4 — LAB RESULTS & FOLLOW-UP                         */}
           {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion panel="lab" title="Lab Results & Follow-up" index={4} expanded={expanded} onToggle={toggleAccordion}>
+          <FormAccordion panel="lab" title="Lab Results & Follow-up" index={3} expanded={expanded} onToggle={toggleAccordion}>
 
             {/* CD4 */}
             <SubHeading>CD4 Count</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
-                <Col size={3}>
-                  <SectionLabel>CD4 Count (cells/mm³)</SectionLabel>
-                  <Input type="text" name="cd4_count" value={lab.cd4_count} onChange={handleLab} placeholder="cells/mm³" />
-                </Col>
-                <Col size={3}>
-                  <SectionLabel>CD4 Date</SectionLabel>
-                  <Input type="date" name="cd4_date" value={lab.cd4_date} onChange={handleLab} />
+                <Col size={12}>
+                  <CheckGroup
+                    name="cd4_ordered"
+                    id="cd4_ordered"
+                    label="Ordered"
+                    checked={cd4Ordered}
+                    onChange={(e) => setCd4Ordered(e.target.checked)}
+                  />
                 </Col>
               </FieldRow>
+              {cd4Ordered && (
+                <FieldRow>
+                  <Col size={6}>
+                    <SectionLabel>Result</SectionLabel>
+                    <Input type="number" name="cd4_count" value={lab.cd4_count} onChange={handleLab} placeholder="cells/mm³" min="0" />
+                  </Col>
+                  <Col size={6}>
+                    <SectionLabel>Result Date</SectionLabel>
+                    <Input type="date" name="cd4_date" value={lab.cd4_date} onChange={handleLab} />
+                  </Col>
+                </FieldRow>
+              )}
             </Box>
 
             {/* Viral Load */}
             <SubHeading>Viral Load</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
-                <Col size={3}>
-                  <SectionLabel>Viral Load Result (copies/mL)</SectionLabel>
-                  <Input type="text" name="viral_load_result" value={lab.viral_load_result} onChange={handleLab} placeholder="e.g. 200 or Not Detected" />
-                </Col>
-                <Col size={3}>
-                  <SectionLabel>Viral Load Date</SectionLabel>
-                  <Input type="date" name="viral_load_date" value={lab.viral_load_date} onChange={handleLab} />
-                </Col>
-                <Col size={4}>
-                  <SectionLabel>Indication for Viral Load Test</SectionLabel>
-                  <Input type="select" name="viral_load_indication" value={lab.viral_load_indication} onChange={handleLab}>
-                    <option value="">Select</option>
-                    {VL_INDICATION_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </Input>
+                <Col size={12}>
+                  <CheckGroup
+                    name="viral_load_ordered"
+                    id="viral_load_ordered"
+                    label="Ordered"
+                    checked={viralLoadOrdered}
+                    onChange={(e) => setViralLoadOrdered(e.target.checked)}
+                  />
                 </Col>
               </FieldRow>
+              {viralLoadOrdered && (
+                <>
+                  <FieldRow>
+                    <Col size={4}>
+                      <SectionLabel>Result</SectionLabel>
+                      <Input type="number" name="viral_load_result" value={lab.viral_load_result} onChange={handleLab} placeholder="e.g. 200" min="0" />
+                    </Col>
+                    <Col size={4}>
+                      <SectionLabel>Result Date</SectionLabel>
+                      <Input type="date" name="viral_load_date" value={lab.viral_load_date} onChange={handleLab} />
+                    </Col>
+                    <Col size={4}>
+                      <SectionLabel>Indication for Viral Load Test</SectionLabel>
+                      <Input type="select" name="viral_load_indication" value={lab.viral_load_indication} onChange={handleLab}>
+                        <option value="">Select</option>
+                        {labOrderIndicationCodeset.map((option) => (
+                          <option key={option.id} value={option.code}>
+                            {option.display}
+                          </option>
+                        ))}
+                      </Input>
+                    </Col>
+                  </FieldRow>
 
-              {/* EAC dates — shown when VL > 1000 is likely (always show as optional) */}
-              <Divider sx={{ my: 1 }} />
-              <Typography sx={{ fontSize: "12px", color: "#546e7a", marginBottom: "10px" }}>
-                Enhanced Adherence Counseling (EAC) — record dates if conducted following a high viral load result
-              </Typography>
-              <FieldRow>
-                <Col size={3}>
-                  <SectionLabel>1st EAC Date</SectionLabel>
-                  <Input type="date" name="eac_1st_date" value={lab.eac_1st_date} onChange={handleLab} />
-                </Col>
-                <Col size={3}>
-                  <SectionLabel>2nd EAC Date</SectionLabel>
-                  <Input type="date" name="eac_2nd_date" value={lab.eac_2nd_date} onChange={handleLab} />
-                </Col>
-                <Col size={3}>
-                  <SectionLabel>3rd EAC Date</SectionLabel>
-                  <Input type="date" name="eac_3rd_date" value={lab.eac_3rd_date} onChange={handleLab} />
-                </Col>
-              </FieldRow>
+                  {/* EAC - Only show if viral load > 1000 */}
+                  {parseFloat(lab.viral_load_result) > 1000 && (
+                    <>
+                      <Divider sx={{ my: 1 }} />
+                      <Typography sx={{ fontSize: "12px", color: "#546e7a", marginBottom: "10px" }}>
+                        Enhanced Adherence Counseling (EAC) — record if conducted following a high viral load result
+                      </Typography>
+                      <FieldRow>
+                        <Col size={4}>
+                          <SectionLabel>EAC</SectionLabel>
+                          <Input type="select" name="eac" value={lab.eac} onChange={handleLab}>
+                            <option value="">Select</option>
+                            {EAC_OPTIONS.map((option) => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </Input>
+                        </Col>
+                      </FieldRow>
+                    </>
+                  )}
+                </>
+              )}
             </Box>
 
             {/* RBS & Other Tests */}
@@ -849,17 +1486,27 @@ const CareCardFollowUpForm = (props) => {
             <FieldRow>
               <Col size={3}>
                 <SectionLabel>RBS — Random Blood Sugar (mmol/L)</SectionLabel>
-                <Input type="text" name="rbs" value={lab.rbs} onChange={handleLab} placeholder="mmol/L" />
+                <Input type="number" name="rbs" value={lab.rbs} onChange={handleLab} placeholder="mmol/L" min="0" step="0.1" />
               </Col>
-              <Col size={7}>
+              <Col size={6}>
                 <SectionLabel>Other Tests Done</SectionLabel>
-                <Input
-                  type="text"
-                  name="other_tests_done"
+                <MultiSelect
+                  options={labTestOptions}
                   value={lab.other_tests_done}
-                  onChange={handleLab}
-                  placeholder="e.g. Hepatitis B surface antigen, Creatinine..."
+                  onChange={handleOtherTestsChange}
+                  placeholder="Select lab tests..."
                 />
+              </Col>
+              <Col size={3}>
+                <SectionLabel>Type of Appointment</SectionLabel>
+                <Input type="select" name="type_of_appointment" value={lab.type_of_appointment} onChange={handleLab}>
+                  <option value="">Select</option>
+                  {TYPE_OF_APPOINTMENT_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
+                </Input>
               </Col>
             </FieldRow>
 
@@ -868,11 +1515,14 @@ const CareCardFollowUpForm = (props) => {
             <SubHeading>Follow-up</SubHeading>
             <FieldRow>
               <Col size={3}>
-                <SectionLabel>Currently on Medication?</SectionLabel>
-                <Input type="select" name="current_on_medication" value={followUp.current_on_medication} onChange={handleFollowUp}>
+                <SectionLabel>Currently on any health insurance coverage</SectionLabel>
+                <Input type="select" name="health_insurance_coverage" value={followUp.health_insurance_coverage} onChange={handleFollowUp}>
                   <option value="">Select</option>
-                  <option value="Y">Y — Yes</option>
-                  <option value="N">N — No</option>
+                  {HEALTH_INSURANCE_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
                 </Input>
               </Col>
               <Col size={3}>
@@ -894,20 +1544,20 @@ const CareCardFollowUpForm = (props) => {
               variant="contained"
               className={classes.button}
               startIcon={<CancelIcon style={{ color: "#fff" }} />}
-              style={{ backgroundColor: "#992E62" }}
+              style={{ backgroundColor: "#992E62", color: "#fff" }}
               onClick={() => props.setActiveContent({ ...props.activeContent, route: "recent-history" })}
             >
-              <span style={{ textTransform: "capitalize" }}>Cancel</span>
+              <span style={{ textTransform: "capitalize", color: "#fff" }}>Cancel</span>
             </MatButton>
             <MatButton
               type="submit"
               variant="contained"
               className={classes.button}
-              startIcon={<SaveIcon />}
-              style={{ backgroundColor: "#014d88" }}
+              startIcon={<SaveIcon style={{ color: "#fff" }} />}
+              style={{ backgroundColor: "#014d88", color: "#fff" }}
               disabled={saving}
             >
-              <span style={{ textTransform: "capitalize" }}>{saving ? "Saving..." : "Save"}</span>
+              <span style={{ textTransform: "capitalize", color: "#fff" }}>{saving ? "Saving..." : "Save"}</span>
             </MatButton>
           </div>
         </form>

@@ -66,7 +66,7 @@ Content-Type: application/json
 |---------------------------|-----------------|----------|------------------------------------------------------|
 | `who_stage`               | `string`        | No       | `"Stage 1"`, `"Stage 2"`, `"Stage 3"`, `"Stage 4"` |
 | `tb_status`               | `string`        | No       | Numeric string `"1"`–`"6"`. See TB Status codes below. |
-| `disclosure_status`       | `string`        | No       | Numeric string `"0"`–`"3"`. See Disclosure codes below. |
+| `cryptococcal_status`     | `string`        | No       | Numeric string `"0"`–`"3"`. See Cryptococcal Status codes below. |
 | `hepatitis_status`        | `string`        | No       | See Hepatitis Status values below.                   |
 | `oral_problems`           | `string`        | No       | Free text — e.g. `"Oral candidiasis"`               |
 | `cervical_cancer_screening`| `string\|null` | No       | **Female patients only.** Numeric string `"0"`–`"5"`. `null` for males. |
@@ -84,14 +84,14 @@ Content-Type: application/json
 | `"5"` | Currently on TPT                               |
 | `"6"` | Currently on IPT / INH prophylaxis              |
 
-### Disclosure Status Codes
+### Cryptococcal Status Codes
 
 | Code  | Label                                                   |
 |-------|---------------------------------------------------------|
-| `"0"` | Not yet disclosed                                       |
-| `"1"` | Disclosed (full)                                        |
-| `"2"` | Partial disclosure (patient knows they are ill)         |
-| `"3"` | Not applicable (adult > 18 years)                       |
+| `"0"` | Not screened                                            |
+| `"1"` | Negative                                                |
+| `"2"` | Positive                                                |
+| `"3"` | Not applicable                                          |
 
 ### Hepatitis Status Values
 
@@ -255,7 +255,7 @@ Content-Type: application/json
     "clinical": {
       "who_stage": "Stage 2",
       "tb_status": "1",
-      "disclosure_status": "3",
+      "cryptococcal_status": "3",
       "hepatitis_status": "Negative",
       "oral_problems": "",
       "cervical_cancer_screening": "1",
@@ -328,7 +328,7 @@ Content-Type: application/json
     "clinical": {
       "who_stage": "Stage 1",
       "tb_status": "5",
-      "disclosure_status": "3",
+      "cryptococcal_status": "3",
       "hepatitis_status": "Not tested",
       "oral_problems": "",
       "cervical_cancer_screening": null,

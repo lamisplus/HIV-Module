@@ -147,6 +147,14 @@ const Tracking = (props) => {
     patientId: props.patientObj.id,
     vaCauseOfDeathType: "",
     vaCauseOfDeath: "",
+    artStartDate: "",
+    currentArvRegimen: "",
+    regimenAtStartOfArt: "",
+    nextAgreedClinicAppointmentDate: "",
+    datePatientReturned: "",
+    referredForSpecify: "",
+    completedBy: "",
+    date: "",
     statusTracker: {
       agreedDate: "",
       causeOfDeath: "",
@@ -618,6 +626,80 @@ const Tracking = (props) => {
               <div className="row">
                 <div className="form-group mb-3 col-md-4">
                   <FormGroup>
+                    <Label for="">ART Start Date</Label>
+                    <Input
+                      type="date"
+                      name="artStartDate"
+                      id="artStartDate"
+                      value={objValues.artStartDate}
+                      onChange={handleInputChange}
+                      min={enrollDate !== "" ? enrollDate : ""}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                      onKeyPress={(e) => e.preventDefault()}
+                    />
+                    {errors.artStartDate !== "" ? (
+                      <span className={classes.error}>
+                        {errors.artStartDate}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label for="">Current ARV Regimen</Label>
+                    <Input
+                      type="text"
+                      name="currentArvRegimen"
+                      id="currentArvRegimen"
+                      value={objValues.currentArvRegimen}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                    />
+                    {errors.currentArvRegimen !== "" ? (
+                      <span className={classes.error}>
+                        {errors.currentArvRegimen}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label for="">Regimen at Start of ART</Label>
+                    <Input
+                      type="text"
+                      name="regimenAtStartOfArt"
+                      id="regimenAtStartOfArt"
+                      value={objValues.regimenAtStartOfArt}
+                      onChange={handleInputChange}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                    />
+                    {errors.regimenAtStartOfArt !== "" ? (
+                      <span className={classes.error}>
+                        {errors.regimenAtStartOfArt}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+              </div>
+              <div className="row">
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
                     <Label for="">
                       Duration on ART <span style={{color: "red"}}> *</span>
                     </Label>
@@ -801,6 +883,57 @@ const Tracking = (props) => {
                   {errors.dateMissedAppointment !== "" ? (
                     <span className={classes.error}>
                       {errors.dateMissedAppointment}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label for="">Next Agreed Clinic Appointment Date</Label>
+                  <Input
+                    type="date"
+                    name="nextAgreedClinicAppointmentDate"
+                    id="nextAgreedClinicAppointmentDate"
+                    onChange={handleInputChange}
+                    value={objValues.nextAgreedClinicAppointmentDate}
+                    min={enrollDate !== "" ? enrollDate : ""}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
+                    onKeyPress={(e) => e.preventDefault()}
+                  />
+                  {errors.nextAgreedClinicAppointmentDate !== "" ? (
+                    <span className={classes.error}>
+                      {errors.nextAgreedClinicAppointmentDate}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                </FormGroup>
+              </div>
+              <div className="form-group mb-3 col-md-4">
+                <FormGroup>
+                  <Label for="">Date Patient Returned</Label>
+                  <Input
+                    type="date"
+                    name="datePatientReturned"
+                    id="datePatientReturned"
+                    onChange={handleInputChange}
+                    value={objValues.datePatientReturned}
+                    min={enrollDate !== "" ? enrollDate : ""}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                    style={{
+                      border: "1px solid #014D88",
+                      borderRadius: "0.25rem",
+                    }}
+                    onKeyPress={(e) => e.preventDefault()}
+                  />
+                  {errors.datePatientReturned !== "" ? (
+                    <span className={classes.error}>
+                      {errors.datePatientReturned}
                     </span>
                   ) : (
                     ""
@@ -1667,6 +1800,80 @@ const Tracking = (props) => {
                   </FormGroup>
                 </div>
               )}
+              <div className="row">
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label for="">Referred For (Specify)</Label>
+                    <Input
+                      type="text"
+                      name="referredForSpecify"
+                      id="referredForSpecify"
+                      onChange={handleInputChange}
+                      value={objValues.referredForSpecify}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                    />
+                    {errors.referredForSpecify !== "" ? (
+                      <span className={classes.error}>
+                        {errors.referredForSpecify}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label for="">Completed By</Label>
+                    <Input
+                      type="text"
+                      name="completedBy"
+                      id="completedBy"
+                      onChange={handleInputChange}
+                      value={objValues.completedBy}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                    />
+                    {errors.completedBy !== "" ? (
+                      <span className={classes.error}>
+                        {errors.completedBy}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+                <div className="form-group mb-3 col-md-4">
+                  <FormGroup>
+                    <Label for="">Date</Label>
+                    <Input
+                      type="date"
+                      name="date"
+                      id="date"
+                      onChange={handleInputChange}
+                      value={objValues.date}
+                      min={enrollDate !== "" ? enrollDate : ""}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      style={{
+                        border: "1px solid #014D88",
+                        borderRadius: "0.25rem",
+                      }}
+                      onKeyPress={(e) => e.preventDefault()}
+                    />
+                    {errors.date !== "" ? (
+                      <span className={classes.error}>
+                        {errors.date}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </FormGroup>
+                </div>
+              </div>
             </div>
 
             {saving ? <Spinner /> : ""}

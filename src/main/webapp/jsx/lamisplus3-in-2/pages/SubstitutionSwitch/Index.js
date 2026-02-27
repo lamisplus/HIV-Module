@@ -277,7 +277,7 @@ const SubstitutionSwitchForm = (props) => {
             {/* Row 35-37 */}
             <div className="row" style={{ marginBottom: "12px" }}>
               <div className="form-group mb-3 col-md-3">
-                <SectionLabel>35. Date of New Regimen</SectionLabel>
+                <SectionLabel>Date of New Regimen</SectionLabel>
                 <Input
                   type="date"
                   name="date_new_regimen_35"
@@ -287,7 +287,7 @@ const SubstitutionSwitchForm = (props) => {
                 />
               </div>
               <div className="form-group mb-3 col-md-3">
-                <SectionLabel>36. Why</SectionLabel>
+                <SectionLabel>Why</SectionLabel>
                 <Input
                   type="select"
                   name="why_36"
@@ -303,7 +303,7 @@ const SubstitutionSwitchForm = (props) => {
                 </Input>
               </div>
               <div className="form-group mb-3 col-md-6">
-                <SectionLabel>37. New Regimen</SectionLabel>
+                <SectionLabel>New Regimen</SectionLabel>
                 <Input
                   type="text"
                   name="new_regimen_37"
@@ -317,7 +317,7 @@ const SubstitutionSwitchForm = (props) => {
             {/* Row 38-40 */}
             <div className="row">
               <div className="form-group mb-3 col-md-3">
-                <SectionLabel>38. Date of New Regimen</SectionLabel>
+                <SectionLabel>Date of New Regimen</SectionLabel>
                 <Input
                   type="date"
                   name="date_new_regimen_38"
@@ -327,7 +327,7 @@ const SubstitutionSwitchForm = (props) => {
                 />
               </div>
               <div className="form-group mb-3 col-md-3">
-                <SectionLabel>39. Why</SectionLabel>
+                <SectionLabel>Why</SectionLabel>
                 <Input
                   type="select"
                   name="why_39"
@@ -343,7 +343,7 @@ const SubstitutionSwitchForm = (props) => {
                 </Input>
               </div>
               <div className="form-group mb-3 col-md-6">
-                <SectionLabel>40. New Regimen</SectionLabel>
+                <SectionLabel>New Regimen</SectionLabel>
                 <Input
                   type="text"
                   name="new_regimen_40"
@@ -419,11 +419,11 @@ const SubstitutionSwitchForm = (props) => {
               <Typography
                 sx={{ fontWeight: 700, color: "#014d88", fontSize: "13px", marginBottom: "12px" }}
               >
-                41. Drug Resistance (DR) Genotyping
+                Drug Resistance (DR) Genotyping
               </Typography>
               <div className="row">
                 <div className="form-group mb-3 col-md-2">
-                  <SectionLabel>41a. DR Genotyping Done</SectionLabel>
+                  <SectionLabel>DR Genotyping Done</SectionLabel>
                   <Input
                     type="select"
                     name="dr_genotyping_done"
@@ -436,7 +436,7 @@ const SubstitutionSwitchForm = (props) => {
                   </Input>
                 </div>
                 <div className="form-group mb-3 col-md-2">
-                  <SectionLabel>41b. Sample Collection Date</SectionLabel>
+                  <SectionLabel>Sample Collection Date</SectionLabel>
                   <Input
                     type="date"
                     name="dr_sample_collection_date"
@@ -446,7 +446,7 @@ const SubstitutionSwitchForm = (props) => {
                   />
                 </div>
                 <div className="form-group mb-3 col-md-2">
-                  <SectionLabel>41c. Date Result Received</SectionLabel>
+                  <SectionLabel>Date Result Received</SectionLabel>
                   <Input
                     type="date"
                     name="dr_date_result_received"
@@ -455,7 +455,7 @@ const SubstitutionSwitchForm = (props) => {
                   />
                 </div>
                 <div className="form-group mb-3 col-md-3">
-                  <SectionLabel>41d. Result</SectionLabel>
+                  <SectionLabel>Result</SectionLabel>
                   <Input
                     type="select"
                     name="dr_result"
@@ -471,7 +471,7 @@ const SubstitutionSwitchForm = (props) => {
                   </Input>
                 </div>
                 <div className="form-group mb-3 col-md-3">
-                  <SectionLabel>41e. If Resistant, Specify</SectionLabel>
+                  <SectionLabel>If Resistant, Specify</SectionLabel>
                   <Input
                     type="text"
                     name="dr_if_resistant_specify"
@@ -487,7 +487,7 @@ const SubstitutionSwitchForm = (props) => {
             {/* Row 42-44 */}
             <div className="row" style={{ marginBottom: "12px" }}>
               <div className="form-group mb-3 col-md-3">
-                <SectionLabel>42. Date New Regimen</SectionLabel>
+                <SectionLabel>Date New Regimen</SectionLabel>
                 <Input
                   type="date"
                   name="date_new_regimen_42"
@@ -497,7 +497,7 @@ const SubstitutionSwitchForm = (props) => {
                 />
               </div>
               <div className="form-group mb-3 col-md-3">
-                <SectionLabel>43. Why</SectionLabel>
+                <SectionLabel>Why</SectionLabel>
                 <Input
                   type="select"
                   name="why_43"
@@ -513,7 +513,7 @@ const SubstitutionSwitchForm = (props) => {
                 </Input>
               </div>
               <div className="form-group mb-3 col-md-6">
-                <SectionLabel>44. New Regimen</SectionLabel>
+                <SectionLabel>New Regimen</SectionLabel>
                 <Input
                   type="text"
                   name="new_regimen_44"
@@ -527,7 +527,7 @@ const SubstitutionSwitchForm = (props) => {
             {/* Row 45-47 */}
             <div className="row">
               <div className="form-group mb-3 col-md-3">
-                <SectionLabel>45. Date New Regimen</SectionLabel>
+                <SectionLabel>Date New Regimen</SectionLabel>
                 <Input
                   type="date"
                   name="date_new_regimen_45"
@@ -537,7 +537,7 @@ const SubstitutionSwitchForm = (props) => {
                 />
               </div>
               <div className="form-group mb-3 col-md-3">
-                <SectionLabel>46. Why</SectionLabel>
+                <SectionLabel>Why</SectionLabel>
                 <Input
                   type="select"
                   name="why_46"
@@ -553,7 +553,7 @@ const SubstitutionSwitchForm = (props) => {
                 </Input>
               </div>
               <div className="form-group mb-3 col-md-6">
-                <SectionLabel>47. New Regimen</SectionLabel>
+                <SectionLabel>New Regimen</SectionLabel>
                 <Input
                   type="text"
                   name="new_regimen_47"
@@ -562,26 +562,6 @@ const SubstitutionSwitchForm = (props) => {
                   placeholder="e.g. DRV/r + TDF/3TC"
                 />
               </div>
-            </div>
-          </Box>
-
-          {/* ── Why Code Reference ───────────────────────────────────────────── */}
-          <Box
-            sx={{
-              background: "#f5f9ff",
-              border: "1px dashed #014d88",
-              borderRadius: "4px",
-              padding: "12px 16px",
-              marginBottom: "20px",
-            }}
-          >
-            <Typography sx={{ fontWeight: 700, color: "#014d88", fontSize: "12px", marginBottom: "6px" }}>
-              Why Code Reference (fields 36, 39, 43, 46)
-            </Typography>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 24px" }}>
-              {SUBSTITUTION_WHY_CODES.map((c) => (
-                <span key={c.value} style={{ fontSize: "11px", color: "#546e7a" }}>{c.label}</span>
-              ))}
             </div>
           </Box>
 
