@@ -12,6 +12,17 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { makeStyles } from "@material-ui/core/styles";
@@ -22,6 +33,9 @@ import { token, url as baseUrl } from "../../../../api";
 import MatButton from "@material-ui/core/Button";
 import SaveIcon from "@material-ui/icons/Save";
 import CancelIcon from "@material-ui/icons/Cancel";
+import DeleteIcon from "@material-ui/icons/Delete";
+import AddIcon from "@material-ui/icons/Add";
+import EditIcon from "@material-ui/icons/Edit";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -690,7 +704,7 @@ const CareCardFollowUpForm = (props) => {
     tb_status: "",
     cryptococcal_status: "",
     hepatitis_status: "",
-    oral_problems: "",
+    oral_problems: [],
     noted_side_effect: "",
     dsd_status: "",
     dsd_model: "",
@@ -725,22 +739,80 @@ const CareCardFollowUpForm = (props) => {
     setClinical((prev) => ({ ...prev, who_stage_criteria: newSelectedCriteria }));
   };
 
+  // Handle Other OIs/ Other Problems multi-select change
+  const handleOralProblemsChange = (selectedOptions) => {
+    setClinical((prev) => ({ ...prev, oral_problems: selectedOptions || [] }));
+  };
+
+  // Transform opportunistic infection codeset to ReactSelect format
+  const oralProblemsOptions = opportunisticInfectionCodeset.map((option) => ({
+    value: option.code,
+    label: option.display,
+  }));
+
   // ── Cervical Cancer (Female patients only) ───────────────────────────────
   const [cervical_cancer_screening, setCervicalCancer] = useState("");
   const [cervical_cancer_treatment, setCervicalCancerTreatment] = useState("");
 
   // ── Section 4: Medications ───────────────────────────────────────────────
-  const [arv, setArv] = useState({
+  const [arvList, setArvList] = useState([]);
+
+  const [regimenTypes, setRegimenTypes] = useState({});
+
+  // Modal states for ARV add, edit and delete
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [currentArvIndex, setCurrentArvIndex] = useState(null);
+  const [newArv, setNewArv] = useState({
     regimen_line: "",
     regimen: "",
     adherence: "",
     dose: "",
     why_poor_fair_adherence: "",
   });
+  const [editingArv, setEditingArv] = useState({
+    regimen_line: "",
+    regimen: "",
+    adherence: "",
+    dose: "",
+    why_poor_fair_adherence: "",
+  });
+  const [addModalRegimenTypes, setAddModalRegimenTypes] = useState([]);
+  const [editModalRegimenTypes, setEditModalRegimenTypes] = useState([]);
 
-  const handleArv = (e) => {
+  const handleArv = (index, e) => {
     const { name, value } = e.target;
-    const updatedArv = { ...arv, [name]: value };
+    const updatedArvList = [...arvList];
+    updatedArvList[index] = { ...updatedArvList[index], [name]: value };
+
+    // Clear why_poor_fair_adherence if adherence is not Poor or Fair
+    if (name === "adherence") {
+      if (value !== "P" && value !== "F") {
+        updatedArvList[index].why_poor_fair_adherence = "";
+      }
+    }
+
+    setArvList(updatedArvList);
+  };
+
+  // Open add modal
+  const openAddModal = () => {
+    setNewArv({
+      regimen_line: "",
+      regimen: "",
+      adherence: "",
+      dose: "",
+      why_poor_fair_adherence: "",
+    });
+    setAddModalRegimenTypes([]);
+    setAddModalOpen(true);
+  };
+
+  // Handle add modal field changes
+  const handleAddModalChange = (e) => {
+    const { name, value } = e.target;
+    const updatedArv = { ...newArv, [name]: value };
 
     // Clear why_poor_fair_adherence if adherence is not Poor or Fair
     if (name === "adherence") {
@@ -749,25 +821,180 @@ const CareCardFollowUpForm = (props) => {
       }
     }
 
-    setArv(updatedArv);
+    setNewArv(updatedArv);
   };
 
-  // Handle regimen line selection and fetch regimen types
-  const handleRegimenLineSelect = async (e) => {
+  // Handle regimen line change in add modal
+  const handleAddModalRegimenLineChange = async (e) => {
     const regimenLineId = e.target.value;
-    setArv({ ...arv, regimen_line: regimenLineId, regimen: "" });
+    setNewArv({ ...newArv, regimen_line: regimenLineId, regimen: "" });
 
     if (regimenLineId) {
       try {
         const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setRegimenType(response.data);
+        setAddModalRegimenTypes(response.data);
       } catch (error) {
         console.error("Error fetching regimen types:", error);
       }
     } else {
-      setRegimenType([]);
+      setAddModalRegimenTypes([]);
+    }
+  };
+
+  // Save new ARV entry
+  const saveNewArv = () => {
+    // Validation - at least regimen line should be selected
+    if (!newArv.regimen_line) {
+      toast.error("Please select a regimen line");
+      return;
+    }
+
+    const newIndex = arvList.length;
+    setArvList([...arvList, { ...newArv }]);
+
+    // Store regimen types for this index
+    if (addModalRegimenTypes.length > 0) {
+      setRegimenTypes((prev) => ({ ...prev, [newIndex]: addModalRegimenTypes }));
+    }
+
+    setAddModalOpen(false);
+    toast.success("ARV regimen added successfully");
+  };
+
+  const removeArvEntry = (index) => {
+    const updatedArvList = arvList.filter((_, i) => i !== index);
+    setArvList(updatedArvList);
+
+    // Clean up regimen types for removed index
+    const updatedRegimenTypes = { ...regimenTypes };
+    delete updatedRegimenTypes[index];
+
+    // Reindex remaining regimen types
+    const reindexedTypes = {};
+    Object.keys(updatedRegimenTypes).forEach((key) => {
+      const oldIndex = parseInt(key);
+      const newIndex = oldIndex > index ? oldIndex - 1 : oldIndex;
+      reindexedTypes[newIndex] = updatedRegimenTypes[key];
+    });
+    setRegimenTypes(reindexedTypes);
+  };
+
+  // Open edit modal
+  const openEditModal = (index) => {
+    setCurrentArvIndex(index);
+    setEditingArv({ ...arvList[index] });
+    setEditModalRegimenTypes(regimenTypes[index] || []);
+    setEditModalOpen(true);
+  };
+
+  // Handle edit modal field changes
+  const handleEditModalChange = (e) => {
+    const { name, value } = e.target;
+    const updatedArv = { ...editingArv, [name]: value };
+
+    // Clear why_poor_fair_adherence if adherence is not Poor or Fair
+    if (name === "adherence") {
+      if (value !== "P" && value !== "F") {
+        updatedArv.why_poor_fair_adherence = "";
+      }
+    }
+
+    setEditingArv(updatedArv);
+  };
+
+  // Handle regimen line change in edit modal
+  const handleEditModalRegimenLineChange = async (e) => {
+    const regimenLineId = e.target.value;
+    setEditingArv({ ...editingArv, regimen_line: regimenLineId, regimen: "" });
+
+    if (regimenLineId) {
+      try {
+        const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setEditModalRegimenTypes(response.data);
+      } catch (error) {
+        console.error("Error fetching regimen types:", error);
+      }
+    } else {
+      setEditModalRegimenTypes([]);
+    }
+  };
+
+  // Save edited ARV entry
+  const saveEditedArv = () => {
+    const updatedArvList = [...arvList];
+    updatedArvList[currentArvIndex] = { ...editingArv };
+    setArvList(updatedArvList);
+
+    // Update regimen types for this index
+    setRegimenTypes((prev) => ({ ...prev, [currentArvIndex]: editModalRegimenTypes }));
+
+    setEditModalOpen(false);
+    setCurrentArvIndex(null);
+    toast.success("ARV regimen updated successfully");
+  };
+
+  // Open delete confirmation dialog
+  const openDeleteDialog = (index) => {
+    setCurrentArvIndex(index);
+    setDeleteDialogOpen(true);
+  };
+
+  // Confirm delete
+  const confirmDelete = () => {
+    removeArvEntry(currentArvIndex);
+    setDeleteDialogOpen(false);
+    setCurrentArvIndex(null);
+    toast.success("ARV regimen deleted successfully");
+  };
+
+  // Cancel delete
+  const cancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setCurrentArvIndex(null);
+  };
+
+  // Get regimen line display name
+  const getRegimenLineDisplay = (regimenLineId) => {
+    const allLines = [...adultRegimenLine, ...childRegimenLine];
+    const line = allLines.find((l) => l.id === parseInt(regimenLineId));
+    return line ? line.description : "";
+  };
+
+  // Get regimen display name
+  const getRegimenDisplay = (regimenId, index) => {
+    const types = regimenTypes[index] || [];
+    const regimen = types.find((r) => r.id === parseInt(regimenId));
+    return regimen ? regimen.description : "";
+  };
+
+  // Get adherence display name
+  const getAdherenceDisplay = (adherenceCode) => {
+    const adherence = ADHERENCE_OPTIONS.find((o) => o.value === adherenceCode);
+    return adherence ? adherence.label : "";
+  };
+
+  // Handle regimen line selection and fetch regimen types
+  const handleRegimenLineSelect = async (index, e) => {
+    const regimenLineId = e.target.value;
+    const updatedArvList = [...arvList];
+    updatedArvList[index] = { ...updatedArvList[index], regimen_line: regimenLineId, regimen: "" };
+    setArvList(updatedArvList);
+
+    if (regimenLineId) {
+      try {
+        const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setRegimenTypes((prev) => ({ ...prev, [index]: response.data }));
+      } catch (error) {
+        console.error("Error fetching regimen types:", error);
+      }
+    } else {
+      setRegimenTypes((prev) => ({ ...prev, [index]: [] }));
     }
   };
 
@@ -835,7 +1062,11 @@ const CareCardFollowUpForm = (props) => {
   const validate = () => {
     const temp = {};
     if (!visitInfo.visit_date) temp.visit_date = "Visit date is required";
-    if (!arv.regimen)          temp.arv_regimen = "ARV regimen is required";
+
+    // Check if at least one ARV entry has a regimen
+    const hasAtLeastOneRegimen = arvList.some((arv) => arv.regimen);
+    if (!hasAtLeastOneRegimen) temp.arv_regimen = "At least one ARV regimen is required";
+
     setErrors(temp);
     return Object.keys(temp).length === 0;
   };
@@ -861,7 +1092,7 @@ const CareCardFollowUpForm = (props) => {
             cervical_cancer_screening: isFemale ? cervical_cancer_screening : null,
             cervical_cancer_treatment: isFemale ? cervical_cancer_treatment : null,
           },
-          arv,
+          arvList,
           cotrimoxazole: ctx,
           tpt,
           otherDrugs,
@@ -1165,19 +1396,12 @@ const CareCardFollowUpForm = (props) => {
             <FieldRow>
               <Col size={3}>
                 <SectionLabel>Other OIs/ Other Problems</SectionLabel>
-                <Input
-                  type="select"
-                  name="oral_problems"
+                <MultiSelect
+                  options={oralProblemsOptions}
                   value={clinical.oral_problems}
-                  onChange={handleClinical}
-                >
-                  <option value="">Select</option>
-                  {opportunisticInfectionCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
+                  onChange={handleOralProblemsChange}
+                  placeholder="Select OIs/Other Problems..."
+                />
               </Col>
               <Col size={3}>
                 <SectionLabel>Noted Side Effect</SectionLabel>
@@ -1262,73 +1486,356 @@ const CareCardFollowUpForm = (props) => {
           <FormAccordion panel="medications" title="Medications" index={2} expanded={expanded} onToggle={toggleAccordion}>
 
             {/* ARV */}
-            <SubHeading>ARV Drugs</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
-              <FieldRow>
-                <Col size={3}>
-                  <SectionLabel>Regimen Line <span style={{ color: "red" }}>*</span></SectionLabel>
-                  <Input type="select" name="regimen_line" value={arv.regimen_line} onChange={handleRegimenLineSelect}>
-                    <option value="">Select</option>
-                    {patientAge >= 15 && (
-                      <>
-                        {adultRegimenLine.map((value) => (
-                          <option key={value.id} value={value.id}>
-                            {value.description}
-                          </option>
-                        ))}
-                      </>
-                    )}
-                    {patientAge < 15 && (
-                      <>
-                        {childRegimenLine.map((value) => (
-                          <option key={value.id} value={value.id}>
-                            {value.description}
-                          </option>
-                        ))}
-                      </>
-                    )}
-                  </Input>
-                  {errors.arv_regimen && <span className={classes.error}>{errors.arv_regimen}</span>}
-                </Col>
-                <Col size={3}>
-                  <SectionLabel>Regimen</SectionLabel>
-                  <Input type="select" name="regimen" value={arv.regimen} onChange={handleArv}>
-                    <option value="">Select</option>
-                    {regimenType.map((value) => (
-                      <option key={value.id} value={value.id}>
-                        {value.description}
-                      </option>
-                    ))}
-                  </Input>
-                </Col>
-                <Col size={3}>
-                  <SectionLabel>Adherence</SectionLabel>
-                  <Input type="select" name="adherence" value={arv.adherence} onChange={handleArv}>
-                    <option value="">Select</option>
-                    {ADHERENCE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </Input>
-                </Col>
-                <Col size={3}>
-                  <SectionLabel>Dose</SectionLabel>
-                  <Input type="text" name="dose" value={arv.dose} onChange={handleArv} placeholder="e.g. 1 tablet daily" />
-                </Col>
-              </FieldRow>
-              {(arv.adherence === "P" || arv.adherence === "F") && (
-                <FieldRow>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <SubHeading style={{ marginBottom: 0 }}>ARV Drugs</SubHeading>
+              <MatButton
+                size="small"
+                variant="contained"
+                startIcon={<AddIcon />}
+                style={{ backgroundColor: "#014d88", color: "#fff", textTransform: "none" }}
+                onClick={openAddModal}
+              >
+                Add ARV Regimen
+              </MatButton>
+            </div>
+
+            {errors.arv_regimen && (
+              <div style={{ marginBottom: "12px" }}>
+                <span className={classes.error}>{errors.arv_regimen}</span>
+              </div>
+            )}
+
+            <TableContainer component={Paper} sx={{ marginBottom: "16px", border: "1px solid #014d88" }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#014d88" }}>
+                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>#</TableCell>
+                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen Line</TableCell>
+                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen</TableCell>
+                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Adherence</TableCell>
+                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Dose</TableCell>
+                    <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px", textAlign: "center" }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {arvList.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} sx={{ textAlign: "center", padding: "20px", color: "#9e9e9e", fontStyle: "italic" }}>
+                        No ARV regimens added. Click "Add ARV Regimen" to add one.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    arvList.map((arv, index) => (
+                      <TableRow key={index} sx={{ "&:hover": { backgroundColor: "#f5f5f5" } }}>
+                        <TableCell sx={{ fontSize: "13px" }}>{index + 1}</TableCell>
+                        <TableCell sx={{ fontSize: "13px" }}>
+                          {arv.regimen_line ? getRegimenLineDisplay(arv.regimen_line) : <span style={{ color: "#9e9e9e" }}>Not set</span>}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: "13px" }}>
+                          {arv.regimen ? getRegimenDisplay(arv.regimen, index) : <span style={{ color: "#9e9e9e" }}>Not set</span>}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: "13px" }}>
+                          {arv.adherence ? getAdherenceDisplay(arv.adherence) : <span style={{ color: "#9e9e9e" }}>Not set</span>}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: "13px" }}>
+                          {arv.dose || <span style={{ color: "#9e9e9e" }}>Not set</span>}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              onClick={() => openEditModal(index)}
+                              sx={{ color: "#014d88", marginRight: "4px" }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              onClick={() => openDeleteDialog(index)}
+                              sx={{ color: "#d32f2f" }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* Add ARV Modal */}
+            <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)} maxWidth="md" fullWidth>
+              <DialogTitle sx={{ backgroundColor: "#014d88", color: "#fff", fontWeight: "bold" }}>
+                Add ARV Regimen
+              </DialogTitle>
+              <DialogContent sx={{ paddingTop: "20px !important" }}>
+                <FieldRow style={{ marginTop: "16px" }}>
                   <Col size={6}>
-                    <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
-                    <Input type="select" name="why_poor_fair_adherence" value={arv.why_poor_fair_adherence} onChange={handleArv}>
+                    <SectionLabel>Regimen Line <span style={{ color: "red" }}>*</span></SectionLabel>
+                    <Input
+                      type="select"
+                      name="regimen_line"
+                      value={newArv.regimen_line}
+                      onChange={handleAddModalRegimenLineChange}
+                    >
                       <option value="">Select</option>
-                      {whyPoorFairAdherenceCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
+                      {patientAge >= 15 && (
+                        <>
+                          {adultRegimenLine.map((value) => (
+                            <option key={value.id} value={value.id}>
+                              {value.description}
+                            </option>
+                          ))}
+                        </>
+                      )}
+                      {patientAge < 15 && (
+                        <>
+                          {childRegimenLine.map((value) => (
+                            <option key={value.id} value={value.id}>
+                              {value.description}
+                            </option>
+                          ))}
+                        </>
+                      )}
+                    </Input>
+                  </Col>
+                  <Col size={6}>
+                    <SectionLabel>Regimen</SectionLabel>
+                    <Input
+                      type="select"
+                      name="regimen"
+                      value={newArv.regimen}
+                      onChange={handleAddModalChange}
+                    >
+                      <option value="">Select</option>
+                      {addModalRegimenTypes.map((value) => (
+                        <option key={value.id} value={value.id}>
+                          {value.description}
                         </option>
                       ))}
                     </Input>
                   </Col>
                 </FieldRow>
-              )}
-            </Box>
+                <FieldRow>
+                  <Col size={6}>
+                    <SectionLabel>Adherence</SectionLabel>
+                    <Input
+                      type="select"
+                      name="adherence"
+                      value={newArv.adherence}
+                      onChange={handleAddModalChange}
+                    >
+                      <option value="">Select</option>
+                      {ADHERENCE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+                  <Col size={6}>
+                    <SectionLabel>Dose</SectionLabel>
+                    <Input
+                      type="text"
+                      name="dose"
+                      value={newArv.dose}
+                      onChange={handleAddModalChange}
+                      placeholder="e.g. 1 tablet daily"
+                    />
+                  </Col>
+                </FieldRow>
+                {(newArv.adherence === "P" || newArv.adherence === "F") && (
+                  <FieldRow>
+                    <Col size={12}>
+                      <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
+                      <Input
+                        type="select"
+                        name="why_poor_fair_adherence"
+                        value={newArv.why_poor_fair_adherence}
+                        onChange={handleAddModalChange}
+                      >
+                        <option value="">Select</option>
+                        {whyPoorFairAdherenceCodeset.map((option) => (
+                          <option key={option.id} value={option.code}>
+                            {option.display}
+                          </option>
+                        ))}
+                      </Input>
+                    </Col>
+                  </FieldRow>
+                )}
+              </DialogContent>
+              <DialogActions sx={{ padding: "16px" }}>
+                <MatButton
+                  onClick={() => setAddModalOpen(false)}
+                  style={{ textTransform: "none" }}
+                >
+                  Cancel
+                </MatButton>
+                <MatButton
+                  onClick={saveNewArv}
+                  variant="contained"
+                  style={{ backgroundColor: "#014d88", color: "#fff", textTransform: "none" }}
+                  startIcon={<AddIcon />}
+                >
+                  Add to List
+                </MatButton>
+              </DialogActions>
+            </Dialog>
+
+            {/* Edit ARV Modal */}
+            <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)} maxWidth="md" fullWidth>
+              <DialogTitle sx={{ backgroundColor: "#014d88", color: "#fff", fontWeight: "bold" }}>
+                Edit ARV Regimen
+              </DialogTitle>
+              <DialogContent sx={{ paddingTop: "20px !important" }}>
+                <FieldRow style={{ marginTop: "16px" }}>
+                  <Col size={6}>
+                    <SectionLabel>Regimen Line <span style={{ color: "red" }}>*</span></SectionLabel>
+                    <Input
+                      type="select"
+                      name="regimen_line"
+                      value={editingArv.regimen_line}
+                      onChange={handleEditModalRegimenLineChange}
+                    >
+                      <option value="">Select</option>
+                      {patientAge >= 15 && (
+                        <>
+                          {adultRegimenLine.map((value) => (
+                            <option key={value.id} value={value.id}>
+                              {value.description}
+                            </option>
+                          ))}
+                        </>
+                      )}
+                      {patientAge < 15 && (
+                        <>
+                          {childRegimenLine.map((value) => (
+                            <option key={value.id} value={value.id}>
+                              {value.description}
+                            </option>
+                          ))}
+                        </>
+                      )}
+                    </Input>
+                  </Col>
+                  <Col size={6}>
+                    <SectionLabel>Regimen</SectionLabel>
+                    <Input
+                      type="select"
+                      name="regimen"
+                      value={editingArv.regimen}
+                      onChange={handleEditModalChange}
+                    >
+                      <option value="">Select</option>
+                      {editModalRegimenTypes.map((value) => (
+                        <option key={value.id} value={value.id}>
+                          {value.description}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+                </FieldRow>
+                <FieldRow>
+                  <Col size={6}>
+                    <SectionLabel>Adherence</SectionLabel>
+                    <Input
+                      type="select"
+                      name="adherence"
+                      value={editingArv.adherence}
+                      onChange={handleEditModalChange}
+                    >
+                      <option value="">Select</option>
+                      {ADHERENCE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+                  <Col size={6}>
+                    <SectionLabel>Dose</SectionLabel>
+                    <Input
+                      type="text"
+                      name="dose"
+                      value={editingArv.dose}
+                      onChange={handleEditModalChange}
+                      placeholder="e.g. 1 tablet daily"
+                    />
+                  </Col>
+                </FieldRow>
+                {(editingArv.adherence === "P" || editingArv.adherence === "F") && (
+                  <FieldRow>
+                    <Col size={12}>
+                      <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
+                      <Input
+                        type="select"
+                        name="why_poor_fair_adherence"
+                        value={editingArv.why_poor_fair_adherence}
+                        onChange={handleEditModalChange}
+                      >
+                        <option value="">Select</option>
+                        {whyPoorFairAdherenceCodeset.map((option) => (
+                          <option key={option.id} value={option.code}>
+                            {option.display}
+                          </option>
+                        ))}
+                      </Input>
+                    </Col>
+                  </FieldRow>
+                )}
+              </DialogContent>
+              <DialogActions sx={{ padding: "16px" }}>
+                <MatButton
+                  onClick={() => setEditModalOpen(false)}
+                  style={{ textTransform: "none" }}
+                >
+                  Cancel
+                </MatButton>
+                <MatButton
+                  onClick={saveEditedArv}
+                  variant="contained"
+                  style={{ backgroundColor: "#014d88", color: "#fff", textTransform: "none" }}
+                >
+                  Save Changes
+                </MatButton>
+              </DialogActions>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={deleteDialogOpen} onClose={cancelDelete} maxWidth="xs" fullWidth>
+              <DialogTitle sx={{ backgroundColor: "#d32f2f", color: "#fff", fontWeight: "bold" }}>
+                Confirm Delete
+              </DialogTitle>
+              <DialogContent sx={{ paddingTop: "20px !important" }}>
+                <Typography sx={{ fontSize: "14px", marginBottom: "8px" }}>
+                  Are you sure you want to delete this ARV regimen?
+                </Typography>
+                <Typography sx={{ fontSize: "13px", color: "#666", fontStyle: "italic" }}>
+                  This action cannot be undone.
+                </Typography>
+              </DialogContent>
+              <DialogActions sx={{ padding: "16px" }}>
+                <MatButton
+                  onClick={cancelDelete}
+                  variant="outlined"
+                  style={{ textTransform: "none", borderColor: "#666", color: "#666" }}
+                >
+                  Cancel
+                </MatButton>
+                <MatButton
+                  onClick={confirmDelete}
+                  variant="contained"
+                  style={{ backgroundColor: "#d32f2f", color: "#fff", textTransform: "none" }}
+                >
+                  Delete
+                </MatButton>
+              </DialogActions>
+            </Dialog>
 
             {/* Cotrimoxazole */}
             <SubHeading>Cotrimoxazole (CTX)</SubHeading>
