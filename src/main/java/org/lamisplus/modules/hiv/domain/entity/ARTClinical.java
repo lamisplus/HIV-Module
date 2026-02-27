@@ -150,10 +150,72 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	private String  cd4Type;
 	@Column(name = "reason")
 	private String reason;
+
+	// Care Card Follow-Up specific fields
+	@Column(name = "duration_on_art_months")
+	private Integer durationOnArtMonths;
+
+	@Column(name = "clinician_name")
+	private String clinicianName;
+
+	@Column(name = "bmi_muac")
+	private Double bmiMuac;
+
+	@Column(name = "paediatric_disclosure")
+	private String paediatricDisclosure;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "who_stage_criteria")
+	private JsonNode whoStageCriteria;
+
+	@Column(name = "noted_side_effect")
+	private String notedSideEffect;
+
+	@Column(name = "dsd_status")
+	private String dsdStatus;
+
+	@Column(name = "dsd_model")
+	private String dsdModel;
+
+	@Column(name = "date_devolved")
+	private LocalDate dateDevolved;
+
+	@Column(name = "cotrimoxazole_dose")
+	private String cotrimoxazoleDose;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "tpt_data")
+	private JsonNode tptData;
+
+	@Column(name = "other_drugs")
+	private String otherDrugs;
+
+	@Column(name = "cd4_ordered")
+	private Boolean cd4Ordered;
+
+	@Column(name = "viral_load_ordered")
+	private Boolean viralLoadOrdered;
+
+	@Column(name = "eac")
+	private String eac;
+
+	@Column(name = "rbs")
+	private Double rbs;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "other_tests_done")
+	private JsonNode otherTestsDone;
+
+	@Column(name = "type_of_appointment")
+	private String typeOfAppointment;
+
+	@Column(name = "health_insurance_coverage")
+	private String healthInsuranceCoverage;
+
 	@Override
 	public boolean isNew() {
 		return id == null;
 	}
-	
-	
+
+
 }
