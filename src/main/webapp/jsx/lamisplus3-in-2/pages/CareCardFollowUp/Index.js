@@ -1080,7 +1080,7 @@ const CareCardFollowUpForm = (props) => {
     }
     setSaving(true);
     try {
-      // Transform arvList to match backend expected format
+      // Transform arvList to match backend ARTClinicVisitDto expected format
       const arvdrugsRegimen = arvList.map((arv) => {
         const regimenLine = arv.regimen_line ? getRegimenLineDisplay(arv.regimen_line) : "";
         const regimenIndex = arvList.indexOf(arv);
@@ -1097,36 +1097,123 @@ const CareCardFollowUpForm = (props) => {
         };
       });
 
-      const payload = {
-        dateOfObservation: visitInfo.visit_date,
+      // Get patient enrollment and facility details
+      const patientDetailsResponse = await axios.get(
+        `${baseUrl}hiv/patient/${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const patientDetails = patientDetailsResponse.data;
+
+      // Prepare vital sign DTO
+      const vitalSignDto = {
+        bodyWeight: vitals.weight_kg || "",
+        height: vitals.height_cm || "",
+        diastolic: vitals.bp_diastolic || "",
+        systolic: vitals.bp_systolic || "",
+        pulse: "",
+        temperature: "",
+        respiratoryRate: "",
+        captureDate: visitInfo.visit_date ? `${visitInfo.visit_date} 00:00` : "",
         personId: props.patientObj.id,
-        type: "Care Card Follow-Up Visit",
-        data: {
-          visitInfo,
-          vitals,
-          clinical: {
-            ...clinical,
-            cervical_cancer_screening: isFemale ? cervical_cancer_screening : null,
-            cervical_cancer_treatment: isFemale ? cervical_cancer_treatment : null,
-          },
-          arvdrugsRegimen,  // Changed from arvList to match backend
-          cotrimoxazole: ctx,
-          tpt,
-          otherDrugs,
-          lab: {
-            ...lab,
-            cd4_ordered: cd4Ordered,
-            viral_load_ordered: viralLoadOrdered,
-          },
-          followUp,
-        },
+        facilityId: patientDetails.enrollment?.facilityId || 0,
       };
-      await axios.post(`${baseUrl}observation`, payload, {
+
+      // Prepare WHO stage data with criteria
+      const whoData = {
+        stage: clinical.who_stage,
+        criteria: clinical.who_stage_criteria,
+      };
+
+      // Prepare opportunistic infections data
+      const opportunisticInfections = clinical.oral_problems.map(problem => ({
+        code: problem.value,
+        display: problem.label
+      }));
+
+      // Prepare TPT data
+      const tptData = {
+        code: tpt.code,
+        dose: tpt.dose,
+        start_date: tpt.start_date,
+        completion_date: tpt.completion_date,
+      };
+
+      // Prepare other tests done
+      const otherTestsDone = lab.other_tests_done.map(test => ({
+        value: test.value,
+        label: test.label,
+        groupName: test.groupName
+      }));
+
+      // Prepare viral load order data (only if ordered)
+      const viralLoadOrder = viralLoadOrdered ? [{
+        labTestId: 16, // Standard viral load test ID
+        dateAssayed: lab.viral_load_date,
+        result: lab.viral_load_result,
+        indication: lab.viral_load_indication,
+      }] : [];
+
+      // Extract IDs from codes for payload
+      const whoStageOption = whoStagingCodeset.find(opt => opt.code === clinical.who_stage);
+      const functionalStatusOption = functionalStatusCodeset.find(opt => opt.code === clinical.functional_status);
+
+      // Build ARTClinicVisitDto payload (matching backend DTO structure with new columns)
+      // Note: hivEnrollmentId and artStatusId are now set automatically by the backend
+      const payload = {
+        visitDate: visitInfo.visit_date,
+        personId: props.patientObj.id,
+        facilityId: patientDetails.enrollment?.facilityId || 0,
+        visitId: patientDetails.currentStatus?.statusId || null,
+        clinicalStageId: whoStageOption?.id || null,
+        whoStagingId: whoStageOption?.id || null,
+        who: whoData,
+        functionalStatusId: functionalStatusOption?.id || null,
+        clinicalNote: "",
+        vitalSignDto: vitalSignDto,
+        aRVDrugsRegimen: arvdrugsRegimen,
+        viralLoadOrder: viralLoadOrder,
+        opportunisticInfections: opportunisticInfections,
+        tbStatus: clinical.tb_status || "",
+        cryptococcalScreeningStatus: clinical.cryptococcal_status || "",
+        cervicalCancerScreeningStatus: isFemale ? cervical_cancer_screening : "",
+        cervicalCancerTreatmentProvided: isFemale ? cervical_cancer_treatment : "",
+        hepatitisScreeningResult: clinical.hepatitis_status || "",
+        familyPlaning: vitals.family_planning_status || "",
+        onFamilyPlaning: vitals.on_family_planning || "",
+        pregnancyStatus: isFemale ? vitals.pregnancy_breastfeeding_status : "",
+        nextAppointment: followUp.next_appointment_date || "",
+
+        // New Care Card Follow-Up specific fields using new columns
+        durationOnArtMonths: visitInfo.duration_on_art_months ? parseInt(visitInfo.duration_on_art_months) : null,
+        clinicianName: visitInfo.clinician_name || "",
+        bmiMuac: vitals.bmi_muac ? parseFloat(vitals.bmi_muac) : null,
+        paediatricDisclosure: clinical.paediatric_disclosure || "",
+        whoStageCriteria: clinical.who_stage_criteria,
+        notedSideEffect: clinical.noted_side_effect || "",
+        dsdStatus: clinical.dsd_status || "",
+        dsdModel: clinical.dsd_model || "",
+        dateDevolved: clinical.date_devolved || "",
+        cotrimoxazoleDose: ctx || "",
+        tptData: tptData,
+        otherDrugs: otherDrugs || "",
+        cd4Ordered: cd4Ordered,
+        viralLoadOrdered: viralLoadOrdered,
+        eac: lab.eac || "",
+        rbs: lab.rbs ? parseFloat(lab.rbs) : null,
+        otherTestsDone: otherTestsDone,
+        typeOfAppointment: lab.type_of_appointment || "",
+        healthInsuranceCoverage: followUp.health_insurance_coverage || "",
+      };
+
+      // Use the correct ART Clinic Visit endpoint
+      await axios.post(`${baseUrl}hiv/art/clinic-visit/`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       toast.success("Care Card Follow-Up Visit saved successfully");
       props.setActiveContent({ ...props.activeContent, route: "recent-history" });
     } catch (err) {
+      console.error("Error saving Care Card Follow-Up Visit:", err);
       const msg = err?.response?.data?.apierror?.message || "An error occurred. Please try again.";
       toast.error(msg);
     } finally {

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet failOnError="true" id="20260228-001" author="gboyeguntaiwo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_art_clinical" columnName="enrollment_commencement_uuid" />
+            </not>
+        </preConditions>
+        <sqlFile dbms="postgresql"
+                 path="sql/add_enrollment_commencement_column.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="false"/>
+    </changeSet>
+
+    <changeSet failOnError="false" id="20260228-002" author="gboyeguntaiwo">
+        <sqlFile dbms="postgresql"
+                 path="sql/make_art_clinical_columns_nullable.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="false"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -87,6 +87,35 @@ public class ARTClinicVisitDto implements Serializable {
 	@Column(columnDefinition = "jsonb")
 	private JsonNode extra;
 	private String  pregnancyStatus;
-	
-	
+
+	// Care Card Follow-Up specific fields
+	private Integer durationOnArtMonths;
+	private String clinicianName;
+	private Double bmiMuac;
+	private String paediatricDisclosure;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode whoStageCriteria;
+	private String notedSideEffect;
+	private String dsdStatus;
+	private String dsdModel;
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	private LocalDate dateDevolved;
+	private String cotrimoxazoleDose;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode tptData;
+	private String otherDrugs;
+	private Boolean cd4Ordered;
+	private Boolean viralLoadOrdered;
+	private String eac;
+	private Double rbs;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode otherTestsDone;
+	private String typeOfAppointment;
+	private String healthInsuranceCoverage;
+
+
 }

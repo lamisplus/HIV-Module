@@ -658,6 +658,7 @@ const ClinicVisit = (props) => {
       })
       .then((response) => {
         setGetPatientObj(response.data);
+        console.log("patientObj", response.data)
         patientObj = response.data;
       })
       .catch((error) => { });
