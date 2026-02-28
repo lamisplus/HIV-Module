@@ -1,6 +1,4 @@
 -- Migration script to add new columns for Care Card Follow-Up functionality
--- These columns enhance the hiv_art_clinical table to support comprehensive patient follow-up visits
-
 -- Visit Information
 ALTER TABLE hiv_art_clinical ADD COLUMN IF NOT EXISTS duration_on_art_months INTEGER;
 COMMENT ON COLUMN hiv_art_clinical.duration_on_art_months IS 'Duration patient has been on ART in months';
