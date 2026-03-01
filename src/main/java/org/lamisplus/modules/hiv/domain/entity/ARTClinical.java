@@ -87,7 +87,7 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	private String stiTreated;
 
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "opportunistic_infections")
 	JsonNode opportunisticInfections;
 
 	@Size(max = 5)
@@ -95,7 +95,7 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	private String adrScreened;
 
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "adverse_drug_reactions")
 	JsonNode adverseDrugReactions;
 
 	@Size(max = 15)
@@ -103,7 +103,7 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	private String adherenceLevel;
 
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "adheres")
 	JsonNode adheres;
 
 	@Column(name = "next_appointment")
@@ -134,10 +134,10 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	private String tbStatus;
 	private String tbPrevention;
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "arvdrugs_regimen")
 	private JsonNode aRVDrugsRegimen;
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "viral_load_order")
 	private JsonNode viralLoadOrder;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
@@ -196,6 +196,10 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 
 	@Column(name = "cd4_ordered")
 	private Boolean cd4Ordered;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "cd4_data")
+	private JsonNode cd4Data;
 
 	@Column(name = "viral_load_ordered")
 	private Boolean viralLoadOrdered;

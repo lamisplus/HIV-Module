@@ -23,6 +23,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Chip,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { makeStyles } from "@material-ui/core/styles";
@@ -485,6 +486,7 @@ const CareCardFollowUpForm = (props) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [expanded, setExpanded] = useState(["visit", "vitals", "medications", "lab"]);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Codesets from application
   const [yesNoCodeset, setYesNoCodeset] = useState([]);
@@ -543,7 +545,6 @@ const CareCardFollowUpForm = (props) => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        console.log("Codesets Response:", response.data);
 
         // Extract individual codesets from response object
         const data = response.data || {};
@@ -626,6 +627,125 @@ const CareCardFollowUpForm = (props) => {
     fetchLabTestGroups();
   }, []);
 
+  // Populate form when editingVisit is provided
+  useEffect(() => {
+    if (props.editingVisit) {
+      setIsEditMode(true);
+      const visit = props.editingVisit;
+
+      // Populate Visit Information
+      setVisitInfo({
+        visit_date: visit.visitDate ? moment(visit.visitDate).format("YYYY-MM-DD") : "",
+        duration_on_art_months: visit.durationOnArtMonths || "",
+        clinician_name: visit.clinicianName || "",
+      });
+
+      // Populate Vitals
+      setVitals({
+        height_cm: visit.vitalSignDto?.height || "",
+        weight_kg: visit.vitalSignDto?.bodyWeight || "",
+        bmi_muac: visit.bmiMuac || "",
+        bp_systolic: visit.vitalSignDto?.systolic || "",
+        bp_diastolic: visit.vitalSignDto?.diastolic || "",
+        pregnancy_breastfeeding_status: visit.pregnancyStatus || "",
+        family_planning_status: visit.familyPlaning || "",
+        on_family_planning: visit.onFamilyPlaning || "",
+      });
+
+      // Populate Clinical Status
+      const whoStageCode = whoStagingCodeset.find(opt => opt.id === visit.clinicalStageId)?.code || "";
+      setClinical({
+        paediatric_disclosure: visit.paediatricDisclosure || "",
+        functional_status: functionalStatusCodeset.find(opt => opt.id === visit.functionalStatusId)?.code || "",
+        who_stage: whoStageCode,
+        who_stage_criteria: visit.whoStageCriteria || [],
+        tb_status: visit.tbStatus || "",
+        cryptococcal_status: visit.cryptococcalScreeningStatus || "",
+        hepatitis_status: visit.hepatitisScreeningResult || "",
+        oral_problems: visit.opportunisticInfections ? visit.opportunisticInfections.map(oi => ({ value: oi.code, label: oi.display })) : [],
+        noted_side_effect: visit.notedSideEffect || "",
+        dsd_status: visit.dsdStatus || "",
+        dsd_model: visit.dsdModel || "",
+        date_devolved: visit.dateDevolved ? moment(visit.dateDevolved).format("YYYY-MM-DD") : "",
+      });
+
+      // Populate Cervical Cancer (if female)
+      if (isFemale) {
+        setCervicalCancer(visit.cervicalCancerScreeningStatus || "");
+        setCervicalCancerTreatment(visit.cervicalCancerTreatmentProvided || "");
+      }
+
+      // Populate ARV List and fetch regimen types for each
+      const arvRegimens = visit.aRVDrugsRegimen || visit.arvdrugsRegimen || [];
+      if (arvRegimens && arvRegimens.length > 0) {
+        const arvs = arvRegimens.map(arv => ({
+          regimen_line: arv.regimenLine || "",
+          regimen: arv.regimenDrug || "",
+          adherence: arv.regimenAdherance || "",
+          dose: arv.dosage || "",
+          why_poor_fair_adherence: arv.whyPoorFairAdherence || "",
+        }));
+        setArvList(arvs);
+
+        // Fetch regimen types for each ARV entry
+        arvs.forEach(async (arv, index) => {
+          if (arv.regimen_line) {
+            try {
+              const response = await axios.get(`${baseUrl}hiv/regimen/types/${arv.regimen_line}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              setRegimenTypes((prev) => ({ ...prev, [index]: response.data }));
+            } catch (error) {
+              console.error("Error fetching regimen types for edit:", error);
+            }
+          }
+        });
+      }
+
+      // Populate Medications
+      setCtx(visit.cotrimoxazoleDose || "");
+      if (visit.tptData) {
+        setTpt({
+          code: visit.tptData.code || "",
+          dose: visit.tptData.dose || "",
+          start_date: visit.tptData.start_date ? moment(visit.tptData.start_date).format("YYYY-MM-DD") : "",
+          completion_date: visit.tptData.completion_date ? moment(visit.tptData.completion_date).format("YYYY-MM-DD") : "",
+        });
+      }
+      setOtherDrugs(visit.otherDrugs || "");
+
+      // Populate Lab Results
+      setCd4Ordered(visit.cd4Ordered || false);
+      setViralLoadOrdered(visit.viralLoadOrdered || false);
+
+      // Extract viral load data from viralLoadOrder array
+      const vlData = visit.viralLoadOrder && visit.viralLoadOrder.length > 0 ? visit.viralLoadOrder[0] : {};
+
+      // Extract CD4 data from cd4Data object
+      const cd4Info = visit.cd4Data || {};
+
+      setLab({
+        cd4_count: cd4Info.cd4_result || "",
+        cd4_date: cd4Info.cd4_date ? moment(cd4Info.cd4_date).format("YYYY-MM-DD") : "",
+        viral_load_result: vlData.result || "",
+        viral_load_date: vlData.dateAssayed ? moment(vlData.dateAssayed).format("YYYY-MM-DD") : "",
+        viral_load_indication: vlData.indication || "",
+        eac: visit.eac || "",
+        rbs: visit.rbs || "",
+        other_tests_done: visit.otherTestsDone ? visit.otherTestsDone.map(test => ({ value: test.value, label: test.label, groupName: test.groupName })) : [],
+        type_of_appointment: visit.typeOfAppointment || "",
+      });
+
+      // Populate Follow-up
+      setFollowUp({
+        health_insurance_coverage: visit.healthInsuranceCoverage || "",
+        next_appointment_date: visit.nextAppointment ? moment(visit.nextAppointment).format("YYYY-MM-DD") : "",
+      });
+    } else {
+      setIsEditMode(false);
+    }
+  }, [props.editingVisit, whoStagingCodeset, functionalStatusCodeset, isFemale]);
+
   // ── Section 1: Visit Information ────────────────────────────────────────
   const [visitInfo, setVisitInfo] = useState({
     visit_date: "",
@@ -686,8 +806,6 @@ const CareCardFollowUpForm = (props) => {
 
     // Clear "On Family Planning" when Family Planning Status changes to No/Unknown
     if (name === "family_planning_status") {
-      console.log("Family Planning Status selected:", value);
-      // If not YES, clear the on_family_planning field
       if (value !== "YES_NO_OUTBREAK_YES" && !value?.endsWith("_YES")) {
         updatedVitals.on_family_planning = "";
       }
@@ -1071,6 +1189,13 @@ const CareCardFollowUpForm = (props) => {
     return Object.keys(temp).length === 0;
   };
 
+  // ── Cancel Edit ──────────────────────────────────────────────────────────
+  const handleCancelEdit = () => {
+    if (props.onEditComplete) {
+      props.onEditComplete();
+    }
+  };
+
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1196,6 +1321,10 @@ const CareCardFollowUpForm = (props) => {
         cotrimoxazoleDose: ctx || "",
         tptData: tptData,
         otherDrugs: otherDrugs || "",
+        cd4Data: {
+          cd4_result: lab.cd4_count || "",
+          cd4_date: lab.cd4_date || null
+        },
         cd4Ordered: cd4Ordered,
         viralLoadOrdered: viralLoadOrdered,
         eac: lab.eac || "",
@@ -1206,12 +1335,25 @@ const CareCardFollowUpForm = (props) => {
       };
 
       // Use the correct ART Clinic Visit endpoint
-      await axios.post(`${baseUrl}hiv/art/clinic-visit/`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (isEditMode && props.editingVisit) {
+        // Update existing visit
+        await axios.put(`${baseUrl}hiv/art/clinic-visit/${props.editingVisit.id}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Care Card Follow-Up Visit updated successfully");
 
-      toast.success("Care Card Follow-Up Visit saved successfully");
-      props.setActiveContent({ ...props.activeContent, route: "recent-history" });
+        // Call onEditComplete to return to history tab
+        if (props.onEditComplete) {
+          props.onEditComplete();
+        }
+      } else {
+        // Create new visit
+        await axios.post(`${baseUrl}hiv/art/clinic-visit/`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Care Card Follow-Up Visit saved successfully");
+        props.setActiveContent({ ...props.activeContent, route: "recent-history" });
+      }
     } catch (err) {
       console.error("Error saving Care Card Follow-Up Visit:", err);
       const msg = err?.response?.data?.apierror?.message || "An error occurred. Please try again.";
@@ -1229,10 +1371,43 @@ const CareCardFollowUpForm = (props) => {
       <CardContent>
 
         {/* ── Page Header ──────────────────────────────────────────────── */}
-        <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "20px" }}>
+        <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
-            Care Card — Follow-Up Visit
+            {isEditMode ? (
+              <>
+                Care Card — Edit Visit
+                <Chip
+                  label={moment(props.editingVisit?.visitDate).format("DD MMM YYYY")}
+                  size="small"
+                  style={{
+                    backgroundColor: "#fff3cd",
+                    color: "#856404",
+                    fontWeight: 600,
+                    fontSize: "11px",
+                    marginLeft: "12px"
+                  }}
+                />
+              </>
+            ) : (
+              "Care Card — Follow-Up Visit"
+            )}
           </Typography>
+          {isEditMode && (
+            <MatButton
+              variant="outlined"
+              size="small"
+              startIcon={<CancelIcon />}
+              onClick={handleCancelEdit}
+              style={{
+                color: "#fff",
+                borderColor: "#fff",
+                textTransform: "none",
+                fontSize: "13px"
+              }}
+            >
+              Cancel Edit
+            </MatButton>
+          )}
         </Box>
 
         <form onSubmit={handleSubmit}>
@@ -2150,7 +2325,7 @@ const CareCardFollowUpForm = (props) => {
               className={classes.button}
               startIcon={<CancelIcon style={{ color: "#fff" }} />}
               style={{ backgroundColor: "#992E62", color: "#fff" }}
-              onClick={() => props.setActiveContent({ ...props.activeContent, route: "recent-history" })}
+              onClick={isEditMode ? handleCancelEdit : () => props.setActiveContent({ ...props.activeContent, route: "recent-history" })}
             >
               <span style={{ textTransform: "capitalize", color: "#fff" }}>Cancel</span>
             </MatButton>
@@ -2162,7 +2337,9 @@ const CareCardFollowUpForm = (props) => {
               style={{ backgroundColor: "#014d88", color: "#fff" }}
               disabled={saving}
             >
-              <span style={{ textTransform: "capitalize", color: "#fff" }}>{saving ? "Saving..." : "Save"}</span>
+              <span style={{ textTransform: "capitalize", color: "#fff" }}>
+                {saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update Visit" : "Save")}
+              </span>
             </MatButton>
           </div>
         </form>

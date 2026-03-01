@@ -28,7 +28,7 @@ import InitialClinicalEvaluationView from "../../lamisplus3-in-2/pages/InitialCl
 import EnrollmentAndCommencementForm from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Index";
 import EnrollmentAndCommencementView from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/View";
 import EnrollmentAndCommencementUpdate from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Update";
-import CareCardFollowUpForm from "../../lamisplus3-in-2/pages/CareCardFollowUp/Index";
+import CareCardFollowUpForm from "../../lamisplus3-in-2/pages/CareCardFollowUp/CareCardFollowUpTabs";
 import AdherencePreparationForm from "../../lamisplus3-in-2/pages/AdherencePreparation/Index";
 import PositiveHealthDignityForm from "../../lamisplus3-in-2/pages/PositiveHealthDignity/Index";
 import SubstitutionSwitchForm from "../../lamisplus3-in-2/pages/SubstitutionSwitch/Index";

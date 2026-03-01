@@ -79,9 +79,11 @@ public class ARTClinicVisitDto implements Serializable {
 	private String tbPrevention;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
+	@com.fasterxml.jackson.annotation.JsonProperty("aRVDrugsRegimen")
 	private JsonNode aRVDrugsRegimen;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
+	@com.fasterxml.jackson.annotation.JsonProperty("viralLoadOrder")
 	private JsonNode viralLoadOrder;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
@@ -108,6 +110,9 @@ public class ARTClinicVisitDto implements Serializable {
 	private JsonNode tptData;
 	private String otherDrugs;
 	private Boolean cd4Ordered;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode cd4Data;
 	private Boolean viralLoadOrdered;
 	private String eac;
 	private Double rbs;

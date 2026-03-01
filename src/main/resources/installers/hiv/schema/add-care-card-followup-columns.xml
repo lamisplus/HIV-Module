@@ -17,4 +17,35 @@
                  stripComments="false"/>
     </changeSet>
 
+    <changeSet failOnError="false" id="20260301-003" author="care-card-followup">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_art_clinical" columnName="cd4_data" />
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_art_clinical ADD COLUMN IF NOT EXISTS cd4_data jsonb;
+            CREATE INDEX IF NOT EXISTS idx_art_clinical_cd4_data ON hiv_art_clinical USING gin (cd4_data);
+            COMMENT ON COLUMN hiv_art_clinical.cd4_data IS 'JSON object containing cd4_result and cd4_date';
+        </sql>
+    </changeSet>
+
+    <changeSet failOnError="false" id="20260301-004" author="care-card-followup">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="hiv_art_clinical" columnName="cd4_date" />
+        </preConditions>
+        <sql dbms="postgresql">
+            -- Migrate existing cd4_date data to cd4_data JSON column before dropping
+            UPDATE hiv_art_clinical
+            SET cd4_data = jsonb_build_object('cd4_date', cd4_date)
+            WHERE cd4_date IS NOT NULL AND (cd4_data IS NULL OR cd4_data = '{}'::jsonb);
+
+            -- Drop the cd4_date column as it's now part of cd4_data
+            ALTER TABLE hiv_art_clinical DROP COLUMN IF EXISTS cd4_date;
+
+            -- Drop the index if it exists
+            DROP INDEX IF EXISTS idx_art_clinical_cd4_date;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

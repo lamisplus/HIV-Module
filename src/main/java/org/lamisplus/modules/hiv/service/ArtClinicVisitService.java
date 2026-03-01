@@ -150,6 +150,14 @@ public class ArtClinicVisitService {
 			String who = applicationCodesetService.getApplicationCodeset(whoStagingId).getDisplay();
 			whoStage.append(who);
 		}
+
+		// Get functional status display value
+		Long functionalStatusId = visit.getFunctionalStatusId();
+		String functionalStatus = "";
+		if(functionalStatusId != null) {
+			functionalStatus = applicationCodesetService.getApplicationCodeset(functionalStatusId).getDisplay();
+		}
+
 		return ARTClinicalVisitDisplayDto.builder()
 				.id(visit.getId())
 				.visitDate(visit.getVisitDate())
@@ -162,16 +170,21 @@ public class ArtClinicVisitService {
 				.adheres(visit.getAdheres())
 				.clinicalNote(visit.getClinicalNote())
 				.facilityId(visit.getFacilityId())
+				.functionalStatusId(visit.getFunctionalStatusId())
+				.functionalStatus(functionalStatus)
 				.cd4(visit.getCd4())
 				.cd4Percentage(visit.getCd4Percentage())
 				.adrScreened(visit.getAdrScreened())
-				.visitId(visit.getVisit().getId())
+				.visitId(visit.getVisit() != null ? visit.getVisit().getId() : null)
 				.vitalSignDto(vitalSignService.getVitalSignById(visit.getVitalSign().getId()))
 				.tbScreen(visit.getTbScreen())
 				.whoStaging(whoStage.toString())
+				.clinicalStageId(visit.getClinicalStageId())
 				.opportunisticInfections(visit.getOpportunisticInfections())
 				.cryptococcalScreeningStatus(visit.getCryptococcalScreeningStatus())
 				.familyPlaning(visit.getFamilyPlaning())
+				.onFamilyPlaning(visit.getOnFamilyPlaning())
+				.pregnancyStatus(visit.getPregnancyStatus())
 				.hepatitisScreeningResult(visit.getHepatitisScreeningResult())
 				.cervicalCancerScreeningStatus(visit.getCervicalCancerScreeningStatus())
 				.cervicalCancerTreatmentProvided(visit.getCervicalCancerTreatmentProvided())
@@ -180,6 +193,27 @@ public class ArtClinicVisitService {
 				.levelOfAdherence(visit.getLevelOfAdherence())
 				.tbPrevention(visit.getTbPrevention())
 				.tbStatus(visit.getTbStatus())
+				// Care Card Follow-Up specific fields
+				.durationOnArtMonths(visit.getDurationOnArtMonths())
+				.clinicianName(visit.getClinicianName())
+				.bmiMuac(visit.getBmiMuac())
+				.paediatricDisclosure(visit.getPaediatricDisclosure())
+				.whoStageCriteria(visit.getWhoStageCriteria())
+				.notedSideEffect(visit.getNotedSideEffect())
+				.dsdStatus(visit.getDsdStatus())
+				.dsdModel(visit.getDsdModel())
+				.dateDevolved(visit.getDateDevolved())
+				.cotrimoxazoleDose(visit.getCotrimoxazoleDose())
+				.tptData(visit.getTptData())
+				.otherDrugs(visit.getOtherDrugs())
+				.cd4Ordered(visit.getCd4Ordered())
+				.cd4Data(visit.getCd4Data())
+				.viralLoadOrdered(visit.getViralLoadOrdered())
+				.eac(visit.getEac())
+				.rbs(visit.getRbs())
+				.otherTestsDone(visit.getOtherTestsDone())
+				.typeOfAppointment(visit.getTypeOfAppointment())
+				.healthInsuranceCoverage(visit.getHealthInsuranceCoverage())
 				.build();
 	}
 	
@@ -213,6 +247,20 @@ public class ArtClinicVisitService {
 		artClinical.setVitalSign(vitalSign);
 		artClinical.setFacilityId(organizationUtil.getCurrentUserOrganization());
 		artClinical.setArchived(0);
+
+		// Explicitly set JSONB fields to ensure they are copied
+		artClinical.setARVDrugsRegimen(artClinicVisitDto.getARVDrugsRegimen());
+		artClinical.setViralLoadOrder(artClinicVisitDto.getViralLoadOrder());
+		artClinical.setWhoStageCriteria(artClinicVisitDto.getWhoStageCriteria());
+		artClinical.setOpportunisticInfections(artClinicVisitDto.getOpportunisticInfections());
+		artClinical.setAdheres(artClinicVisitDto.getAdheres());
+		artClinical.setWho(artClinicVisitDto.getWho());
+		artClinical.setTbScreen(artClinicVisitDto.getTbScreen());
+		artClinical.setAdverseDrugReactions(artClinicVisitDto.getAdverseDrugReactions());
+		artClinical.setTptData(artClinicVisitDto.getTptData());
+		artClinical.setOtherTestsDone(artClinicVisitDto.getOtherTestsDone());
+		artClinical.setCd4Data(artClinicVisitDto.getCd4Data());
+
 		return artClinical;
 	}
 	
