@@ -612,14 +612,14 @@ const SubMenu = (props) => {
                 Positive Health Dignity
               </MenuItem>
 
-              <MenuItem
+              {/* <MenuItem
                 onClick={menuHandlers.loadSubstitutionSwitch}
                 name="substitution-switch"
                 active={activeItem === "substitution-switch"}
                 title="Substitutions / Switches"
               >
                 Substitution / Switch
-              </MenuItem>
+              </MenuItem> */}
 
               {!patientObj.commenced && (
                 <MenuItem
@@ -867,14 +867,14 @@ const SubMenu = (props) => {
                               >
                                 Positive Health Dignity
                               </Dropdown.Item>
-                              <Dropdown.Item
+                              {/* <Dropdown.Item
                                 onClick={menuHandlers.loadSubstitutionSwitch}
                                 name="substitution-switch"
                                 active={activeItem === "substitution-switch"}
                                 title="Substitutions / Switches"
                               >
                                 Substitution / Switch
-                              </Dropdown.Item>
+                              </Dropdown.Item> */}
                               <Dropdown.Item
                                 onClick={menuHandlers.loadTrackingForm}
                                 name="tracking"

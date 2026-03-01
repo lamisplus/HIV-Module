@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet failOnError="true" id="20260301-001" author="phdp">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="hiv_positive_health_dignity_prevention"/>
+            </not>
+        </preConditions>
+        <sqlFile dbms="postgresql"
+                 path="sql/create_positive_health_dignity_prevention_table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="false"/>
+    </changeSet>
+
+    <!-- Update visit_id column type to VARCHAR(255) to store UUID -->
+    <changeSet failOnError="false" id="20260301-002" author="phdp">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_positive_health_dignity_prevention"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE hiv_positive_health_dignity_prevention
+            ALTER COLUMN visit_id TYPE VARCHAR(255);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

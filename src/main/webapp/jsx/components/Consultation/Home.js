@@ -658,7 +658,6 @@ const ClinicVisit = (props) => {
       })
       .then((response) => {
         setGetPatientObj(response.data);
-        console.log("patientObj", response.data)
         patientObj = response.data;
       })
       .catch((error) => { });
@@ -1019,15 +1018,8 @@ const ClinicVisit = (props) => {
             user_id: userAccount.id,
             recording_uuid: transcriptionProcess.recording_uuid
           })
-
-          // toast.success("Transcription and form saved", {
-          //   position: toast.POSITION.TOP_RIGHT,
-          // });
         } catch (error) {
           console.log("Updating transription failed")
-          // toast.error("Error saving Transcription and Form", {
-          //   position: toast.POSITION.TOP_RIGHT,
-          // });
         }
       }
 
