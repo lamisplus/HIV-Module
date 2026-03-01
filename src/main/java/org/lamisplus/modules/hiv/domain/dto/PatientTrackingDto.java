@@ -45,5 +45,28 @@ public class PatientTrackingDto {
 	private Long patientId;
 	private HIVStatusTrackerDto  statusTracker;
 	private LocalDate dateOfObservation;
-	
+
+	// New fields added
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	private LocalDate artStartDate;
+
+	private String currentArvRegimen;
+	private String regimenAtStartOfArt;
+
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	private LocalDate nextAgreedClinicAppointmentDate;
+
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	private LocalDate datePatientReturned;
+
+	private String referredForSpecify;
+	private String completedBy;
+
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	private LocalDate date;
+
 }

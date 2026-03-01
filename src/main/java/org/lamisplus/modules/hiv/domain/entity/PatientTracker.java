@@ -72,7 +72,40 @@ public class PatientTracker extends HivAuditEntity implements Serializable, Pers
 	private Person person;
 	@Column(name = "date_of_observation")
 	private LocalDate dateOfObservation;
-	
+
+	// New fields added
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	@Column(name = "art_start_date")
+	private LocalDate artStartDate;
+
+	@Column(name = "current_arv_regimen")
+	private String currentArvRegimen;
+
+	@Column(name = "regimen_at_start_of_art")
+	private String regimenAtStartOfArt;
+
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	@Column(name = "next_agreed_clinic_appointment_date")
+	private LocalDate nextAgreedClinicAppointmentDate;
+
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	@Column(name = "date_patient_returned")
+	private LocalDate datePatientReturned;
+
+	@Column(name = "referred_for_specify")
+	private String referredForSpecify;
+
+	@Column(name = "completed_by")
+	private String completedBy;
+
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	@Column(name = "date")
+	private LocalDate date;
+
 	public boolean isNew() {
 		return id == null;
 	}

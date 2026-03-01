@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 @Order(8)
 @Installer(name = "patient-tracker-update-installer",
         description = "Update patient tracker table",
-        version = 3)
+        version = 4)
 public class PatientTrackerUpdate extends AcrossLiquibaseInstaller {
     public  PatientTrackerUpdate() {
         super ("classpath:installers/hiv/schema/patient-tracker-update.xml");
