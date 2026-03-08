@@ -74,6 +74,27 @@ public class HandleHIVVisitEncounter {
 		return null;
 	}
 	
+
+	public Visit createVisitForEac(Long personId, LocalDate visitDate) {
+		Optional<Person> personOptional = personRepository.findById(personId);
+
+		Visit visit = new Visit();
+		personOptional.ifPresent(visit::setPerson);
+		personOptional.ifPresent(person -> visit.setFacilityId(person.getFacilityId()));
+		visit.setVisitStartDate(visitDate.atTime(0, 0));
+		visit.setArchived(0);
+		visit.setUuid(UUID.randomUUID().toString());
+		log.debug("Creating new visit for EAC on date: {}, person is available: {}", visitDate, personOptional.isPresent());
+		try {
+			Visit currentVisit = visitRepository.save(visit);
+			createHivVisitEncounter(personOptional, visit);
+			return currentVisit;
+		} catch (DataAccessException e) {
+			log.error("Failed to save visit and encounter for EAC", e);
+			throw new RuntimeException("Failed to save visit and encounter for EAC", e);
+		}
+	}
+
 	private void createHivVisitEncounter(Optional<Person> personOptional, Visit visit) {
 		Encounter encounter = new Encounter();
 		encounter.setVisit(visit);

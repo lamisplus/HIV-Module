@@ -133,7 +133,8 @@ public class HIVEacService {
 		HIVEac hIVEac = new HIVEac();
 		Long personId = dto.getPersonId();
 		Person person = getPerson(personId);
-		Visit visit = handleHIVisitEncounter.processAndCreateVisit(personId, dto.getDateOfLastViralLoad());
+		// Use createNewVisitForEac to ensure each EAC gets its own unique visit
+		Visit visit = handleHIVisitEncounter.createVisitForEac(personId, dto.getDateOfLastViralLoad());
 		hIVEac.setVisit(visit);
 		hIVEac.setPerson(person);
 		hIVEac.setLastViralLoad(dto.getLastViralLoad());
@@ -148,7 +149,7 @@ public class HIVEacService {
 		hIVEac.setArchived(0);
 		hIVEac.setFacilityId(person.getFacilityId());
 		return hIVEac;
-		
+
 	}
 	
 	

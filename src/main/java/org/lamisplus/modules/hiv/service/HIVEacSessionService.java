@@ -31,7 +31,8 @@ public class HIVEacSessionService {
 	public HIVEacSessionDto createEacSession(HIVEacSessionDto dto) {
 		HIVEacSession hivEacSession = mapDtoEntity(dto);
 		HIVEac eac = getEac(dto.getEacId());
-		Visit visit = handleHIVisitEncounter.processAndCreateVisit(dto.getPersonId(), dto.getFollowUpDate());
+		// Use createNewVisitForEac with sessionDate (not followUpDate) to ensure each session gets its own unique visit
+		Visit visit = handleHIVisitEncounter.createVisitForEac(dto.getPersonId(), dto.getSessionDate());
 		List<HIVEacSession> hivEacSesByEac = hiveacSessionRepository.getHIVEacSesByEac(eac);
 		handleEacSessionStatus(hivEacSession, hivEacSesByEac);
 		hivEacSession.setEac(eac);
