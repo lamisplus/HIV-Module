@@ -64,4 +64,9 @@
         </sql>
     </changeSet>
 
+    <changeSet id="20260223-012" author="gboyeguntaiwo">
+        <comment>Update ARV regimen codes and insert pediatric regimens</comment>
+        <sqlFile path="sql/updateARVRegimenCodes.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

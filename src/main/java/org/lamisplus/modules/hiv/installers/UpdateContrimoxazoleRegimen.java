@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 @Order(27)
 @Installer(name = "update-cotrimoxazole-regimen",
         description = "Update cotrimoxazole, regimen separators, HIV regimen composition, OI regimen codes, and TB NDR codes in the database",
-        version = 10)
+        version = 11)
 public class UpdateContrimoxazoleRegimen extends AcrossLiquibaseInstaller {
     public UpdateContrimoxazoleRegimen() {
         super("classpath:installers/hiv/schema/updateCotrimoxazoleRegimen.xml");
