@@ -629,6 +629,96 @@ const ClinicVisit = (props) => {
         setLoading(false);
       });
   }
+  // Function to auto-populate vital signs based on selected date
+  const autoPopulateVitalSigns = (selectedDate) => {
+    if (!selectedDate) return;
+
+    axios
+      .get(`${baseUrl}patient/vital-sign/person/${props.patientObj.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        const vitalSignsData = response.data;
+
+        // Format the selected date to YYYY-MM-DD
+        const formattedSelectedDate = moment(selectedDate).format("YYYY-MM-DD");
+
+        if (vitalSignsData && vitalSignsData.length > 0) {
+          // Find vital signs that match the selected date
+          const matchingVitalSigns = vitalSignsData.find((vitalSign) => {
+            if (!vitalSign.captureDate) return false;
+            const captureDate = moment(vitalSign.captureDate).format("YYYY-MM-DD");
+            return captureDate === formattedSelectedDate;
+          });
+
+          // If matching vital signs found, auto-populate the fields
+          if (matchingVitalSigns) {
+            setVitalSignDto((prevVital) => ({
+              ...prevVital,
+              bodyWeight: matchingVitalSigns.bodyWeight || "",
+              diastolic: matchingVitalSigns.diastolic || "",
+              systolic: matchingVitalSigns.systolic || "",
+              height: matchingVitalSigns.height || "",
+              pulse: matchingVitalSigns.pulse || "",
+              temperature: matchingVitalSigns.temperature || "",
+              respiratoryRate: matchingVitalSigns.respiratoryRate || "",
+              oxygenSaturation: matchingVitalSigns.oxygenSaturation || "",
+              levelOfConsciousness: matchingVitalSigns.levelOfConsciousness || "",
+              headCircumference: matchingVitalSigns.headCircumference || "",
+              surfaceArea: matchingVitalSigns.surfaceArea || "",
+              muac: matchingVitalSigns.muac || "",
+              encounterDate: formattedSelectedDate,
+            }));
+            setcurrentVitalSigns(matchingVitalSigns);
+            setShowCurrentVitalSigns(true);
+          } else {
+            // No matching vital signs found - clear all fields except encounterDate
+            setVitalSignDto((prevVital) => ({
+              bodyWeight: "",
+              diastolic: "",
+              systolic: "",
+              height: "",
+              pulse: "",
+              temperature: "",
+              respiratoryRate: "",
+              oxygenSaturation: "",
+              levelOfConsciousness: "",
+              headCircumference: "",
+              surfaceArea: "",
+              muac: "",
+              encounterDate: formattedSelectedDate,
+              facilityId: prevVital.facilityId || 1,
+              personId: prevVital.personId || props.patientObj.id,
+              serviceTypeId: prevVital.serviceTypeId || 1,
+            }));
+            setShowCurrentVitalSigns(false);
+          }
+        } else {
+          // No vital signs data at all - clear fields
+          setVitalSignDto((prevVital) => ({
+            bodyWeight: "",
+            diastolic: "",
+            systolic: "",
+            height: "",
+            pulse: "",
+            temperature: "",
+            respiratoryRate: "",
+            oxygenSaturation: "",
+            levelOfConsciousness: "",
+            headCircumference: "",
+            surfaceArea: "",
+            muac: "",
+            encounterDate: formattedSelectedDate,
+            facilityId: prevVital.facilityId || 1,
+            personId: prevVital.personId || props.patientObj.id,
+            serviceTypeId: prevVital.serviceTypeId || 1,
+          }));
+          setShowCurrentVitalSigns(false);
+        }
+      })
+      .catch((error) => {});
+  };
+
   //Check for the last Vital Signs
   const VitalSigns = () => {
     axios
@@ -730,6 +820,11 @@ const ClinicVisit = (props) => {
         toast.error("Please select a valid date that exist for care & support");
         setSaving(true);
       }
+
+      // Auto-populate vital signs when date changes
+      if (e.target.value) {
+        autoPopulateVitalSigns(e.target.value);
+      }
       //objValues.tbStatus=supportCareDetail.data.tbIptScreening.status!==""? supportCareDetail.data.tbIptScreening.status :""
       //setVitalSignDto({ ...vital, [e.target.name]: e.target.value.replace(/\D/g, '') });
     } else {
@@ -818,17 +913,24 @@ const ClinicVisit = (props) => {
   //Handle CheckBox
   const handleCheckBox = (e) => {
     if (e.target.checked) {
-      //currentVitalSigns.personId === null ? props.patientObj.id : currentVitalSigns.personId
-      setVitalSignDto({ ...currentVitalSigns });
+      // Use current vital signs but preserve the selected encounterDate
+      const currentEncounterDate = vital.encounterDate;
+      setVitalSignDto({
+        ...currentVitalSigns,
+        encounterDate: currentEncounterDate, // Preserve the selected date
+        personId: currentVitalSigns.personId === null ? props.patientObj.id : currentVitalSigns.personId
+      });
     } else {
+      // Clear all fields but preserve the encounterDate
+      const currentEncounterDate = vital.encounterDate;
       setVitalSignDto({
         bodyWeight: "",
         diastolic: "",
-        encounterDate: "",
-        facilityId: "",
+        encounterDate: currentEncounterDate, // Preserve the selected date
+        facilityId: 1,
         height: "",
         personId: props.patientObj.id,
-        serviceTypeId: "",
+        serviceTypeId: 1,
         systolic: "",
         pulse: "",
         temperature: "",
