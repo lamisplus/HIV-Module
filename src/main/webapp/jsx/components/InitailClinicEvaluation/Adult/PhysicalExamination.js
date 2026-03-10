@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState} from "react";
+import React, { useCallback, useEffect, useState} from "react";
 import axios from "axios";
 import {FormGroup, Label , CardBody, Spinner,Input,Form, InputGroup,
     InputGroupText,
@@ -96,12 +96,76 @@ const BasicInfo = (props) => {
     const classes = useStyles();
     const history = useHistory();
     const [errors, setErrors] = useState({});
-    let temp = { ...errors }   
-    useEffect(() => { 
+    let temp = { ...errors }
+
+    // Function to auto-populate vital signs based on visit date
+    const autoPopulateVitalSigns = useCallback((visitDate) => {
+        if (!visitDate || !props.patientObj.id) return;
+
+        axios
+            .get(`${baseUrl}patient/vital-sign/person/${props.patientObj.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((response) => {
+                const vitalSignsData = response.data;
+
+                // Format the visit date to YYYY-MM-DD
+                const formattedVisitDate = moment(visitDate).format("YYYY-MM-DD");
+
+                if (vitalSignsData && vitalSignsData.length > 0) {
+                    // Find vital signs that match the visit date
+                    const matchingVitalSigns = vitalSignsData.find((vitalSign) => {
+                        if (!vitalSign.captureDate) return false;
+                        const captureDate = moment(vitalSign.captureDate).format("YYYY-MM-DD");
+                        return captureDate === formattedVisitDate;
+                    });
+
+                    // If matching vital signs found, auto-populate the fields
+                    if (matchingVitalSigns) {
+                        setVitalSignDto((prevVital) => ({
+                            ...prevVital,
+                            bodyWeight: matchingVitalSigns.bodyWeight || "",
+                            diastolic: matchingVitalSigns.diastolic || "",
+                            systolic: matchingVitalSigns.systolic || "",
+                            height: matchingVitalSigns.height || "",
+                            pulse: matchingVitalSigns.pulse || "",
+                            temperature: matchingVitalSigns.temperature || "",
+                            respiratoryRate: matchingVitalSigns.respiratoryRate || "",
+                            headCircumference: matchingVitalSigns.headCircumference || "",
+                            surfaceArea: matchingVitalSigns.surfaceArea || "",
+                            muac: matchingVitalSigns.muac || "",
+                        }));
+                        // Update the observation data as well
+                        if (props.observation.data) {
+                            props.observation.data.physicalExamination = {
+                                ...props.observation.data.physicalExamination,
+                                bodyWeight: matchingVitalSigns.bodyWeight || "",
+                                diastolic: matchingVitalSigns.diastolic || "",
+                                systolic: matchingVitalSigns.systolic || "",
+                                height: matchingVitalSigns.height || "",
+                                pulse: matchingVitalSigns.pulse || "",
+                                temperature: matchingVitalSigns.temperature || "",
+                                respiratoryRate: matchingVitalSigns.respiratoryRate || "",
+                                headCircumference: matchingVitalSigns.headCircumference || "",
+                                surfaceArea: matchingVitalSigns.surfaceArea || "",
+                                muac: matchingVitalSigns.muac || "",
+                            };
+                        }
+                    }
+                }
+            })
+            .catch((error) => {});
+    }, [props.patientObj.id, props.observation.data]);
+
+    useEffect(() => {
         if(props.observation.data ){
-            setVitalSignDto(props.observation.data.physicalExamination)           
+            setVitalSignDto(props.observation.data.physicalExamination)
         }
-    }, [props.observation.data]); 
+        // Auto-populate vital signs when dateOfObservation is available
+        if (props.observation.dateOfObservation) {
+            autoPopulateVitalSigns(props.observation.dateOfObservation);
+        }
+    }, [props.observation.data, props.observation.dateOfObservation, autoPopulateVitalSigns]); 
     const [vital, setVitalSignDto]= useState({
         bodyWeight: "",
         diastolic:"",
