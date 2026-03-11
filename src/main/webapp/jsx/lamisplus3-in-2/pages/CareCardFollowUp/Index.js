@@ -1417,7 +1417,7 @@ const CareCardFollowUpForm = (props) => {
           {/* ══════════════════════════════════════════════════════════════ */}
           <FormAccordion panel="visit" title="Visit Information" index={0} expanded={expanded} onToggle={toggleAccordion}>
             <FieldRow>
-              <Col size={4}>
+              <Col size={6}>
                 <SectionLabel>Visit Date <span style={{ color: "red" }}>*</span></SectionLabel>
                 <Input
                   type="date"
@@ -1428,7 +1428,7 @@ const CareCardFollowUpForm = (props) => {
                 />
                 {errors.visit_date && <span className={classes.error}>{errors.visit_date}</span>}
               </Col>
-              <Col size={4}>
+              <Col size={6}>
                 <SectionLabel>Duration on ART (Months)</SectionLabel>
                 <Input
                   type="number"
@@ -1439,7 +1439,9 @@ const CareCardFollowUpForm = (props) => {
                   min="0"
                 />
               </Col>
-              <Col size={4}>
+            </FieldRow>
+            <FieldRow>
+              <Col size={6}>
                 <SectionLabel>Clinician Name</SectionLabel>
                 <Input
                   type="text"
@@ -1558,7 +1560,7 @@ const CareCardFollowUpForm = (props) => {
 
             <SubHeading>Clinical Status</SubHeading>
             <FieldRow>
-              <Col size={4}>
+              <Col size={6}>
                 <SectionLabel>Paediatric and Adolescent Disclosure</SectionLabel>
                 <Input type="select" name="paediatric_disclosure" value={clinical.paediatric_disclosure} onChange={handleClinical}>
                   <option value="">Select</option>
@@ -1569,7 +1571,7 @@ const CareCardFollowUpForm = (props) => {
                   ))}
                 </Input>
               </Col>
-              <Col size={4}>
+              <Col size={6}>
                 <SectionLabel>Functional Status</SectionLabel>
                 <Input type="select" name="functional_status" value={clinical.functional_status} onChange={handleClinical}>
                   <option value="">Select</option>
@@ -1580,11 +1582,24 @@ const CareCardFollowUpForm = (props) => {
                   ))}
                 </Input>
               </Col>
-              <Col size={4}>
+            </FieldRow>
+            <FieldRow>
+              <Col size={6}>
                 <SectionLabel>WHO Clinical Stage</SectionLabel>
                 <Input type="select" name="who_stage" value={clinical.who_stage} onChange={handleClinical}>
                   <option value="">Select</option>
                   {whoStagingCodeset.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+              <Col size={6}>
+                <SectionLabel>TB Status</SectionLabel>
+                <Input type="select" name="tb_status" value={clinical.tb_status} onChange={handleClinical}>
+                  <option value="">Select</option>
+                  {tbStatusCodeset.map((option) => (
                     <option key={option.id} value={option.code}>
                       {option.display}
                     </option>
@@ -1604,18 +1619,7 @@ const CareCardFollowUpForm = (props) => {
             )}
 
             <FieldRow>
-              <Col size={3}>
-                <SectionLabel>TB Status</SectionLabel>
-                <Input type="select" name="tb_status" value={clinical.tb_status} onChange={handleClinical}>
-                  <option value="">Select</option>
-                  {tbStatusCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-              <Col size={3}>
+              <Col size={6}>
                 <SectionLabel>Cryptococcal Status</SectionLabel>
                 <Input type="select" name="cryptococcal_status" value={clinical.cryptococcal_status} onChange={handleClinical}>
                   <option value="">Select</option>
@@ -1626,41 +1630,7 @@ const CareCardFollowUpForm = (props) => {
                   ))}
                 </Input>
               </Col>
-              {isFemale && (
-                <>
-                  <Col size={3}>
-                    <SectionLabel>Cervical Cancer Status</SectionLabel>
-                    <Input
-                      type="select"
-                      value={cervical_cancer_screening}
-                      onChange={(e) => setCervicalCancer(e.target.value)}
-                    >
-                      <option value="">Select</option>
-                      {cervicalCancerCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                  <Col size={3}>
-                    <SectionLabel>Cervical Cancer Treatment</SectionLabel>
-                    <Input
-                      type="select"
-                      value={cervical_cancer_treatment}
-                      onChange={(e) => setCervicalCancerTreatment(e.target.value)}
-                    >
-                      <option value="">Select</option>
-                      {cervicalCancerTreatmentCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                </>
-              )}
-              <Col size={isFemale ? 12 : 6}>
+              <Col size={6}>
                 <SectionLabel>Hepatitis Status</SectionLabel>
                 <Input type="select" name="hepatitis_status" value={clinical.hepatitis_status} onChange={handleClinical}>
                   <option value="">Select</option>
@@ -1672,8 +1642,42 @@ const CareCardFollowUpForm = (props) => {
                 </Input>
               </Col>
             </FieldRow>
+            {isFemale && (
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel>Cervical Cancer Status</SectionLabel>
+                  <Input
+                    type="select"
+                    value={cervical_cancer_screening}
+                    onChange={(e) => setCervicalCancer(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {cervicalCancerCodeset.map((option) => (
+                      <option key={option.id} value={option.code}>
+                        {option.display}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
+                <Col size={6}>
+                  <SectionLabel>Cervical Cancer Treatment</SectionLabel>
+                  <Input
+                    type="select"
+                    value={cervical_cancer_treatment}
+                    onChange={(e) => setCervicalCancerTreatment(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {cervicalCancerTreatmentCodeset.map((option) => (
+                      <option key={option.id} value={option.code}>
+                        {option.display}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
+              </FieldRow>
+            )}
             <FieldRow>
-              <Col size={3}>
+              <Col size={6}>
                 <SectionLabel>Other OIs/ Other Problems</SectionLabel>
                 <MultiSelect
                   options={oralProblemsOptions}
@@ -1682,7 +1686,7 @@ const CareCardFollowUpForm = (props) => {
                   placeholder="Select OIs/Other Problems..."
                 />
               </Col>
-              <Col size={3}>
+              <Col size={6}>
                 <SectionLabel>Noted Side Effect</SectionLabel>
                 <Input
                   type="text"
@@ -1692,7 +1696,9 @@ const CareCardFollowUpForm = (props) => {
                   placeholder="e.g. Nausea, rash, hepatotoxicity..."
                 />
               </Col>
-              <Col size={3}>
+            </FieldRow>
+            <FieldRow>
+              <Col size={6}>
                 <SectionLabel>DSD Status</SectionLabel>
                 <Input
                   type="select"
@@ -1709,7 +1715,7 @@ const CareCardFollowUpForm = (props) => {
                 </Input>
               </Col>
               {clinical.dsd_status === "DSD_STATUS_FACILITY_BASED" && (
-                <Col size={3}>
+                <Col size={6}>
                   <SectionLabel>Facility Based DSD Model</SectionLabel>
                   <Input
                     type="select"
@@ -1727,7 +1733,7 @@ const CareCardFollowUpForm = (props) => {
                 </Col>
               )}
               {clinical.dsd_status === "DSD_STATUS_COMMUNITY_BASED" && (
-                <Col size={3}>
+                <Col size={6}>
                   <SectionLabel>Community Based DSD Model</SectionLabel>
                   <Input
                     type="select"
@@ -1744,8 +1750,10 @@ const CareCardFollowUpForm = (props) => {
                   </Input>
                 </Col>
               )}
-              {(clinical.dsd_status === "DSD_STATUS_FACILITY_BASED" || clinical.dsd_status === "DSD_STATUS_COMMUNITY_BASED") && (
-                <Col size={3}>
+            </FieldRow>
+            {(clinical.dsd_status === "DSD_STATUS_FACILITY_BASED" || clinical.dsd_status === "DSD_STATUS_COMMUNITY_BASED") && (
+              <FieldRow>
+                <Col size={6}>
                   <SectionLabel>Date Devolved</SectionLabel>
                   <Input
                     type="date"
@@ -1755,8 +1763,8 @@ const CareCardFollowUpForm = (props) => {
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
                 </Col>
-              )}
-            </FieldRow>
+              </FieldRow>
+            )}
           </FormAccordion>
 
           {/* ══════════════════════════════════════════════════════════════ */}
@@ -2125,22 +2133,24 @@ const CareCardFollowUpForm = (props) => {
             <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
-                <Col size={4}>
+                <Col size={6}>
                   <SectionLabel>TPT Medication (Code)</SectionLabel>
                   <Input type="select" name="code" value={tpt.code} onChange={handleTpt}>
                     <option value="">Select</option>
                     {TPT_CODES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </Input>
                 </Col>
-                <Col size={3}>
+                <Col size={6}>
                   <SectionLabel>Dose</SectionLabel>
                   <Input type="text" name="dose" value={tpt.dose} onChange={handleTpt} placeholder="e.g. 300mg" />
                 </Col>
-                <Col size={3}>
+              </FieldRow>
+              <FieldRow>
+                <Col size={6}>
                   <SectionLabel>Start Date</SectionLabel>
                   <Input type="date" name="start_date" value={tpt.start_date} onChange={handleTpt} />
                 </Col>
-                <Col size={2}>
+                <Col size={6}>
                   <SectionLabel>Completion Date</SectionLabel>
                   <Input type="date" name="completion_date" value={tpt.completion_date} onChange={handleTpt} />
                 </Col>
@@ -2216,15 +2226,17 @@ const CareCardFollowUpForm = (props) => {
               {viralLoadOrdered && (
                 <>
                   <FieldRow>
-                    <Col size={4}>
+                    <Col size={6}>
                       <SectionLabel>Result</SectionLabel>
                       <Input type="number" name="viral_load_result" value={lab.viral_load_result} onChange={handleLab} placeholder="e.g. 200" min="0" />
                     </Col>
-                    <Col size={4}>
+                    <Col size={6}>
                       <SectionLabel>Result Date</SectionLabel>
                       <Input type="date" name="viral_load_date" value={lab.viral_load_date} onChange={handleLab} />
                     </Col>
-                    <Col size={4}>
+                  </FieldRow>
+                  <FieldRow>
+                    <Col size={6}>
                       <SectionLabel>Indication for Viral Load Test</SectionLabel>
                       <Input type="select" name="viral_load_indication" value={lab.viral_load_indication} onChange={handleLab}>
                         <option value="">Select</option>
@@ -2245,7 +2257,7 @@ const CareCardFollowUpForm = (props) => {
                         Enhanced Adherence Counseling (EAC) — record if conducted following a high viral load result
                       </Typography>
                       <FieldRow>
-                        <Col size={4}>
+                        <Col size={6}>
                           <SectionLabel>EAC</SectionLabel>
                           <Input type="select" name="eac" value={lab.eac} onChange={handleLab}>
                             <option value="">Select</option>
@@ -2264,7 +2276,7 @@ const CareCardFollowUpForm = (props) => {
             {/* RBS & Other Tests */}
             <SubHeading>Other Lab Tests</SubHeading>
             <FieldRow>
-              <Col size={3}>
+              <Col size={6}>
                 <SectionLabel>RBS — Random Blood Sugar (mmol/L)</SectionLabel>
                 <Input type="number" name="rbs" value={lab.rbs} onChange={handleLab} placeholder="mmol/L" min="0" step="0.1" />
               </Col>
@@ -2277,7 +2289,9 @@ const CareCardFollowUpForm = (props) => {
                   placeholder="Select lab tests..."
                 />
               </Col>
-              <Col size={3}>
+            </FieldRow>
+            <FieldRow>
+              <Col size={6}>
                 <SectionLabel>Type of Appointment</SectionLabel>
                 <Input type="select" name="type_of_appointment" value={lab.type_of_appointment} onChange={handleLab}>
                   <option value="">Select</option>
@@ -2294,7 +2308,7 @@ const CareCardFollowUpForm = (props) => {
             <Divider sx={{ my: 2 }} />
             <SubHeading>Follow-up</SubHeading>
             <FieldRow>
-              <Col size={3}>
+              <Col size={6}>
                 <SectionLabel>Currently on any health insurance coverage</SectionLabel>
                 <Input type="select" name="health_insurance_coverage" value={followUp.health_insurance_coverage} onChange={handleFollowUp}>
                   <option value="">Select</option>
@@ -2305,7 +2319,7 @@ const CareCardFollowUpForm = (props) => {
                   ))}
                 </Input>
               </Col>
-              <Col size={3}>
+              <Col size={6}>
                 <SectionLabel>Next Appointment Date</SectionLabel>
                 <Input
                   type="date"

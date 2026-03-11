@@ -53,7 +53,7 @@ function AdherencePreparationIndex(props) {
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
     // Clear edit/view records when switching tabs
-    if (newValue === 0) {
+    if (newValue === 1) {
       setEditRecord(null);
       setViewRecord(null);
     }
@@ -61,7 +61,7 @@ function AdherencePreparationIndex(props) {
 
   const handleRecordSaved = () => {
     // Switch to history tab after saving
-    setActiveTab(0);
+    setActiveTab(1);
     // Clear edit record
     setEditRecord(null);
     // Trigger history refresh
@@ -70,13 +70,13 @@ function AdherencePreparationIndex(props) {
 
   const handleAddNew = () => {
     setEditRecord(null);
-    setActiveTab(1);
+    setActiveTab(0);
   };
 
   const handleEdit = (record) => {
     setEditRecord(record);
     setViewRecord(null);
-    setActiveTab(1);
+    setActiveTab(0);
   };
 
   const handleView = (record) => {
@@ -88,7 +88,7 @@ function AdherencePreparationIndex(props) {
   const handleBackToHistory = () => {
     setEditRecord(null);
     setViewRecord(null);
-    setActiveTab(0);
+    setActiveTab(1);
   };
 
   return (
@@ -104,18 +104,6 @@ function AdherencePreparationIndex(props) {
             className={classes.tab}
             label={
               <Box display="flex" alignItems="center" gap={1}>
-                <HistoryIcon fontSize="small" />
-                History
-                {recordCount > 0 && (
-                  <Badge badgeContent={recordCount} color="primary" />
-                )}
-              </Box>
-            }
-          />
-          <Tab
-            className={classes.tab}
-            label={
-              <Box display="flex" alignItems="center" gap={1}>
                 {editRecord ? (
                   <>
                     <EditIcon fontSize="small" />
@@ -126,6 +114,18 @@ function AdherencePreparationIndex(props) {
                     <AddCircleIcon fontSize="small" />
                     Create New
                   </>
+                )}
+              </Box>
+            }
+          />
+          <Tab
+            className={classes.tab}
+            label={
+              <Box display="flex" alignItems="center" gap={1}>
+                <HistoryIcon fontSize="small" />
+                History
+                {recordCount > 0 && (
+                  <Badge badgeContent={recordCount} color="primary" />
                 )}
               </Box>
             }
@@ -145,6 +145,16 @@ function AdherencePreparationIndex(props) {
       </Box>
 
       <TabPanel value={activeTab} index={0}>
+        <AdherencePreparationForm
+          patientObj={patientObj}
+          editData={editRecord}
+          onSave={handleRecordSaved}
+          setActiveContent={setActiveContent}
+          activeContent={activeContent}
+        />
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={1}>
         <AdherencePreparationHistory
           patientObj={patientObj}
           refreshTrigger={refreshHistory}
@@ -152,16 +162,6 @@ function AdherencePreparationIndex(props) {
           setEditRecord={handleEdit}
           setViewRecord={handleView}
           onAddNew={handleAddNew}
-        />
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={1}>
-        <AdherencePreparationForm
-          patientObj={patientObj}
-          editData={editRecord}
-          onSave={handleRecordSaved}
-          setActiveContent={setActiveContent}
-          activeContent={activeContent}
         />
       </TabPanel>
 

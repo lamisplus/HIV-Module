@@ -246,7 +246,7 @@ const FieldRow = ({ children, style }) => (
   </div>
 );
 
-const Col = ({ size = 3, children }) => (
+const Col = ({ size = 6, children }) => (
   <div className={`form-group mb-3 col-md-${size}`}>{children}</div>
 );
 
@@ -293,7 +293,7 @@ const SubHeading = ({ children }) => (
     borderLeft: "3px solid #014d88",
     paddingLeft: "10px",
     marginBottom: "12px",
-    marginTop: "16px",
+    marginTop: "0",
     color: "#014d88",
     fontWeight: "700",
     fontSize: "14px",
@@ -459,28 +459,57 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
     <Accordion
       expanded={isOpen}
       onChange={() => onToggle(panel)}
+      disableGutters
       sx={{
         marginBottom: "12px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         borderRadius: "8px !important",
-        "&:before": { display: "none" },
+        "&:before": { display: "none !important" },
         border: "1px solid #014d88",
+        overflow: "visible",
+        position: "relative",
+        zIndex: 1,
       }}
     >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
+        aria-controls={`${panel}-content`}
+        id={`${panel}-header`}
         sx={{
-          backgroundColor: "#014d88",
+          backgroundColor: "#014d88 !important",
           borderRadius: isOpen ? "8px 8px 0 0" : "8px",
-          minHeight: "52px",
-          "& .MuiAccordionSummary-content": { margin: "0" },
+          minHeight: "52px !important",
+          height: "auto !important",
+          padding: "0 16px !important",
+          "& .MuiAccordionSummary-content": {
+            margin: "16px 0 !important",
+            display: "flex !important",
+            alignItems: "center !important",
+          },
+          "&.Mui-expanded": {
+            minHeight: "52px !important",
+          },
+          display: "flex !important",
+          alignItems: "center !important",
+          visibility: "visible !important",
+          opacity: "1 !important",
+          position: "sticky !important",
+          top: "0",
+          zIndex: 10,
         }}
       >
-        <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "15px", letterSpacing: "0.3px" }}>
+        <Typography sx={{
+          color: "#fff !important",
+          fontWeight: "700 !important",
+          fontSize: "15px !important",
+          letterSpacing: "0.3px",
+          visibility: "visible !important",
+          display: "block !important",
+        }}>
           {title}
         </Typography>
       </AccordionSummary>
-      <AccordionDetails sx={{ padding: "20px 24px", background: "#fff" }}>
+      <AccordionDetails sx={{ padding: "12px 24px", background: "#fff" }}>
         {children}
       </AccordionDetails>
     </Accordion>
@@ -546,7 +575,7 @@ const BodySystem = ({ label, systemKey, state, onChange, extraContent }) => {
         <div className="row">
           {extraContent}
           <div className={`form-group mb-2 col-md-${extraContent ? "6" : (systemKey === "genitalia" && !state.findings?.some(f => f.value === "tanner_stage") ? "12" : "8")}`}>
-            <SectionLabel>Findings</SectionLabel>
+            <SectionLabel>Findings </SectionLabel>
             <ReactSelect
               isMulti
               options={findings}
@@ -1303,9 +1332,7 @@ const InitialClinicalEvaluationForm = (props) => {
           }}
         >
           <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
-            {patientAge < 14
-              ? "Pediatric — Initial Clinical Evaluation"
-              : "Adult — Initial Clinical Evaluation"}
+            Initial Clinical Evaluation
             {isUpdateMode && (
               <span
                 style={{
@@ -1334,7 +1361,7 @@ const InitialClinicalEvaluationForm = (props) => {
           }}
         >
           <div className="row">
-            <div className="form-group mb-0 col-md-3">
+            <div className="form-group mb-0 col-md-6">
               <FormGroup>
                 <label className={classes.fieldLabel}>
                   Visit Date <span style={{ color: "red" }}>*</span>
@@ -1351,73 +1378,41 @@ const InitialClinicalEvaluationForm = (props) => {
                 )}
               </FormGroup>
             </div>
-            <div className="form-group mb-0 col-md-3">
-              <FormGroup>
-                <label className={classes.fieldLabel}>Clinician Name</label>
-                <Input
-                  type="text"
-                  value={clinicianName}
-                  onChange={(e) => setClinicianName(e.target.value)}
-                  placeholder="Full name of clinician"
-                />
-              </FormGroup>
-            </div>
             {isFemale && patientAge > 14 && (
-              <>
-                <div className="form-group mb-0 col-md-2">
-                  <FormGroup>
-                    <label className={classes.fieldLabel}>Currently Pregnant</label>
-                    <Input type="select" name="currentlyPregnant" value={pregnancy.currentlyPregnant} onChange={handlePregnancy} disabled={loadingCodesets}>
-                      <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                      {codesets.currentlyPregnant.map((opt) => (
-                        <option key={opt.id} value={opt.code}>{opt.display}</option>
-                      ))}
-                    </Input>
-                  </FormGroup>
-                </div>
-                {isPregnant() && (
-                  <>
-                    <div className="form-group mb-0 col-md-2">
-                      <FormGroup>
-                        <label className={classes.fieldLabel}>Last Menstrual Period</label>
-                        <Input
-                          type="date"
-                          name="lastMenstrualPeriod"
-                          value={pregnancy.lastMenstrualPeriod}
-                          onChange={handlePregnancy}
-                          max={moment(new Date()).format("YYYY-MM-DD")}
-                          style={{ borderColor: pregnancyErrors.lastMenstrualPeriod ? "#d32f2f" : "" }}
-                        />
-                        {pregnancyErrors.lastMenstrualPeriod && (
-                          <span className={classes.error}>{pregnancyErrors.lastMenstrualPeriod}</span>
-                        )}
-                      </FormGroup>
-                    </div>
-                    <div className="form-group mb-0 col-md-2">
-                      <FormGroup>
-                        <label className={classes.fieldLabel}>Gestational Age (Weeks)</label>
-                        <Input
-                          type="text"
-                          value={pregnancy.gestationalAge}
-                          readOnly
-                          placeholder="Auto"
-                          style={{
-                            backgroundColor: "#f5f5f5",
-                            cursor: "not-allowed",
-                            fontWeight: pregnancy.gestationalAge ? "600" : "400",
-                            color: pregnancy.gestationalAge ? "#014d88" : "#9e9e9e"
-                          }}
-                        />
-                      </FormGroup>
-                    </div>
-                  </>
-                )}
-              </>
+              <div className="form-group mb-0 col-md-6">
+                <FormGroup>
+                  <label className={classes.fieldLabel}>Currently Pregnant</label>
+                  <Input type="select" name="currentlyPregnant" value={pregnancy.currentlyPregnant} onChange={handlePregnancy} disabled={loadingCodesets}>
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.currentlyPregnant.map((opt) => (
+                      <option key={opt.id} value={opt.code}>{opt.display}</option>
+                    ))}
+                  </Input>
+                </FormGroup>
+              </div>
             )}
           </div>
+
+          {/* Row 2: Last Menstrual Period, Expected Date of Delivery (if pregnant) */}
           {isFemale && patientAge > 14 && isPregnant() && (
-            <div className="row" style={{ marginTop: "12px" }}>
-              <div className="form-group mb-0 col-md-3">
+            <div className="row">
+              <div className="form-group mb-0 col-md-6">
+                <FormGroup>
+                  <label className={classes.fieldLabel}>Last Menstrual Period</label>
+                  <Input
+                    type="date"
+                    name="lastMenstrualPeriod"
+                    value={pregnancy.lastMenstrualPeriod}
+                    onChange={handlePregnancy}
+                    max={moment(new Date()).format("YYYY-MM-DD")}
+                    style={{ borderColor: pregnancyErrors.lastMenstrualPeriod ? "#d32f2f" : "" }}
+                  />
+                  {pregnancyErrors.lastMenstrualPeriod && (
+                    <span className={classes.error}>{pregnancyErrors.lastMenstrualPeriod}</span>
+                  )}
+                </FormGroup>
+              </div>
+              <div className="form-group mb-0 col-md-6">
                 <FormGroup>
                   <label className={classes.fieldLabel}>Expected Date of Delivery</label>
                   <Input
@@ -1439,6 +1434,29 @@ const InitialClinicalEvaluationForm = (props) => {
               </div>
             </div>
           )}
+
+          {/* Row 3: Gestational Age (if pregnant) */}
+          {isFemale && patientAge > 14 && isPregnant() && (
+            <div className="row">
+              <div className="form-group mb-0 col-md-6">
+                <FormGroup>
+                  <label className={classes.fieldLabel}>Gestational Age (Weeks)</label>
+                  <Input
+                    type="text"
+                    value={pregnancy.gestationalAge}
+                    readOnly
+                    placeholder="Auto"
+                    style={{
+                      backgroundColor: "#f5f5f5",
+                      cursor: "not-allowed",
+                      fontWeight: pregnancy.gestationalAge ? "600" : "400",
+                      color: pregnancy.gestationalAge ? "#014d88" : "#9e9e9e"
+                    }}
+                  />
+                </FormGroup>
+              </div>
+            </div>
+          )}
         </Box>
 
         <form onSubmit={handleSubmit}>
@@ -1447,13 +1465,13 @@ const InitialClinicalEvaluationForm = (props) => {
           {/*  SECTION 1: SYMPTOMS REVIEW                                   */}
           {/* ══════════════════════════════════════════════════════════════ */}
           <FormAccordion panel="symptoms" title="Symptoms Review" index={0} expanded={expanded} onToggle={toggleAccordion}>
-            <Typography sx={{ fontSize: "13px", color: "#546e7a", marginBottom: "16px" }}>
+            <Typography sx={{ fontSize: "13px", color: "#546e7a", marginBottom: "16px", marginTop: "0" }}>
               Search and select each symptom the patient is experiencing, then specify the duration.
             </Typography>
 
             {/* Symptom picker */}
             <div className="row" style={{ marginBottom: "16px" }}>
-              <div className="col-md-7">
+              <div className="col-md-6">
                 <SectionLabel>Select a Symptom to Add</SectionLabel>
                 <ReactSelect
                   options={availableSymptomOptions}
@@ -1492,56 +1510,60 @@ const InitialClinicalEvaluationForm = (props) => {
                 <Typography sx={{ fontWeight: 600, color: "#014d88", fontSize: "13px", marginBottom: "12px" }}>
                   Added Symptoms ({selectedSymptoms.length})
                 </Typography>
-                {selectedSymptoms.map((symptom, idx) => (
-                  <Box
-                    key={symptom.value}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      padding: "8px 12px",
-                      marginBottom: "8px",
-                      background: idx % 2 === 0 ? "#f8fbff" : "#fff",
-                      borderRadius: "6px",
-                      border: "1px solid #dce8f5",
-                    }}
-                  >
-                    <Box sx={{ flex: 1 }}>
-                      <Chip
-                        label={symptom.label}
-                        size="small"
+                <div className="row">
+                  {selectedSymptoms.map((symptom, idx) => (
+                    <div key={symptom.value} className="col-md-6" style={{ marginBottom: "8px" }}>
+                      <Box
                         sx={{
-                          background: "#014d88",
-                          color: "#fff",
-                          fontWeight: 600,
-                          fontSize: "12px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "8px 12px",
+                          background: "#f8fbff",
+                          borderRadius: "6px",
+                          border: "1px solid #dce8f5",
+                          height: "100%",
                         }}
-                      />
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <label style={{ fontSize: "12px", color: "#546e7a", whiteSpace: "nowrap", margin: 0 }}>
-                        Duration (days):
-                      </label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={symptom.duration}
-                        onChange={(e) => handleSymptomDuration(symptom.value, e.target.value)}
-                        placeholder="0"
-                        style={{ width: "90px", height: "34px", fontSize: "13px" }}
-                      />
-                    </Box>
-                    <Tooltip title="Remove symptom">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveSymptom(symptom.value)}
-                        sx={{ color: "#ef5350" }}
                       >
-                        <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                ))}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Chip
+                            label={symptom.label}
+                            size="small"
+                            sx={{
+                              background: "#014d88",
+                              color: "#fff",
+                              fontWeight: 600,
+                              fontSize: "12px",
+                              maxWidth: "100%",
+                            }}
+                          />
+                        </Box>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+                          <label style={{ fontSize: "11px", color: "#546e7a", whiteSpace: "nowrap", margin: 0 }}>
+                            Days:
+                          </label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={symptom.duration}
+                            onChange={(e) => handleSymptomDuration(symptom.value, e.target.value)}
+                            placeholder="0"
+                            style={{ width: "70px", height: "32px", fontSize: "12px" }}
+                          />
+                        </Box>
+                        <Tooltip title="Remove symptom">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleRemoveSymptom(symptom.value)}
+                            sx={{ color: "#d32f2f", padding: "4px", flexShrink: 0 }}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </div>
+                  ))}
+                </div>
               </Box>
             )}
 
@@ -1583,8 +1605,10 @@ const InitialClinicalEvaluationForm = (props) => {
 
             {/* TB & Assessments */}
             <SubHeading>TB &amp; Other Assessments</SubHeading>
+
+            {/* Row 1: Patient Assessed for TB?, Developmental Assessment */}
             <FieldRow>
-              <Col size={3}>
+              <Col>
                 <SectionLabel>Patient Assessed for TB? <span style={{ color: "red" }}>*</span></SectionLabel>
                 <Input type="select" name="assessedForTb" value={tbAssessment.assessedForTb} onChange={handleTb}>
                   <option value="">Select</option>
@@ -1595,18 +1619,7 @@ const InitialClinicalEvaluationForm = (props) => {
                   <span className={classes.error}>{errors.assessedForTb}</span>
                 )}
               </Col>
-              {tbAssessment.assessedForTb === "Yes" && (
-                <Col size={3}>
-                  <SectionLabel>TB Status</SectionLabel>
-                  <Input type="select" name="tbStatus" value={tbAssessment.tbStatus} onChange={handleTb} disabled={loadingCodesets}>
-                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                    {codesets.tbStatus.map((opt) => (
-                      <option key={opt.id} value={opt.code}>{opt.display}</option>
-                    ))}
-                  </Input>
-                </Col>
-              )}
-              <Col size={3}>
+              <Col>
                 <SectionLabel>Developmental Assessment <span style={{ color: "red" }}>*</span></SectionLabel>
                 <Input type="select" name="developmentalAssessment" value={tbAssessment.developmentalAssessment} onChange={handleTb} disabled={loadingCodesets}>
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
@@ -1618,8 +1631,23 @@ const InitialClinicalEvaluationForm = (props) => {
                   <span className={classes.error}>{errors.developmentalAssessment}</span>
                 )}
               </Col>
+            </FieldRow>
+
+            {/* Row 2: TB Status (if assessed Yes), Immunisation Complete for Age (if age <= 2) */}
+            <FieldRow>
+              {tbAssessment.assessedForTb === "Yes" && (
+                <Col>
+                  <SectionLabel>TB Status</SectionLabel>
+                  <Input type="select" name="tbStatus" value={tbAssessment.tbStatus} onChange={handleTb} disabled={loadingCodesets}>
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.tbStatus.map((opt) => (
+                      <option key={opt.id} value={opt.code}>{opt.display}</option>
+                    ))}
+                  </Input>
+                </Col>
+              )}
               {patientAge >= 0 && patientAge <= 2 && (
-                <Col size={3}>
+                <Col>
                   <SectionLabel>Immunisation Complete for Age</SectionLabel>
                   <Input type="select" name="immunisationComplete" value={tbAssessment.immunisationComplete} onChange={handleTb} disabled={loadingCodesets}>
                     <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
@@ -1726,7 +1754,7 @@ const InitialClinicalEvaluationForm = (props) => {
             <Divider sx={{ my: 2 }} />
             <SubHeading>Past or Current Medication Side Effects</SubHeading>
             <FieldRow>
-              <Col size={3}>
+              <Col>
                 <SectionLabel>Side Effects Present?</SectionLabel>
                 <Input type="select" name="hasSideEffects" value={arvSideEffects.hasSideEffects} onChange={handleSideEffects}>
                   <option value="">Select</option>
@@ -1734,19 +1762,21 @@ const InitialClinicalEvaluationForm = (props) => {
                   <option value="Yes">Yes</option>
                 </Input>
               </Col>
-              {arvSideEffects.hasSideEffects === "Yes" && (
-                <>
-                  <Col size={5}>
-                    <SectionLabel>Side Effects Detail</SectionLabel>
-                    <Input type="textarea" name="sideEffectsDetail" value={arvSideEffects.sideEffectsDetail} onChange={handleSideEffects} rows={2} style={{ height: "auto" }} placeholder="Describe side effects..." />
-                  </Col>
-                  <Col size={4}>
-                    <SectionLabel>Specify Medication(s)</SectionLabel>
-                    <Input type="text" name="specifyMedication" value={arvSideEffects.specifyMedication} onChange={handleSideEffects} placeholder="Name the medication(s)" />
-                  </Col>
-                </>
-              )}
             </FieldRow>
+
+            {/* Row 2: Side Effects Detail, Specify Medication(s) - Only if Side Effects Present */}
+            {arvSideEffects.hasSideEffects === "Yes" && (
+              <FieldRow>
+                <Col>
+                  <SectionLabel>Side Effects Detail</SectionLabel>
+                  <Input type="textarea" name="sideEffectsDetail" value={arvSideEffects.sideEffectsDetail} onChange={handleSideEffects} rows={2} style={{ height: "auto" }} placeholder="Describe side effects..." />
+                </Col>
+                <Col>
+                  <SectionLabel>Specify Medication(s)</SectionLabel>
+                  <Input type="text" name="specifyMedication" value={arvSideEffects.specifyMedication} onChange={handleSideEffects} placeholder="Name the medication(s)" />
+                </Col>
+              </FieldRow>
+            )}
           </FormAccordion>
 
           {/* ══════════════════════════════════════════════════════════════ */}
@@ -1754,7 +1784,7 @@ const InitialClinicalEvaluationForm = (props) => {
           {/* ══════════════════════════════════════════════════════════════ */}
           <FormAccordion panel="arv" title="Previously ARV Exposure" index={2} expanded={expanded} onToggle={toggleAccordion}>
             <FieldRow>
-              <Col size={3}>
+              <Col>
                 <SectionLabel>Previous ARV Exposure</SectionLabel>
                 <Input type="select" name="previousArvExposure" value={arvHistory.previousArvExposure} onChange={handleArv}>
                   <option value="">Select</option>
@@ -1778,15 +1808,17 @@ const InitialClinicalEvaluationForm = (props) => {
 
                 <SubHeading>Facility &amp; Duration</SubHeading>
                 <FieldRow>
-                  <Col size={4}>
+                  <Col>
                     <SectionLabel>Name of Facility</SectionLabel>
                     <Input type="text" name="nameOfFacility" value={arvHistory.nameOfFacility} onChange={handleArv} placeholder="Facility where patient received ARV" />
                   </Col>
-                  <Col size={4}>
+                </FieldRow>
+                <FieldRow>
+                  <Col>
                     <SectionLabel>Duration of Care From</SectionLabel>
                     <Input type="date" name="durationOfCareFrom" value={arvHistory.durationOfCareFrom} onChange={handleArv} />
                   </Col>
-                  <Col size={4}>
+                  <Col>
                     <SectionLabel>Duration of Care To</SectionLabel>
                     <Input type="date" name="durationOfCareTo" value={arvHistory.durationOfCareTo} onChange={handleArv} />
                   </Col>
@@ -1805,41 +1837,6 @@ const InitialClinicalEvaluationForm = (props) => {
           {/*  SECTION 4: PHYSICAL EXAMINATION                              */}
           {/* ══════════════════════════════════════════════════════════════ */}
           <FormAccordion panel="physical" title="Physical Examination" index={3} expanded={expanded} onToggle={toggleAccordion}>
-
-            {/* Informational Tips */}
-            <Box sx={{ marginBottom: "20px" }}>
-              <Alert severity="info" icon={<InfoOutlinedIcon />} sx={{ fontSize: "12px", padding: "12px 16px" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: "13px", marginRight: "8px", whiteSpace: "nowrap" }}>
-                    Vital Signs Reference:
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                    <ThermostatIcon sx={{ fontSize: "16px", color: "#0288d1" }} />
-                    <span><strong>Temp:</strong> 35-47°C</span>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                    <MonitorHeartIcon sx={{ fontSize: "16px", color: "#d32f2f" }} />
-                    <span><strong>BP:</strong> 90-240/60-140</span>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                    <FavoriteIcon sx={{ fontSize: "16px", color: "#e91e63" }} />
-                    <span><strong>Pulse:</strong> 40-120</span>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                    <AirIcon sx={{ fontSize: "16px", color: "#00acc1" }} />
-                    <span><strong>Resp Rate:</strong> 10-70</span>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                    <ScaleIcon sx={{ fontSize: "16px", color: "#7b1fa2" }} />
-                    <span><strong>Weight:</strong> 48.26-216.41kg</span>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                    <ScaleIcon sx={{ fontSize: "16px", color: "#ff6f00" }} />
-                    <span><strong>Height:</strong> 48.26-216.41cm</span>
-                  </Box>
-                </Box>
-              </Alert>
-            </Box>
 
             {/* Vitals */}
             <SubHeading>Vitals</SubHeading>
@@ -2081,7 +2078,7 @@ const InitialClinicalEvaluationForm = (props) => {
 
             {/* WHO Stage */}
             <FieldRow>
-              <Col size={4}>
+              <Col>
                 <SectionLabel>
                   WHO Stage <span style={{ color: "red" }}>*</span>
                 </SectionLabel>
@@ -2152,7 +2149,7 @@ const InitialClinicalEvaluationForm = (props) => {
 
             {/* Drugs, Comments, Appointment */}
             <FieldRow>
-              <Col size={5}>
+              <Col>
                 <SectionLabel>Drugs in Regimen</SectionLabel>
                 <Input
                   type="textarea"
@@ -2164,7 +2161,7 @@ const InitialClinicalEvaluationForm = (props) => {
                   style={{ height: "auto" }}
                 />
               </Col>
-              <Col size={5}>
+              <Col>
                 <SectionLabel>Additional Comments</SectionLabel>
                 <Input
                   type="textarea"
@@ -2176,7 +2173,9 @@ const InitialClinicalEvaluationForm = (props) => {
                   style={{ height: "auto" }}
                 />
               </Col>
-              <Col size={2}>
+            </FieldRow>
+            <FieldRow>
+              <Col>
                 <SectionLabel>Next Appointment Date <span style={{ color: "red" }}>*</span></SectionLabel>
                 <Input
                   type="date"
@@ -2188,6 +2187,15 @@ const InitialClinicalEvaluationForm = (props) => {
                 {errors.nextAppointment && (
                   <span className={classes.error}>{errors.nextAppointment}</span>
                 )}
+              </Col>
+              <Col>
+                <SectionLabel>Clinician Name</SectionLabel>
+                <Input
+                  type="text"
+                  value={clinicianName}
+                  onChange={(e) => setClinicianName(e.target.value)}
+                  placeholder="Full name of clinician"
+                />
               </Col>
             </FieldRow>
           </FormAccordion>

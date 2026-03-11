@@ -51,7 +51,7 @@ function PHDPIndex(props) {
 
   const handlePHDPSaved = () => {
     // Switch to history tab after saving
-    setActiveTab(0);
+    setActiveTab(1);
     // Trigger history refresh
     setRefreshHistory(!refreshHistory);
   };
@@ -69,6 +69,15 @@ function PHDPIndex(props) {
             className={classes.tab}
             label={
               <Box display="flex" alignItems="center" gap={1}>
+                <AddCircleIcon fontSize="small" />
+                Create PHDP
+              </Box>
+            }
+          />
+          <Tab
+            className={classes.tab}
+            label={
+              <Box display="flex" alignItems="center" gap={1}>
                 <HistoryIcon fontSize="small" />
                 History
                 {phdpCount > 0 && (
@@ -77,33 +86,24 @@ function PHDPIndex(props) {
               </Box>
             }
           />
-          <Tab
-            className={classes.tab}
-            label={
-              <Box display="flex" alignItems="center" gap={1}>
-                <AddCircleIcon fontSize="small" />
-                Create PHDP
-              </Box>
-            }
-          />
         </Tabs>
       </Box>
 
       <TabPanel value={activeTab} index={0}>
-        <PHDPHistory
-          patientObj={patientObj}
-          refreshTrigger={refreshHistory}
-          onCountUpdate={setPhdpCount}
-          onAddNew={() => setActiveTab(1)}
-        />
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={1}>
         <PHDPForm
           patientObj={patientObj}
           onSave={handlePHDPSaved}
           setActiveContent={setActiveContent}
           activeContent={activeContent}
+        />
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={1}>
+        <PHDPHistory
+          patientObj={patientObj}
+          refreshTrigger={refreshHistory}
+          onCountUpdate={setPhdpCount}
+          onAddNew={() => setActiveTab(0)}
         />
       </TabPanel>
     </div>

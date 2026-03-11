@@ -117,7 +117,7 @@ const FieldRow = ({ children, style }) => (
   </div>
 );
 
-const Col = ({ size = 3, children }) => (
+const Col = ({ size = 6, children }) => (
   <div className={`form-group mb-3 col-md-${size}`}>{children}</div>
 );
 
@@ -362,18 +362,19 @@ const EnrollmentAndCommencementForm = (props) => {
 
   // ── Section 1: Patient Registration Details ─────────────────────────────
   const [registration, setRegistration] = useState({
+    unique_id: "",
     date_enrolled_in_hiv_care: "",
     mother_unique_id: "",
     care_entry_point: "",
     care_entry_point_other: "",
+    date_transferred_in: "",
+    facility_transferred_from: "",
     date_confirmed_hiv_test: "",
     mode_of_hiv_test: "",          // renamed from mode_of_hiv_confirmation
     hiv_test_location: "",
     prior_art: "",
     is_kp: "",
     kp_typology: "",
-    date_transferred_in: "",
-    facility_transferred_from: "",
   });
 
   const handleReg = (e) => {
@@ -413,7 +414,7 @@ const EnrollmentAndCommencementForm = (props) => {
       const newErrors = { ...errors };
 
       // Always-required fields
-      if (['date_enrolled_in_hiv_care', 'date_confirmed_hiv_test', 'hiv_test_location',
+      if (['unique_id', 'date_enrolled_in_hiv_care', 'date_confirmed_hiv_test', 'hiv_test_location',
            'mode_of_hiv_test', 'care_entry_point', 'prior_art'].includes(name)) {
         if (value && String(value).trim() !== '') {
           delete newErrors[name];
@@ -583,6 +584,10 @@ const EnrollmentAndCommencementForm = (props) => {
   // ── Validation ───────────────────────────────────────────────────────────
   const validate = () => {
     const temp = {};
+
+    if (!registration.unique_id || String(registration.unique_id).trim() === '') {
+      temp.unique_id = "Unique ID is required";
+    }
 
     if (!registration.date_enrolled_in_hiv_care || String(registration.date_enrolled_in_hiv_care).trim() === '') {
       temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care is required";
@@ -777,10 +782,27 @@ const EnrollmentAndCommencementForm = (props) => {
             expanded={expanded}
             onToggle={toggleAccordion}
           >
-            {/* HIV Care Enrollment */}
-            <SubHeading>HIV Care &amp; Identification</SubHeading>
+            {/* Row 1: Unique ID, Date Enrolled in HIV Care */}
             <FieldRow>
-              <Col size={3}>
+              <Col>
+                <SectionLabel>
+                  Unique ID{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
+                <Input
+                  type="text"
+                  name="unique_id"
+                  value={registration.unique_id}
+                  onChange={handleReg}
+                  placeholder="Enter unique identifier"
+                />
+                {errors.unique_id && (
+                  <span className={classes.error}>
+                    {errors.unique_id}
+                  </span>
+                )}
+              </Col>
+              <Col>
                 <SectionLabel>
                   Date Enrolled in HIV Care{" "}
                   <span style={{ color: "red" }}>*</span>
@@ -798,69 +820,31 @@ const EnrollmentAndCommencementForm = (props) => {
                   </span>
                 )}
               </Col>
-              <Col size={3}>
-                <SectionLabel>
-                  Date of Confirmed HIV Test{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="date"
-                  name="date_confirmed_hiv_test"
-                  value={registration.date_confirmed_hiv_test}
-                  max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
-                  onChange={handleReg}
-                />
-                {errors.date_confirmed_hiv_test && (
-                  <span className={classes.error}>
-                    {errors.date_confirmed_hiv_test}
-                  </span>
-                )}
-              </Col>
-              <Col size={3}>
-                <SectionLabel>
-                  HIV Test Location{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="text"
-                  name="hiv_test_location"
-                  value={registration.hiv_test_location}
-                  onChange={handleReg}
-                  placeholder="e.g. ANC, HTS Site"
-                />
-                {errors.hiv_test_location && (
-                  <span className={classes.error}>
-                    {errors.hiv_test_location}
-                  </span>
-                )}
-              </Col>
-              <Col size={3}>
-                <SectionLabel>
-                  Mode of HIV Test{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="select"
-                  name="mode_of_hiv_test"
-                  value={registration.mode_of_hiv_test}
-                  onChange={handleReg}
-                  disabled={loadingCodesets}
-                >
-                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                  {codesets.mode_of_hiv_test.map((opt) => (
-                    <option key={opt.id} value={opt.id}>{opt.display}</option>
-                  ))}
-                </Input>
-                {errors.mode_of_hiv_test && (
-                  <span className={classes.error}>
-                    {errors.mode_of_hiv_test}
-                  </span>
-                )}
-              </Col>
             </FieldRow>
 
+            {/* Row 2: Mother's Unique ID (if infant), Care Entry Point */}
             <FieldRow>
-              <Col size={4}>
+              {isInfant && (
+                <Col>
+                  <SectionLabel>
+                    Mother's Unique ID
+                    <span style={{ color: "red" }}> *</span>
+                  </SectionLabel>
+                  <Input
+                    type="text"
+                    name="mother_unique_id"
+                    value={registration.mother_unique_id}
+                    onChange={handleReg}
+                    placeholder="Required for infants < 2 yrs"
+                  />
+                  {errors.mother_unique_id && (
+                    <span className={classes.error}>
+                      {errors.mother_unique_id}
+                    </span>
+                  )}
+                </Col>
+              )}
+              <Col>
                 <SectionLabel>
                   Care Entry Point{" "}
                   <span style={{ color: "red" }}>*</span>
@@ -885,8 +869,12 @@ const EnrollmentAndCommencementForm = (props) => {
                   </span>
                 )}
               </Col>
-              {registration.care_entry_point == getCodesetIdByCode(codesets.careEntryPoints, "OTHERS") && (
-                <Col size={4}>
+            </FieldRow>
+
+            {/* Row 3: Specify Entry Point (if Others selected) */}
+            {registration.care_entry_point == getCodesetIdByCode(codesets.careEntryPoints, "OTHERS") && (
+              <FieldRow>
+                <Col>
                   <SectionLabel>Specify Entry Point</SectionLabel>
                   <Input
                     type="text"
@@ -896,32 +884,119 @@ const EnrollmentAndCommencementForm = (props) => {
                     placeholder="Please specify..."
                   />
                 </Col>
-              )}
-              {isInfant && (
-                <Col size={4}>
+              </FieldRow>
+            )}
+
+            {/* Row 4: Date Transferred In, Facility Transferred From (if Transfer-in selected) */}
+            {registration.care_entry_point == getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER") && (
+              <FieldRow>
+                <Col>
                   <SectionLabel>
-                    Mother's Unique ID
-                    <span style={{ color: "red" }}> *</span>
+                    Date Transferred In{" "}
+                    <span style={{ color: "red" }}>*</span>
                   </SectionLabel>
                   <Input
-                    type="text"
-                    name="mother_unique_id"
-                    value={registration.mother_unique_id}
+                    type="date"
+                    name="date_transferred_in"
+                    value={registration.date_transferred_in}
+                    max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
                     onChange={handleReg}
-                    placeholder="Required for infants < 2 yrs"
                   />
-                  {errors.mother_unique_id && (
+                  {errors.date_transferred_in && (
                     <span className={classes.error}>
-                      {errors.mother_unique_id}
+                      {errors.date_transferred_in}
                     </span>
                   )}
                 </Col>
-              )}
+                <Col>
+                  <SectionLabel>
+                    Facility Transferred From
+                    {registration.date_transferred_in && registration.date_transferred_in.trim() !== "" && (
+                      <span style={{ color: "red" }}> *</span>
+                    )}
+                  </SectionLabel>
+                  <Input
+                    type="text"
+                    name="facility_transferred_from"
+                    value={registration.facility_transferred_from}
+                    onChange={handleReg}
+                    placeholder="Name of sending facility"
+                  />
+                  {errors.facility_transferred_from && (
+                    <span className={classes.error}>
+                      {errors.facility_transferred_from}
+                    </span>
+                  )}
+                </Col>
+              </FieldRow>
+            )}
+
+            {/* Row 5: Date of Confirmed HIV Test, Mode of HIV Test */}
+            <FieldRow>
+              <Col>
+                <SectionLabel>
+                  Date of Confirmed HIV Test{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
+                <Input
+                  type="date"
+                  name="date_confirmed_hiv_test"
+                  value={registration.date_confirmed_hiv_test}
+                  max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
+                  onChange={handleReg}
+                />
+                {errors.date_confirmed_hiv_test && (
+                  <span className={classes.error}>
+                    {errors.date_confirmed_hiv_test}
+                  </span>
+                )}
+              </Col>
+              <Col>
+                <SectionLabel>
+                  Mode of HIV Test{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
+                <Input
+                  type="select"
+                  name="mode_of_hiv_test"
+                  value={registration.mode_of_hiv_test}
+                  onChange={handleReg}
+                  disabled={loadingCodesets}
+                >
+                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                  {codesets.mode_of_hiv_test.map((opt) => (
+                    <option key={opt.id} value={opt.id}>{opt.display}</option>
+                  ))}
+                </Input>
+                {errors.mode_of_hiv_test && (
+                  <span className={classes.error}>
+                    {errors.mode_of_hiv_test}
+                  </span>
+                )}
+              </Col>
             </FieldRow>
 
-            {/* Prior ART & KP Typology */}
+            {/* Row 6: HIV Test Location, Prior ART */}
             <FieldRow>
-              <Col size={4}>
+              <Col>
+                <SectionLabel>
+                  HIV Test Location{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
+                <Input
+                  type="text"
+                  name="hiv_test_location"
+                  value={registration.hiv_test_location}
+                  onChange={handleReg}
+                  placeholder="e.g. ANC, HTS Site"
+                />
+                {errors.hiv_test_location && (
+                  <span className={classes.error}>
+                    {errors.hiv_test_location}
+                  </span>
+                )}
+              </Col>
+              <Col>
                 <SectionLabel>
                   Prior ART{" "}
                   <span style={{ color: "red" }}>*</span>
@@ -946,7 +1021,11 @@ const EnrollmentAndCommencementForm = (props) => {
                   </span>
                 )}
               </Col>
-              <Col size={2}>
+            </FieldRow>
+
+            {/* Row 7: Is Patient KP, KP Typology */}
+            <FieldRow>
+              <Col>
                 <SectionLabel>Is Patient KP?</SectionLabel>
                 <Input
                   type="select"
@@ -960,7 +1039,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 </Input>
               </Col>
               {registration.is_kp === "Yes" && (
-                <Col size={4}>
+                <Col>
                   <SectionLabel>
                     KP Typology{" "}
                     <span style={{ color: "red" }}>*</span>
@@ -985,54 +1064,6 @@ const EnrollmentAndCommencementForm = (props) => {
                 </Col>
               )}
             </FieldRow>
-
-            {/* Transfer Info */}
-            {registration.care_entry_point == getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER") && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <SubHeading>Transfer Details</SubHeading>
-                <FieldRow>
-                  <Col size={3}>
-                    <SectionLabel>
-                      Date Transferred In{" "}
-                      <span style={{ color: "red" }}>*</span>
-                    </SectionLabel>
-                    <Input
-                      type="date"
-                      name="date_transferred_in"
-                      value={registration.date_transferred_in}
-                      max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
-                      onChange={handleReg}
-                    />
-                    {errors.date_transferred_in && (
-                      <span className={classes.error}>
-                        {errors.date_transferred_in}
-                      </span>
-                    )}
-                  </Col>
-                  <Col size={5}>
-                    <SectionLabel>
-                      Facility Transferred From
-                      {registration.date_transferred_in && registration.date_transferred_in.trim() !== "" && (
-                        <span style={{ color: "red" }}> *</span>
-                      )}
-                    </SectionLabel>
-                    <Input
-                      type="text"
-                      name="facility_transferred_from"
-                      value={registration.facility_transferred_from}
-                      onChange={handleReg}
-                      placeholder="Name of sending facility"
-                    />
-                    {errors.facility_transferred_from && (
-                      <span className={classes.error}>
-                        {errors.facility_transferred_from}
-                      </span>
-                    )}
-                  </Col>
-                </FieldRow>
-              </>
-            )}
           </FormAccordion>
 
           <FormAccordion
@@ -1044,8 +1075,10 @@ const EnrollmentAndCommencementForm = (props) => {
           >
             {/* Clinical Status */}
             <SubHeading>Clinical Status at ART Start</SubHeading>
+
+            {/* Row 1: Clinical Stage at Start of ART, CD4 Count at Start of ART */}
             <FieldRow>
-              <Col size={3}>
+              <Col>
                 <SectionLabel>
                   Clinical Stage at Start of ART{" "}
                   <span style={{ color: "red" }}>*</span>
@@ -1068,7 +1101,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   </span>
                 )}
               </Col>
-              <Col size={3}>
+              <Col>
                 <SectionLabel>CD4 Count at Start of ART</SectionLabel>
                 <Input
                   type="text"
@@ -1078,7 +1111,11 @@ const EnrollmentAndCommencementForm = (props) => {
                   placeholder="cells/mm³"
                 />
               </Col>
-              <Col size={3}>
+            </FieldRow>
+
+            {/* Row 2: CD4 LF */}
+            <FieldRow>
+              <Col>
                 <SectionLabel>CD4 LF</SectionLabel>
                 <Input
                   type="select"
@@ -1100,8 +1137,10 @@ const EnrollmentAndCommencementForm = (props) => {
             {/* ART Dates & Regimen */}
             <Divider sx={{ my: 2 }} />
             <SubHeading>ART Dates &amp; Regimen</SubHeading>
+
+            {/* Row 3: Date Initial Adherence Counseling Completed, Date ART Started */}
             <FieldRow>
-              <Col size={3}>
+              <Col>
                 <SectionLabel>
                   Date Initial Adherence Counseling Completed
                 </SectionLabel>
@@ -1113,7 +1152,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   onChange={handleCommencement}
                 />
               </Col>
-              <Col size={3}>
+              <Col>
                 <SectionLabel>
                   Date ART Started{" "}
                   <span style={{ color: "red" }}>*</span>
@@ -1134,8 +1173,9 @@ const EnrollmentAndCommencementForm = (props) => {
               </Col>
             </FieldRow>
 
+            {/* Row 4: First ART Regimen Line, First ART Regimen */}
             <FieldRow>
-              <Col size={3}>
+              <Col>
                 <SectionLabel>{isPediatric ? "Child" : "Adult"} First ART Regimen Line</SectionLabel>
                 <Input
                   type="select"
@@ -1151,7 +1191,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   ))}
                 </Input>
               </Col>
-              <Col size={5}>
+              <Col>
                 <SectionLabel>First ART Regimen</SectionLabel>
                 <Input
                   type="select"
@@ -1188,8 +1228,9 @@ const EnrollmentAndCommencementForm = (props) => {
                 marginBottom: "16px",
               }}
             >
-              <div className="row">
-                <Col size={3}>
+              {/* Row 5: Weight, Height */}
+              <FieldRow>
+                <Col>
                   <SectionLabel>Weight (kg)</SectionLabel>
                   <Input
                     type="text"
@@ -1199,7 +1240,7 @@ const EnrollmentAndCommencementForm = (props) => {
                     placeholder="kg"
                   />
                 </Col>
-                <Col size={3}>
+                <Col>
                   <SectionLabel>Height / Length (cm)</SectionLabel>
                   <Input
                     type="text"
@@ -1209,7 +1250,11 @@ const EnrollmentAndCommencementForm = (props) => {
                     placeholder="cm"
                   />
                 </Col>
-                <Col size={3}>
+              </FieldRow>
+
+              {/* Row 6: BMI */}
+              <FieldRow>
+                <Col>
                   <SectionLabel>
                     BMI{" "}
                     <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0 }}>
@@ -1225,10 +1270,14 @@ const EnrollmentAndCommencementForm = (props) => {
                     style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}
                   />
                 </Col>
-                {/* ── MUAC — pediatric only ──────────────────────────── */}
-                {isPediatric && (
-                  <>
-                    <Col size={2}>
+              </FieldRow>
+
+              {/* ── MUAC — pediatric only ──────────────────────────── */}
+              {isPediatric && (
+                <>
+                  {/* Row 7: MUAC (cm), MUAC Indication */}
+                  <FieldRow>
+                    <Col>
                       <SectionLabel>MUAC (cm)</SectionLabel>
                       <Input
                         type="text"
@@ -1238,7 +1287,7 @@ const EnrollmentAndCommencementForm = (props) => {
                         placeholder="e.g. 13.5"
                       />
                     </Col>
-                    <Col size={3}>
+                    <Col>
                       <SectionLabel>
                         MUAC Indication{" "}
                         <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0 }}>
@@ -1272,11 +1321,16 @@ const EnrollmentAndCommencementForm = (props) => {
                         }}
                       />
                     </Col>
-                  </>
-                )}
-                {showPregnancyStatus && (
-                  <>
-                    <Col size={2}>
+                  </FieldRow>
+                </>
+              )}
+
+              {/* ── Pregnancy Status — adult females only ──────────── */}
+              {showPregnancyStatus && (
+                <>
+                  {/* Row 8: Is Pregnant?, Pregnancy Status */}
+                  <FieldRow>
+                    <Col>
                       <SectionLabel>Is Pregnant?</SectionLabel>
                       <Input
                         type="select"
@@ -1290,7 +1344,7 @@ const EnrollmentAndCommencementForm = (props) => {
                       </Input>
                     </Col>
                     {commencement.is_pregnant === "Yes" && (
-                      <Col size={3}>
+                      <Col>
                         <SectionLabel>Pregnancy Status</SectionLabel>
                         <Input
                           type="select"
@@ -1304,9 +1358,9 @@ const EnrollmentAndCommencementForm = (props) => {
                         </Input>
                       </Col>
                     )}
-                  </>
-                )}
-              </div>
+                  </FieldRow>
+                </>
+              )}
             </Box>
 
             {/* TB Preventive Therapy */}
@@ -1356,8 +1410,9 @@ const EnrollmentAndCommencementForm = (props) => {
                   padding: "16px",
                 }}
               >
+                {/* Row 9: TPT Medication (Name), TPT Code */}
                 <FieldRow>
-                  <Col size={4}>
+                  <Col>
                     <SectionLabel>TPT Medication (Name)</SectionLabel>
                     <Input
                       type="text"
@@ -1367,7 +1422,7 @@ const EnrollmentAndCommencementForm = (props) => {
                       placeholder="e.g. Isoniazid, Rifapentine"
                     />
                   </Col>
-                  <Col size={2}>
+                  <Col>
                     <SectionLabel>TPT Code</SectionLabel>
                     <Input
                       type="select"
@@ -1383,7 +1438,11 @@ const EnrollmentAndCommencementForm = (props) => {
                       ))}
                     </Input>
                   </Col>
-                  <Col size={2}>
+                </FieldRow>
+
+                {/* Row 10: Dose, Start Date */}
+                <FieldRow>
+                  <Col>
                     <SectionLabel>Dose</SectionLabel>
                     <Input
                       type="text"
@@ -1393,7 +1452,7 @@ const EnrollmentAndCommencementForm = (props) => {
                       placeholder="e.g. 300mg"
                     />
                   </Col>
-                  <Col size={2}>
+                  <Col>
                     <SectionLabel>Start Date</SectionLabel>
                     <Input
                       type="date"
@@ -1404,7 +1463,11 @@ const EnrollmentAndCommencementForm = (props) => {
                       onChange={handleTpt}
                     />
                   </Col>
-                  <Col size={2}>
+                </FieldRow>
+
+                {/* Row 11: TPT Completed, Completion Date (conditional) */}
+                <FieldRow>
+                  <Col>
                     <SectionLabel>TPT Completed</SectionLabel>
                     <Input
                       type="select"
@@ -1417,12 +1480,8 @@ const EnrollmentAndCommencementForm = (props) => {
                       <option value="No">No</option>
                     </Input>
                   </Col>
-                </FieldRow>
-
-                {/* Completion Date - Only show if TPT Completed is Yes */}
-                {commencement.tb_preventive_therapy.tpt_completed === "Yes" && (
-                  <FieldRow>
-                    <Col size={3}>
+                  {commencement.tb_preventive_therapy.tpt_completed === "Yes" && (
+                    <Col>
                       <SectionLabel>Completion Date</SectionLabel>
                       <Input
                         type="date"
@@ -1433,8 +1492,8 @@ const EnrollmentAndCommencementForm = (props) => {
                         onChange={handleTpt}
                       />
                     </Col>
-                  </FieldRow>
-                )}
+                  )}
+                </FieldRow>
               </Box>
             )}
           </FormAccordion>
