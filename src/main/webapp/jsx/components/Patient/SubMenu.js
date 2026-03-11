@@ -337,19 +337,11 @@ const SubMenu = (props) => {
         });
       },
 
-      loadAdherencePreparation: () => {
-        setActiveItem("adherence-preparation");
+      loadHealthServices: () => {
+        setActiveItem("health-services");
         props.setActiveContent({
           ...props.activeContent,
-          route: "adherence-preparation",
-        });
-      },
-
-      loadPositiveHealthDignity: () => {
-        setActiveItem("positive-health-dignity");
-        props.setActiveContent({
-          ...props.activeContent,
-          route: "positive-health-dignity",
+          route: "health-services",
         });
       },
 
@@ -595,21 +587,12 @@ const SubMenu = (props) => {
               </MenuItem>
 
               <MenuItem
-                onClick={menuHandlers.loadAdherencePreparation}
-                name="adherence-preparation"
-                active={activeItem === "adherence-preparation"}
-                title="ART Adherence Preparation"
+                onClick={menuHandlers.loadHealthServices}
+                name="health-services"
+                active={activeItem === "health-services"}
+                title="Health Services (Adherence & PHDP)"
               >
-                Adherence Preparation
-              </MenuItem>
-
-              <MenuItem
-                onClick={menuHandlers.loadPositiveHealthDignity}
-                name="positive-health-dignity"
-                active={activeItem === "positive-health-dignity"}
-                title="Care and Support / Positive Health Dignity"
-              >
-                Positive Health Dignity
+                Health Services
               </MenuItem>
 
               {/* <MenuItem
@@ -852,20 +835,12 @@ const SubMenu = (props) => {
                                 </Dropdown.Item>
                               )}
                               <Dropdown.Item
-                                onClick={menuHandlers.loadAdherencePreparation}
-                                name="adherence-preparation"
-                                active={activeItem === "adherence-preparation"}
-                                title="ART Adherence Preparation"
+                                onClick={menuHandlers.loadHealthServices}
+                                name="health-services"
+                                active={activeItem === "health-services"}
+                                title="Health Services (Adherence & PHDP)"
                               >
-                                Adherence Preparation
-                              </Dropdown.Item>
-                              <Dropdown.Item
-                                onClick={menuHandlers.loadPositiveHealthDignity}
-                                name="positive-health-dignity"
-                                active={activeItem === "positive-health-dignity"}
-                                title="Care and Support / Positive Health Dignity"
-                              >
-                                Positive Health Dignity
+                                Health Services
                               </Dropdown.Item>
                               {/* <Dropdown.Item
                                 onClick={menuHandlers.loadSubstitutionSwitch}

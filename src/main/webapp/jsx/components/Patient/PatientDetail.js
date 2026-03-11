@@ -29,8 +29,7 @@ import EnrollmentAndCommencementForm from "../../lamisplus3-in-2/pages/Enrollmen
 import EnrollmentAndCommencementView from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/View";
 import EnrollmentAndCommencementUpdate from "../../lamisplus3-in-2/pages/EnrollmentAndCommencement/Update";
 import CareCardFollowUpForm from "../../lamisplus3-in-2/pages/CareCardFollowUp/CareCardFollowUpTabs";
-import AdherencePreparationForm from "../../lamisplus3-in-2/pages/AdherencePreparation/Index";
-import PositiveHealthDignityForm from "../../lamisplus3-in-2/pages/PositiveHealthDignity/Index";
+import HealthServicesForm from "../../lamisplus3-in-2/pages/HealthServices/Index";
 import SubstitutionSwitchForm from "../../lamisplus3-in-2/pages/SubstitutionSwitch/Index";
 import MentalHealthScreening from "../MentalHealthScreening/index";
 import LabHistory from "./../Laboratory/LabHistory";
@@ -408,15 +407,8 @@ function PatientCard(props) {
               activeContent={activeContent}
             />
           )}
-          {activeContent.route === "adherence-preparation" && (
-            <AdherencePreparationForm
-              patientObj={patientObj}
-              setActiveContent={setActiveContent}
-              activeContent={activeContent}
-            />
-          )}
-          {activeContent.route === "positive-health-dignity" && (
-            <PositiveHealthDignityForm
+          {activeContent.route === "health-services" && (
+            <HealthServicesForm
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

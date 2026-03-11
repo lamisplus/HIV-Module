@@ -433,17 +433,6 @@ const AdherencePreparationForm = (props) => {
                       {errors.telephone}
                     </Typography>
                   )}
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: "#666",
-                      display: "block",
-                      marginTop: "4px",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    Format: +234XXXXXXXXXX or 0XXXXXXXXXX (10-15 digits)
-                  </Typography>
                 </div>
               </div>
             </Box>
