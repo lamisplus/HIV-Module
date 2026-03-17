@@ -84,6 +84,9 @@ const Pharmacy = (props) => {
   const classes = useStyles();
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [errorsOI, setErrorsOI] = useState({});
+  const [errorsTB, setErrorsTB] = useState({});
+  const [errorsOther, setErrorsOther] = useState({});
   let temp = { ...errors };
   const [selectedOption, setSelectedOption] = useState([]);
   const [selectedOptionAdr, setSelectedOptionAdr] = useState();
@@ -103,6 +106,9 @@ const Pharmacy = (props) => {
   const [regimenTypeOI, setRegimenTypeOI] = useState([]);
   const [regimenTypeTB, setRegimenTypeTB] = useState([]);
   const [regimenDrug, setRegimenDrug] = useState([]);
+  const [regimenDrugOI, setRegimenDrugOI] = useState([]);
+  const [regimenDrugTB, setRegimenDrugTB] = useState([]);
+  const [regimenDrugOther, setRegimenDrugOther] = useState([]);
   const [regimenDrugList, setRegimenDrugList] = useState([]);
   const [showCurrentVitalSigns, setShowCurrentVitalSigns] = useState(false);
   const [adultArtRegimenLine, setAdultArtRegimenLine] = useState([]);
@@ -576,7 +582,7 @@ const Pharmacy = (props) => {
                 regimenName: regimenName.label,
               },
             ];
-            setRegimenDrug(drugObj);
+            setRegimenDrugOI(drugObj);
           }
         } catch (e) {}
       }
@@ -615,7 +621,7 @@ const Pharmacy = (props) => {
               regimenName: regimenName.label,
             },
           ];
-          setRegimenDrug(drugObj);
+          setRegimenDrugTB(drugObj);
         }
       } catch (e) {}
     }
@@ -671,7 +677,7 @@ const Pharmacy = (props) => {
               regimenName: regimenName.label,
             },
           ];
-          setRegimenDrug(drugObj);
+          setRegimenDrugOther(drugObj);
         }
       } catch (e) {}
     }
@@ -882,6 +888,57 @@ const Pharmacy = (props) => {
     setRegimenDrug(data);
   };
 
+  const handleFormChangeOI = (index, event) => {
+    let data = [...regimenDrugOI];
+    const prescribedQuantity =
+      data[index]["frequency"] * data[index]["duration"];
+    if (
+      event.target.name === "dispense" &&
+      event.target.value > prescribedQuantity
+    ) {
+      event.target.value = prescribedQuantity;
+      data[index][event.target.name] = prescribedQuantity;
+    } else {
+      data[index][event.target.name] = event.target.value;
+    }
+    data[index]["prescribed"] = prescribedQuantity;
+    setRegimenDrugOI(data);
+  };
+
+  const handleFormChangeTB = (index, event) => {
+    let data = [...regimenDrugTB];
+    const prescribedQuantity =
+      data[index]["frequency"] * data[index]["duration"];
+    if (
+      event.target.name === "dispense" &&
+      event.target.value > prescribedQuantity
+    ) {
+      event.target.value = prescribedQuantity;
+      data[index][event.target.name] = prescribedQuantity;
+    } else {
+      data[index][event.target.name] = event.target.value;
+    }
+    data[index]["prescribed"] = prescribedQuantity;
+    setRegimenDrugTB(data);
+  };
+
+  const handleFormChangeOther = (index, event) => {
+    let data = [...regimenDrugOther];
+    const prescribedQuantity =
+      data[index]["frequency"] * data[index]["duration"];
+    if (
+      event.target.name === "dispense" &&
+      event.target.value > prescribedQuantity
+    ) {
+      event.target.value = prescribedQuantity;
+      data[index][event.target.name] = prescribedQuantity;
+    } else {
+      data[index][event.target.name] = event.target.value;
+    }
+    data[index]["prescribed"] = prescribedQuantity;
+    setRegimenDrugOther(data);
+  };
+
   const validateDrugDispense = () => {
     temp.dispense = regimenDrug[0].dispense ? "" : "This field is required";
     temp.frequency = regimenDrug[0].frequency ? "" : "This field is required";
@@ -893,6 +950,48 @@ const Pharmacy = (props) => {
       ...temp,
     });
     return Object.values(temp).every((x) => x == "");
+  };
+
+  const validateDrugDispenseOI = () => {
+    let tempOI = { ...errorsOI };
+    tempOI.dispense = regimenDrugOI[0]?.dispense ? "" : "This field is required";
+    tempOI.frequency = regimenDrugOI[0]?.frequency ? "" : "This field is required";
+    if (regimenDrugOI[0]?.dispense > regimenDrugOI[0]?.prescribed) {
+      tempOI.dispense =
+        "Dispensed quantity cannot be greater than prescribed quantity";
+    }
+    setErrorsOI({
+      ...tempOI,
+    });
+    return Object.values(tempOI).every((x) => x == "");
+  };
+
+  const validateDrugDispenseTB = () => {
+    let tempTB = { ...errorsTB };
+    tempTB.dispense = regimenDrugTB[0]?.dispense ? "" : "This field is required";
+    tempTB.frequency = regimenDrugTB[0]?.frequency ? "" : "This field is required";
+    if (regimenDrugTB[0]?.dispense > regimenDrugTB[0]?.prescribed) {
+      tempTB.dispense =
+        "Dispensed quantity cannot be greater than prescribed quantity";
+    }
+    setErrorsTB({
+      ...tempTB,
+    });
+    return Object.values(tempTB).every((x) => x == "");
+  };
+
+  const validateDrugDispenseOther = () => {
+    let tempOther = { ...errorsOther };
+    tempOther.dispense = regimenDrugOther[0]?.dispense ? "" : "This field is required";
+    tempOther.frequency = regimenDrugOther[0]?.frequency ? "" : "This field is required";
+    if (regimenDrugOther[0]?.dispense > regimenDrugOther[0]?.prescribed) {
+      tempOther.dispense =
+        "Dispensed quantity cannot be greater than prescribed quantity";
+    }
+    setErrorsOther({
+      ...tempOther,
+    });
+    return Object.values(tempOther).every((x) => x == "");
   };
 
   const addDrug = (e) => {
@@ -923,8 +1022,8 @@ const Pharmacy = (props) => {
     }
   };
   const addDrugTB = (e) => {
-    if (validateDrugDispense()) {
-      setRegimenDrugList([...regimenDrugList, ...regimenDrug]);
+    if (validateDrugDispenseTB()) {
+      setRegimenDrugList([...regimenDrugList, ...regimenDrugTB]);
       const drugObj = [
         {
           dispense: "",
@@ -938,7 +1037,7 @@ const Pharmacy = (props) => {
         },
       ];
 
-      setRegimenDrug([]);
+      setRegimenDrugTB([]);
       setShowRegimenTB(false);
       if (
         iptEligibilty.IPTEligibility === true &&
@@ -959,8 +1058,8 @@ const Pharmacy = (props) => {
       });
       return;
     }
-    if (validateDrugDispense()) {
-      setRegimenDrugList([...regimenDrugList, ...regimenDrug]);
+    if (validateDrugDispenseOI()) {
+      setRegimenDrugList([...regimenDrugList, ...regimenDrugOI]);
       const drugObj = [
         {
           dispense: "",
@@ -973,15 +1072,15 @@ const Pharmacy = (props) => {
           regimenName: "",
         },
       ];
-      setRegimenDrug([]);
+      setRegimenDrugOI([]);
       setShowRegimenOI(false);
     } else {
       toast.error("All fields are required");
     }
   };
   const addDrugOthers = (e) => {
-    if (validateDrugDispense()) {
-      setRegimenDrugList([...regimenDrugList, ...regimenDrug]);
+    if (validateDrugDispenseOther()) {
+      setRegimenDrugList([...regimenDrugList, ...regimenDrugOther]);
       const drugObj = [
         {
           dispense: "",
@@ -994,7 +1093,7 @@ const Pharmacy = (props) => {
           regimenName: "",
         },
       ];
-      setRegimenDrug([]);
+      setRegimenDrugOther([]);
       setShowRegimenOthers(false);
       if (
         iptEligibilty.IPTEligibility === true &&
@@ -1988,7 +2087,7 @@ const Pharmacy = (props) => {
                             Quantity Dispensed
                           </div>
                         </div>
-                        {regimenDrug.map((input, index) => (
+                        {regimenDrugOI.map((input, index) => (
                           <>
                             <div className="row">
                               <div className="form-group mb-3 col-md-4">
@@ -2007,7 +2106,7 @@ const Pharmacy = (props) => {
                                     id="id"
                                     value={input.id}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOI(index, event)
                                     }
                                     required
                                   ></Input>
@@ -2026,7 +2125,7 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOI(index, event)
                                     }
                                     required
                                   >
@@ -2040,9 +2139,9 @@ const Pharmacy = (props) => {
                                     <option value="8">QDS</option>
                                     <option value="10">3ce/Week</option>
                                   </Input>
-                                  {errors.frequency !== "" ? (
+                                  {errorsOI.frequency !== "" ? (
                                     <span className={classes.error}>
-                                      {errors.frequency}
+                                      {errorsOI.frequency}
                                     </span>
                                   ) : (
                                     ""
@@ -2061,7 +2160,7 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOI(index, event)
                                     }
                                     //disabled
                                   ></Input>
@@ -2083,7 +2182,7 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOI(index, event)
                                     }
                                     disabled
                                   ></Input>
@@ -2101,13 +2200,13 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOI(index, event)
                                     }
                                     required
                                   ></Input>
-                                  {errors.dispense !== "" ? (
+                                  {errorsOI.dispense !== "" ? (
                                     <span className={classes.error}>
-                                      {errors.dispense}
+                                      {errorsOI.dispense}
                                     </span>
                                   ) : (
                                     ""
@@ -2224,7 +2323,7 @@ const Pharmacy = (props) => {
                     </Input>
                   </FormGroup>
                 </div>
-                {showRegimenTB && regimenDrug && regimenDrug.length > 0 ? (
+                {showRegimenTB && regimenDrugTB && regimenDrugTB.length > 0 ? (
                   <>
                     <Card>
                       <CardBody>
@@ -2265,7 +2364,7 @@ const Pharmacy = (props) => {
                             Quantity Dispensed
                           </div>
                         </div>
-                        {regimenDrug.map((input, index) => (
+                        {regimenDrugTB.map((input, index) => (
                           <>
                             <div className="row">
                               <div className="form-group mb-3 col-md-4">
@@ -2284,7 +2383,7 @@ const Pharmacy = (props) => {
                                     id="id"
                                     value={input.id}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeTB(index, event)
                                     }
                                     required
                                   ></Input>
@@ -2303,7 +2402,7 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeTB(index, event)
                                     }
                                     required
                                   >
@@ -2317,9 +2416,9 @@ const Pharmacy = (props) => {
                                     <option value="8">QDS</option>
                                     <option value="10">3ce/Week</option>
                                   </Input>
-                                  {errors.frequency !== "" ? (
+                                  {errorsTB.frequency !== "" ? (
                                     <span className={classes.error}>
-                                      {errors.frequency}
+                                      {errorsTB.frequency}
                                     </span>
                                   ) : (
                                     ""
@@ -2338,7 +2437,7 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeTB(index, event)
                                     }
                                     //disabled
                                   ></Input>
@@ -2360,7 +2459,7 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeTB(index, event)
                                     }
                                     disabled
                                   ></Input>
@@ -2378,13 +2477,13 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeTB(index, event)
                                     }
                                     required
                                   ></Input>
-                                  {errors.dispense !== "" ? (
+                                  {errorsTB.dispense !== "" ? (
                                     <span className={classes.error}>
-                                      {errors.dispense}
+                                      {errorsTB.dispense}
                                     </span>
                                   ) : (
                                     ""
@@ -2488,7 +2587,7 @@ const Pharmacy = (props) => {
                   </FormGroup>
                 </div>
 
-                {showRegimenOthers && regimenDrug && regimenDrug.length > 0 ? (
+                {showRegimenOthers && regimenDrugOther && regimenDrugOther.length > 0 ? (
                   <>
                     <Card>
                       <CardBody>
@@ -2529,7 +2628,7 @@ const Pharmacy = (props) => {
                             Quantity Dispensed
                           </div>
                         </div>
-                        {regimenDrug.map((input, index) => (
+                        {regimenDrugOther.map((input, index) => (
                           <>
                             <div className="row">
                               <div className="form-group mb-3 col-md-4">
@@ -2548,7 +2647,7 @@ const Pharmacy = (props) => {
                                     id="id"
                                     value={input.id}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOther(index, event)
                                     }
                                     required
                                   ></Input>
@@ -2567,7 +2666,7 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOther(index, event)
                                     }
                                     required
                                   >
@@ -2581,9 +2680,9 @@ const Pharmacy = (props) => {
                                     <option value="8">QDS</option>
                                     <option value="10">3ce/Week</option>
                                   </Input>
-                                  {errors.frequency !== "" ? (
+                                  {errorsOther.frequency !== "" ? (
                                     <span className={classes.error}>
-                                      {errors.frequency}
+                                      {errorsOther.frequency}
                                     </span>
                                   ) : (
                                     ""
@@ -2602,7 +2701,7 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOther(index, event)
                                     }
                                     //disabled
                                   ></Input>
@@ -2624,7 +2723,7 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOther(index, event)
                                     }
                                     disabled
                                   ></Input>
@@ -2642,13 +2741,13 @@ const Pharmacy = (props) => {
                                       borderRadius: "0.25rem",
                                     }}
                                     onChange={(event) =>
-                                      handleFormChange(index, event)
+                                      handleFormChangeOther(index, event)
                                     }
                                     required
                                   ></Input>
-                                  {errors.dispense !== "" ? (
+                                  {errorsOther.dispense !== "" ? (
                                     <span className={classes.error}>
-                                      {errors.dispense}
+                                      {errorsOther.dispense}
                                     </span>
                                   ) : (
                                     ""
