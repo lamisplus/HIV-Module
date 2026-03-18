@@ -109,6 +109,9 @@ const Pharmacy = (props) => {
   const [regimenTypeOI, setRegimenTypeOI] = useState([]);
   const [regimenTypeTB, setRegimenTypeTB] = useState([]);
   const [regimenDrug, setRegimenDrug] = useState([]);
+  const [regimenDrugOI, setRegimenDrugOI] = useState([]);
+  const [regimenDrugTB, setRegimenDrugTB] = useState([]);
+  const [regimenDrugOther, setRegimenDrugOther] = useState([]);
   const [regimenDrugList, setRegimenDrugList] = useState([]);
   const [showCurrentVitalSigns, setShowCurrentVitalSigns] = useState(false);
   const [adultArtRegimenLine, setAdultArtRegimenLine] = useState([]);
@@ -491,7 +494,7 @@ const Pharmacy = (props) => {
               regimenName: regimenName.label,
             },
           ];
-          setRegimenDrug(drugObj);
+          setRegimenDrugOI(drugObj);
         }
       } catch (e) {}
     }
@@ -524,7 +527,7 @@ const Pharmacy = (props) => {
               regimenName: regimenName.label,
             },
           ];
-          setRegimenDrug(drugObj);
+          setRegimenDrugTB(drugObj);
         }
       } catch (e) {}
     }
@@ -557,7 +560,7 @@ const Pharmacy = (props) => {
               regimenName: regimenName.label,
             },
           ];
-          setRegimenDrug(drugObj);
+          setRegimenDrugOther(drugObj);
         }
       } catch (e) {}
     }
@@ -755,6 +758,45 @@ const Pharmacy = (props) => {
     }
     data[index]["prescribed"] = prescribedQuantity;
     setRegimenDrug(data);
+  };
+
+  const handleFormChangeOI = (index, event) => {
+    let data = [...regimenDrugOI];
+    const prescribedQuantity = data[index]["frequency"] * data[index]["duration"];
+    if (event.target.name === "dispense" && event.target.value > prescribedQuantity) {
+      event.target.value = prescribedQuantity;
+      data[index][event.target.name] = prescribedQuantity;
+    } else {
+      data[index][event.target.name] = event.target.value;
+    }
+    data[index]["prescribed"] = prescribedQuantity;
+    setRegimenDrugOI(data);
+  };
+
+  const handleFormChangeTB = (index, event) => {
+    let data = [...regimenDrugTB];
+    const prescribedQuantity = data[index]["frequency"] * data[index]["duration"];
+    if (event.target.name === "dispense" && event.target.value > prescribedQuantity) {
+      event.target.value = prescribedQuantity;
+      data[index][event.target.name] = prescribedQuantity;
+    } else {
+      data[index][event.target.name] = event.target.value;
+    }
+    data[index]["prescribed"] = prescribedQuantity;
+    setRegimenDrugTB(data);
+  };
+
+  const handleFormChangeOther = (index, event) => {
+    let data = [...regimenDrugOther];
+    const prescribedQuantity = data[index]["frequency"] * data[index]["duration"];
+    if (event.target.name === "dispense" && event.target.value > prescribedQuantity) {
+      event.target.value = prescribedQuantity;
+      data[index][event.target.name] = prescribedQuantity;
+    } else {
+      data[index][event.target.name] = event.target.value;
+    }
+    data[index]["prescribed"] = prescribedQuantity;
+    setRegimenDrugOther(data);
   };
 
   const addDrug = (e) => {
@@ -1770,6 +1812,480 @@ const Pharmacy = (props) => {
                                   as="a"
                                   color="black"
                                   onClick={addDrug}
+                                  size="small"
+                                  style={{marginTop: 35}}
+                              >
+                                <Icon name="plus"/> Add
+                              </LabelSui>
+                            </div>
+                          </div>
+                        </CardBody>
+                      </Card>
+                      <br/>
+                      <br/>
+                    </>
+                ) : (
+                    ""
+                )}
+                {regimenDrugOI && regimenDrugOI.length > 0 ? (
+                    <>
+                      <Card>
+                        <CardBody>
+                          <h4>OI Drugs Information </h4>
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-4">
+                              Drug Name{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Frequency{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Duration{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Quantity Prescribed
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Quantity Dispensed
+                            </div>
+                          </div>
+                          {regimenDrugOI.map((input, index) => (
+                              <>
+                                <div className="row">
+                                  <div className="form-group mb-3 col-md-4">
+                                    <FormGroup>
+                                      <Label>
+                                        <b>
+                                          {input.name}{" "}
+                                          {input.strength !== ""
+                                              ? input.strength
+                                              : ""}
+                                        </b>
+                                      </Label>
+                                      <Input
+                                          type="hidden"
+                                          name="id"
+                                          id="id"
+                                          value={input.id}
+                                          onChange={(event) =>
+                                              handleFormChangeOI(index, event)
+                                          }
+                                          required
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="select"
+                                          name="frequency"
+                                          id="frequency"
+                                          value={input.frequency}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeOI(index, event)
+                                          }
+                                          required
+                                      >
+                                        <option value="">Select</option>
+                                        <option value="2">BD</option>
+                                        <option value="1">OD</option>
+                                        <option value="4">2BD</option>
+                                        <option value="6">OD/BD</option>
+                                        <option value="8">QDS</option>
+                                        <option value="10">3ce/Week</option>
+                                      </Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="number"
+                                          name="duration"
+                                          id="duration"
+                                          value={input.duration}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeOI(index, event)
+                                          }
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="text"
+                                          name="prescribed"
+                                          id="prescribed"
+                                          value={
+                                            input.frequency && input.frequency !== ""
+                                                ? input.frequency * input.duration
+                                                : 0
+                                          }
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeOI(index, event)
+                                          }
+                                          disabled
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="number"
+                                          name="dispense"
+                                          id="dispense"
+                                          value={input.dispense}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeOI(index, event)
+                                          }
+                                          required
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                </div>
+                              </>
+                          ))}
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-2 float-end">
+                              <LabelSui
+                                  as="a"
+                                  color="black"
+                                  onClick={() => {
+                                    setRegimenDrugList([...regimenDrugList, ...regimenDrugOI]);
+                                    setRegimenDrugOI([]);
+                                  }}
+                                  size="small"
+                                  style={{marginTop: 35}}
+                              >
+                                <Icon name="plus"/> Add
+                              </LabelSui>
+                            </div>
+                          </div>
+                        </CardBody>
+                      </Card>
+                      <br/>
+                      <br/>
+                    </>
+                ) : (
+                    ""
+                )}
+                {regimenDrugTB && regimenDrugTB.length > 0 ? (
+                    <>
+                      <Card>
+                        <CardBody>
+                          <h4>TB Drugs Information </h4>
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-4">
+                              Drug Name{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Frequency{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Duration{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Quantity Prescribed
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Quantity Dispensed
+                            </div>
+                          </div>
+                          {regimenDrugTB.map((input, index) => (
+                              <>
+                                <div className="row">
+                                  <div className="form-group mb-3 col-md-4">
+                                    <FormGroup>
+                                      <Label>
+                                        <b>
+                                          {input.name}{" "}
+                                          {input.strength !== ""
+                                              ? input.strength
+                                              : ""}
+                                        </b>
+                                      </Label>
+                                      <Input
+                                          type="hidden"
+                                          name="id"
+                                          id="id"
+                                          value={input.id}
+                                          onChange={(event) =>
+                                              handleFormChangeTB(index, event)
+                                          }
+                                          required
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="select"
+                                          name="frequency"
+                                          id="frequency"
+                                          value={input.frequency}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeTB(index, event)
+                                          }
+                                          required
+                                      >
+                                        <option value="">Select</option>
+                                        <option value="2">BD</option>
+                                        <option value="1">OD</option>
+                                        <option value="4">2BD</option>
+                                        <option value="6">OD/BD</option>
+                                        <option value="8">QDS</option>
+                                        <option value="10">3ce/Week</option>
+                                      </Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="number"
+                                          name="duration"
+                                          id="duration"
+                                          value={input.duration}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeTB(index, event)
+                                          }
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="text"
+                                          name="prescribed"
+                                          id="prescribed"
+                                          value={
+                                            input.frequency && input.frequency !== ""
+                                                ? input.frequency * input.duration
+                                                : 0
+                                          }
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeTB(index, event)
+                                          }
+                                          disabled
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="number"
+                                          name="dispense"
+                                          id="dispense"
+                                          value={input.dispense}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeTB(index, event)
+                                          }
+                                          required
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                </div>
+                              </>
+                          ))}
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-2 float-end">
+                              <LabelSui
+                                  as="a"
+                                  color="black"
+                                  onClick={() => {
+                                    setRegimenDrugList([...regimenDrugList, ...regimenDrugTB]);
+                                    setRegimenDrugTB([]);
+                                  }}
+                                  size="small"
+                                  style={{marginTop: 35}}
+                              >
+                                <Icon name="plus"/> Add
+                              </LabelSui>
+                            </div>
+                          </div>
+                        </CardBody>
+                      </Card>
+                      <br/>
+                      <br/>
+                    </>
+                ) : (
+                    ""
+                )}
+                {regimenDrugOther && regimenDrugOther.length > 0 ? (
+                    <>
+                      <Card>
+                        <CardBody>
+                          <h4>Other Drugs Information </h4>
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-4">
+                              Drug Name{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Frequency{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Duration{" "}
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Quantity Prescribed
+                            </div>
+                            <div className="form-group mb-3 col-md-2">
+                              Quantity Dispensed
+                            </div>
+                          </div>
+                          {regimenDrugOther.map((input, index) => (
+                              <>
+                                <div className="row">
+                                  <div className="form-group mb-3 col-md-4">
+                                    <FormGroup>
+                                      <Label>
+                                        <b>
+                                          {input.name}{" "}
+                                          {input.strength !== ""
+                                              ? input.strength
+                                              : ""}
+                                        </b>
+                                      </Label>
+                                      <Input
+                                          type="hidden"
+                                          name="id"
+                                          id="id"
+                                          value={input.id}
+                                          onChange={(event) =>
+                                              handleFormChangeOther(index, event)
+                                          }
+                                          required
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="select"
+                                          name="frequency"
+                                          id="frequency"
+                                          value={input.frequency}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeOther(index, event)
+                                          }
+                                          required
+                                      >
+                                        <option value="">Select</option>
+                                        <option value="2">BD</option>
+                                        <option value="1">OD</option>
+                                        <option value="4">2BD</option>
+                                        <option value="6">OD/BD</option>
+                                        <option value="8">QDS</option>
+                                        <option value="10">3ce/Week</option>
+                                      </Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="number"
+                                          name="duration"
+                                          id="duration"
+                                          value={input.duration}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeOther(index, event)
+                                          }
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="text"
+                                          name="prescribed"
+                                          id="prescribed"
+                                          value={
+                                            input.frequency && input.frequency !== ""
+                                                ? input.frequency * input.duration
+                                                : 0
+                                          }
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeOther(index, event)
+                                          }
+                                          disabled
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                  <div className="form-group mb-3 col-md-2">
+                                    <FormGroup>
+                                      <Input
+                                          type="number"
+                                          name="dispense"
+                                          id="dispense"
+                                          value={input.dispense}
+                                          style={{
+                                            border: "1px solid #014D88",
+                                            borderRadius: "0.25rem",
+                                          }}
+                                          onChange={(event) =>
+                                              handleFormChangeOther(index, event)
+                                          }
+                                          required
+                                      ></Input>
+                                    </FormGroup>
+                                  </div>
+                                </div>
+                              </>
+                          ))}
+                          <div className="row">
+                            <div className="form-group mb-3 col-md-2 float-end">
+                              <LabelSui
+                                  as="a"
+                                  color="black"
+                                  onClick={() => {
+                                    setRegimenDrugList([...regimenDrugList, ...regimenDrugOther]);
+                                    setRegimenDrugOther([]);
+                                  }}
                                   size="small"
                                   style={{marginTop: 35}}
                               >

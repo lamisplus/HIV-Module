@@ -1661,7 +1661,7 @@ const Pharmacy = (props) => {
                 </div>
 
                 {/* List of Regimen Drug selected  */}
-                {showRegimen ? (
+                {showRegimen && regimenDrug && regimenDrug.length > 0 ? (
                   <>
                     <Card>
                       <CardBody>
@@ -2046,7 +2046,7 @@ const Pharmacy = (props) => {
                   </div>
                 )}
                 {/* Display List of the OI drugs selected */}
-                {showRegimenOI ? (
+                {showRegimenOI && regimenDrugOI && regimenDrugOI.length > 0 ? (
                   <>
                     <Card>
                       <CardBody>
