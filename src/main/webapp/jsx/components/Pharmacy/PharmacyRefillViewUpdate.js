@@ -129,6 +129,7 @@ const Pharmacy = (props) => {
   const [clientDsdStatus, setClientDsdStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [tptCareAndSupportRegimen, setTptCareAndSupportRegimen] = useState("")
+  const [selectedOIRegimen, setSelectedOIRegimen] = useState("");
   const [objValues, setObjValues] = useState({
     adherence: "",
     adrScreened: "",
@@ -613,6 +614,7 @@ const Pharmacy = (props) => {
   };
   const handleSelectedRegimenOI = (e) => {
     const regimenId = e.target.value;
+    setSelectedOIRegimen(regimenId);
 
     if (regimenId !== "") {
       RegimenTypeOI(regimenId);
@@ -1374,15 +1376,19 @@ const Pharmacy = (props) => {
                         value={
                           iptEligibilty.IPTEligibility === true && tptCareAndSupportRegimen !== ""
                               ? 15
-                              : objValues.drugName
+                              : selectedOIRegimen || objValues.drugName
                         }
                         onChange={handleSelectedRegimenOI}
                         style={{
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
                         }}
-                        disabled={objValues.refillPeriod !== null ? false : true
-                            || (iptEligibilty.IPTEligibility === true && tptCareAndSupportRegimen !== "")}
+                        disabled={
+                          objValues.refillPeriod === null ||
+                          (objValues.refillPeriod !== null &&
+                            iptEligibilty.IPTEligibility === true &&
+                            tptCareAndSupportRegimen !== "")
+                        }
                     >
                       <option value="">Select</option>
                       {patientAge > 15 && (
@@ -1467,7 +1473,11 @@ const Pharmacy = (props) => {
                           border: "1px solid #014D88",
                           borderRadius: "0.25rem",
                         }}
-                        disabled={objValues.refillPeriod !== null ? false : true}
+                        disabled={
+                          objValues.refillPeriod === null ||
+                          (iptEligibilty.IPTEligibility === true &&
+                            tptCareAndSupportRegimen !== "")
+                        }
                     >
                       <option value="">Select</option>
 

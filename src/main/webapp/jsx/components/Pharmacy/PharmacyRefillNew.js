@@ -126,6 +126,7 @@ const Pharmacy = (props) => {
   const [clientDsdStatus, setClientDsdStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [tptCareAndSupportRegimen, setTptCareAndSupportRegimen] = useState("");
+  const [selectedOIRegimen, setSelectedOIRegimen] = useState("");
   //IPT_TYPE
   const [
     getAllPharmacyByPatientIdReponse,
@@ -720,6 +721,7 @@ const Pharmacy = (props) => {
   };
   const handleSelectedRegimenOI = (e) => {
     const regimenId = e.target.value;
+    setSelectedOIRegimen(regimenId);
     if (regimenId !== "") {
       RegimenTypeOI(regimenId);
       if (regimenId === "15") {
@@ -1015,7 +1017,7 @@ const Pharmacy = (props) => {
         iptEligibilty.IPTEligibility === true &&
         tptCareAndSupportRegimen !== ""
       ) {
-        RegimenDrugOI("115");
+        RegimenDrugOI(tptCareAndSupportRegimen);
       }
     } else {
       toast.error("All fields are required");
@@ -1043,7 +1045,7 @@ const Pharmacy = (props) => {
         iptEligibilty.IPTEligibility === true &&
         tptCareAndSupportRegimen !== ""
       ) {
-        RegimenDrugOI("115");
+        RegimenDrugOI(tptCareAndSupportRegimen);
       }
     } else {
       toast.error("All fields are required");
@@ -1099,7 +1101,7 @@ const Pharmacy = (props) => {
         iptEligibilty.IPTEligibility === true &&
         tptCareAndSupportRegimen !== ""
       ) {
-        RegimenDrugOI("115");
+        RegimenDrugOI(tptCareAndSupportRegimen);
       }
     } else {
       toast.error("All fields are required");
@@ -1881,12 +1883,11 @@ const Pharmacy = (props) => {
                       type="select"
                       name="regimen"
                       id="regimen"
-                      // value={objValues.drugName}
                       value={
                         iptEligibilty.IPTEligibility === true &&
                         tptCareAndSupportRegimen !== ""
                           ? 15
-                          : objValues.drugName
+                          : selectedOIRegimen || objValues.drugName
                       }
                       onChange={handleSelectedRegimenOI}
                       style={{
@@ -1894,11 +1895,10 @@ const Pharmacy = (props) => {
                         borderRadius: "0.25rem",
                       }}
                       disabled={
-                        objValues.refillPeriod !== null
-                          ? false
-                          : true ||
-                            (iptEligibilty.IPTEligibility === true &&
-                              tptCareAndSupportRegimen !== "")
+                        objValues.refillPeriod === null ||
+                        (objValues.refillPeriod !== null &&
+                          iptEligibilty.IPTEligibility === true &&
+                          tptCareAndSupportRegimen !== "")
                       }
                     >
                       <option value="">Select</option>
@@ -2005,7 +2005,11 @@ const Pharmacy = (props) => {
                         border: "1px solid #014D88",
                         borderRadius: "0.25rem",
                       }}
-                      disabled={objValues.refillPeriod !== null ? false : true}
+                      disabled={
+                        objValues.refillPeriod === null ||
+                        (iptEligibilty.IPTEligibility === true &&
+                          tptCareAndSupportRegimen !== "")
+                      }
                     >
                       <option value="">Select</option>
                       {regimenTypeOI.map((value) => (
