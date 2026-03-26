@@ -26,4 +26,48 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="20260326-001" author="gboyeguntaiwo" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM laboratory_labtest
+                WHERE lab_test_name = 'TB LAMP';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO public.laboratory_labtest(
+                id,
+                uuid,
+                lab_test_name,
+                unit,
+                labtestgroup_id,
+                created_by,
+                date_created,
+                modified_by,
+                date_modified,
+                archived
+            )
+            SELECT
+                73,
+                '4009e658-869a-452b-94af-609dcc6b4afc',
+                'TB LAMP',
+                '+/-',
+                5,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM laboratory_labtest
+                WHERE lab_test_name = 'TB LAMP'
+                LIMIT 1
+            );
+        </sql>
+        <rollback>
+            DELETE FROM laboratory_labtest WHERE lab_test_name = 'TB LAMP' AND id = 73;
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

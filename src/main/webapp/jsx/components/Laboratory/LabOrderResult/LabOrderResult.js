@@ -229,7 +229,10 @@ const Laboratory = (props) => {
             setChestXrayDocumented(chestXrayDone === "Yes");
 
             // FIXED: Correct mapping to match exact labTestName values
-            if (diagnosticTestType === "TB LAM") {
+            if (diagnosticTestType === "TB-LAMP") {
+              setChronicCareTestResult("TB LAMP");  // Matches ID 68 or 73
+            }
+            else if (diagnosticTestType === "TB LAM") {
               setChronicCareTestResult("TB-LAM");   // Matches ID 71
             } else if (diagnosticTestType === "Truenat") {
               setChronicCareTestResult("TrueNAT");  // Matches ID 67 or 72
