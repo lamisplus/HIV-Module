@@ -455,7 +455,7 @@ const TbTreatmentScreening = (props) => {
                 </>
               )}
 
-              {(props.tbObj.diagnosticTestType === "TB LAM" ||
+              {(props.tbObj.diagnosticTestType === "TB-LAMP" ||
                 props.tbObj.diagnosticTestType === "TB LAM" ||
                 props.tbObj.diagnosticTestType === "Smear Microscopy") && (
                   <>
@@ -498,6 +498,7 @@ const TbTreatmentScreening = (props) => {
                       props.tbObj.diagnosticTestType === "Truenat" ||
                       props.tbObj.diagnosticTestType === "Cobas" ||
                       props.tbObj.diagnosticTestType === "TB LAM" ||
+                      props.tbObj.diagnosticTestType === "TB-LAMP" ||
                       props.tbObj.diagnosticTestType === "Smear Microscopy" ||
                       ["TB LAM"].includes(props.tbObj.diagnosticTestType)
                     ) &&
@@ -540,7 +541,9 @@ const TbTreatmentScreening = (props) => {
                 props.tbObj.diagnosticTestType === "Truenat" ||
                 props.tbObj.diagnosticTestType === "Cobas" ||
                 props.tbObj.diagnosticTestType === "TB LAM" ||
+                props.tbObj.diagnosticTestType === "TB-LAMP" ||
                 props.tbObj.diagnosticTestType === "Smear Microscopy" ||
+                ["TB-LAMP"].includes(props.tbObj.diagnosticTestType)  ||
                 ["TB LAM"].includes(props.tbObj.diagnosticTestType)) &&
                 (props.tbObj.tbTestResult === "MTB not detected" ||
                   props.tbObj.tbTestResult === "Negative")) ||

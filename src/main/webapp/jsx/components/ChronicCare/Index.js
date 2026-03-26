@@ -507,6 +507,7 @@ const ChronicCare = (props) => {
       || tbObj.diagnosticTestType === 'Truenat'
       || tbObj.diagnosticTestType === 'Cobas'
       || tbObj.diagnosticTestType === 'TB LAM'
+      || tbObj.diagnosticTestType === 'TB-LAMP'
       || tbObj.diagnosticTestType === 'Smear Microscopy') &&
       (tbObj.tbTestResult === 'MTB not detected' ||
         tbObj.tbTestResult === 'Negative')
