@@ -38,6 +38,19 @@ const PharmacyModule = (props) => {
       });
   };
 
+  const handleTabSelect = (k) => {
+    setKey(k);
+    // Reset actionType when navigating to drug-refill tab to show clean form
+    if (k === "drug-refill" && props.activeContent.actionType === "update") {
+      props.setActiveContent({
+        ...props.activeContent,
+        actionType: null,
+        id: null,
+        obj: null
+      });
+    }
+  };
+
   return (
     <Fragment>
       <Row>
@@ -49,10 +62,10 @@ const PharmacyModule = (props) => {
                 <Tabs
                   id="controlled-tab-example"
                   activeKey={key}
-                  onSelect={(k) => setKey(k)}
+                  onSelect={handleTabSelect}
                   className="mb-3"
                 >
-                  
+
                   <Tab eventKey="drug-refill" title="Pharmacy Drug Refill ">
                     {props.activeContent.actionType === "update" ? (
                       <PharmacyRefillUpdate

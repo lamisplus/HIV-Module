@@ -883,20 +883,20 @@ const TbScreening = (props) => {
         updatedTbObj.tbEvaulationOutcome = "TB Diagnosed";
       }
 
-      // Positive smear/TB-LAM/TB-LAM test
+      // Positive smear/TB LAM/TB LAM test
       else if (
         props.tbObj?.tbTestResult.trim() === "Positive" &&
-        ["TB-LAM", "TB-LAM", "Smear Microscopy"].includes(
+        ["TB LAM", "TB LAM", "Smear Microscopy"].includes(
           props.tbObj?.diagnosticTestType.trim()
         )
       ) {
         updatedTbObj.tbEvaulationOutcome = "TB Diagnosed";
       }
 
-      // Negative smear/TB-LAM/TB-LAM test
+      // Negative smear/TB LAM/TB LAM test
       else if (
         props.tbObj?.tbTestResult.trim() === "Negative" &&
-        ["TB-LAM", "TB-LAM", "Smear Microscopy"].includes(
+        ["TB LAM", "TB LAM", "Smear Microscopy"].includes(
           props.tbObj?.diagnosticTestType.trim()
         )
       ) {
@@ -907,7 +907,7 @@ const TbScreening = (props) => {
       else if (
         props.tbObj?.specimentCollectedStatus.trim() === "Yes" &&
         props.tbObj?.specimentSent.trim() === "Yes" &&
-        ["TB-LAM", "TB-LAM", "Smear Microscopy"].includes(
+        ["TB LAM", "TB LAM", "Smear Microscopy"].includes(
           props.tbObj?.diagnosticTestType.trim()
         ) &&
         props.tbObj?.tbTestResult.trim() === "Negative" &&
