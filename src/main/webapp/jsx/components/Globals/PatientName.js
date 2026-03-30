@@ -8,10 +8,10 @@ const PatientName = memo(({ patient }) => {
   return (
     <Link
       to={{
-        pathname: isEnrolled ? "/patient-history" : "/enroll-patient",
+        pathname: "/patient-history",
         state: isEnrolled
           ? { patientObj: patient }
-          : { patientId: id, patientObj: patient },
+          : { patientObj: patient, enrollmentFlow: true },
       }}
       title={isEnrolled ? "Click to view patient dashboard" : "Enroll Patient"}
     >

@@ -164,6 +164,20 @@ public class InitialClinicalEvaluationService {
     }
 
 
+    public boolean hasExistingICE(Long personId) {
+        log.info("Checking if person ID: {} has an existing ICE record", personId);
+        Person person = getPerson(personId);
+        Long orgId = currentUserOrganizationService.getCurrentUserOrganization();
+
+        List<Observation> existingEvaluations = observationRepository
+                .getAllByTypeAndPersonAndFacilityIdAndArchived(OBSERVATION_TYPE, person, orgId, 0);
+
+        boolean exists = !existingEvaluations.isEmpty();
+        log.info("ICE exists check for person ID {}: {}", personId, exists);
+        return exists;
+    }
+
+
     private void checkForExistingClinicalEvaluation(Person person, Long orgId) throws RecordExistException {
         List<Observation> existingEvaluations = observationRepository
                 .getAllByTypeAndPersonAndFacilityIdAndArchived(OBSERVATION_TYPE, person, orgId, 0);

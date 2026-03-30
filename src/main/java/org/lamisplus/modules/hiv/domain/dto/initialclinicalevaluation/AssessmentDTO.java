@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,7 +19,10 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AssessmentDTO implements Serializable {
     private List<String> assessmentItems;
+
+    @NotBlank(message = "WHO stage is required")
     private String whoStage;
+
     private List<String> whoStageCriteria;
     private List<String> enrollInItems;
     private List<String> planForArtItems;

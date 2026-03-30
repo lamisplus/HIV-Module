@@ -198,8 +198,8 @@ const Patients = (props) => {
                         <>
                           <Link
                             to={{
-                              pathname: "/enroll-patient",
-                              state: { patientId: row.id, patientObj: row },
+                              pathname: "/patient-history",
+                              state: { patientObj: row, enrollmentFlow: true },
                             }}
                             title={"Enroll Patient"}
                           >
@@ -277,8 +277,8 @@ const Patients = (props) => {
                           <>
                             <Link
                               to={{
-                                pathname: "/enroll-patient",
-                                state: { patientId: row.id, patientObj: row },
+                                pathname: "/patient-history",
+                                state: { patientObj: row, enrollmentFlow: true },
                               }}
                             >
                               <ButtonGroup

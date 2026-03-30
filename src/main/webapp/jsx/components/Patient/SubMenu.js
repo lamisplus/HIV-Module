@@ -34,7 +34,8 @@ const SubMenu = (props) => {
   const patientObj = props.patientObj;
 
   const [isOtzEnrollementDone, setIsOtzEnrollementDone] = useState(null);
-  const [isEnrollmentCommencementDone, setIsEnrollmentCommencementDone] = useState(null);
+  const [isEnrollmentCommencementDone, setIsEnrollmentCommencementDone] = useState(false);
+  const [isICEDone, setIsICEDone] = useState(false);
   const [labResult, setLabResult] = useState(null);
   const patientCurrentStatus = patientObj?.currentStatus === "Died (Confirmed)";
   const [currentStatus, setCurrentStatus] = useState(() => {
@@ -173,27 +174,46 @@ const SubMenu = (props) => {
   );
 
   const menuConditions = useMemo(
-    () => ({
-      isInitialMenu:
-        (patientObj?.commenced === false ||
-          patientObj?.createBy?.toUpperCase() !==
-            "LAMIS DATA MIGRATION SYSTEM") &&
-        (patientObj?.commenced !== true ||
-          patientObj?.clinicalEvaluation !== true),
+    () => {
+      // Pre-ICE: Neither ICE nor Enrollment done - show limited menu (Home only, ICE will auto-open)
+      const isPreICE = isICEDone === false && isEnrollmentCommencementDone === false;
 
-      isDeadOrTransferred:
-        currentStatus === "DIED (CONFIRMED)" ||
-        currentStatus === "ART TRANSFER OUT",
+      // Post-ICE Pre-Enrollment: ICE done but Enrollment not done - show limited menu
+      const isPostICEPreEnrollment = isICEDone === true && isEnrollmentCommencementDone === false;
 
-      canShowOTZ:
-        (patientObj?.age >= 10 && patientObj?.age <= 23) ||
-        patientObj?.age <= 19,
+      // Show full menu only when BOTH are confirmed done
+      const showFullMenu = isICEDone === true && isEnrollmentCommencementDone === true;
 
-      canShowOTZEnrollment: patientObj?.age >= 10 && patientObj?.age <= 23,
+      const conditions = {
+        isPreICE,
+        isPostICEPreEnrollment,
+        showFullMenu,
 
-      showPediatricChecklist: patientObj?.age <= 19,
-    }),
-    [patientObj?.commenced, patientObj?.createBy, patientObj?.clinicalEvaluation, patientObj?.age, currentStatus]
+        isDeadOrTransferred:
+          currentStatus === "DIED (CONFIRMED)" ||
+          currentStatus === "ART TRANSFER OUT",
+
+        canShowOTZ:
+          (patientObj?.age >= 10 && patientObj?.age <= 23) ||
+          patientObj?.age <= 19,
+
+        canShowOTZEnrollment: patientObj?.age >= 10 && patientObj?.age <= 23,
+
+        showPediatricChecklist: patientObj?.age <= 19,
+      };
+
+      console.log("SubMenu menuConditions:", {
+        isICEDone,
+        isEnrollmentCommencementDone,
+        isPreICE,
+        isPostICEPreEnrollment,
+        showFullMenu,
+        isDeadOrTransferred: conditions.isDeadOrTransferred
+      });
+
+      return conditions;
+    },
+    [patientObj?.age, currentStatus, isICEDone, isEnrollmentCommencementDone]
   );
 
   useEffect(() => {
@@ -204,6 +224,7 @@ const SubMenu = (props) => {
           getCurrentLabResult(patientObj.id),
           Observation(),
           checkEnrollmentCommencement(),
+          checkICEExists(),
         ]);
       }
     };
@@ -256,17 +277,38 @@ const SubMenu = (props) => {
 
   const checkEnrollmentCommencement = async () => {
     try {
-      await axios.get(
+      const response = await axios.get(
         `${baseUrl}hiv/enrollment-commencement/person/${patientObj?.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log("checkEnrollmentCommencement - response:", response.data);
       setIsEnrollmentCommencementDone(true); // Record exists
     } catch (error) {
+      console.log("checkEnrollmentCommencement - error:", error.response?.status, error.message);
       if (error.response?.status === 404) {
         setIsEnrollmentCommencementDone(false); // No record, can fill form
       } else {
         setIsEnrollmentCommencementDone(false);
       }
+    }
+  };
+
+  const checkICEExists = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}hiv/observation/initial-clinical-evaluation/exists/person/${patientObj?.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      console.log("checkICEExists - response.data:", response.data, "type:", typeof response.data);
+      // Only accept boolean values, otherwise default to false
+      const isBoolean = typeof response.data === 'boolean';
+      setIsICEDone(isBoolean ? response.data : false);
+      if (!isBoolean) {
+        console.warn("checkICEExists returned non-boolean value:", response.data);
+      }
+    } catch (error) {
+      console.log("checkICEExists - error:", error.response?.status, error.message);
+      setIsICEDone(false);
     }
   };
 
@@ -520,12 +562,17 @@ const SubMenu = (props) => {
     [props.activeContent, props.expandedPatientObj, labResult]
   );
 
+  console.log("SubMenu render - menuConditions:", menuConditions);
+  console.log("SubMenu render - showing LIMITED menu?", menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment);
+
   return (
     <div>
       {patientObj && (
         <Segment inverted>
-          {menuConditions.isInitialMenu ? (
-            <Menu size="tiny" color="blue" inverted pointing>
+          {menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment ? (
+            <>
+              {console.log("RENDERING LIMITED MENU (Pre-ICE or Post-ICE Pre-Enrollment)")}
+              <Menu size="tiny" color="blue" inverted pointing>
               <MenuItem
                 onClick={menuHandlers.onClickHome}
                 name="home"
@@ -533,6 +580,39 @@ const SubMenu = (props) => {
                 title="Home"
               >
                 Home
+              </MenuItem>
+
+              {/* Show ICE form link when in Pre-ICE state */}
+              {menuConditions.isPreICE && (
+                <MenuItem
+                  onClick={menuHandlers.loadInitializationEvaluation}
+                  name="initial-clinical-evaluation"
+                  active={activeItem === "initial-clinical-evaluation"}
+                  title="Initial Clinical Evaluation"
+                >
+                  Initial Clinical Evaluation
+                </MenuItem>
+              )}
+
+              {/* Show Enrollment form link when in Post-ICE Pre-Enrollment state */}
+              {menuConditions.isPostICEPreEnrollment && (
+                <MenuItem
+                  onClick={menuHandlers.loadEnrollmentAndCommencement}
+                  name="enrollment-and-commencement"
+                  active={activeItem === "enrollment-and-commencement"}
+                  title="Enrollment & ART Commencement"
+                >
+                  Enrollment &amp; Commencement
+                </MenuItem>
+              )}
+
+              <MenuItem
+                onClick={menuHandlers.loadPatientHistory}
+                name="history"
+                active={activeItem === "history"}
+                title="History"
+              >
+                History
               </MenuItem>
 
               {permissions.canSeePatientVisit && (
@@ -545,96 +625,22 @@ const SubMenu = (props) => {
                   Patient Visits
                 </MenuItem>
               )}
-
-              {permissions.canSeeInitialEvaluation && (
-                <MenuItem
-                  onClick={menuHandlers.loadAdultEvaluation}
-                  name="initial"
-                  active={activeItem === "initial"}
-                  title="Initial Evaluation"
-                >
-                  Initial Evaluation
-                </MenuItem>
-              )}
-
-              <MenuItem
-                onClick={menuHandlers.loadInitializationEvaluation}
-                name="initialization-evaluation"
-                active={activeItem === "initialization-evaluation"}
-                title="Initial Clinical Evaluation Form"
-              >
-                Initial Clinical Evaluation
-              </MenuItem>
-
-              {!isEnrollmentCommencementDone && (
-                <MenuItem
-                  onClick={menuHandlers.loadEnrollmentAndCommencement}
-                  name="enrollment-and-commencement"
-                  active={activeItem === "enrollment-and-commencement"}
-                  title="Enrollment & ART Commencement"
-                >
-                  Enrollment &amp; Commencement
-                </MenuItem>
-              )}
-
-              <MenuItem
-                onClick={menuHandlers.loadCareCardFollowUp}
-                name="care-card-follow-up"
-                active={activeItem === "care-card-follow-up"}
-                title="Care Card Follow Up"
-              >
-                Care Card Follow Up
-              </MenuItem>
-
-              <MenuItem
-                onClick={menuHandlers.loadHealthServices}
-                name="health-services"
-                active={activeItem === "health-services"}
-                title="Health Services (Adherence & PHDP)"
-              >
-                Health Services
-              </MenuItem>
-
-              {/* <MenuItem
-                onClick={menuHandlers.loadSubstitutionSwitch}
-                name="substitution-switch"
-                active={activeItem === "substitution-switch"}
-                title="Substitutions / Switches"
-              >
-                Substitution / Switch
-              </MenuItem> */}
-
-              {!patientObj.commenced && (
-                <MenuItem
-                  onClick={menuHandlers.loadArtCommencement}
-                  name="art"
-                  active={activeItem === "art"}
-                  title="Art Commencement"
-                >
-                  Art Commencement
-                </MenuItem>
-              )}
-
-              <MenuItem
-                onClick={menuHandlers.loadPatientHistory}
-                name="history"
-                active={activeItem === "history"}
-                title="History"
-              >
-                History
-              </MenuItem>
             </Menu>
+            </>
           ) : (
             <>
+              {console.log("ELSE BRANCH - isDeadOrTransferred:", menuConditions.isDeadOrTransferred)}
               {menuConditions.isDeadOrTransferred ? (
-                <Menu
-                  size="tiny"
-                  style={{
-                    backgroundColor: "rgb(153, 46, 98)",
-                    color: "#fff",
-                  }}
-                  inverted
-                >
+                <>
+                  {console.log("RENDERING DEAD/TRANSFERRED MENU")}
+                  <Menu
+                    size="tiny"
+                    style={{
+                      backgroundColor: "rgb(153, 46, 98)",
+                      color: "#fff",
+                    }}
+                    inverted
+                  >
                   <MenuItem
                     onClick={menuHandlers.onClickHome}
                     name="home"
@@ -684,9 +690,12 @@ const SubMenu = (props) => {
                       </MenuItem>
                     )}
                 </Menu>
-              ) : 
+                </>
+              ) :
               (
-                <Menu size="tiny" color="black" inverted>
+                <>
+                  {console.log("RENDERING FULL MENU")}
+                  <Menu size="tiny" color="black" inverted>
                   <MenuItem
                     onClick={menuHandlers.onClickHome}
                     disabled={patientCurrentStatus}
@@ -699,7 +708,8 @@ const SubMenu = (props) => {
 
                   {isPatientActive && (
                     <>
-                      {permissions.canSeeInitialEvaluation &&
+                      {/* OLD INITIAL EVALUATION (ADULT/PEDIATRIC) - COMMENTED OUT FOR NEW ENROLLMENT FLOW */}
+                      {/* {permissions.canSeeInitialEvaluation &&
                         patientObj?.createBy?.toUpperCase() ===
                           "LAMIS DATA MIGRATION SYSTEM" && (
                           <MenuItem
@@ -710,7 +720,7 @@ const SubMenu = (props) => {
                           >
                             Initial Evaluation
                           </MenuItem>
-                        )}
+                        )} */}
 
                       {permissions.canSeeCareAndSupport && (
                         <MenuItem
@@ -995,6 +1005,7 @@ const SubMenu = (props) => {
                     </ButtonMui>
                   )}
                 </Menu>
+                </>
               )}
             </>
           )}

@@ -125,7 +125,12 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.patientObj
       : {};
-  //   console.log("start ", patientObj);
+  const enrollmentFlow =
+    history.location && history.location.state
+      ? history.location.state.enrollmentFlow
+      : false;
+
+  console.log("PatientDetail - enrollmentFlow:", enrollmentFlow, "location.state:", history.location?.state);
   const [patientObj1, setPatientObj1] = useState(null);
   const [showModal, setShowModal] = useState({ show: false, message: "" });
 
@@ -256,6 +261,60 @@ function PatientCard(props) {
         console.error(error);
       });
   }, [patientObj.personUuid]);
+
+  // Auto-open appropriate form when enrollmentFlow is true
+  useEffect(() => {
+    const checkEnrollmentStatusAndRoute = async () => {
+      if (!enrollmentFlow || !patientObj?.id) return;
+
+      console.log("Auto-open form useEffect - enrollmentFlow:", enrollmentFlow, "patientObj?.id:", patientObj?.id);
+
+      try {
+        // Check if ICE form is already completed
+        const iceResponse = await axios.get(
+          `${baseUrl}hiv/observation/initial-clinical-evaluation/exists/person/${patientObj.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const isICECompleted = typeof iceResponse.data === 'boolean' ? iceResponse.data : false;
+        console.log("ICE completed?", isICECompleted);
+
+        if (isICECompleted) {
+          // ICE is done, route to Enrollment & Commencement form
+          console.log("Opening Enrollment & Commencement form automatically!");
+          setActiveContent({
+            route: "enrollment-and-commencement",
+            id: "",
+            activeTab: "home",
+            actionType: "create",
+            obj: {},
+          });
+        } else {
+          // ICE not done yet, open ICE form
+          console.log("Opening ICE form automatically!");
+          setActiveContent({
+            route: "initial-clinical-evaluation",
+            id: "",
+            activeTab: "home",
+            actionType: "create",
+            obj: {},
+          });
+        }
+      } catch (error) {
+        console.log("Error checking ICE status:", error);
+        // Default to ICE form if check fails
+        setActiveContent({
+          route: "initial-clinical-evaluation",
+          id: "",
+          activeTab: "home",
+          actionType: "create",
+          obj: {},
+        });
+      }
+    };
+
+    checkEnrollmentStatusAndRoute();
+  }, [enrollmentFlow, patientObj?.id]);
 
   return (
     <div className={classes.root}>

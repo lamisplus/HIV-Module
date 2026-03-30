@@ -711,6 +711,7 @@ const InitialClinicalEvaluationForm = (props) => {
   const [symptomSelect, setSymptomSelect] = useState(null);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [otherSymptom, setOtherSymptom] = useState("");
+  const [symptomDurationErrors, setSymptomDurationErrors] = useState({});
 
   const addedSymptomValues = selectedSymptoms.map((s) => s.value);
   const availableSymptomOptions = SYMPTOM_OPTIONS.filter(
@@ -725,12 +726,27 @@ const InitialClinicalEvaluationForm = (props) => {
 
   const handleRemoveSymptom = (value) => {
     setSelectedSymptoms((prev) => prev.filter((s) => s.value !== value));
+    // Clear error for removed symptom
+    setSymptomDurationErrors((prev) => {
+      const updated = { ...prev };
+      delete updated[value];
+      return updated;
+    });
   };
 
   const handleSymptomDuration = (value, duration) => {
     setSelectedSymptoms((prev) =>
       prev.map((s) => (s.value === value ? { ...s, duration } : s))
     );
+
+    // Clear error if duration is valid (not empty and > 0)
+    if (duration && parseFloat(duration) > 0) {
+      setSymptomDurationErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[value];
+        return updated;
+      });
+    }
   };
 
   // ── Section: Medical History ─────────────────────────────────────────────
@@ -745,23 +761,24 @@ const InitialClinicalEvaluationForm = (props) => {
 
   const handleTb = (e) => {
     const { name, value } = e.target;
-    // Clear TB status if assessedForTb is changed to No or empty
-    if (name === "assessedForTb" && value !== "Yes") {
-      setTbAssessment((prev) => ({ ...prev, [name]: value, tbStatus: "" }));
+    // Clear conditional fields when assessedForTb changes
+    if (name === "assessedForTb") {
+      if (value === "Yes") {
+        // Clear developmental assessment when TB = Yes
+        setTbAssessment((prev) => ({ ...prev, [name]: value, developmentalAssessment: "" }));
+      } else if (value === "No") {
+        // Clear TB status when TB = No
+        setTbAssessment((prev) => ({ ...prev, [name]: value, tbStatus: "" }));
+      } else {
+        // Clear both when empty
+        setTbAssessment((prev) => ({ ...prev, [name]: value, tbStatus: "", developmentalAssessment: "" }));
+      }
     } else {
       setTbAssessment((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const [knownDrugAllergies, setKnownDrugAllergies] = useState([]);  // Array of selected drug allergy codes
-
-  const handleDrugAllergiesCheckbox = (code, checked) => {
-    setKnownDrugAllergies((prev) => {
-      return checked
-        ? [...prev, code]  // Add code if checked
-        : prev.filter((item) => item !== code);  // Remove code if unchecked
-    });
-  };
+  const [knownDrugAllergies, setKnownDrugAllergies] = useState("");  // Free text for drug allergies
 
   const [pregnancy, setPregnancy] = useState({
     currentlyPregnant: "",
@@ -859,12 +876,20 @@ const InitialClinicalEvaluationForm = (props) => {
   };
 
   const [disclosure, setDisclosure] = useState([]);  // Array of selected disclosure codes
+  const [disclosureOtherText, setDisclosureOtherText] = useState("");  // Text for "Other (specify)"
 
   const handleDisclosureCheckbox = (code, checked) => {
     setDisclosure((prev) => {
-      return checked
+      const updated = checked
         ? [...prev, code]  // Add code if checked
         : prev.filter((item) => item !== code);  // Remove code if unchecked
+
+      // Clear "Other (specify)" text if "Other" option is unchecked
+      if (!checked && (code.toLowerCase().includes('other') || code === 'OTHER')) {
+        setDisclosureOtherText("");
+      }
+
+      return updated;
     });
   };
 
@@ -888,16 +913,43 @@ const InitialClinicalEvaluationForm = (props) => {
     durationOfCareFrom: "",
     durationOfCareTo: "",
   });
+  const [arvHistoryErrors, setArvHistoryErrors] = useState({});
 
   const handleArv = (e) => {
     const { name, type, value, checked } = e.target;
     setArvHistory((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+
+    // Validate duration dates for date inputs
+    if (type === "date" && (name === "durationOfCareFrom" || name === "durationOfCareTo")) {
+      const careFrom = name === "durationOfCareFrom" ? value : arvHistory.durationOfCareFrom;
+      const careTo = name === "durationOfCareTo" ? value : arvHistory.durationOfCareTo;
+
+      // Clear previous errors
+      setArvHistoryErrors((prev) => {
+        const updated = { ...prev };
+        delete updated.durationOfCareTo;
+        return updated;
+      });
+
+      // Validate if both dates are present
+      if (careFrom && careTo) {
+        const fromDate = new Date(careFrom);
+        const toDate = new Date(careTo);
+
+        if (toDate < fromDate) {
+          setArvHistoryErrors((prev) => ({
+            ...prev,
+            durationOfCareTo: "Duration of Care To cannot be earlier than Duration of Care From"
+          }));
+        }
+      }
+    }
   };
 
   // ── Section: Physical Examination ────────────────────────────────────────
   const [vitals, setVitals] = useState({
     temperature: "", bpSystolic: "", bpDiastolic: "",
-    pulse: "", respiratoryRate: "", weight: "", height: "", headCircumference: "", surfaceArea: "",
+    pulse: "", weight: "", height: "", headCircumference: "", surfaceArea: "",
   });
   const [bmi, setBmi] = useState("");
   const [vitalsErrors, setVitalsErrors] = useState({});
@@ -925,10 +977,6 @@ const InitialClinicalEvaluationForm = (props) => {
       case "pulse":
         if (numValue < 40) return "Pulse cannot be less than 40 b/min";
         if (numValue > 120) return "Pulse cannot be greater than 120 b/min";
-        break;
-      case "respiratoryRate":
-        if (numValue < 10) return "Respiratory rate cannot be less than 10 breaths/min";
-        if (numValue > 70) return "Respiratory rate cannot be greater than 70 breaths/min";
         break;
       case "weight":
         if (numValue < 48.26) return "Weight cannot be less than 48.26 kg";
@@ -1121,14 +1169,24 @@ const InitialClinicalEvaluationForm = (props) => {
     if (data.clinicianName) setClinicianName(data.clinicianName);
 
     // Symptoms
-    if (data.symptoms) setSelectedSymptoms(data.symptoms);
+    if (data.symptoms) {
+      setSelectedSymptoms(data.symptoms);
+      // Clear any existing symptom duration errors when loading data
+      setSymptomDurationErrors({});
+    }
     if (data.otherSymptom) setOtherSymptom(data.otherSymptom);
 
     // TB Assessment
     if (data.tbAssessment) setTbAssessment(data.tbAssessment);
 
-    // Known Drug Allergies
-    if (data.knownDrugAllergies) setKnownDrugAllergies(data.knownDrugAllergies);
+    // Known Drug Allergies - Convert from array to string if needed
+    if (data.knownDrugAllergies) {
+      // If it's an array from backend, take the first element, otherwise use as is
+      const allergiesValue = Array.isArray(data.knownDrugAllergies)
+        ? (data.knownDrugAllergies[0] || "")
+        : data.knownDrugAllergies;
+      setKnownDrugAllergies(allergiesValue);
+    }
 
     // Pregnancy
     if (data.pregnancy && isFemale) setPregnancy(data.pregnancy);
@@ -1138,6 +1196,7 @@ const InitialClinicalEvaluationForm = (props) => {
 
     // Disclosure
     if (data.disclosure) setDisclosure(data.disclosure);
+    if (data.disclosureOtherText) setDisclosureOtherText(data.disclosureOtherText);
 
     // ARV Side Effects
     if (data.arvSideEffects) setArvSideEffects(data.arvSideEffects);
@@ -1195,6 +1254,67 @@ const InitialClinicalEvaluationForm = (props) => {
     }
   }, [pregnancy.currentlyPregnant]);
 
+  // ── Real-time Payload Logging ────────────────────────────────────────────
+  useEffect(() => {
+    // Build the payload structure that would be sent
+    const currentPayload = {
+      dateOfObservation: visitDate,
+      personId: props.patientObj.id,
+      type: "Initial Clinical Evaluation",
+      data: {
+        visitDate,
+        clinicianName,
+        symptoms: selectedSymptoms,
+        otherSymptom,
+        tbAssessment,
+        // Convert knownDrugAllergies string to array format expected by backend
+        knownDrugAllergies: knownDrugAllergies ? [knownDrugAllergies] : [],
+        pregnancy: isFemale ? pregnancy : null,
+        currentMeds,
+        disclosure,
+        disclosureOtherText,
+        arvSideEffects,
+        arvHistory,
+        vitals: {
+          ...vitals,
+          bmi,
+        },
+        physicalExam: {
+          ...systems,
+          breastGlands: isFemale ? systems.breastGlands : null,
+          additionalFindings,
+        },
+        assessment,
+      },
+    };
+
+    console.log("═══════════════════════════════════════════════════════");
+    console.log("🔄 REAL-TIME ICE FORM DATA");
+    console.log("═══════════════════════════════════════════════════════");
+    console.log(JSON.stringify(currentPayload, null, 2));
+    console.log("═══════════════════════════════════════════════════════");
+  }, [
+    visitDate,
+    clinicianName,
+    selectedSymptoms,
+    otherSymptom,
+    tbAssessment,
+    knownDrugAllergies,
+    pregnancy,
+    currentMeds,
+    disclosure,
+    disclosureOtherText,
+    arvSideEffects,
+    arvHistory,
+    vitals,
+    bmi,
+    systems,
+    additionalFindings,
+    assessment,
+    isFemale,
+    props.patientObj.id
+  ]);
+
   console.log("selectedSymptoms :", selectedSymptoms)
 
   // ── Validation ───────────────────────────────────────────────────────────
@@ -1204,8 +1324,33 @@ const InitialClinicalEvaluationForm = (props) => {
     // Required fields
     if (!visitDate) temp.visitDate = "Visit date is required";
     if (!tbAssessment.assessedForTb) temp.assessedForTb = "Patient Assessed for TB is required";
-    if (!tbAssessment.developmentalAssessment) temp.developmentalAssessment = "Developmental Assessment is required";
-    if (knownDrugAllergies.length === 0) temp.knownDrugAllergies = "Known Drug Allergies is required (select at least one option)";
+
+    // Conditional validation based on TB assessment
+    if (tbAssessment.assessedForTb === "No") {
+      if (!tbAssessment.developmentalAssessment) temp.developmentalAssessment = "Developmental Assessment is required";
+    }
+
+    // Validate symptom durations
+    const durationErrors = {};
+    selectedSymptoms.forEach((symptom) => {
+      const duration = parseFloat(symptom.duration);
+      if (!symptom.duration || symptom.duration === "" || duration <= 0 || isNaN(duration)) {
+        durationErrors[symptom.value] = "Duration is required and must be greater than 0";
+      }
+    });
+    setSymptomDurationErrors(durationErrors);
+    if (Object.keys(durationErrors).length > 0) {
+      temp.symptoms = "Please provide valid duration for all selected symptoms";
+    }
+
+    if (!knownDrugAllergies || knownDrugAllergies.trim() === "") temp.knownDrugAllergies = "Known Drug Allergies is required";
+
+    // Validate disclosure "Other (specify)" text if "Other" option is selected
+    const hasOtherDisclosure = disclosure.some(code => code.toLowerCase().includes('other') || code === 'OTHER');
+    if (hasOtherDisclosure && (!disclosureOtherText || disclosureOtherText.trim() === "")) {
+      temp.disclosureOtherText = "Please specify other disclosure details";
+    }
+
     if (assessment.assessmentItems.length === 0) temp.assessmentItems = "Assessment is required (select at least one option)";
     if (!assessment.whoStage) temp.whoStage = "WHO Stage is required";
     if (!assessment.nextAppointment) temp.nextAppointment = "Next Appointment Date is required";
@@ -1220,6 +1365,12 @@ const InitialClinicalEvaluationForm = (props) => {
     const hasPregnancyErrors = Object.values(pregnancyErrors).some(error => error !== "");
     if (hasPregnancyErrors) {
       temp.pregnancy = "Please correct all pregnancy field validation errors before submitting";
+    }
+
+    // Check for ARV history validation errors
+    const hasArvHistoryErrors = Object.values(arvHistoryErrors).some(error => error !== "");
+    if (hasArvHistoryErrors) {
+      temp.arvHistory = "Please correct ARV history date errors before submitting";
     }
 
     setErrors(temp);
@@ -1245,10 +1396,12 @@ const InitialClinicalEvaluationForm = (props) => {
           symptoms: selectedSymptoms,
           otherSymptom,
           tbAssessment,
-          knownDrugAllergies,
+          // Convert knownDrugAllergies string to array format expected by backend
+          knownDrugAllergies: knownDrugAllergies ? [knownDrugAllergies] : [],
           pregnancy: isFemale ? pregnancy : null,
           currentMeds,
           disclosure,
+          disclosureOtherText,
           arvSideEffects,
           arvHistory,
           vitals: {
@@ -1264,9 +1417,21 @@ const InitialClinicalEvaluationForm = (props) => {
         },
       };
 
+      // Log the complete payload structure
+      console.log("═══════════════════════════════════════════════════════");
+      console.log("📋 INITIAL CLINICAL EVALUATION PAYLOAD");
+      console.log("═══════════════════════════════════════════════════════");
+      console.log("Complete Payload:", JSON.stringify(payload, null, 2));
+      console.log("───────────────────────────────────────────────────────");
+      console.log("Payload Object:", payload);
+      console.log("═══════════════════════════════════════════════════════");
+
       // Add ID to payload if updating
       if (recordId) {
         payload.id = recordId;
+        console.log("📝 Updating existing record with ID:", recordId);
+      } else {
+        console.log("✨ Creating new record");
       }
 
       const response = recordId
@@ -1287,7 +1452,12 @@ const InitialClinicalEvaluationForm = (props) => {
           : "Initial Clinical Evaluation saved successfully"
       );
       console.log("Response:", response.data);
-      props.setActiveContent({ ...props.activeContent, route: "recent-history" });
+
+      // After saving ICE form, redirect to Enrollment & Commencement form
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "enrollment-and-commencement"
+      });
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -1538,18 +1708,30 @@ const InitialClinicalEvaluationForm = (props) => {
                             }}
                           />
                         </Box>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-                          <label style={{ fontSize: "11px", color: "#546e7a", whiteSpace: "nowrap", margin: 0 }}>
-                            Days:
-                          </label>
-                          <Input
-                            type="number"
-                            min="0"
-                            value={symptom.duration}
-                            onChange={(e) => handleSymptomDuration(symptom.value, e.target.value)}
-                            placeholder="0"
-                            style={{ width: "70px", height: "32px", fontSize: "12px" }}
-                          />
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: "4px", flexShrink: 0 }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <label style={{ fontSize: "11px", color: "#546e7a", whiteSpace: "nowrap", margin: 0 }}>
+                              Days:
+                            </label>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={symptom.duration}
+                              onChange={(e) => handleSymptomDuration(symptom.value, e.target.value)}
+                              placeholder="0"
+                              style={{
+                                width: "70px",
+                                height: "32px",
+                                fontSize: "12px",
+                                borderColor: symptomDurationErrors[symptom.value] ? "#d32f2f" : ""
+                              }}
+                            />
+                          </Box>
+                          {symptomDurationErrors[symptom.value] && (
+                            <span className={classes.error} style={{ fontSize: "10px", whiteSpace: "nowrap" }}>
+                              {symptomDurationErrors[symptom.value]}
+                            </span>
+                          )}
                         </Box>
                         <Tooltip title="Remove symptom">
                           <IconButton
@@ -1606,7 +1788,7 @@ const InitialClinicalEvaluationForm = (props) => {
             {/* TB & Assessments */}
             <SubHeading>TB &amp; Other Assessments</SubHeading>
 
-            {/* Row 1: Patient Assessed for TB?, Developmental Assessment */}
+            {/* Row 1: Patient Assessed for TB? */}
             <FieldRow>
               <Col>
                 <SectionLabel>Patient Assessed for TB? <span style={{ color: "red" }}>*</span></SectionLabel>
@@ -1619,21 +1801,9 @@ const InitialClinicalEvaluationForm = (props) => {
                   <span className={classes.error}>{errors.assessedForTb}</span>
                 )}
               </Col>
-              <Col>
-                <SectionLabel>Developmental Assessment <span style={{ color: "red" }}>*</span></SectionLabel>
-                <Input type="select" name="developmentalAssessment" value={tbAssessment.developmentalAssessment} onChange={handleTb} disabled={loadingCodesets}>
-                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                  {codesets.developmentalAssessment.map((opt) => (
-                    <option key={opt.id} value={opt.code}>{opt.display}</option>
-                  ))}
-                </Input>
-                {errors.developmentalAssessment && (
-                  <span className={classes.error}>{errors.developmentalAssessment}</span>
-                )}
-              </Col>
             </FieldRow>
 
-            {/* Row 2: TB Status (if assessed Yes), Immunisation Complete for Age (if age <= 2) */}
+            {/* Row 2: TB Status (if assessed Yes) OR Developmental Assessment (if assessed No) */}
             <FieldRow>
               {tbAssessment.assessedForTb === "Yes" && (
                 <Col>
@@ -1646,6 +1816,22 @@ const InitialClinicalEvaluationForm = (props) => {
                   </Input>
                 </Col>
               )}
+
+              {tbAssessment.assessedForTb === "No" && (
+                <Col>
+                  <SectionLabel>Developmental Assessment <span style={{ color: "red" }}>*</span></SectionLabel>
+                  <Input type="select" name="developmentalAssessment" value={tbAssessment.developmentalAssessment} onChange={handleTb} disabled={loadingCodesets}>
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.developmentalAssessment.map((opt) => (
+                      <option key={opt.id} value={opt.code}>{opt.display}</option>
+                    ))}
+                  </Input>
+                  {errors.developmentalAssessment && (
+                    <span className={classes.error}>{errors.developmentalAssessment}</span>
+                  )}
+                </Col>
+              )}
+
               {patientAge >= 0 && patientAge <= 2 && (
                 <Col>
                   <SectionLabel>Immunisation Complete for Age</SectionLabel>
@@ -1675,29 +1861,22 @@ const InitialClinicalEvaluationForm = (props) => {
             {/* Known Drug Allergies */}
             <Divider sx={{ my: 2 }} />
             <SubHeading>Known Drug Allergies <span style={{ color: "red" }}>*</span></SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
-              {loadingCodesets ? (
-                <Typography sx={{ fontSize: "13px", color: "#9e9e9e" }}>Loading drug allergies...</Typography>
-              ) : (
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                  {codesets.knownDrugAllergies.map((opt) => (
-                    <CheckGroup
-                      key={opt.id}
-                      name={`allergy_${opt.code}`}
-                      id={`allergy_${opt.code}`}
-                      label={opt.display}
-                      checked={knownDrugAllergies.includes(opt.code)}
-                      onChange={(e) => handleDrugAllergiesCheckbox(opt.code, e.target.checked)}
-                    />
-                  ))}
-                </Box>
-              )}
-            </Box>
-            {errors.knownDrugAllergies && (
-              <Typography sx={{ fontSize: "12px", color: "#d32f2f", marginTop: "-12px", marginBottom: "16px" }}>
-                {errors.knownDrugAllergies}
-              </Typography>
-            )}
+            <FieldRow>
+              <Col size={12}>
+                <Input
+                  type="textarea"
+                  name="knownDrugAllergies"
+                  value={knownDrugAllergies}
+                  onChange={(e) => setKnownDrugAllergies(e.target.value)}
+                  rows={3}
+                  placeholder="Enter known drug allergies (e.g., Penicillin, Sulfa drugs, etc.)"
+                  style={{ height: "auto" }}
+                />
+                {errors.knownDrugAllergies && (
+                  <span className={classes.error}>{errors.knownDrugAllergies}</span>
+                )}
+              </Col>
+            </FieldRow>
 
             <FieldRow>
               <Col size={12}>
@@ -1749,6 +1928,24 @@ const InitialClinicalEvaluationForm = (props) => {
                 </Box>
               )}
             </Box>
+
+            {/* Show "Other (specify)" text field if "Other" option is selected */}
+            {disclosure.some(code => code.toLowerCase().includes('other') || code === 'OTHER') && (
+              <FieldRow style={{ marginTop: "12px" }}>
+                <Col size={12}>
+                  <SectionLabel>Specify <span style={{ color: "red" }}>*</span></SectionLabel>
+                  <Input
+                    type="text"
+                    value={disclosureOtherText}
+                    onChange={(e) => setDisclosureOtherText(e.target.value)}
+                    placeholder="Please specify other disclosure details..."
+                  />
+                  {errors.disclosureOtherText && (
+                    <span className={classes.error}>{errors.disclosureOtherText}</span>
+                  )}
+                </Col>
+              </FieldRow>
+            )}
 
             {/* ARV Side Effects */}
             <Divider sx={{ my: 2 }} />
@@ -1816,11 +2013,27 @@ const InitialClinicalEvaluationForm = (props) => {
                 <FieldRow>
                   <Col>
                     <SectionLabel>Duration of Care From</SectionLabel>
-                    <Input type="date" name="durationOfCareFrom" value={arvHistory.durationOfCareFrom} onChange={handleArv} />
+                    <Input
+                      type="date"
+                      name="durationOfCareFrom"
+                      value={arvHistory.durationOfCareFrom}
+                      onChange={handleArv}
+                      max={arvHistory.durationOfCareTo || undefined}
+                    />
                   </Col>
                   <Col>
                     <SectionLabel>Duration of Care To</SectionLabel>
-                    <Input type="date" name="durationOfCareTo" value={arvHistory.durationOfCareTo} onChange={handleArv} />
+                    <Input
+                      type="date"
+                      name="durationOfCareTo"
+                      value={arvHistory.durationOfCareTo}
+                      onChange={handleArv}
+                      min={arvHistory.durationOfCareFrom || undefined}
+                      style={{ borderColor: arvHistoryErrors.durationOfCareTo ? "#d32f2f" : "" }}
+                    />
+                    {arvHistoryErrors.durationOfCareTo && (
+                      <span className={classes.error}>{arvHistoryErrors.durationOfCareTo}</span>
+                    )}
                   </Col>
                 </FieldRow>
               </>
@@ -1849,7 +2062,7 @@ const InitialClinicalEvaluationForm = (props) => {
                 marginBottom: "20px",
               }}
             >
-              {/* Row 1: Temperature, BP, Pulse, Respiratory Rate */}
+              {/* Row 1: Temperature, BP, Pulse */}
               <div className="row">
                 <Col size={3}>
                   <SectionLabel>Temperature (°C)</SectionLabel>
@@ -1911,20 +2124,6 @@ const InitialClinicalEvaluationForm = (props) => {
                     <span className={classes.error}>{vitalsErrors.pulse}</span>
                   )}
                 </Col>
-                <Col size={3}>
-                  <SectionLabel>Respiratory Rate (breaths/min)</SectionLabel>
-                  <Input
-                    type="text"
-                    name="respiratoryRate"
-                    value={vitals.respiratoryRate}
-                    onChange={handleVitals}
-                    placeholder="breaths/min"
-                    style={{ borderColor: vitalsErrors.respiratoryRate ? "#d32f2f" : "" }}
-                  />
-                  {vitalsErrors.respiratoryRate && (
-                    <span className={classes.error}>{vitalsErrors.respiratoryRate}</span>
-                  )}
-                </Col>
               </div>
 
               {/* Row 2: Weight, Height, BMI */}
@@ -1974,18 +2173,20 @@ const InitialClinicalEvaluationForm = (props) => {
                 </Col>
               </div>
 
-              {/* Row 3: Head Circumference, Surface Area */}
+              {/* Row 3: Head Circumference (if age ≤ 15), Surface Area */}
               <div className="row" style={{ marginTop: "8px" }}>
-                <Col size={3}>
-                  <SectionLabel>Head Circumference (cm)</SectionLabel>
-                  <Input
-                    type="text"
-                    name="headCircumference"
-                    value={vitals.headCircumference}
-                    onChange={handleVitals}
-                    placeholder="cm"
-                  />
-                </Col>
+                {patientAge <= 15 && (
+                  <Col size={3}>
+                    <SectionLabel>Head Circumference (cm)</SectionLabel>
+                    <Input
+                      type="text"
+                      name="headCircumference"
+                      value={vitals.headCircumference}
+                      onChange={handleVitals}
+                      placeholder="cm"
+                    />
+                  </Col>
+                )}
                 <Col size={3}>
                   <SectionLabel>Surface Area (m²)</SectionLabel>
                   <Input

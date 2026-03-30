@@ -75,4 +75,13 @@ public class InitialClinicalEvaluationController {
         String result = initialClinicalEvaluationService.deleteInitialClinicalEvaluation(id);
         return ResponseEntity.ok(result);
     }
+
+
+    @GetMapping(value = "/exists/person/{personId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Boolean> checkICEExists(
+            @PathVariable("personId") Long personId) {
+        log.info("GET /api/v1/hiv/observation/initial-clinical-evaluation/exists/person/{} - Checking if ICE exists", personId);
+        boolean exists = initialClinicalEvaluationService.hasExistingICE(personId);
+        return ResponseEntity.ok(exists);
+    }
 }
