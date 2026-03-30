@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 @Order(26)
 @Installer(name = " update-all-occurrences-of-ABC-3TC-DTG",
         description = " update all occurrences of ABC-3TC-DTG to ABC+3TC+DTG in the database",
-        version = 1)
+        version = 3)
 public class UpdateRegimenABC3TCDTG extends AcrossLiquibaseInstaller {
     public UpdateRegimenABC3TCDTG() {
         super("classpath:installers/hiv/schema/update-regimen-abc-dtg.xml");

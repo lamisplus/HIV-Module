@@ -24,4 +24,25 @@
         </sql>
     </changeSet>
 
+    <changeSet id="20260223-030" author="gboyeguntaiwo">
+        <comment>Update in ndr_code_set table set ndr_code to NDR5d0130 where code is 5d and code_description is TDF+3TC+LPV/r, delete all other record where code_description is TDF+3TC+LPV/r</comment>
+        <sql>
+            UPDATE ndr_code_set
+            SET ndr_code = 'NDR5d0130'
+            WHERE code = '5d' AND code_description = 'TDF+3TC+LPV/r';
+
+             DELETE FROM ndr_code_set
+            WHERE code_description = 'TDF+3TC+LPV/r' AND code != '5d';
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260223-032" author="gboyeguntaiwo">
+        <comment>Update regimen_type_id to 4 for TDF(300mg)+3TC(300mg)+LPV/r(200/50mg) regimen in hiv_regimen table</comment>
+        <sql>
+            UPDATE hiv_regimen
+            SET regimen_type_id = 4
+            WHERE description = 'TDF(300mg)+3TC(300mg)+LPV/r(200/50mg)';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
