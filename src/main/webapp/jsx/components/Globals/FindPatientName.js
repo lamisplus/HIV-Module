@@ -14,8 +14,8 @@ const FindPatientName = memo(({ row }) => {
   return (
     <Link
       to={{
-        pathname: "/enroll-patient",
-        state: { patientId: row.id, patientObj: row },
+        pathname: "/patient-history",
+        state: { patientObj: row, enrollmentFlow: true },
       }}
       title="Enroll Patient"
     >

@@ -57,13 +57,6 @@ const MODE_OF_HIV_TEST_OPTIONS = [
   "DNA PCR",
 ];
 
-const TB_PREVENTIVE_THERAPY_CODES = [
-  { value: "6H",   label: "6H — Isoniazid (6 months)" },
-  { value: "3HP",  label: "3HP — Isoniazid and Rifapentine" },
-  { value: "3HR",  label: "3HR — Isoniazid and Rifampicin" },
-  { value: "QTIP", label: "QTIP — CTX/INH/B6 FDC Fixed Dose" },
-];
-
 const CLINICAL_STAGES = ["Stage 1", "Stage 2", "Stage 3", "Stage 4"];
 
 const CD4_LF_OPTIONS = [
@@ -214,8 +207,9 @@ const EnrollmentAndCommencementForm = (props) => {
   const classes = useStyles();
   const patientAge = calculate_age_to_number(props.patientObj?.dateOfBirth);
   const isPediatric = patientAge >= 0 && patientAge <= 15;
-  const isInfant    = patientAge < 2;
+  const isInfant    = patientAge < 1.5;
   const isFemale    = ["female", "FEMALE", "Female"].includes(props.patientObj?.sex);
+  const isMale      = ["male", "MALE", "Male"].includes(props.patientObj?.sex);
   // Pregnancy / breastfeeding only relevant for adult females
   const showPregnancyStatus = isFemale && !isPediatric;
 
@@ -228,14 +222,18 @@ const EnrollmentAndCommencementForm = (props) => {
     kpTypology: [],
     clinicalStages: [],
     mode_of_hiv_test: [],
-    cd4_lf:[]
+    cd4_lf: [],
+    pregnancyStatus: []
   });
   const [loadingCodesets, setLoadingCodesets] = useState(true);
   const [regimenLines, setRegimenLines] = useState([]);
   const [regimens, setRegimens] = useState([]);
   const [loadingRegimens, setLoadingRegimens] = useState(false);
+  const [tptMedications, setTptMedications] = useState([]);
+  const [loadingTptMedications, setLoadingTptMedications] = useState(false);
   const [hasExistingRecord, setHasExistingRecord] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
+  const [checkingUniqueId, setCheckingUniqueId] = useState(false);
 
   // ── Check if patient already has enrollment-commencement record ──────────
   useEffect(() => {
@@ -264,6 +262,7 @@ const EnrollmentAndCommencementForm = (props) => {
   useEffect(() => {
     fetchCodesets();
     fetchRegimenLines();
+    fetchTptMedications();
   }, []);
 
   const fetchCodesets = async () => {
@@ -276,6 +275,7 @@ const EnrollmentAndCommencementForm = (props) => {
       params.append('codes', 'CLINICAL_STAGE');
       params.append('codes', 'PREVIOUSLY_KNOWN_HIV_+VE_STATUS');
       params.append('codes', 'VISITECT_CD4_TEST_RESULT');
+      params.append('codes', 'PREGNANCY_STATUS');
 
       const response = await axios.get(
         `${baseUrl}application-codesets/v2/codeSets?${params}`,
@@ -291,6 +291,7 @@ const EnrollmentAndCommencementForm = (props) => {
         clinicalStages: response.data.CLINICAL_STAGE || [],
         mode_of_hiv_test: response.data.FACILITY_HTS_TEST_SETTING || [],
         cd4_lf: response.data.VISITECT_CD4_TEST_RESULT || [],
+        pregnancyStatus: response.data.PREGNANCY_STATUS || [],
       });
     } catch (error) {
       console.error("Error fetching codesets:", error);
@@ -306,6 +307,26 @@ const EnrollmentAndCommencementForm = (props) => {
   const getCodesetIdByCode = (codesetArray, codePattern) => {
     const found = codesetArray.find(item => item.code?.includes(codePattern));
     return found ? found.id : null;
+  };
+
+  // Helper to filter KP Typology based on gender
+  const getFilteredKpTypology = (kpTypologyArray) => {
+    return kpTypologyArray.filter(opt => {
+      const display = opt.display?.toUpperCase() || '';
+
+      // MSM - only show for males
+      if (display.includes('MSM')) {
+        return isMale;
+      }
+
+      // FSW - only show for females
+      if (display.includes('FSW') || display.includes('FEMALE SEX WORKER')) {
+        return isFemale;
+      }
+
+      // PWID, TG, Persons in custodial centers - always show
+      return true;
+    });
   };
 
   // Fetch Regimen Lines based on patient age
@@ -354,10 +375,71 @@ const EnrollmentAndCommencementForm = (props) => {
     }
   };
 
+  // Fetch TPT medications
+  const fetchTptMedications = async () => {
+    setLoadingTptMedications(true);
+    try {
+      const response = await axios.get(`${baseUrl}hiv/regimen/types/15`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setTptMedications(response.data || []);
+    } catch (error) {
+      console.error("Error fetching TPT medications:", error);
+      toast.error("Failed to load TPT medications");
+      setTptMedications([]);
+    } finally {
+      setLoadingTptMedications(false);
+    }
+  };
+
   const toggleAccordion = (panel) => {
     setExpanded((prev) =>
       prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
     );
+  };
+
+  // ── Check if Unique ID already exists ────────────────────────────────────
+  const checkUniqueIdExists = async (uniqueId) => {
+    if (!uniqueId || String(uniqueId).trim() === '') {
+      return;
+    }
+
+    setCheckingUniqueId(true);
+    try {
+      const personId = props.patientObj?.id;
+      const url = `${baseUrl}hiv/enrollment-commencement/unique-id-exists?uniqueId=${encodeURIComponent(uniqueId)}${personId ? `&personId=${personId}` : ''}`;
+
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data === true) {
+        setErrors((prev) => ({
+          ...prev,
+          unique_id: "Unique ID already exists"
+        }));
+      } else {
+        // Clear error if ID is unique
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.unique_id;
+          return newErrors;
+        });
+      }
+    } catch (error) {
+      console.error("Error checking unique ID:", error);
+      // Don't block the user if the check fails - let backend handle it
+    } finally {
+      setCheckingUniqueId(false);
+    }
+  };
+
+  // Handler for unique_id onBlur event
+  const handleUniqueIdBlur = () => {
+    if (registration.unique_id && String(registration.unique_id).trim() !== '') {
+      checkUniqueIdExists(registration.unique_id);
+    }
   };
 
   // ── Section 1: Patient Registration Details ─────────────────────────────
@@ -413,8 +495,19 @@ const EnrollmentAndCommencementForm = (props) => {
     if (errors[name]) {
       const newErrors = { ...errors };
 
-      // Always-required fields
-      if (['unique_id', 'date_enrolled_in_hiv_care', 'date_confirmed_hiv_test', 'hiv_test_location',
+      // Date Enrolled in HIV Care — special validation
+      if (name === 'date_enrolled_in_hiv_care' && value && String(value).trim() !== '') {
+        const patientRegDate = props.patientObj?.dateOfRegistration;
+        const isValidAgainstRegDate = !patientRegDate || value >= patientRegDate;
+        const isValidAgainstTestDate = !registration.date_confirmed_hiv_test || value >= registration.date_confirmed_hiv_test;
+
+        if (isValidAgainstRegDate && isValidAgainstTestDate) {
+          delete newErrors[name];
+        }
+      }
+
+      // Always-required fields (excluding date_enrolled_in_hiv_care which has special validation above)
+      if (['unique_id', 'date_confirmed_hiv_test', 'hiv_test_location',
            'mode_of_hiv_test', 'care_entry_point', 'prior_art'].includes(name)) {
         if (value && String(value).trim() !== '') {
           delete newErrors[name];
@@ -464,11 +557,29 @@ const EnrollmentAndCommencementForm = (props) => {
 
       setErrors(newErrors);
     }
+
+    // Special case: If date_confirmed_hiv_test changes, re-validate date_enrolled_in_hiv_care
+    if (name === 'date_confirmed_hiv_test' && errors.date_enrolled_in_hiv_care) {
+      const newErrors = { ...errors };
+      const enrollmentDate = registration.date_enrolled_in_hiv_care;
+
+      if (enrollmentDate) {
+        const patientRegDate = props.patientObj?.dateOfRegistration;
+        const isValidAgainstRegDate = !patientRegDate || enrollmentDate >= patientRegDate;
+        const isValidAgainstTestDate = !value || enrollmentDate >= value;
+
+        if (isValidAgainstRegDate && isValidAgainstTestDate) {
+          delete newErrors.date_enrolled_in_hiv_care;
+          setErrors(newErrors);
+        }
+      }
+    }
   };
 
   const [commencement, setCommencement] = useState({
     clinical_stage_at_art_start: "",
     cd4_at_art_start: "",
+    cd4_percentage: "",
     cd4_lf: "",
     date_adherence_counseling_completed: "",
     date_art_started: "",
@@ -484,7 +595,6 @@ const EnrollmentAndCommencementForm = (props) => {
     tpt_started: false,
     tb_preventive_therapy: {
       medication: "",
-      code: "",
       dose: "",
       start_date: "",
       tpt_completed: "",
@@ -514,7 +624,6 @@ const EnrollmentAndCommencementForm = (props) => {
         tpt_started: checked,
         tb_preventive_therapy: checked ? prev.tb_preventive_therapy : {
           medication: "",
-          code: "",
           dose: "",
           start_date: "",
           tpt_completed: "",
@@ -563,7 +672,7 @@ const EnrollmentAndCommencementForm = (props) => {
   const handleTpt = (e) => {
     const { name, value } = e.target;
 
-    // If TPT Completed changes to "No" or empty, clear completion date
+    // If TPT Completed changes to "No" or empty, clear completion date and error
     if (name === "tpt_completed" && value !== "Yes") {
       setCommencement((prev) => ({
         ...prev,
@@ -573,13 +682,117 @@ const EnrollmentAndCommencementForm = (props) => {
           completion_date: "",
         },
       }));
+
+      // Clear completion date error if it exists
+      if (errors.tpt_completion_date) {
+        const newErrors = { ...errors };
+        delete newErrors.tpt_completion_date;
+        setErrors(newErrors);
+      }
     } else {
       setCommencement((prev) => ({
         ...prev,
         tb_preventive_therapy: { ...prev.tb_preventive_therapy, [name]: value },
       }));
+
+      // Real-time validation — clear error if completion_date becomes valid
+      if (name === 'completion_date' && errors.tpt_completion_date) {
+        if (value && String(value).trim() !== '') {
+          const newErrors = { ...errors };
+          delete newErrors.tpt_completion_date;
+          setErrors(newErrors);
+        }
+      }
     }
   };
+
+  // ── Auto-populate Date ART Started with Date Enrolled in HIV Care ────────
+  useEffect(() => {
+    // Find the selected care entry point
+    const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.id == registration.care_entry_point);
+
+    // Check if Care Entry Point is Transfer-in using code or display
+    const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
+                         selectedCareEntryPoint?.display?.toLowerCase().includes("transfer");
+
+    const hasPriorArt = registration.prior_art && String(registration.prior_art).trim() !== '';
+    const hasEnrollmentDate = registration.date_enrolled_in_hiv_care && String(registration.date_enrolled_in_hiv_care).trim() !== '';
+
+    // Only auto-populate if:
+    // 1. Date enrolled in HIV care is filled
+    // 2. Care entry point is NOT Transfer-in
+    // 3. Prior ART is NOT documented (empty)
+    // 4. Date ART started is currently empty (don't override user's edits)
+    if (hasEnrollmentDate && !isTransferIn && !hasPriorArt && !commencement.date_art_started) {
+      setCommencement((prev) => ({
+        ...prev,
+        date_art_started: registration.date_enrolled_in_hiv_care
+      }));
+    }
+  }, [registration.date_enrolled_in_hiv_care, registration.care_entry_point, registration.prior_art, codesets.careEntryPoints]);
+
+  // ── Auto-populate Weight, Height from Triage/Vital Signs ────────────────
+  useEffect(() => {
+    const fetchVitalSigns = async () => {
+      // Only fetch if we have both personId and date_art_started
+      if (!props.patientObj?.id || !commencement.date_art_started) {
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `${baseUrl}patient/vital-sign/person/${props.patientObj.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+          // Format the date_art_started to match captureDate format (YYYY-MM-DD)
+          const artStartDate = commencement.date_art_started;
+
+          // Find vital sign record matching the ART start date
+          const matchingVitalSign = response.data.find(vs => {
+            if (vs.captureDate) {
+              // Extract date part from captureDate (format: "2026-03-07T00:00:00")
+              const vitalSignDate = vs.captureDate.split('T')[0];
+              return vitalSignDate === artStartDate;
+            }
+            return false;
+          });
+
+          if (matchingVitalSign) {
+            // Auto-populate weight and height only if they are empty
+            setCommencement((prev) => {
+              const updates = {};
+
+              // Populate weight if not already filled and exists in vital sign
+              if (!prev.weight_kg && matchingVitalSign.bodyWeight) {
+                updates.weight_kg = String(matchingVitalSign.bodyWeight);
+              }
+
+              // Populate height if not already filled and exists in vital sign
+              if (!prev.height_cm && matchingVitalSign.height) {
+                updates.height_cm = String(matchingVitalSign.height);
+              }
+
+              // If we have updates, calculate BMI
+              if (Object.keys(updates).length > 0) {
+                const w = updates.weight_kg || prev.weight_kg;
+                const h = updates.height_cm || prev.height_cm;
+                updates.bmi = calcBmi(w, h);
+              }
+
+              return Object.keys(updates).length > 0 ? { ...prev, ...updates } : prev;
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching vital signs:", error);
+        // Don't show error to user - this is optional auto-population
+      }
+    };
+
+    fetchVitalSigns();
+  }, [props.patientObj?.id, commencement.date_art_started]);
 
   // ── Validation ───────────────────────────────────────────────────────────
   const validate = () => {
@@ -587,10 +800,24 @@ const EnrollmentAndCommencementForm = (props) => {
 
     if (!registration.unique_id || String(registration.unique_id).trim() === '') {
       temp.unique_id = "Unique ID is required";
+    } else if (errors.unique_id === "Unique ID already exists") {
+      // Preserve existing duplicate error
+      temp.unique_id = "Unique ID already exists";
     }
 
     if (!registration.date_enrolled_in_hiv_care || String(registration.date_enrolled_in_hiv_care).trim() === '') {
       temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care is required";
+    } else {
+      // Validate that date_enrolled_in_hiv_care is not earlier than patient registration date
+      const patientRegDate = props.patientObj?.dateOfRegistration;
+      if (patientRegDate && registration.date_enrolled_in_hiv_care < patientRegDate) {
+        temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than patient registration date";
+      }
+
+      // Validate that date_enrolled_in_hiv_care is not earlier than date of confirmed HIV test
+      if (registration.date_confirmed_hiv_test && registration.date_enrolled_in_hiv_care < registration.date_confirmed_hiv_test) {
+        temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than date of confirmed HIV test";
+      }
     }
 
     if (!registration.date_confirmed_hiv_test || String(registration.date_confirmed_hiv_test).trim() === '') {
@@ -616,11 +843,16 @@ const EnrollmentAndCommencementForm = (props) => {
 
     if (!commencement.date_art_started || String(commencement.date_art_started).trim() === '') {
       temp.date_art_started = "Date ART started is required";
+    } else {
+      // Validate that date_art_started is not earlier than date_enrolled_in_hiv_care
+      if (registration.date_enrolled_in_hiv_care && commencement.date_art_started < registration.date_enrolled_in_hiv_care) {
+        temp.date_art_started = "Date ART started cannot be earlier than date enrolled in HIV care";
+      }
     }
 
-    // 1. Mother's Unique ID — Required if patient age < 2 years (infant)
+    // 1. Mother's Unique ID — Required if patient age < 18 months (infant)
     if (isInfant && (!registration.mother_unique_id || String(registration.mother_unique_id).trim() === '')) {
-      temp.mother_unique_id = "Mother's Unique ID is required for infants (age < 2 years)";
+      temp.mother_unique_id = "Mother's Unique ID is required for infants (age < 18 months)";
     }
 
     // 2. KP Typology — Required if is_kp = "Yes"
@@ -640,12 +872,37 @@ const EnrollmentAndCommencementForm = (props) => {
       temp.facility_transferred_from = "Facility transferred from is required when transfer-in date is provided";
     }
 
+    // 5. TPT Completion Date — Required if tpt_completed = "Yes"
+    if (commencement.tpt_started &&
+        commencement.tb_preventive_therapy.tpt_completed === 'Yes' &&
+        (!commencement.tb_preventive_therapy.completion_date || String(commencement.tb_preventive_therapy.completion_date).trim() === '')) {
+      temp.tpt_completion_date = "TPT Completion Date is required when TPT is marked as completed";
+    }
+
     setErrors(temp);
     return Object.keys(temp).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if Unique ID validation is still in progress
+    if (checkingUniqueId) {
+      toast.warning("Please wait while we verify the Unique ID");
+      return;
+    }
+
+    // Re-validate Unique ID before submission
+    if (registration.unique_id && String(registration.unique_id).trim() !== '') {
+      await checkUniqueIdExists(registration.unique_id);
+    }
+
+    // Check if there's a duplicate Unique ID error after re-validation
+    if (errors.unique_id === "Unique ID already exists") {
+      toast.error("Unique ID already exists. Please use a different Unique ID.");
+      return;
+    }
+
     if (!validate()) {
       toast.error("Please fill all required fields");
       return;
@@ -794,8 +1051,15 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="unique_id"
                   value={registration.unique_id}
                   onChange={handleReg}
+                  onBlur={handleUniqueIdBlur}
                   placeholder="Enter unique identifier"
+                  disabled={checkingUniqueId}
                 />
+                {checkingUniqueId && (
+                  <span style={{ color: "#014d88", fontSize: "12px", marginTop: "4px" }}>
+                    Checking Unique ID...
+                  </span>
+                )}
                 {errors.unique_id && (
                   <span className={classes.error}>
                     {errors.unique_id}
@@ -811,6 +1075,16 @@ const EnrollmentAndCommencementForm = (props) => {
                   type="date"
                   name="date_enrolled_in_hiv_care"
                   value={registration.date_enrolled_in_hiv_care}
+                  min={
+                    // Calculate min date as the latest of patient registration date and HIV test date
+                    (() => {
+                      const dates = [
+                        props.patientObj?.dateOfRegistration,
+                        registration.date_confirmed_hiv_test
+                      ].filter(Boolean);
+                      return dates.length > 0 ? dates.reduce((a, b) => a > b ? a : b) : undefined;
+                    })()
+                  }
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleReg}
                 />
@@ -835,7 +1109,7 @@ const EnrollmentAndCommencementForm = (props) => {
                     name="mother_unique_id"
                     value={registration.mother_unique_id}
                     onChange={handleReg}
-                    placeholder="Required for infants < 2 yrs"
+                    placeholder="Required for infants < 18 months"
                   />
                   {errors.mother_unique_id && (
                     <span className={classes.error}>
@@ -1052,7 +1326,7 @@ const EnrollmentAndCommencementForm = (props) => {
                     disabled={loadingCodesets}
                   >
                     <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                    {codesets.kpTypology.map((opt) => (
+                    {getFilteredKpTypology(codesets.kpTypology).map((opt) => (
                       <option key={opt.id} value={opt.id}>{opt.display}</option>
                     ))}
                   </Input>
@@ -1104,17 +1378,32 @@ const EnrollmentAndCommencementForm = (props) => {
               <Col>
                 <SectionLabel>CD4 Count at Start of ART</SectionLabel>
                 <Input
-                  type="text"
+                  type="number"
                   name="cd4_at_art_start"
                   value={commencement.cd4_at_art_start}
                   onChange={handleCommencement}
                   placeholder="cells/mm³"
+                  min="0"
+                  step="1"
                 />
               </Col>
             </FieldRow>
 
-            {/* Row 2: CD4 LF */}
+            {/* Row 2: CD4 %, CD4 LF */}
             <FieldRow>
+              <Col>
+                <SectionLabel>CD4 %</SectionLabel>
+                <Input
+                  type="number"
+                  name="cd4_percentage"
+                  value={commencement.cd4_percentage}
+                  onChange={handleCommencement}
+                  placeholder="%"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                />
+              </Col>
               <Col>
                 <SectionLabel>CD4 LF</SectionLabel>
                 <Input
@@ -1233,21 +1522,25 @@ const EnrollmentAndCommencementForm = (props) => {
                 <Col>
                   <SectionLabel>Weight (kg)</SectionLabel>
                   <Input
-                    type="text"
+                    type="number"
                     name="weight_kg"
                     value={commencement.weight_kg}
                     onChange={handleCommencement}
                     placeholder="kg"
+                    min="0"
+                    step="0.1"
                   />
                 </Col>
                 <Col>
                   <SectionLabel>Height / Length (cm)</SectionLabel>
                   <Input
-                    type="text"
+                    type="number"
                     name="height_cm"
                     value={commencement.height_cm}
                     onChange={handleCommencement}
                     placeholder="cm"
+                    min="0"
+                    step="0.1"
                   />
                 </Col>
               </FieldRow>
@@ -1280,11 +1573,13 @@ const EnrollmentAndCommencementForm = (props) => {
                     <Col>
                       <SectionLabel>MUAC (cm)</SectionLabel>
                       <Input
-                        type="text"
+                        type="number"
                         name="muac"
                         value={commencement.muac}
                         onChange={handleCommencement}
                         placeholder="e.g. 13.5"
+                        min="0"
+                        step="0.1"
                       />
                     </Col>
                     <Col>
@@ -1351,10 +1646,14 @@ const EnrollmentAndCommencementForm = (props) => {
                           name="pregnancy_status"
                           value={commencement.pregnancy_status}
                           onChange={handleCommencement}
+                          disabled={loadingCodesets}
                         >
-                          <option value="">Select</option>
-                          <option value="Pregnant">Pregnant</option>
-                          <option value="Breastfeeding">Breastfeeding</option>
+                          <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                          {codesets.pregnancyStatus.map((opt) => (
+                            <option key={opt.id} value={opt.id}>
+                              {opt.display}
+                            </option>
+                          ))}
                         </Input>
                       </Col>
                     )}
@@ -1367,7 +1666,7 @@ const EnrollmentAndCommencementForm = (props) => {
             <Divider sx={{ my: 2 }} />
             <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
 
-            {/* TPT Started Checkbox */}
+            {/* Has Client ever had TPT? Checkbox */}
             <FieldRow>
               <Col size={12}>
                 <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
@@ -1394,13 +1693,13 @@ const EnrollmentAndCommencementForm = (props) => {
                       margin: 0
                     }}
                   >
-                    TPT Started
+                    Has Client ever had TPT?
                   </label>
                 </div>
               </Col>
             </FieldRow>
 
-            {/* TPT Details - Only show if TPT Started is checked */}
+            {/* TPT Details - Only show if checkbox is checked */}
             {commencement.tpt_started && (
               <Box
                 sx={{
@@ -1410,30 +1709,21 @@ const EnrollmentAndCommencementForm = (props) => {
                   padding: "16px",
                 }}
               >
-                {/* Row 9: TPT Medication (Name), TPT Code */}
+                {/* Row 9: TPT MEDICATION */}
                 <FieldRow>
                   <Col>
-                    <SectionLabel>TPT Medication (Name)</SectionLabel>
+                    <SectionLabel>TPT MEDICATION</SectionLabel>
                     <Input
-                      type="text"
+                      type="select"
                       name="medication"
                       value={commencement.tb_preventive_therapy.medication}
                       onChange={handleTpt}
-                      placeholder="e.g. Isoniazid, Rifapentine"
-                    />
-                  </Col>
-                  <Col>
-                    <SectionLabel>TPT Code</SectionLabel>
-                    <Input
-                      type="select"
-                      name="code"
-                      value={commencement.tb_preventive_therapy.code}
-                      onChange={handleTpt}
+                      disabled={loadingTptMedications}
                     >
-                      <option value="">Select</option>
-                      {TB_PREVENTIVE_THERAPY_CODES.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
+                      <option value="">{loadingTptMedications ? "Loading..." : "Select"}</option>
+                      {tptMedications.map((med) => (
+                        <option key={med.id} value={med.id}>
+                          {med.description}
                         </option>
                       ))}
                     </Input>
@@ -1482,7 +1772,10 @@ const EnrollmentAndCommencementForm = (props) => {
                   </Col>
                   {commencement.tb_preventive_therapy.tpt_completed === "Yes" && (
                     <Col>
-                      <SectionLabel>Completion Date</SectionLabel>
+                      <SectionLabel>
+                        Completion Date{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
                       <Input
                         type="date"
                         name="completion_date"
@@ -1491,6 +1784,11 @@ const EnrollmentAndCommencementForm = (props) => {
                         max={moment(new Date()).format("YYYY-MM-DD")}
                         onChange={handleTpt}
                       />
+                      {errors.tpt_completion_date && (
+                        <span className={classes.error}>
+                          {errors.tpt_completion_date}
+                        </span>
+                      )}
                     </Col>
                   )}
                 </FieldRow>

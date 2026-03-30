@@ -15,4 +15,8 @@ public interface EnrollmentCommencementRepository extends JpaRepository<Enrollme
     Optional<EnrollmentCommencement> findByUuid(String uuid);
 
     boolean existsByPersonAndArchived(Person person, Integer archived);
+
+    Optional<EnrollmentCommencement> findByUniqueIdAndArchived(String uniqueId, Integer archived);
+
+    Optional<EnrollmentCommencement> findByUniqueIdAndArchivedAndPersonNot(String uniqueId, Integer archived, Person person);
 }

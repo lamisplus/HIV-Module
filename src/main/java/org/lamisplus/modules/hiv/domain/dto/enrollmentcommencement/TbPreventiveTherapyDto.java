@@ -7,16 +7,16 @@ import lombok.Data;
 public class TbPreventiveTherapyDto {
 
     @JsonProperty("medication")
-    private String medication;
-
-    @JsonProperty("code")
-    private String code;
+    private Long medication;
 
     @JsonProperty("dose")
     private String dose;
 
     @JsonProperty("start_date")
     private String startDate;
+
+    @JsonProperty("tpt_completed")
+    private String tptCompleted;
 
     @JsonProperty("completion_date")
     private String completionDate;

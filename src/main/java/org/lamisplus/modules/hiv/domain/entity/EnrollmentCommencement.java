@@ -12,7 +12,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "enrollment_commencement")
+@Table(name = "hiv_enrollment_commencement")
 @Builder(toBuilder = true)
 @Getter
 @Setter
@@ -29,8 +29,8 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     private String uuid;
 
-    @Column(name = "unique_id_no")
-    private String uniqueIdNo;
+    @Column(name = "unique_id")
+    private String uniqueId;
 
     @OneToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", nullable = false)
@@ -78,10 +78,10 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     private String hivTestLocation;
 
     @Column(name = "mode_of_hiv_test_id", nullable = false)
-    private Long modeOfHivTestId;
+    private String modeOfHivTestId;
 
     @Column(name = "care_entry_point_id", nullable = false)
-    private Long careEntryPointId;
+    private String careEntryPointId;
 
     @Column(name = "care_entry_point_other")
     private String careEntryPointOther;
@@ -90,13 +90,13 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     private String motherUniqueId;
 
     @Column(name = "prior_art_id", nullable = false)
-    private Long priorArtId;
+    private String priorArtId;
 
     @Column(name = "is_kp")
     private Boolean isKp;
 
     @Column(name = "kp_typology_id")
-    private Long kpTypologyId;
+    private String kpTypologyId;
 
     @Column(name = "date_transferred_in")
     @Convert(converter = LocalDateConverter.class)
@@ -107,13 +107,16 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     private String facilityTransferredFrom;
 
     @Column(name = "clinical_stage_id")
-    private Long clinicalStageId;
+    private String clinicalStageId;
 
     @Column(name = "cd4_at_art_start")
     private Long cd4AtArtStart;
 
+    @Column(name = "cd4_percentage")
+    private Double cd4Percentage;
+
     @Column(name = "cd4_lf_id")
-    private Long cd4LfId;
+    private String cd4LfId;
 
     @Column(name = "date_adherence_counseling_completed")
     @Convert(converter = LocalDateConverter.class)
@@ -126,10 +129,10 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     private LocalDate dateArtStarted;
 
     @Column(name = "regimen_id")
-    private Long regimenId;
+    private String regimenId;
 
     @Column(name = "regimen_line_id")
-    private Long regimenLineId;
+    private String regimenLineId;
 
     @Column(name = "weight_kg")
     private Double weightKg;
@@ -153,10 +156,7 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     private String pregnancyStatus;
 
     @Column(name = "tpt_medication")
-    private String tptMedication;
-
-    @Column(name = "tpt_code")
-    private String tptCode;
+    private Long tptMedication;
 
     @Column(name = "tpt_dose")
     private String tptDose;
@@ -165,6 +165,9 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate tptStartDate;
+
+    @Column(name = "tpt_completed")
+    private String tptCompleted;
 
     @Column(name = "tpt_completion_date")
     @Convert(converter = LocalDateConverter.class)

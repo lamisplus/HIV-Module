@@ -7,13 +7,16 @@ import lombok.Data;
 public class CommencementDto {
 
     @JsonProperty("clinical_stage_at_art_start")
-    private Long clinicalStageAtArtStart;
+    private String clinicalStageAtArtStart;
 
     @JsonProperty("cd4_at_art_start")
     private String cd4AtArtStart;
 
+    @JsonProperty("cd4_percentage")
+    private String cd4Percentage;
+
     @JsonProperty("cd4_lf")
-    private Long cd4Lf;
+    private String cd4Lf;
 
     @JsonProperty("date_adherence_counseling_completed")
     private String dateAdherenceCounselingCompleted;
@@ -22,10 +25,10 @@ public class CommencementDto {
     private String dateArtStarted;
 
     @JsonProperty("regimen_line_id")
-    private Long regimenLineId;
+    private String regimenLineId;
 
     @JsonProperty("first_art_regimen")
-    private Long firstArtRegimen;
+    private String firstArtRegimen;
 
     @JsonProperty("weight_kg")
     private String weightKg;

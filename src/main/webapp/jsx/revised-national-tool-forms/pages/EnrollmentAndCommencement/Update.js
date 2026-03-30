@@ -166,7 +166,7 @@ const EnrollmentAndCommencementUpdate = (props) => {
   const classes = useStyles();
   const patientAge = calculate_age_to_number(props.patientObj?.dateOfBirth);
   const isPediatric = patientAge >= 0 && patientAge <= 15;
-  const isInfant    = patientAge < 2;
+  const isInfant    = patientAge < 1.5;
   const isFemale    = ["female", "FEMALE", "Female"].includes(props.patientObj?.sex);
   const showPregnancyStatus = isFemale && !isPediatric;
 
@@ -510,7 +510,7 @@ const EnrollmentAndCommencementUpdate = (props) => {
     }
 
     if (isInfant && (!registration.mother_unique_id || String(registration.mother_unique_id).trim() === '')) {
-      temp.mother_unique_id = "Mother's Unique ID is required for infants (age < 2 years)";
+      temp.mother_unique_id = "Mother's Unique ID is required for infants (age < 18 months)";
     }
 
     if (registration.is_kp === 'Yes' && (!registration.kp_typology || String(registration.kp_typology).trim() === '')) {
@@ -751,7 +751,7 @@ const EnrollmentAndCommencementUpdate = (props) => {
                     name="mother_unique_id"
                     value={registration.mother_unique_id}
                     onChange={handleReg}
-                    placeholder="Required for infants < 2 yrs"
+                    placeholder="Required for infants < 18 months"
                   />
                   {errors.mother_unique_id && (
                     <span className={classes.error}>

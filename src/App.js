@@ -35,9 +35,10 @@ export default function App() {
             <Route path="/register-patient">
               <RegisterPatientPage />
             </Route>
-            <Route path="/enroll-patient">
+            {/* OLD ENROLLMENT ROUTE - COMMENTED OUT FOR NEW ENROLLMENT FLOW */}
+            {/* <Route path="/enroll-patient">
               <EnrollPatientPage />
-            </Route>
+            </Route> */}
             <Route path="/update-patient">
               <UpdatePatientEnrollment />
             </Route>

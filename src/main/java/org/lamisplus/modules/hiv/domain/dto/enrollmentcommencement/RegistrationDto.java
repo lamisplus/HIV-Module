@@ -6,8 +6,8 @@ import lombok.Data;
 @Data
 public class RegistrationDto {
 
-    @JsonProperty("unique_id_no")
-    private String uniqueIdNo;
+    @JsonProperty("unique_id")
+    private String uniqueId;
 
     @JsonProperty("date_enrolled_in_hiv_care")
     private String dateEnrolledInHivCare;
@@ -19,10 +19,10 @@ public class RegistrationDto {
     private String hivTestLocation;
 
     @JsonProperty("mode_of_hiv_test")
-    private Long modeOfHivTest;               // Changed from String to Long (codeset ID)
+    private String modeOfHivTest;
 
     @JsonProperty("care_entry_point")
-    private Long careEntryPoint;              // Changed from String to Long (codeset ID)
+    private String careEntryPoint;
 
     @JsonProperty("care_entry_point_other")
     private String careEntryPointOther;
@@ -31,13 +31,13 @@ public class RegistrationDto {
     private String motherUniqueId;
 
     @JsonProperty("prior_art")
-    private Long priorArt;                    // Changed from String to Long (codeset ID)
+    private String priorArt;
 
     @JsonProperty("is_kp")
     private String isKp;
 
     @JsonProperty("kp_typology")
-    private Long kpTypology;                  // Changed from String to Long (codeset ID)
+    private String kpTypology;
 
     @JsonProperty("date_transferred_in")
     private String dateTransferredIn;

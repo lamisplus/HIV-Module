@@ -45,20 +45,16 @@ public class EnrollmentCommencementService {
         }
 
         validateRequiredFields(request, person);
-
         EnrollmentCommencement entity = buildEntity(request, person);
         EnrollmentCommencement saved = repository.save(entity);
-
         // Update HIV Status to ART Start after enrollment commencement
         hivStatusTrackerService.autoUpdateHIVStatus(person, entity.getVisit(), ART_START_STATUS, entity.getDateArtStarted());
-
         return saved;
     }
 
     public EnrollmentCommencement update(Long id, EnrollmentCommencementRequestDto request) {
         EnrollmentCommencement existing = getById(id);
         Person person = existing.getPerson();
-
         validateRequiredFields(request, person);
         EnrollmentCommencement updated = buildEntity(request, person);
         updated.setId(existing.getId());
@@ -92,6 +88,27 @@ public class EnrollmentCommencementService {
     public boolean hasExistingRecord(Long personId) {
         Person person = resolvePerson(personId);
         return repository.existsByPersonAndArchived(person, 0);
+    }
+
+    public boolean uniqueIdExists(Long personId, String uniqueId) {
+        if (uniqueId == null || uniqueId.trim().isEmpty()) {
+            return false;
+        }
+
+        if (personId != null) {
+            // When updating, exclude the current person's record
+            try {
+                Person person = resolvePerson(personId);
+                return repository.findByUniqueIdAndArchivedAndPersonNot(uniqueId.trim(), 0, person).isPresent();
+            } catch (Exception e) {
+                log.warn("Person with ID {} not found during unique ID check", personId);
+                // If person not found, check without exclusion
+                return repository.findByUniqueIdAndArchived(uniqueId.trim(), 0).isPresent();
+            }
+        }
+
+        // When creating new record
+        return repository.findByUniqueIdAndArchived(uniqueId.trim(), 0).isPresent();
     }
 
 
@@ -138,12 +155,12 @@ public class EnrollmentCommencementService {
             throw new IllegalArgumentException(
                 "date_art_started cannot be before date_enrolled_in_hiv_care");
         }
-        //  Mother's Unique ID — Required if patient age < 2 years (infant)
+        //  Mother's Unique ID — Required if patient age < 18 months (infant)
         if (person.getDateOfBirth() != null) {
-            long ageInYears = ChronoUnit.YEARS.between(person.getDateOfBirth(), LocalDate.now());
-            if (ageInYears < 2 && isNullOrEmpty(reg.getMotherUniqueId())) {
+            long ageInMonths = ChronoUnit.MONTHS.between(person.getDateOfBirth(), LocalDate.now());
+            if (ageInMonths < 18 && isNullOrEmpty(reg.getMotherUniqueId())) {
                 throw new IllegalArgumentException(
-                    "mother_unique_id is required for infants (age < 2 years)");
+                    "mother_unique_id is required for infants (age < 18 months)");
             }
         }
 
@@ -168,7 +185,6 @@ public class EnrollmentCommencementService {
                     "date_transferred_in cannot be after date_enrolled_in_hiv_care");
             }
         }
-
 
         TbPreventiveTherapyDto tpt = com.getTbPreventiveTherapy();
         if (tpt != null) {
@@ -201,11 +217,8 @@ public class EnrollmentCommencementService {
     private EnrollmentCommencement buildEntity(EnrollmentCommencementRequestDto request, Person person) {
         RegistrationDto reg = request.getData().getRegistration();
         CommencementDto com = request.getData().getCommencement();
-
         LocalDate artStartDate = parseDate(com.getDateArtStarted());
-
         Visit visit = hivVisitEncounter.processAndCreateVisit(person.getId(), artStartDate);
-
         EnrollmentCommencement entity = new EnrollmentCommencement();
         entity.setUuid(UUID.randomUUID().toString());
         entity.setPerson(person);
@@ -214,30 +227,30 @@ public class EnrollmentCommencementService {
         entity.setArchived(0);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setSource(Constants.WEB_SOURCE);
-
         // ── Registration fields ───────────────────────────────────────────────
-        entity.setUniqueIdNo(reg.getUniqueIdNo());
+        entity.setUniqueId(reg.getUniqueId());
         entity.setDateEnrolledInHivCare(parseDate(reg.getDateEnrolledInHivCare()));
         entity.setDateConfirmedHivTest(parseDate(reg.getDateConfirmedHivTest()));
         entity.setHivTestLocation(reg.getHivTestLocation());
-        entity.setModeOfHivTestId(reg.getModeOfHivTest());              // Direct ID assignment
-        entity.setCareEntryPointId(reg.getCareEntryPoint());            // Direct ID assignment
+        entity.setModeOfHivTestId(reg.getModeOfHivTest());
+        entity.setCareEntryPointId(reg.getCareEntryPoint());
         entity.setCareEntryPointOther(reg.getCareEntryPointOther());
         entity.setMotherUniqueId(reg.getMotherUniqueId());
-        entity.setPriorArtId(reg.getPriorArt());                        // Direct ID assignment
+        entity.setPriorArtId(reg.getPriorArt());
         entity.setIsKp("Yes".equalsIgnoreCase(reg.getIsKp()));
-        entity.setKpTypologyId(reg.getKpTypology());                    // Direct ID assignment
+        entity.setKpTypologyId(reg.getKpTypology());
         entity.setDateTransferredIn(parseDate(reg.getDateTransferredIn()));
         entity.setFacilityTransferredFrom(reg.getFacilityTransferredFrom());
 
         // ── Commencement fields ───────────────────────────────────────────────
-        entity.setClinicalStageId(com.getClinicalStageAtArtStart());    // Direct ID assignment
+        entity.setClinicalStageId(com.getClinicalStageAtArtStart());
         entity.setCd4AtArtStart(parseLong(com.getCd4AtArtStart()));
-        entity.setCd4LfId(com.getCd4Lf());                              // Direct ID assignment
+        entity.setCd4Percentage(parseDouble(com.getCd4Percentage()));
+        entity.setCd4LfId(com.getCd4Lf());
         entity.setDateAdherenceCounselingCompleted(parseDate(com.getDateAdherenceCounselingCompleted()));
         entity.setDateArtStarted(artStartDate);
-        entity.setRegimenLineId(com.getRegimenLineId());                // Direct ID assignment
-        entity.setRegimenId(com.getFirstArtRegimen());                  // Direct ID assignment
+        entity.setRegimenLineId(com.getRegimenLineId());
+        entity.setRegimenId(com.getFirstArtRegimen());
         entity.setWeightKg(parseDouble(com.getWeightKg()));
         entity.setHeightCm(parseDouble(com.getHeightCm()));
         entity.setBmi(parseDouble(com.getBmi()));
@@ -250,9 +263,9 @@ public class EnrollmentCommencementService {
         TbPreventiveTherapyDto tpt = com.getTbPreventiveTherapy();
         if (tpt != null) {
             entity.setTptMedication(tpt.getMedication());
-            entity.setTptCode(tpt.getCode());
             entity.setTptDose(tpt.getDose());
             entity.setTptStartDate(parseDate(tpt.getStartDate()));
+            entity.setTptCompleted(tpt.getTptCompleted());
             entity.setTptCompletionDate(parseDate(tpt.getCompletionDate()));
         }
 

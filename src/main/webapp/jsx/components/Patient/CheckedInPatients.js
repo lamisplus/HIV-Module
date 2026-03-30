@@ -187,8 +187,8 @@ const CheckedInPatients = (props) => {
                 !isEnrolled && (
                   <Link
                     to={{
-                      pathname: "/enroll-patient",
-                      state: { patientId: rowData.id, patientObj: rowData },
+                      pathname: "/patient-history",
+                      state: { patientObj: rowData, enrollmentFlow: true },
                     }}
                   >
                     <ButtonGroup

@@ -148,7 +148,7 @@ const EnrollmentAndCommencementView = (props) => {
   const classes = useStyles();
   const patientAge = calculate_age_to_number(props.patientObj?.dateOfBirth);
   const isPediatric = patientAge >= 0 && patientAge <= 15;
-  const isInfant    = patientAge < 2;
+  const isInfant    = patientAge < 1.5;
   const isFemale    = ["female", "FEMALE", "Female"].includes(props.patientObj?.sex);
   const showPregnancyStatus = isFemale && !isPediatric;
 

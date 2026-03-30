@@ -6,17 +6,15 @@
             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
     <property name="autoIncrement" value="true"/>
-
-    <!-- Create enrollment_commencement table                                   -->
+    <!-- Create hiv_enrollment_commencement table                                -->
     <changeSet id="20250219-ec-01" author="taiwo-dev" failOnError="true">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="enrollment_commencement"/>
+                <tableExists tableName="hiv_enrollment_commencement"/>
             </not>
         </preConditions>
 
-        <createTable tableName="enrollment_commencement">
-
+        <createTable tableName="hiv_enrollment_commencement">
             <!-- ── Infrastructure ────────────────────────────────────────── -->
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -24,7 +22,7 @@
             <column name="uuid" type="VARCHAR(255)">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="unique_id_no" type="VARCHAR(100)"/>
+            <column name="unique_id" type="VARCHAR(100)"/>
             <column name="facility_id" type="BIGINT"/>
             <column name="person_uuid" type="VARCHAR(255)">
                 <constraints nullable="false"
@@ -47,13 +45,11 @@
             <column name="latitude" type="VARCHAR(255)"/>
             <column name="longitude" type="VARCHAR(255)"/>
             <column name="archived" type="INTEGER" defaultValueNumeric="0"/>
-
             <!-- ── Audit ──────────────────────────────────────────────────── -->
             <column name="created_by" type="VARCHAR(255)"/>
             <column name="created_date" type="TIMESTAMP"/>
             <column name="last_modified_by" type="VARCHAR(255)"/>
             <column name="last_modified_date" type="TIMESTAMP"/>
-
             <!-- ── Registration — HIV Care & Identification ───────────────── -->
             <column name="date_enrolled_in_hiv_care" type="DATE">
                 <constraints nullable="false"/>
@@ -64,23 +60,22 @@
             <column name="hiv_test_location" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="mode_of_hiv_test_id" type="BIGINT">
+            <column name="mode_of_hiv_test_id" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="care_entry_point_id" type="BIGINT">
+            <column name="care_entry_point_id" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="care_entry_point_other" type="VARCHAR(255)"/>
-            <!-- mother_unique_id: Required ONLY if age < 2 years (infant) - validated in backend -->
+            <!-- mother_unique_id: Required ONLY if age < 18 months (infant) - validated in backend -->
             <column name="mother_unique_id" type="VARCHAR(100)"/>
-
             <!-- ── Registration — Prior ART & KP ─────────────────────────── -->
-            <column name="prior_art_id" type="BIGINT">
+            <column name="prior_art_id" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="is_kp" type="BOOLEAN" defaultValueBoolean="false"/>
             <!-- kp_typology_id: Required ONLY if is_kp = TRUE - validated in backend -->
-            <column name="kp_typology_id" type="BIGINT"/>
+            <column name="kp_typology_id" type="VARCHAR(255)"/>
 
             <!-- ── Registration — Transfer Details ───────────────────────── -->
             <!-- date_transferred_in: Required ONLY if care_entry_point = "Transfer In" - validated in backend -->
@@ -89,16 +84,18 @@
             <column name="facility_transferred_from" type="VARCHAR(255)"/>
 
             <!-- ── Commencement — Clinical Status ─────────────────────────── -->
-            <column name="clinical_stage_id" type="BIGINT"/>
+            <column name="clinical_stage_id" type="VARCHAR(255)"/>
             <column name="cd4_at_art_start" type="BIGINT"/>
-            <column name="cd4_lf_id" type="BIGINT"/>
+            <column name="cd4_percentage" type="DOUBLE"/>
+            <column name="cd4_lf_id" type="VARCHAR(255)"/>
 
             <!-- ── Commencement — ART Dates & Regimen ─────────────────────── -->
             <column name="date_adherence_counseling_completed" type="DATE"/>
             <column name="date_art_started" type="DATE">
                 <constraints nullable="false"/>
             </column>
-            <column name="regimen_id" type="BIGINT"/>
+            <column name="regimen_line_id" type="VARCHAR(255)"/>
+            <column name="regimen_id" type="VARCHAR(255)"/>
 
             <!-- ── Commencement — Vitals ──────────────────────────────────── -->
             <column name="weight_kg" type="DOUBLE"/>
@@ -110,161 +107,98 @@
             <column name="pregnancy_status" type="VARCHAR(50)"/>
 
             <!-- ── Commencement — TB Preventive Therapy ───────────────────── -->
-            <column name="tpt_medication" type="VARCHAR(255)"/>
-            <column name="tpt_code" type="VARCHAR(20)"/>
+            <column name="tpt_medication" type="BIGINT"/>
             <column name="tpt_dose" type="VARCHAR(100)"/>
             <column name="tpt_start_date" type="DATE"/>
+            <column name="tpt_completed" type="VARCHAR(50)"/>
             <column name="tpt_completion_date" type="DATE"/>
 
         </createTable>
     </changeSet>
 
     <!-- Indexes                                                                -->
-    <changeSet id="20250219-ec-02" author="lamisplus-dev" failOnError="true">
+    <changeSet id="20250219-ec-02" author="taiwo-dev" failOnError="true">
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="enrollment_commencement"/>
+            <tableExists tableName="hiv_enrollment_commencement"/>
         </preConditions>
 
         <createIndex indexName="idx_ec_person_uuid"
-                     tableName="enrollment_commencement">
+                     tableName="hiv_enrollment_commencement">
             <column name="person_uuid"/>
             <column name="archived"/>
         </createIndex>
 
-        <createIndex indexName="idx_ec_unique_id_no"
-                     tableName="enrollment_commencement">
-            <column name="unique_id_no"/>
+        <createIndex indexName="idx_ec_unique_id"
+                     tableName="hiv_enrollment_commencement">
+            <column name="unique_id"/>
         </createIndex>
 
         <createIndex indexName="idx_ec_mother_unique_id"
-                     tableName="enrollment_commencement">
+                     tableName="hiv_enrollment_commencement">
             <column name="mother_unique_id"/>
         </createIndex>
     </changeSet>
 
     <!-- Unique constraint to ensure one active record per person               -->
-    <changeSet id="20250220-ec-03" author="lamisplus-dev" failOnError="true">
+    <changeSet id="20250220-ec-03" author="taiwo-dev" failOnError="true">
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="enrollment_commencement"/>
+            <tableExists tableName="hiv_enrollment_commencement"/>
             <not>
-                <indexExists tableName="enrollment_commencement" indexName="uk_ec_person_active"/>
+                <indexExists tableName="hiv_enrollment_commencement" indexName="uk_ec_person_active"/>
             </not>
         </preConditions>
 
-        <sql dbms="postgresql">
+        <sql>
             CREATE UNIQUE INDEX uk_ec_person_active
-            ON enrollment_commencement (person_uuid)
+            ON hiv_enrollment_commencement (person_uuid)
             WHERE archived = 0;
         </sql>
 
-        <sql dbms="mysql">
-            -- MySQL doesn't support partial indexes, so we use a functional approach
-            -- This prevents duplicate active records via application logic
-            ALTER TABLE enrollment_commencement
-            ADD CONSTRAINT chk_ec_one_active_per_person
-            CHECK (archived = 0 OR archived = 1);
-        </sql>
-
         <rollback>
-            <sql dbms="postgresql">
+            <sql>
                 DROP INDEX IF EXISTS uk_ec_person_active;
-            </sql>
-            <sql dbms="mysql">
-                ALTER TABLE enrollment_commencement DROP CONSTRAINT IF EXISTS chk_ec_one_active_per_person;
             </sql>
         </rollback>
     </changeSet>
 
-    <!-- Add regimen_line_id column to store the regimen line for easier retrieval -->
-    <changeSet id="20250221-ec-04" author="lamisplus-dev" failOnError="true">
+    <!-- Add enrollment_commencement_uuid column to hiv_art_clinical table     -->
+    <changeSet id="20250330-ec-04" author="taiwo-dev" failOnError="true">
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="enrollment_commencement"/>
+            <tableExists tableName="hiv_art_clinical"/>
             <not>
-                <columnExists tableName="enrollment_commencement" columnName="regimen_line_id"/>
+                <columnExists tableName="hiv_art_clinical" columnName="enrollment_commencement_uuid"/>
             </not>
         </preConditions>
 
-        <addColumn tableName="enrollment_commencement">
-            <column name="regimen_line_id" type="BIGINT">
-                <constraints nullable="true"/>
+        <addColumn tableName="hiv_art_clinical">
+            <column name="enrollment_commencement_uuid" type="VARCHAR(255)">
+                <constraints nullable="true"
+                             foreignKeyName="fk_art_clinical_enrollment_commencement"
+                             references="hiv_enrollment_commencement(uuid)"/>
             </column>
         </addColumn>
+
+        <createIndex indexName="idx_art_clinical_enrollment_commencement"
+                     tableName="hiv_art_clinical">
+            <column name="enrollment_commencement_uuid"/>
+        </createIndex>
     </changeSet>
 
-    <!-- Migration — populate from existing hiv_enrollment + hiv_art_clinical  -->
-<!--    <changeSet id="20250219-ec-03" author="lamisplus-dev" failOnError="false">-->
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <tableExists tableName="enrollment_commencement"/>-->
-<!--            <tableExists tableName="hiv_enrollment"/>-->
-<!--            <tableExists tableName="hiv_art_clinical"/>-->
-<!--            <sqlCheck expectedResult="0">-->
-<!--                SELECT COUNT(*) FROM enrollment_commencement-->
-<!--            </sqlCheck>-->
-<!--        </preConditions>-->
+    <!-- Make hiv_art_clinical columns nullable for backward compatibility     -->
+    <changeSet id="20250330-ec-05" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+        </preConditions>
 
-<!--        <sql>-->
-<!--            INSERT INTO enrollment_commencement (-->
-<!--                uuid,-->
-<!--                unique_id_no,-->
-<!--                facility_id,-->
-<!--                person_uuid,-->
-<!--                visit_id,-->
-<!--                vital_sign_uuid,-->
-<!--                is_commencement,-->
-<!--                art_status_id,-->
-<!--                status_at_registration_id,-->
-<!--                source,-->
-<!--                latitude,-->
-<!--                longitude,-->
-<!--                archived,-->
-<!--                created_by,-->
-<!--                created_date,-->
-<!--                last_modified_by,-->
-<!--                last_modified_date,-->
-<!--                date_enrolled_in_hiv_care,-->
-<!--                date_confirmed_hiv_test,-->
-<!--                care_entry_point_id,-->
-<!--                care_entry_point_other,-->
-<!--                clinical_stage_id,-->
-<!--                cd4_at_art_start,-->
-<!--                date_art_started,-->
-<!--                regimen_id,-->
-<!--                pregnancy_status-->
-<!--            )-->
-<!--            SELECT-->
-<!--                e.uuid,-->
-<!--                e.unique_id                         AS unique_id_no,-->
-<!--                e.facility_id,-->
-<!--                e.person_uuid,-->
-<!--                e.visit_id,-->
-<!--                c.vital_sign_uuid,-->
-<!--                TRUE                                AS is_commencement,-->
-<!--                c.art_status_id,-->
-<!--                e.status_at_registration_id,-->
-<!--                e.source,-->
-<!--                e.latitude,-->
-<!--                e.longitude,-->
-<!--                COALESCE(e.archived, 0)             AS archived,-->
-<!--                e.created_by,-->
-<!--                e.created_date,-->
-<!--                e.last_modified_by,-->
-<!--                e.last_modified_date,-->
-<!--                e.date_of_registration              AS date_enrolled_in_hiv_care,-->
-<!--                e.date_confirmed_hiv                AS date_confirmed_hiv_test,-->
-<!--                e.entry_point_id                    AS care_entry_point_id,-->
-<!--                e.care_entry_point_other,-->
-<!--                c.clinical_stage_id,-->
-<!--                c.cd_4                              AS cd4_at_art_start,-->
-<!--                c.visit_date                        AS date_art_started,-->
-<!--                c.regimen_id,-->
-<!--                c.pregnancy_status-->
-<!--            FROM hiv_enrollment e-->
-<!--            JOIN hiv_art_clinical c-->
-<!--                ON  c.hiv_enrollment_uuid = e.uuid-->
-<!--                AND c.is_commencement     = TRUE-->
-<!--                AND c.archived            = 0-->
-<!--            WHERE e.archived = 0;-->
-<!--        </sql>-->
-<!--    </changeSet>-->
+        <!-- Make hiv_enrollment_uuid nullable (new records use enrollment_commencement_uuid instead) -->
+        <dropNotNullConstraint tableName="hiv_art_clinical"
+                               columnName="hiv_enrollment_uuid"
+                               columnDataType="VARCHAR(255)"/>
+
+        <!-- Make visit_id nullable (can be null if visit creation fails) -->
+        <dropNotNullConstraint tableName="hiv_art_clinical"
+                               columnName="visit_id"
+                               columnDataType="VARCHAR(255)"/>
+    </changeSet>
 
 </databaseChangeLog>

@@ -9,6 +9,8 @@ const FindPatientActions = memo(({ row }) => {
   const { hasPermission } = usePermissions();
   const canEnroll = hasPermission("hiv_enrollment_register");
 
+  console.log("FindPatientActions - canEnroll:", canEnroll, "row:", row);
+
   if (!canEnroll) return null;
 
   if (row.currentStatus !== "Not Enrolled") {
@@ -43,12 +45,19 @@ const FindPatientActions = memo(({ row }) => {
     );
   }
 
+  const handleEnrollClick = (e) => {
+    console.log("Enroll button clicked!", { row, enrollmentFlow: true });
+    alert("Enroll button clicked! Check console for details.");
+  };
+
   return (
     <Link
       to={{
-        pathname: "/enroll-patient",
-        state: { patientId: row.id, patientObj: row },
+        pathname: "/patient-history",
+        state: { patientObj: row, enrollmentFlow: true },
       }}
+      onClick={handleEnrollClick}
+      style={{ textDecoration: "none", cursor: "pointer" }}
     >
       <ButtonGroup
         variant="contained"
@@ -57,17 +66,18 @@ const FindPatientActions = memo(({ row }) => {
           backgroundColor: "rgb(153, 46, 98)",
           height: "30px",
           width: "215px",
+          cursor: "pointer",
         }}
         size="large"
       >
         <Button
           color="primary"
           size="small"
-          style={{ backgroundColor: "rgb(153, 46, 98)" }}
+          style={{ backgroundColor: "rgb(153, 46, 98)", cursor: "pointer" }}
         >
           <TiArrowForward />
         </Button>
-        <Button style={{ backgroundColor: "rgb(153, 46, 98)" }}>
+        <Button style={{ backgroundColor: "rgb(153, 46, 98)", cursor: "pointer" }}>
           <span
             style={{ fontSize: "12px", color: "#fff", fontWeight: "bolder" }}
           >
