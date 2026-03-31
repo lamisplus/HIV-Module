@@ -19,6 +19,8 @@ import { token, url as baseUrl } from "../../../../api";
 import MatButton from "@material-ui/core/Button";
 import SaveIcon from "@material-ui/icons/Save";
 import CancelIcon from "@material-ui/icons/Cancel";
+import EditIcon from "@material-ui/icons/Edit";
+import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import { calculate_age_to_number } from "../../../../utils";
 
 
@@ -205,6 +207,23 @@ const calcMuacIndication = (muacCm) => {
 
 const EnrollmentAndCommencementForm = (props) => {
   const classes = useStyles();
+
+  // ── Determine Mode ─────────────────────────────────────────────────────────
+  // Mode can be: 'create', 'edit', or 'view'
+  // Determine based on props.mode OR activeContent.route
+  const getMode = () => {
+    if (props.mode) return props.mode;
+    const route = props.activeContent?.route;
+    if (route === 'enrollment-and-commencement-update') return 'edit';
+    if (route === 'enrollment-and-commencement-view') return 'view';
+    return 'create';
+  };
+
+  const mode = getMode();
+  const isViewMode = mode === 'view';
+  const isEditMode = mode === 'edit';
+  const isCreateMode = mode === 'create';
+
   const patientAge = calculate_age_to_number(props.patientObj?.dateOfBirth);
   const isPediatric = patientAge >= 0 && patientAge <= 15;
   const isInfant    = patientAge < 1.5;
@@ -214,6 +233,7 @@ const EnrollmentAndCommencementForm = (props) => {
   const showPregnancyStatus = isFemale && !isPediatric;
 
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(isEditMode || isViewMode);
   const [errors, setErrors] = useState({});
   const [expanded, setExpanded] = useState(["registration", "commencement"]);
   const [codesets, setCodesets] = useState({
@@ -236,9 +256,14 @@ const EnrollmentAndCommencementForm = (props) => {
   const [checkingUniqueId, setCheckingUniqueId] = useState(false);
 
   // ── Check if patient already has enrollment-commencement record ──────────
+  // Only check for existing record in CREATE mode
   useEffect(() => {
-    checkForExistingRecord();
-  }, [props.patientObj.id]);
+    if (isCreateMode) {
+      checkForExistingRecord();
+    } else {
+      setCheckingExisting(false);
+    }
+  }, [props.patientObj.id, isCreateMode]);
 
   const checkForExistingRecord = async () => {
     setCheckingExisting(true);
@@ -261,9 +286,86 @@ const EnrollmentAndCommencementForm = (props) => {
   // ── Fetch Codesets from API ──────────────────────────────────────────────
   useEffect(() => {
     fetchCodesets();
-    fetchRegimenLines();
-    fetchTptMedications();
+    fetchRegimenLines(); // Fetch regimen lines in all modes for proper display
+    fetchTptMedications(); // Fetch TPT medications in all modes for proper display
+    if (isEditMode || isViewMode) {
+      fetchExistingData();
+    }
   }, []);
+
+  // ── Fetch Existing Data for Edit/View Mode ──────────────────────────────
+  const fetchExistingData = async () => {
+    setLoading(true);
+    try {
+      const endpoint = isViewMode
+        ? `${baseUrl}hiv/enrollment-commencement/person/${props.patientObj.id}`
+        : `${baseUrl}hiv/enrollment-commencement/${props.activeContent.id}`;
+
+      const response = await axios.get(endpoint, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = response.data;
+
+      // Populate registration fields
+      setRegistration({
+        unique_id: data.uniqueId || "",
+        date_enrolled_in_hiv_care: data.dateEnrolledInHivCare ? moment(data.dateEnrolledInHivCare).format("YYYY-MM-DD") : "",
+        mother_unique_id: data.motherUniqueId || "",
+        care_entry_point: data.careEntryPointId || "",
+        care_entry_point_other: data.careEntryPointOther || "",
+        date_transferred_in: data.dateTransferredIn ? moment(data.dateTransferredIn).format("YYYY-MM-DD") : "",
+        facility_transferred_from: data.facilityTransferredFrom || "",
+        date_confirmed_hiv_test: data.dateConfirmedHivTest ? moment(data.dateConfirmedHivTest).format("YYYY-MM-DD") : "",
+        mode_of_hiv_test: data.modeOfHivTestId || "",
+        hiv_test_location: data.hivTestLocation || "",
+        prior_art: data.priorArtId || "",
+        is_kp: data.isKp ? "Yes" : "No",
+        kp_typology: data.kpTypologyId || "",
+      });
+
+      // Populate commencement fields
+      const hasTpt = data.tptMedication || data.tptDose || data.tptStartDate || data.tptCompleted || data.tptCompletionDate;
+      setCommencement({
+        clinical_stage_at_art_start: data.clinicalStageId || "",
+        cd4_at_art_start: data.cd4AtArtStart || "",
+        cd4_percentage: data.cd4Percentage || "",
+        cd4_lf: data.cd4LfId || "",
+        date_adherence_counseling_completed: data.dateAdherenceCounselingCompleted ? moment(data.dateAdherenceCounselingCompleted).format("YYYY-MM-DD") : "",
+        date_art_started: data.dateArtStarted ? moment(data.dateArtStarted).format("YYYY-MM-DD") : "",
+        regimen_line_id: data.regimenLineId || "",
+        first_art_regimen: data.regimenId || "",
+        weight_kg: data.weightKg || "",
+        height_cm: data.heightCm || "",
+        bmi: data.bmi || "",
+        muac: data.muac || "",
+        muac_indication: data.muacIndication || "",
+        is_pregnant: data.isPregnant ? "Yes" : "No",
+        pregnancy_status: data.pregnancyStatus || "",
+        tpt_started: hasTpt,
+        tb_preventive_therapy: {
+          medication: data.tptMedication || "",
+          dose: data.tptDose || "",
+          start_date: data.tptStartDate ? moment(data.tptStartDate).format("YYYY-MM-DD") : "",
+          tpt_completed: data.tptCompleted || "",
+          completion_date: data.tptCompletionDate ? moment(data.tptCompletionDate).format("YYYY-MM-DD") : "",
+        },
+      });
+
+      // Fetch regimens for the selected regimen line (for edit/view mode)
+      if ((isEditMode || isViewMode) && data.regimenLineId) {
+        await fetchRegimenLines();
+        await fetchRegimens(data.regimenLineId);
+      }
+    } catch (error) {
+      const msg =
+        error?.response?.data?.apierror?.message ||
+        "Failed to load enrollment data";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchCodesets = async () => {
     setLoadingCodesets(true);
@@ -307,6 +409,18 @@ const EnrollmentAndCommencementForm = (props) => {
   const getCodesetCodeByPattern = (codesetArray, codePattern) => {
     const found = codesetArray.find(item => item.code?.includes(codePattern));
     return found ? found.code : null;
+  };
+
+  // Helper to get codeset display value (for view mode)
+  const getCodesetDisplay = (codeValue, codesetArray) => {
+    if (!codeValue) return "—";
+    const item = codesetArray.find(c => c.code === codeValue || c.id === codeValue);
+    return item ? item.display : codeValue;
+  };
+
+  // Helper to format date for display
+  const formatDate = (date) => {
+    return date ? moment(date).format("DD-MMM-YYYY") : "—";
   };
 
   // Helper to filter KP Typology based on gender
@@ -886,14 +1000,14 @@ const EnrollmentAndCommencementForm = (props) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if Unique ID validation is still in progress
-    if (checkingUniqueId) {
+    // Check if Unique ID validation is still in progress (only for create mode)
+    if (isCreateMode && checkingUniqueId) {
       toast.warning("Please wait while we verify the Unique ID");
       return;
     }
 
-    // Re-validate Unique ID before submission
-    if (registration.unique_id && String(registration.unique_id).trim() !== '') {
+    // Re-validate Unique ID before submission (only for create mode)
+    if (isCreateMode && registration.unique_id && String(registration.unique_id).trim() !== '') {
       await checkUniqueIdExists(registration.unique_id);
     }
 
@@ -916,10 +1030,21 @@ const EnrollmentAndCommencementForm = (props) => {
           commencement,
         },
       };
-      await axios.post(`${baseUrl}hiv/enrollment-commencement`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("Enrollment and Commencement saved successfully");
+
+      if (isEditMode) {
+        await axios.put(
+          `${baseUrl}hiv/enrollment-commencement/${props.activeContent.id}`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success("Enrollment and Commencement updated successfully");
+      } else {
+        await axios.post(`${baseUrl}hiv/enrollment-commencement`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Enrollment and Commencement saved successfully");
+      }
+
       props.setActiveContent({
         ...props.activeContent,
         route: "recent-history",
@@ -938,13 +1063,13 @@ const EnrollmentAndCommencementForm = (props) => {
   // Render
   // ─────────────────────────────────────────────────────────────────────────
 
-  // Show loading state while checking for existing record
-  if (checkingExisting) {
+  // Show loading state while checking for existing record OR loading data
+  if (checkingExisting || loading) {
     return (
       <Card className={classes.root} style={{ borderRadius: "12px" }}>
         <CardContent>
           <Box sx={{ textAlign: "center", padding: "40px" }}>
-            <Typography>Checking existing records...</Typography>
+            <Typography>{loading ? "Loading..." : "Checking existing records..."}</Typography>
           </Box>
         </CardContent>
       </Card>
@@ -1009,7 +1134,7 @@ const EnrollmentAndCommencementForm = (props) => {
           }}
         >
           <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
-            Enrollment &amp; ART Commencement
+            Enrollment &amp; ART Commencement {isEditMode && "(Update)"} {isViewMode && "(View)"}
             {isPediatric && (
               <span
                 style={{
@@ -1053,7 +1178,9 @@ const EnrollmentAndCommencementForm = (props) => {
                   onChange={handleReg}
                   onBlur={handleUniqueIdBlur}
                   placeholder="Enter unique identifier"
-                  disabled={checkingUniqueId}
+                  disabled={checkingUniqueId || isViewMode || isEditMode}
+                  readOnly={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {checkingUniqueId && (
                   <span style={{ color: "#014d88", fontSize: "12px", marginTop: "4px" }}>
@@ -1087,6 +1214,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   }
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleReg}
+                  disabled={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {errors.date_enrolled_in_hiv_care && (
                   <span className={classes.error}>
@@ -1110,6 +1239,9 @@ const EnrollmentAndCommencementForm = (props) => {
                     value={registration.mother_unique_id}
                     onChange={handleReg}
                     placeholder="Required for infants < 18 months"
+                    disabled={isViewMode}
+                    readOnly={isViewMode}
+                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   />
                   {errors.mother_unique_id && (
                     <span className={classes.error}>
@@ -1128,7 +1260,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="care_entry_point"
                   value={registration.care_entry_point}
                   onChange={handleReg}
-                  disabled={loadingCodesets}
+                  disabled={loadingCodesets || isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.careEntryPoints.map((opt) => (
@@ -1156,6 +1289,9 @@ const EnrollmentAndCommencementForm = (props) => {
                     value={registration.care_entry_point_other}
                     onChange={handleReg}
                     placeholder="Please specify..."
+                    disabled={isViewMode}
+                    readOnly={isViewMode}
+                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   />
                 </Col>
               </FieldRow>
@@ -1175,6 +1311,8 @@ const EnrollmentAndCommencementForm = (props) => {
                     value={registration.date_transferred_in}
                     max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
                     onChange={handleReg}
+                    disabled={isViewMode}
+                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   />
                   {errors.date_transferred_in && (
                     <span className={classes.error}>
@@ -1195,6 +1333,9 @@ const EnrollmentAndCommencementForm = (props) => {
                     value={registration.facility_transferred_from}
                     onChange={handleReg}
                     placeholder="Name of sending facility"
+                    disabled={isViewMode}
+                    readOnly={isViewMode}
+                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   />
                   {errors.facility_transferred_from && (
                     <span className={classes.error}>
@@ -1218,6 +1359,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   value={registration.date_confirmed_hiv_test}
                   max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleReg}
+                  disabled={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {errors.date_confirmed_hiv_test && (
                   <span className={classes.error}>
@@ -1235,7 +1378,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="mode_of_hiv_test"
                   value={registration.mode_of_hiv_test}
                   onChange={handleReg}
-                  disabled={loadingCodesets}
+                  disabled={loadingCodesets || isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.mode_of_hiv_test.map((opt) => (
@@ -1263,6 +1407,9 @@ const EnrollmentAndCommencementForm = (props) => {
                   value={registration.hiv_test_location}
                   onChange={handleReg}
                   placeholder="e.g. ANC, HTS Site"
+                  disabled={isViewMode}
+                  readOnly={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {errors.hiv_test_location && (
                   <span className={classes.error}>
@@ -1280,7 +1427,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="prior_art"
                   value={registration.prior_art}
                   onChange={handleReg}
-                  disabled={loadingCodesets}
+                  disabled={loadingCodesets || isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.priorArt.map((opt) => (
@@ -1306,6 +1454,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="is_kp"
                   value={registration.is_kp}
                   onChange={handleReg}
+                  disabled={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">Select</option>
                   <option value="Yes">Yes</option>
@@ -1323,7 +1473,8 @@ const EnrollmentAndCommencementForm = (props) => {
                     name="kp_typology"
                     value={registration.kp_typology}
                     onChange={handleReg}
-                    disabled={loadingCodesets}
+                    disabled={loadingCodesets || isViewMode}
+                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   >
                     <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                     {getFilteredKpTypology(codesets.kpTypology).map((opt) => (
@@ -1362,7 +1513,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="clinical_stage_at_art_start"
                   value={commencement.clinical_stage_at_art_start}
                   onChange={handleCommencement}
-                  disabled={loadingCodesets}
+                  disabled={loadingCodesets || isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.clinicalStages.map((opt) => (
@@ -1385,6 +1537,9 @@ const EnrollmentAndCommencementForm = (props) => {
                   placeholder="cells/mm³"
                   min="0"
                   step="1"
+                  disabled={isViewMode}
+                  readOnly={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
               </Col>
             </FieldRow>
@@ -1402,6 +1557,9 @@ const EnrollmentAndCommencementForm = (props) => {
                   min="0"
                   max="100"
                   step="0.1"
+                  disabled={isViewMode}
+                  readOnly={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
               </Col>
               <Col>
@@ -1411,7 +1569,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="cd4_lf"
                   value={commencement.cd4_lf}
                   onChange={handleCommencement}
-                  disabled={loadingCodesets}
+                  disabled={loadingCodesets || isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.cd4_lf.map((opt) => (
@@ -1439,6 +1598,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   value={commencement.date_adherence_counseling_completed}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleCommencement}
+                  disabled={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
               </Col>
               <Col>
@@ -1453,6 +1614,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   min={registration.date_enrolled_in_hiv_care}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleCommencement}
+                  disabled={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {errors.date_art_started && (
                   <span className={classes.error}>
@@ -1471,6 +1634,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="regimen_line_id"
                   value={commencement.regimen_line_id}
                   onChange={handleCommencement}
+                  disabled={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">Select regimen line first...</option>
                   {regimenLines.map((line) => (
@@ -1487,7 +1652,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="first_art_regimen"
                   value={commencement.first_art_regimen}
                   onChange={handleCommencement}
-                  disabled={!commencement.regimen_line_id || loadingRegimens}
+                  disabled={!commencement.regimen_line_id || loadingRegimens || isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">
                     {!commencement.regimen_line_id
@@ -1529,6 +1695,9 @@ const EnrollmentAndCommencementForm = (props) => {
                     placeholder="kg"
                     min="0"
                     step="0.1"
+                    disabled={isViewMode}
+                    readOnly={isViewMode}
+                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   />
                 </Col>
                 <Col>
@@ -1541,6 +1710,9 @@ const EnrollmentAndCommencementForm = (props) => {
                     placeholder="cm"
                     min="0"
                     step="0.1"
+                    disabled={isViewMode}
+                    readOnly={isViewMode}
+                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   />
                 </Col>
               </FieldRow>
@@ -1580,6 +1752,9 @@ const EnrollmentAndCommencementForm = (props) => {
                         placeholder="e.g. 13.5"
                         min="0"
                         step="0.1"
+                        disabled={isViewMode}
+                        readOnly={isViewMode}
+                        style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                       />
                     </Col>
                     <Col>
@@ -1632,6 +1807,8 @@ const EnrollmentAndCommencementForm = (props) => {
                         name="is_pregnant"
                         value={commencement.is_pregnant}
                         onChange={handleCommencement}
+                        disabled={isViewMode}
+                        style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                       >
                         <option value="">Select</option>
                         <option value="Yes">Yes</option>
@@ -1646,7 +1823,8 @@ const EnrollmentAndCommencementForm = (props) => {
                           name="pregnancy_status"
                           value={commencement.pregnancy_status}
                           onChange={handleCommencement}
-                          disabled={loadingCodesets}
+                          disabled={loadingCodesets || isViewMode}
+                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                         >
                           <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                           {codesets.pregnancyStatus.map((opt) => (
@@ -1676,11 +1854,12 @@ const EnrollmentAndCommencementForm = (props) => {
                     name="tpt_started"
                     checked={commencement.tpt_started}
                     onChange={handleCommencement}
+                    disabled={isViewMode}
                     style={{
                       width: "18px",
                       height: "18px",
                       marginRight: "8px",
-                      cursor: "pointer"
+                      cursor: isViewMode ? "not-allowed" : "pointer"
                     }}
                   />
                   <label
@@ -1689,7 +1868,7 @@ const EnrollmentAndCommencementForm = (props) => {
                       fontSize: "14px",
                       fontWeight: "600",
                       color: "#014d88",
-                      cursor: "pointer",
+                      cursor: isViewMode ? "not-allowed" : "pointer",
                       margin: 0
                     }}
                   >
@@ -1718,7 +1897,8 @@ const EnrollmentAndCommencementForm = (props) => {
                       name="medication"
                       value={commencement.tb_preventive_therapy.medication}
                       onChange={handleTpt}
-                      disabled={loadingTptMedications}
+                      disabled={loadingTptMedications || isViewMode}
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                     >
                       <option value="">{loadingTptMedications ? "Loading..." : "Select"}</option>
                       {tptMedications.map((med) => (
@@ -1740,6 +1920,9 @@ const EnrollmentAndCommencementForm = (props) => {
                       value={commencement.tb_preventive_therapy.dose}
                       onChange={handleTpt}
                       placeholder="e.g. 300mg"
+                      disabled={isViewMode}
+                      readOnly={isViewMode}
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                     />
                   </Col>
                   <Col>
@@ -1751,6 +1934,8 @@ const EnrollmentAndCommencementForm = (props) => {
                       min={registration.date_enrolled_in_hiv_care}
                       max={moment(new Date()).format("YYYY-MM-DD")}
                       onChange={handleTpt}
+                      disabled={isViewMode}
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                     />
                   </Col>
                 </FieldRow>
@@ -1764,6 +1949,8 @@ const EnrollmentAndCommencementForm = (props) => {
                       name="tpt_completed"
                       value={commencement.tb_preventive_therapy.tpt_completed}
                       onChange={handleTpt}
+                      disabled={isViewMode}
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                     >
                       <option value="">Select</option>
                       <option value="Yes">Yes</option>
@@ -1783,6 +1970,8 @@ const EnrollmentAndCommencementForm = (props) => {
                         min={commencement.tb_preventive_therapy.start_date}
                         max={moment(new Date()).format("YYYY-MM-DD")}
                         onChange={handleTpt}
+                        disabled={isViewMode}
+                        style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                       />
                       {errors.tpt_completion_date && (
                         <span className={classes.error}>
@@ -1807,31 +1996,71 @@ const EnrollmentAndCommencementForm = (props) => {
               marginTop: "8px",
             }}
           >
-            <MatButton
-              variant="contained"
-              className={classes.button}
-              startIcon={<CancelIcon style={{ color: "#fff" }} />}
-              style={{ backgroundColor: "#992E62" }}
-              onClick={() =>
-                props.setActiveContent({
-                  ...props.activeContent,
-                  route: "recent-history",
-                })
-              }
-              type="button"
-            >
-              <span style={{ textTransform: "capitalize" }}>Cancel</span>
-            </MatButton>
-            <MatButton
-              type="submit"
-              variant="contained"
-              className={classes.button}
-              startIcon={<SaveIcon />}
-              style={{ backgroundColor: "#014d88" }}
-              disabled={saving}
-            >
-              <span style={{ textTransform: "capitalize" }}>{saving ? "Saving..." : "Save"}</span>
-            </MatButton>
+            {isViewMode ? (
+              <>
+                {/* View Mode Buttons: Back + Edit */}
+                <MatButton
+                  variant="contained"
+                  className={classes.button}
+                  startIcon={<ArrowBackIcon style={{ color: "#fff" }} />}
+                  style={{ backgroundColor: "#992E62" }}
+                  onClick={() =>
+                    props.setActiveContent({
+                      ...props.activeContent,
+                      route: "recent-history",
+                    })
+                  }
+                  type="button"
+                >
+                  <span style={{ textTransform: "capitalize" }}>Back</span>
+                </MatButton>
+                <MatButton
+                  variant="contained"
+                  className={classes.button}
+                  startIcon={<EditIcon />}
+                  style={{ backgroundColor: "#014d88" }}
+                  onClick={() =>
+                    props.setActiveContent({
+                      ...props.activeContent,
+                      route: "enrollment-and-commencement-update",
+                    })
+                  }
+                >
+                  <span style={{ textTransform: "capitalize" }}>Edit</span>
+                </MatButton>
+              </>
+            ) : (
+              <>
+                {/* Create/Edit Mode Buttons: Cancel + Save/Update */}
+                <MatButton
+                  variant="contained"
+                  className={classes.button}
+                  startIcon={<CancelIcon style={{ color: "#fff" }} />}
+                  style={{ backgroundColor: "#992E62" }}
+                  onClick={() =>
+                    props.setActiveContent({
+                      ...props.activeContent,
+                      route: "recent-history",
+                    })
+                  }
+                  type="button"
+                >
+                  <span style={{ textTransform: "capitalize" }}>Cancel</span>
+                </MatButton>
+                <MatButton
+                  type="submit"
+                  variant="contained"
+                  className={classes.button}
+                  startIcon={<SaveIcon />}
+                  style={{ backgroundColor: "#014d88" }}
+                  disabled={saving}
+                >
+                  <span style={{ textTransform: "capitalize" }}>
+                    {saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update" : "Save")}
+                  </span>
+                </MatButton>
+              </>
+            )}
           </Box>
         </form>
       </CardContent>

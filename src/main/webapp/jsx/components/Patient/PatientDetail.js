@@ -9,6 +9,7 @@ import { Sticky, Button } from "semantic-ui-react";
 import { Modal } from "react-bootstrap";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
 import PatientCardDetail from "./PatientCard";
 import { useHistory } from "react-router-dom";
 import SubMenu from "./SubMenu";
@@ -133,6 +134,7 @@ function PatientCard(props) {
   console.log("PatientDetail - enrollmentFlow:", enrollmentFlow, "location.state:", history.location?.state);
   const [patientObj1, setPatientObj1] = useState(null);
   const [showModal, setShowModal] = useState({ show: false, message: "" });
+  const [checkingEnrollmentStatus, setCheckingEnrollmentStatus] = useState(enrollmentFlow);
 
   useEffect(() => {
     const getCurrentPatientRecord = async (id) => {
@@ -265,7 +267,10 @@ function PatientCard(props) {
   // Auto-open appropriate form when enrollmentFlow is true
   useEffect(() => {
     const checkEnrollmentStatusAndRoute = async () => {
-      if (!enrollmentFlow || !patientObj?.id) return;
+      if (!enrollmentFlow || !patientObj?.id) {
+        setCheckingEnrollmentStatus(false);
+        return;
+      }
 
       console.log("Auto-open form useEffect - enrollmentFlow:", enrollmentFlow, "patientObj?.id:", patientObj?.id);
 
@@ -280,15 +285,49 @@ function PatientCard(props) {
         console.log("ICE completed?", isICECompleted);
 
         if (isICECompleted) {
-          // ICE is done, route to Enrollment & Commencement form
-          console.log("Opening Enrollment & Commencement form automatically!");
-          setActiveContent({
-            route: "enrollment-and-commencement",
-            id: "",
-            activeTab: "home",
-            actionType: "create",
-            obj: {},
-          });
+          // ICE is done, now check if Enrollment & Commencement is also done
+          try {
+            const enrollmentResponse = await axios.get(
+              `${baseUrl}hiv/enrollment-commencement/person/${patientObj.id}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // If we get a response with data, enrollment exists
+            const isEnrollmentCompleted = enrollmentResponse.data && enrollmentResponse.data.id;
+            console.log("Enrollment & Commencement completed?", isEnrollmentCompleted);
+
+            if (isEnrollmentCompleted) {
+              // Both ICE and Enrollment are done, route to recent history
+              console.log("Both ICE and Enrollment & Commencement are complete. Routing to recent history.");
+              setActiveContent({
+                route: "recent-history",
+                id: "",
+                activeTab: "home",
+                actionType: "",
+                obj: {},
+              });
+            } else {
+              // ICE is done but Enrollment is not, route to Enrollment & Commencement form
+              console.log("Opening Enrollment & Commencement form automatically!");
+              setActiveContent({
+                route: "enrollment-and-commencement",
+                id: "",
+                activeTab: "home",
+                actionType: "create",
+                obj: {},
+              });
+            }
+          } catch (enrollmentError) {
+            // If 404 or any error, enrollment doesn't exist
+            console.log("Enrollment & Commencement not found, opening form");
+            setActiveContent({
+              route: "enrollment-and-commencement",
+              id: "",
+              activeTab: "home",
+              actionType: "create",
+              obj: {},
+            });
+          }
         } else {
           // ICE not done yet, open ICE form
           console.log("Opening ICE form automatically!");
@@ -301,7 +340,7 @@ function PatientCard(props) {
           });
         }
       } catch (error) {
-        console.log("Error checking ICE status:", error);
+        console.log("Error checking enrollment status:", error);
         // Default to ICE form if check fails
         setActiveContent({
           route: "initial-clinical-evaluation",
@@ -310,11 +349,41 @@ function PatientCard(props) {
           actionType: "create",
           obj: {},
         });
+      } finally {
+        setCheckingEnrollmentStatus(false);
       }
     };
 
     checkEnrollmentStatusAndRoute();
   }, [enrollmentFlow, patientObj?.id]);
+
+  // Show loading state while checking enrollment status
+  if (checkingEnrollmentStatus) {
+    return (
+      <div className={classes.root}>
+        <div
+          className="row page-titles mx-0"
+          style={{ marginTop: "0px", marginBottom: "-10px" }}
+        >
+          <ol className="breadcrumb">
+            <li className="breadcrumb-item active">
+              <h4>
+                {" "}
+                <Link to={"/"}>HIV /</Link> Patient Dashboard
+              </h4>
+            </li>
+          </ol>
+        </div>
+        <Card>
+          <CardContent>
+            <div style={{ textAlign: "center", padding: "40px" }}>
+              <Typography>Checking enrollment status...</Typography>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={classes.root}>
