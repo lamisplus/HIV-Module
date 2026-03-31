@@ -327,6 +327,7 @@ const EnrollmentAndCommencementForm = (props) => {
       // Populate commencement fields
       const hasTpt = data.tptMedication || data.tptDose || data.tptStartDate || data.tptCompleted || data.tptCompletionDate;
       setCommencement({
+        visit_date: data.visitDate ? moment(data.visitDate).format("YYYY-MM-DD") : "",
         clinical_stage_at_art_start: data.clinicalStageId || "",
         cd4_at_art_start: data.cd4AtArtStart || "",
         cd4_percentage: data.cd4Percentage || "",
@@ -691,6 +692,7 @@ const EnrollmentAndCommencementForm = (props) => {
   };
 
   const [commencement, setCommencement] = useState({
+    visit_date: "",
     clinical_stage_at_art_start: "",
     cd4_at_art_start: "",
     cd4_percentage: "",
@@ -774,7 +776,7 @@ const EnrollmentAndCommencementForm = (props) => {
 
     if (errors[name]) {
       const newErrors = { ...errors };
-      if (name === 'date_art_started' && value && String(value).trim() !== '') {
+      if ((name === 'date_art_started' || name === 'visit_date') && value && String(value).trim() !== '') {
         delete newErrors[name];
       }
 
@@ -954,6 +956,9 @@ const EnrollmentAndCommencementForm = (props) => {
       temp.prior_art = "Prior ART status is required";
     }
 
+    if (!commencement.visit_date || String(commencement.visit_date).trim() === '') {
+      temp.visit_date = "Visit date is required";
+    }
 
     if (!commencement.date_art_started || String(commencement.date_art_started).trim() === '') {
       temp.date_art_started = "Date ART started is required";
@@ -1498,7 +1503,32 @@ const EnrollmentAndCommencementForm = (props) => {
             expanded={expanded}
             onToggle={toggleAccordion}
           >
+            {/* Visit Date */}
+            <FieldRow>
+              <Col>
+                <SectionLabel>
+                  Visit Date{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
+                <Input
+                  type="date"
+                  name="visit_date"
+                  value={commencement.visit_date}
+                  max={moment(new Date()).format("YYYY-MM-DD")}
+                  onChange={handleCommencement}
+                  disabled={isViewMode}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                />
+                {errors.visit_date && (
+                  <span className={classes.error}>
+                    {errors.visit_date}
+                  </span>
+                )}
+              </Col>
+            </FieldRow>
+
             {/* Clinical Status */}
+            <Divider sx={{ my: 2 }} />
             <SubHeading>Clinical Status at ART Start</SubHeading>
 
             {/* Row 1: Clinical Stage at Start of ART, CD4 Count at Start of ART */}
