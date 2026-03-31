@@ -303,10 +303,10 @@ const EnrollmentAndCommencementForm = (props) => {
     }
   };
 
-  // Helper to find codeset ID by code pattern
-  const getCodesetIdByCode = (codesetArray, codePattern) => {
+  // Helper to find codeset code by code pattern
+  const getCodesetCodeByPattern = (codesetArray, codePattern) => {
     const found = codesetArray.find(item => item.code?.includes(codePattern));
-    return found ? found.id : null;
+    return found ? found.code : null;
   };
 
   // Helper to filter KP Typology based on gender
@@ -476,8 +476,8 @@ const EnrollmentAndCommencementForm = (props) => {
       }
     } else if (name === 'care_entry_point') {
       // Clear transfer-related fields when care_entry_point changes away from "Transfer In"
-      const transferInId = getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER");
-      if (value != transferInId) {
+      const transferInCode = getCodesetCodeByPattern(codesets.careEntryPoints, "TRANSFER");
+      if (value != transferInCode) {
         setRegistration((prev) => ({
           ...prev,
           [name]: value,
@@ -529,8 +529,8 @@ const EnrollmentAndCommencementForm = (props) => {
       }
 
       // Conditionally required — date_transferred_in
-      const transferInId = getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER");
-      if (name === 'date_transferred_in' && registration.care_entry_point == transferInId) {
+      const transferInCode = getCodesetCodeByPattern(codesets.careEntryPoints, "TRANSFER");
+      if (name === 'date_transferred_in' && registration.care_entry_point == transferInCode) {
         if (value && String(value).trim() !== '') {
           delete newErrors[name];
         }
@@ -545,7 +545,7 @@ const EnrollmentAndCommencementForm = (props) => {
       }
 
       // Special case: If care_entry_point changes away from Transfer-in, clear transfer errors
-      if (name === 'care_entry_point' && value != transferInId) {
+      if (name === 'care_entry_point' && value != transferInCode) {
         delete newErrors.date_transferred_in;
         delete newErrors.facility_transferred_from;
       }
@@ -709,7 +709,7 @@ const EnrollmentAndCommencementForm = (props) => {
   // ── Auto-populate Date ART Started with Date Enrolled in HIV Care ────────
   useEffect(() => {
     // Find the selected care entry point
-    const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.id == registration.care_entry_point);
+    const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.code == registration.care_entry_point);
 
     // Check if Care Entry Point is Transfer-in using code or display
     const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
@@ -861,8 +861,8 @@ const EnrollmentAndCommencementForm = (props) => {
     }
 
     // 3. Transfer-in date — Required if care_entry_point is Transfer-in
-    const transferInId = getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER");
-    if (registration.care_entry_point == transferInId && (!registration.date_transferred_in || String(registration.date_transferred_in).trim() === '')) {
+    const transferInCode = getCodesetCodeByPattern(codesets.careEntryPoints, "TRANSFER");
+    if (registration.care_entry_point == transferInCode && (!registration.date_transferred_in || String(registration.date_transferred_in).trim() === '')) {
       temp.date_transferred_in = "Transfer-in date is required when care entry point is 'Transfer-in'";
     }
 
@@ -1132,7 +1132,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.careEntryPoints.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
+                    <option key={opt.id} value={opt.code}>
                       {opt.display}
                     </option>
                   ))}
@@ -1146,7 +1146,7 @@ const EnrollmentAndCommencementForm = (props) => {
             </FieldRow>
 
             {/* Row 3: Specify Entry Point (if Others selected) */}
-            {registration.care_entry_point == getCodesetIdByCode(codesets.careEntryPoints, "OTHERS") && (
+            {registration.care_entry_point == getCodesetCodeByPattern(codesets.careEntryPoints, "OTHERS") && (
               <FieldRow>
                 <Col>
                   <SectionLabel>Specify Entry Point</SectionLabel>
@@ -1162,7 +1162,7 @@ const EnrollmentAndCommencementForm = (props) => {
             )}
 
             {/* Row 4: Date Transferred In, Facility Transferred From (if Transfer-in selected) */}
-            {registration.care_entry_point == getCodesetIdByCode(codesets.careEntryPoints, "TRANSFER") && (
+            {registration.care_entry_point == getCodesetCodeByPattern(codesets.careEntryPoints, "TRANSFER") && (
               <FieldRow>
                 <Col>
                   <SectionLabel>
@@ -1239,7 +1239,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.mode_of_hiv_test.map((opt) => (
-                    <option key={opt.id} value={opt.id}>{opt.display}</option>
+                    <option key={opt.id} value={opt.code}>{opt.display}</option>
                   ))}
                 </Input>
                 {errors.mode_of_hiv_test && (
@@ -1284,7 +1284,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.priorArt.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
+                    <option key={opt.id} value={opt.code}>
                       {opt.display}
                     </option>
                   ))}
@@ -1327,7 +1327,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   >
                     <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                     {getFilteredKpTypology(codesets.kpTypology).map((opt) => (
-                      <option key={opt.id} value={opt.id}>{opt.display}</option>
+                      <option key={opt.id} value={opt.code}>{opt.display}</option>
                     ))}
                   </Input>
                   {errors.kp_typology && (
@@ -1366,7 +1366,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.clinicalStages.map((opt) => (
-                    <option key={opt.id} value={opt.id}>{opt.display}</option>
+                    <option key={opt.id} value={opt.code}>{opt.display}</option>
                   ))}
                 </Input>
                 {errors.clinical_stage_at_art_start && (
@@ -1415,7 +1415,7 @@ const EnrollmentAndCommencementForm = (props) => {
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.cd4_lf.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
+                    <option key={opt.id} value={opt.code}>
                       {opt.display}
                     </option>
                   ))}
@@ -1650,7 +1650,7 @@ const EnrollmentAndCommencementForm = (props) => {
                         >
                           <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                           {codesets.pregnancyStatus.map((opt) => (
-                            <option key={opt.id} value={opt.id}>
+                            <option key={opt.id} value={opt.code}>
                               {opt.display}
                             </option>
                           ))}

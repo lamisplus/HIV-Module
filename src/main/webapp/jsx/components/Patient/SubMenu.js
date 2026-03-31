@@ -231,6 +231,14 @@ const SubMenu = (props) => {
     initializeData();
   }, [patientObj?.id]);
 
+  // Re-check enrollment status when navigating back to home/recent-history
+  useEffect(() => {
+    if (props.activeContent?.route === 'recent-history' && patientObj?.id) {
+      checkEnrollmentCommencement();
+      checkICEExists();
+    }
+  }, [props.activeContent?.route, patientObj?.id]);
+
   const Observation = async () => {
     try {
       await axios.get(`${baseUrl}observation/person/${patientObj.id}`, {
