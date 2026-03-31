@@ -45,4 +45,16 @@
         </sql>
     </changeSet>
 
+    <changeSet id="20260223-033" author="gboyeguntaiwo">
+        <comment>Update ndr_description for Isoniazid/Rifampentine (3HP) and insert into hiv_regimen_resolver</comment>
+        <sql>
+            UPDATE ndr_code_set
+            SET code_description = 'Isoniazid/Rifampentine (3HP)'
+            WHERE ndr_code = 'NDRISF3HP0206' AND code = 'ISF3HP';
+
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            SELECT 'Isoniazid and Rifapentine-(3HP)', 'Isoniazid/Rifampentine (3HP)';
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
