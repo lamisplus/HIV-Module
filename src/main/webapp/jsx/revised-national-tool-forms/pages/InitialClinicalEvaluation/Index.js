@@ -647,9 +647,15 @@ const InitialClinicalEvaluationForm = (props) => {
   });
   const [loadingCodesets, setLoadingCodesets] = useState(true);
 
+  // ── Regimen State ─────────────────────────────────────────────────────────
+  const [regimenLines, setRegimenLines] = useState([]);
+  const [regimens, setRegimens] = useState([]);
+  const [loadingRegimens, setLoadingRegimens] = useState(false);
+
   // ── Fetch Codesets from API ──────────────────────────────────────────────
   useEffect(() => {
     fetchCodesets();
+    fetchRegimenLines(); // Fetch regimen lines on mount
   }, []);
 
   const fetchCodesets = async () => {
@@ -694,6 +700,50 @@ const InitialClinicalEvaluationForm = (props) => {
       toast.error("Failed to load dropdown options");
     } finally {
       setLoadingCodesets(false);
+    }
+  };
+
+  // ── Fetch Regimen Lines ───────────────────────────────────────────────────
+  const fetchRegimenLines = async () => {
+    try {
+      // Determine if patient is pediatric (< 15 years old)
+      const isPediatric = patientAge < 15;
+      const endpoint = isPediatric
+        ? `${baseUrl}hiv/regimen/arv/children`
+        : `${baseUrl}hiv/regimen/arv/adult`;
+
+      const response = await axios.get(endpoint, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setRegimenLines(response.data || []);
+    } catch (error) {
+      console.error("Error fetching regimen lines:", error);
+      toast.error("Failed to load regimen lines");
+      setRegimenLines([]);
+    }
+  };
+
+  // ── Fetch Regimens based on Regimen Line ──────────────────────────────────
+  const fetchRegimens = async (regimenLineId) => {
+    if (!regimenLineId) {
+      setRegimens([]);
+      return;
+    }
+
+    setLoadingRegimens(true);
+    try {
+      const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setRegimens(response.data || []);
+    } catch (error) {
+      console.error("Error fetching regimens:", error);
+      toast.error("Failed to load regimens");
+      setRegimens([]);
+    } finally {
+      setLoadingRegimens(false);
     }
   };
 
@@ -1059,7 +1109,8 @@ const InitialClinicalEvaluationForm = (props) => {
     whoStageCriteria: [],      // Array of selected clinical criteria for the WHO stage
     enrollInItems: [],         // Array of selected enrollment codes
     planForArtItems: [],      // Array of selected ART plan codes
-    drugsInRegimen: "",
+    regimenLineId: "",         // First ART Regimen Line ID
+    regimenId: "",             // First ART Regimen ID
     additionalComments: "",
     nextAppointment: "",
   });
@@ -1073,6 +1124,14 @@ const InitialClinicalEvaluationForm = (props) => {
         ...prev,
         [name]: value,
         whoStageCriteria: [] // Clear criteria when stage changes
+      }));
+    } else if (name === "regimenLineId") {
+      // If regimen line changes, fetch regimens for that line and clear selected regimen
+      fetchRegimens(value);
+      setAssessment((prev) => ({
+        ...prev,
+        regimenLineId: value,
+        regimenId: "" // Clear regimen when line changes
       }));
     } else {
       setAssessment((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
@@ -1226,10 +1285,16 @@ const InitialClinicalEvaluationForm = (props) => {
         whoStageCriteria: data.assessment.whoStageCriteria || [],
         enrollInItems: data.assessment.enrollInItems || [],
         planForArtItems: data.assessment.planForArtItems || [],
-        drugsInRegimen: data.assessment.drugsInRegimen || "",
+        regimenLineId: data.assessment.regimenLineId || "",
+        regimenId: data.assessment.regimenId || "",
         additionalComments: data.assessment.additionalComments || "",
         nextAppointment: data.assessment.nextAppointment || "",
       });
+
+      // Fetch regimens if regimen line is set
+      if (data.assessment.regimenLineId) {
+        fetchRegimens(data.assessment.regimenLineId);
+      }
     }
   };
 
@@ -2348,20 +2413,49 @@ const InitialClinicalEvaluationForm = (props) => {
               )}
             </Box>
 
-            {/* Drugs, Comments, Appointment */}
+            {/* Regimen Selection and Comments */}
             <FieldRow>
               <Col>
-                <SectionLabel>Drugs in Regimen</SectionLabel>
+                <SectionLabel>First ART Regimen Line</SectionLabel>
                 <Input
-                  type="textarea"
-                  name="drugsInRegimen"
-                  value={assessment.drugsInRegimen}
+                  type="select"
+                  name="regimenLineId"
+                  value={assessment.regimenLineId}
                   onChange={handleAssessment}
-                  rows={2}
-                  placeholder="List drugs in regimen..."
-                  style={{ height: "auto" }}
-                />
+                >
+                  <option value="">Select regimen line...</option>
+                  {regimenLines.map((line) => (
+                    <option key={line.id} value={line.id}>
+                      {line.description}
+                    </option>
+                  ))}
+                </Input>
               </Col>
+              <Col>
+                <SectionLabel>First ART Regimen</SectionLabel>
+                <Input
+                  type="select"
+                  name="regimenId"
+                  value={assessment.regimenId}
+                  onChange={handleAssessment}
+                  disabled={!assessment.regimenLineId || loadingRegimens}
+                >
+                  <option value="">
+                    {loadingRegimens
+                      ? "Loading regimens..."
+                      : assessment.regimenLineId
+                        ? "Select regimen..."
+                        : "Select regimen line first..."}
+                  </option>
+                  {regimens.map((regimen) => (
+                    <option key={regimen.id} value={regimen.id}>
+                      {regimen.description}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+            </FieldRow>
+            <FieldRow>
               <Col>
                 <SectionLabel>Additional Comments</SectionLabel>
                 <Input
