@@ -3,7 +3,6 @@ package org.lamisplus.modules.hiv.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.hiv.domain.dto.initialclinicalevaluation.InitialClinicalEvaluationDTO;
-import org.lamisplus.modules.hiv.domain.dto.ObservationDto;
 import org.lamisplus.modules.hiv.service.InitialClinicalEvaluationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -56,15 +54,6 @@ public class InitialClinicalEvaluationController {
         log.info("GET /api/v1/hiv/observation/initial-clinical-evaluation/person/{} - Fetching Initial Clinical Evaluation by person ID", personId);
         InitialClinicalEvaluationDTO evaluation = initialClinicalEvaluationService.getInitialClinicalEvaluationByPersonId(personId);
         return ResponseEntity.ok(evaluation);
-    }
-
-
-    @GetMapping(value = "/person/{personId}/all-observations", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<ObservationDto>> getAllObservationsByPerson(
-            @PathVariable("personId") Long personId) {
-        log.info("GET /api/v1/hiv/observation/initial-clinical-evaluation/person/{}/all-observations - Fetching all observations", personId);
-        List<ObservationDto> observations = initialClinicalEvaluationService.getAllObservationsByPerson(personId);
-        return ResponseEntity.ok(observations);
     }
 
 

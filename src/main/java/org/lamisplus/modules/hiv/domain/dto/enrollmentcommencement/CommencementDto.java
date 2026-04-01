@@ -6,6 +6,9 @@ import lombok.Data;
 @Data
 public class CommencementDto {
 
+    @JsonProperty("visit_date")
+    private String visitDate;
+
     @JsonProperty("clinical_stage_at_art_start")
     private String clinicalStageAtArtStart;
 

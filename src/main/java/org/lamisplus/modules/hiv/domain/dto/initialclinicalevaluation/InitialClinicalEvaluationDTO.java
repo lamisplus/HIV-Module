@@ -30,9 +30,6 @@ public class InitialClinicalEvaluationDTO implements Serializable {
     @NotNull(message = "Person ID is required")
     private Long personId;
 
-    @NotNull(message = "Type is required")
-    private String type;
-
     @Valid
     @NotNull(message = "Data is required")
     private InitialClinicalEvaluationDataDTO data;

@@ -33,11 +33,20 @@ public class EnrollmentCommencementService {
     private final HandleHIVVisitEncounter hivVisitEncounter;
     private final CurrentUserOrganizationService currentUserOrganizationService;
     private final HIVStatusTrackerService hivStatusTrackerService;
+    private final InitialClinicalEvaluationService initialClinicalEvaluationService;
 
     private static final String ART_START_STATUS = "ART Start";
 
     public EnrollmentCommencement create(EnrollmentCommencementRequestDto request) {
         Person person = resolvePerson(request.getPersonId());
+
+        // Validate that Initial Clinical Evaluation exists before enrollment
+        if (!initialClinicalEvaluationService.hasExistingICE(person.getId())) {
+            log.error("Attempted enrollment for person {} without Initial Clinical Evaluation", person.getId());
+            throw new IllegalStateException(
+                    "Initial Clinical Evaluation must be completed before enrollment. " +
+                    "Please complete the ICE form first for this patient.");
+        }
 
         if (repository.existsByPersonAndArchived(person, 0)) {
             throw new RecordExistException(

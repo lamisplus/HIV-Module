@@ -1454,7 +1454,6 @@ const InitialClinicalEvaluationForm = (props) => {
       const payload = {
         dateOfObservation: visitDate,
         personId: props.patientObj.id,
-        type: "Initial Clinical Evaluation",
         data: {
           visitDate,
           clinicianName,

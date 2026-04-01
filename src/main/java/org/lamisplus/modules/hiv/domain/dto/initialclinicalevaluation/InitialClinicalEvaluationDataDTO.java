@@ -41,6 +41,8 @@ public class InitialClinicalEvaluationDataDTO implements Serializable {
 
     private List<String> disclosure;
 
+    private String disclosureOtherText;
+
     @Valid
     private ArvSideEffectsDTO arvSideEffects;
 

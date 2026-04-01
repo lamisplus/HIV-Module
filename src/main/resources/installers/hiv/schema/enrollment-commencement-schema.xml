@@ -201,4 +201,166 @@
                                columnDataType="VARCHAR(255)"/>
     </changeSet>
 
+    <!-- Add visit_date column to hiv_enrollment_commencement table          -->
+    <changeSet id="20250401-ec-06" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <not>
+                <columnExists tableName="hiv_enrollment_commencement" columnName="visit_date"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="hiv_enrollment_commencement">
+            <column name="visit_date" type="DATE">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <rollback>
+            <dropColumn tableName="hiv_enrollment_commencement" columnName="visit_date"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Create hiv_initial_clinical_evaluation table                         -->
+    <changeSet id="20250401-ice-01" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="hiv_initial_clinical_evaluation">
+            <!-- ── Primary key and audit fields ────────────────────────────── -->
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(255)"/>
+
+            <!-- ── Core identification fields ──────────────────────────────── -->
+            <column name="facility_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_hiv_ice_facility"
+                             references="base_organisation_unit(id)"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_hiv_ice_person"
+                             references="patient_person(id)"/>
+            </column>
+            <column name="visit_id" type="BIGINT">
+                <constraints foreignKeyName="fk_hiv_ice_visit"
+                             references="patient_visit(id)"/>
+            </column>
+            <column name="uuid" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="archived" type="INTEGER" defaultValueNumeric="0"/>
+
+            <!-- ── Basic ICE fields ────────────────────────────────────────── -->
+            <column name="visit_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="clinician_name" type="VARCHAR(255)"/>
+
+            <!-- ── Regimen fields (structured columns) ───── -->
+            <column name="regimen_line_id" type="VARCHAR(255)"/>
+            <column name="regimen_id" type="VARCHAR(255)"/>
+
+            <!-- ── WHO Staging ──────────────────────────────────────────────── -->
+            <column name="who_stage_id" type="BIGINT">
+                <constraints foreignKeyName="fk_hiv_ice_who_stage"
+                             references="base_application_codeset(id)"/>
+            </column>
+
+            <!-- ── Complex nested data stored as JSONB ─────────────────────── -->
+            <column name="symptoms" type="JSONB"/>
+            <column name="other_symptom" type="VARCHAR(500)"/>
+            <column name="tb_assessment" type="JSONB"/>
+            <column name="known_drug_allergies" type="JSONB"/>
+            <column name="pregnancy" type="JSONB"/>
+            <column name="current_medications" type="JSONB"/>
+            <column name="disclosure" type="JSONB"/>
+            <column name="disclosure_other_text" type="VARCHAR(500)"/>
+            <column name="arv_side_effects" type="JSONB"/>
+            <column name="arv_history" type="JSONB"/>
+            <column name="vitals" type="JSONB"/>
+            <column name="physical_exam" type="JSONB"/>
+            <column name="assessment" type="JSONB"/>
+            <column name="next_appointment" type="DATE"/>
+
+            <!-- ── Geolocation and metadata ────────────────────────────────── -->
+            <column name="source" type="VARCHAR(255)"/>
+            <column name="latitude" type="VARCHAR(255)"/>
+            <column name="longitude" type="VARCHAR(255)"/>
+            <column name="comment" type="TEXT"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Create indexes for hiv_initial_clinical_evaluation                   -->
+    <changeSet id="20250401-ice-02" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+        </preConditions>
+
+        <createIndex indexName="idx_hiv_ice_person"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="person_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_facility"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="facility_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_archived"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="archived"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_visit_date"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="visit_date"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_regimen_line"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="regimen_line_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_regimen"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="regimen_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_uuid"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="uuid"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Unique constraint to ensure one ICE record per person per facility   -->
+    <changeSet id="20250401-ice-03" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            <not>
+                <indexExists tableName="hiv_initial_clinical_evaluation" indexName="uk_ice_person_facility_active"/>
+            </not>
+        </preConditions>
+
+        <sql>
+            CREATE UNIQUE INDEX uk_ice_person_facility_active
+            ON hiv_initial_clinical_evaluation (person_id, facility_id)
+            WHERE archived = 0;
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS uk_ice_person_facility_active;
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

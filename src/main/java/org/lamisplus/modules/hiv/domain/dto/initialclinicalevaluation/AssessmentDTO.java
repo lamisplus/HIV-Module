@@ -26,7 +26,14 @@ public class AssessmentDTO implements Serializable {
     private List<String> whoStageCriteria;
     private List<String> enrollInItems;
     private List<String> planForArtItems;
+
+    // Old field - kept for backward compatibility
     private String drugsInRegimen;
+
+    // New regimen fields
+    private Long regimenLineId;
+    private Long regimenId;
+
     private String additionalComments;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
