@@ -363,4 +363,39 @@
         </rollback>
     </changeSet>
 
+    <!-- Add person_uuid column to hiv_initial_clinical_evaluation table      -->
+    <changeSet id="20260402-ice-04" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            <not>
+                <columnExists tableName="hiv_initial_clinical_evaluation" columnName="person_uuid"/>
+            </not>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Add person_uuid column to hiv_initial_clinical_evaluation table
+            ALTER TABLE hiv_initial_clinical_evaluation ADD COLUMN IF NOT EXISTS person_uuid VARCHAR(255);
+
+            -- Populate person_uuid from person table based on person_id
+            UPDATE hiv_initial_clinical_evaluation ice
+            SET person_uuid = p.uuid
+            FROM patient_person p
+            WHERE ice.person_id = p.id
+            AND ice.person_uuid IS NULL;
+
+            -- Add index for better query performance
+            CREATE INDEX IF NOT EXISTS idx_ice_person_uuid ON hiv_initial_clinical_evaluation(person_uuid);
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_initial_clinical_evaluation.person_uuid IS 'Person UUID from patient_person table';
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS idx_ice_person_uuid;
+                ALTER TABLE hiv_initial_clinical_evaluation DROP COLUMN IF EXISTS person_uuid;
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
