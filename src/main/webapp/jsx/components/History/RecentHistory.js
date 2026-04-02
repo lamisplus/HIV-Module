@@ -389,7 +389,7 @@ const RecentHistory = (props) => {
     else if (row.path === "Initial-Clinical-evaluation") {
       props.setActiveContent({
         ...props.activeContent,
-        route: action === "view" ? "initial-clinical-evaluation-view" : "initial-clinical-evaluation",
+        route: action === "view" ? "initial-clinical-evaluation-view" : "initial-clinical-evaluation-update",
         id: row.id,
         activeTab: "home",
         actionType: action,

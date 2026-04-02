@@ -26,6 +26,7 @@ import AdultClinicEvaluationForm from "../InitailClinicEvaluation/Adult/Index";
 import ViewAdultClinicEvaluationForm from "../InitailClinicEvaluation/ViewAdultHistory/Index";
 import InitialClinicalEvaluationForm from "../../revised-national-tool-forms/pages/InitialClinicalEvaluation/Index";
 import InitialClinicalEvaluationView from "../../revised-national-tool-forms/pages/InitialClinicalEvaluation/View";
+import InitialClinicalEvaluationUpdate from "../../revised-national-tool-forms/pages/InitialClinicalEvaluation/Update";
 import EnrollmentAndCommencementForm from "../../revised-national-tool-forms/pages/EnrollmentAndCommencement/Index";
 import EnrollmentAndCommencementView from "../../revised-national-tool-forms/pages/EnrollmentAndCommencement/View";
 import EnrollmentAndCommencementUpdate from "../../revised-national-tool-forms/pages/EnrollmentAndCommencement/Update";
@@ -502,6 +503,13 @@ function PatientCard(props) {
           )}
           {activeContent.route === "initial-clinical-evaluation-view" && (
             <InitialClinicalEvaluationView
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "initial-clinical-evaluation-update" && (
+            <InitialClinicalEvaluationUpdate
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

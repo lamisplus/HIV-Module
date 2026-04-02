@@ -31,6 +31,8 @@ import { token, url as baseUrl } from "../../../../api";
 import MatButton from "@material-ui/core/Button";
 import SaveIcon from "@material-ui/icons/Save";
 import CancelIcon from "@material-ui/icons/Cancel";
+import EditIcon from "@material-ui/icons/Edit";
+import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import { calculate_age_to_number } from "../../../../utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -206,12 +208,24 @@ const useStyles = makeStyles((theme) => ({
     "& textarea.form-control": { height: "auto" },
   },
   error: { color: "#d32f2f", fontSize: "12px", marginTop: "4px" },
+  button: { margin: theme.spacing(1) },
   fieldLabel: {
     fontSize: "13px",
     color: "#014d88",
     fontWeight: "600",
     marginBottom: "4px",
     display: "block",
+  },
+  fieldValue: {
+    fontSize: "14px",
+    color: "#333",
+    padding: "10px 12px",
+    background: "#f5f9ff",
+    borderRadius: "4px",
+    border: "1px solid #e0e0e0",
+    minHeight: "41px",
+    display: "flex",
+    alignItems: "center",
   },
 }));
 
@@ -615,20 +629,79 @@ const BodySystem = ({ label, systemKey, state, onChange, extraContent }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// View Mode Components
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FieldDisplay = ({ label, value, classes }) => (
+  <div>
+    <SectionLabel>{label}</SectionLabel>
+    <div className={classes.fieldValue}>
+      {value || "—"}
+    </div>
+  </div>
+);
+
+const ChipList = ({ items, label }) => (
+  <div>
+    <SectionLabel>{label}</SectionLabel>
+    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, minHeight: "41px", alignItems: "center" }}>
+      {items && items.length > 0 ? (
+        items.map((item, idx) => (
+          <Chip
+            key={idx}
+            label={item}
+            sx={{
+              backgroundColor: "#014d88",
+              color: "#fff",
+              fontSize: "13px",
+              height: "28px",
+            }}
+          />
+        ))
+      ) : (
+        <span style={{ color: "#999", fontSize: "14px" }}>—</span>
+      )}
+    </Box>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * InitialClinicalEvaluationForm - Unified component for create/edit/view modes
+ *
+ * @param {Object} props
+ * @param {string} props.mode - 'create', 'edit', or 'view'
+ * @param {Object} props.patientObj - Patient object
+ * @param {Object} props.activeContent - Active content for routing (required for edit/view)
+ * @param {Function} props.setActiveContent - Function to change route
+ */
 const InitialClinicalEvaluationForm = (props) => {
   const classes = useStyles();
+  const { mode = 'create' } = props;
+  const isViewMode = mode === 'view';
+  const isEditMode = mode === 'edit';
+  const isCreateMode = mode === 'create';
+
+  // Check if this is read-only view (from Recent Activities "View" button)
+  const isReadOnly = props.activeContent?.actionType === 'view';
+
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
   const isFemale = ["female", "FEMALE", "Female"].includes(props.patientObj.sex);
 
   const [enrollDate, setEnrollDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [expanded, setExpanded] = useState(["symptoms", "medical", "arv", "physical", "confirmatory"]);
+  const [expanded, setExpanded] = useState(
+    isViewMode
+      ? ["basic", "tb-assessment", "pregnancy", "medication", "vitals", "physical-exam", "assessment"]
+      : ["symptoms", "medical", "arv", "physical", "confirmatory"]
+  );
   const [recordId, setRecordId] = useState(null);  // Track record ID for updates
-  const [loadingRecord, setLoadingRecord] = useState(false);  // Loading state for fetching existing record
+  const [loadingRecord, setLoadingRecord] = useState(isEditMode || isViewMode);  // Loading state for fetching existing record
+  const [viewData, setViewData] = useState(null);  // Data for view mode
 
   // ── Codesets State ────────────────────────────────────────────────────────
   const [codesets, setCodesets] = useState({
@@ -652,10 +725,13 @@ const InitialClinicalEvaluationForm = (props) => {
   const [regimens, setRegimens] = useState([]);
   const [loadingRegimens, setLoadingRegimens] = useState(false);
 
-  // ── Fetch Codesets from API ──────────────────────────────────────────────
+  // ── Fetch Data on Mount ──────────────────────────────────────────────────
   useEffect(() => {
     fetchCodesets();
     fetchRegimenLines(); // Fetch regimen lines on mount
+    if (isViewMode || isEditMode) {
+      fetchExistingData();
+    }
   }, []);
 
   const fetchCodesets = async () => {
@@ -744,6 +820,157 @@ const InitialClinicalEvaluationForm = (props) => {
       setRegimens([]);
     } finally {
       setLoadingRegimens(false);
+    }
+  };
+
+  // ── Fetch Existing Data for View/Edit Mode ────────────────────────────────
+  const fetchExistingData = async () => {
+    setLoadingRecord(true);
+    try {
+      const response = await axios.get(
+        `${baseUrl}hiv/observation/initial-clinical-evaluation/person/${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (isViewMode) {
+        setViewData(response.data);
+      } else if (isEditMode) {
+        // Populate form fields for edit mode
+        const data = response.data;
+        const formData = data.data || {};
+
+        setRecordId(data.id);
+        setVisitDate(data.dateOfObservation || "");
+        setClinicianName(formData.clinicianName || "");
+
+        // Symptoms
+        if (formData.symptoms && Array.isArray(formData.symptoms)) {
+          setSelectedSymptoms(formData.symptoms.map(s => ({
+            value: typeof s === 'string' ? s : (s.value || s),
+            label: typeof s === 'string' ? s : (s.label || s.value || s),
+            duration: s.duration || ""
+          })));
+        }
+        setOtherSymptom(formData.otherSymptom || "");
+
+        // TB Assessment
+        if (formData.tbAssessment) {
+          setTbAssessment({
+            assessedForTb: formData.tbAssessment.assessedForTb || "",
+            tbStatus: formData.tbAssessment.tbStatus || "",
+            developmentalAssessment: formData.tbAssessment.developmentalAssessment || "",
+            immunisationComplete: formData.tbAssessment.immunisationComplete || "",
+            modeOfInfantFeeding: formData.tbAssessment.modeOfInfantFeeding || "",
+            pastMedicalHistory: formData.tbAssessment.pastMedicalHistory || "",
+          });
+        }
+
+        // Known Drug Allergies
+        if (typeof formData.knownDrugAllergies === 'string') {
+          setKnownDrugAllergies(formData.knownDrugAllergies);
+        } else if (Array.isArray(formData.knownDrugAllergies)) {
+          setKnownDrugAllergies(formData.knownDrugAllergies.join(", "));
+        }
+
+        // Pregnancy
+        if (formData.pregnancy) {
+          setPregnancy({
+            currentlyPregnant: formData.pregnancy.currentlyPregnant || "",
+            lastMenstrualPeriod: formData.pregnancy.lastMenstrualPeriod || "",
+            gestationalAge: formData.pregnancy.gestationalAge || "",
+            expectedDateOfDelivery: formData.pregnancy.expectedDateOfDelivery || "",
+          });
+        }
+
+        // Current Medications
+        if (Array.isArray(formData.currentMeds)) {
+          setCurrentMeds(formData.currentMeds);
+        }
+
+        // Disclosure
+        if (Array.isArray(formData.disclosure)) {
+          setDisclosure(formData.disclosure);
+        }
+        setDisclosureOtherText(formData.disclosureOtherText || "");
+
+        // ARV Side Effects
+        if (formData.arvSideEffects) {
+          setArvSideEffects({
+            hasSideEffects: formData.arvSideEffects.hasSideEffects || "",
+            sideEffectsDetail: formData.arvSideEffects.sideEffectsDetail || "",
+            specifyMedication: formData.arvSideEffects.specifyMedication || "",
+          });
+        }
+
+        // ARV History
+        if (formData.arvHistory) {
+          setArvHistory({
+            previousArvExposure: formData.arvHistory.previousArvExposure || "",
+            earlierArvNotTransfer: formData.arvHistory.earlierArvNotTransfer || "",
+            nameOfFacility: formData.arvHistory.nameOfFacility || "",
+            prep: formData.arvHistory.prep || "",
+            pep: formData.arvHistory.pep || "",
+            tran: formData.arvHistory.tran || "",
+            durationOfCareFrom: formData.arvHistory.durationOfCareFrom || "",
+            durationOfCareTo: formData.arvHistory.durationOfCareTo || "",
+          });
+        }
+
+        // Vitals
+        if (formData.vitals) {
+          setVitals({
+            temperature: formData.vitals.temperature || "",
+            bpSystolic: formData.vitals.bpSystolic || "",
+            bpDiastolic: formData.vitals.bpDiastolic || "",
+            pulse: formData.vitals.pulse || "",
+            respiratoryRate: formData.vitals.respiratoryRate || "",
+            weight: formData.vitals.weight || "",
+            height: formData.vitals.height || "",
+            headCircumference: formData.vitals.headCircumference || "",
+            surfaceArea: formData.vitals.surfaceArea || "",
+          });
+          setBmi(formData.vitals.bmi || "");
+        }
+
+        // Physical Exam
+        if (formData.physicalExam) {
+          setSystems(formData.physicalExam);
+          setAdditionalFindings(formData.physicalExam.additionalFindings || "");
+        }
+
+        // Assessment
+        if (formData.assessment) {
+          console.log("📊 Assessment Data from API:", formData.assessment);
+          console.log("WHO Stage from API:", formData.assessment.whoStage);
+          console.log("WHO Stage Type:", typeof formData.assessment.whoStage);
+
+          setAssessment({
+            assessmentItems: formData.assessment.assessmentItems || [],
+            whoStage: formData.assessment.whoStage || "",
+            whoStageCriteria: formData.assessment.whoStageCriteria || [],
+            enrollInItems: formData.assessment.enrollInItems || [],
+            planForArtItems: formData.assessment.planForArtItems || [],
+            drugsInRegimen: formData.assessment.drugsInRegimen || "",
+            regimenLineId: formData.assessment.regimenLineId || "",
+            regimenId: formData.assessment.regimenId || "",
+            additionalComments: formData.assessment.additionalComments || "",
+            nextAppointment: formData.assessment.nextAppointment || "",
+          });
+
+          // Fetch regimens if regimen line is selected
+          if (formData.assessment.regimenLineId) {
+            fetchRegimens(formData.assessment.regimenLineId);
+          }
+        }
+      }
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.apierror?.message ||
+        "Failed to load initial clinical evaluation data";
+      toast.error(msg);
+    } finally {
+      setLoadingRecord(false);
     }
   };
 
@@ -1105,7 +1332,8 @@ const InitialClinicalEvaluationForm = (props) => {
   // ── Section: Confirmatory Details ────────────────────────────────────────
   const [assessment, setAssessment] = useState({
     assessmentItems: [],        // Array of selected assessment codes
-    whoStage: "",
+    whoStage: "",              // WHO Stage code (e.g., "WHO_STAGING_CRITERIA_STAGE_2")
+    whoStageId: null,          // WHO Stage ID for database storage
     whoStageCriteria: [],      // Array of selected clinical criteria for the WHO stage
     enrollInItems: [],         // Array of selected enrollment codes
     planForArtItems: [],      // Array of selected ART plan codes
@@ -1118,11 +1346,16 @@ const InitialClinicalEvaluationForm = (props) => {
   const handleAssessment = (e) => {
     const { name, type, value, checked } = e.target;
 
-    // If WHO stage is being changed, clear the criteria selection
+    // If WHO stage is being changed, clear the criteria selection and capture the ID
     if (name === "whoStage") {
+      // Find the ID for the selected WHO Stage code
+      const selectedWhoStage = codesets.whoStage.find(option => option.code === value);
+      const whoStageId = selectedWhoStage ? selectedWhoStage.id : null;
+
       setAssessment((prev) => ({
         ...prev,
-        [name]: value,
+        whoStage: value,
+        whoStageId: whoStageId, // Store the ID for backend
         whoStageCriteria: [] // Clear criteria when stage changes
       }));
     } else if (name === "regimenLineId") {
@@ -1282,6 +1515,7 @@ const InitialClinicalEvaluationForm = (props) => {
       setAssessment({
         assessmentItems: data.assessment.assessmentItems || [],
         whoStage: data.assessment.whoStage || "",
+        whoStageId: data.assessment.whoStageId || null,
         whoStageCriteria: data.assessment.whoStageCriteria || [],
         enrollInItems: data.assessment.enrollInItems || [],
         planForArtItems: data.assessment.planForArtItems || [],
@@ -1487,6 +1721,10 @@ const InitialClinicalEvaluationForm = (props) => {
       console.log("═══════════════════════════════════════════════════════");
       console.log("Complete Payload:", JSON.stringify(payload, null, 2));
       console.log("───────────────────────────────────────────────────────");
+      console.log("Assessment State:", assessment);
+      console.log("WHO Stage Value:", assessment.whoStage);
+      console.log("WHO Stage Type:", typeof assessment.whoStage);
+      console.log("───────────────────────────────────────────────────────");
       console.log("Payload Object:", payload);
       console.log("═══════════════════════════════════════════════════════");
 
@@ -1517,10 +1755,11 @@ const InitialClinicalEvaluationForm = (props) => {
       );
       console.log("Response:", response.data);
 
-      // After saving ICE form, redirect to Enrollment & Commencement form
+      // After creating new ICE form, redirect to Enrollment & Commencement form
+      // After updating existing ICE form, go back to recent history
       props.setActiveContent({
         ...props.activeContent,
-        route: "enrollment-and-commencement"
+        route: recordId ? "recent-history" : "enrollment-and-commencement"
       });
     } catch (err) {
       const msg =
@@ -1534,6 +1773,25 @@ const InitialClinicalEvaluationForm = (props) => {
   };
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Helper Functions
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const formatDate = (date) => {
+    return date ? moment(date).format("DD-MMM-YYYY") : "—";
+  };
+
+  const getYesNo = (value) => {
+    if (value === null || value === undefined || value === "") return "—";
+    return value === "Yes" || value === true || value === "yes" ? "Yes" : "No";
+  };
+
+  const getModeTitleSuffix = () => {
+    if (isViewMode) return "(View)";
+    if (isEditMode) return "(Update)";
+    return "";
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Render
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -1544,7 +1802,7 @@ const InitialClinicalEvaluationForm = (props) => {
         <CardContent>
           <Box sx={{ textAlign: "center", padding: "40px" }}>
             <Typography sx={{ fontSize: "16px", color: "#014d88" }}>
-              Loading record for editing...
+              Loading...
             </Typography>
           </Box>
         </CardContent>
@@ -1552,7 +1810,707 @@ const InitialClinicalEvaluationForm = (props) => {
     );
   }
 
+  // Show error state if no data found in view mode
+  if (isViewMode && !viewData) {
+    return (
+      <Card className={classes.root}>
+        <CardContent>
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <Typography>No initial clinical evaluation data found</Typography>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const isUpdateMode = recordId !== null;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render View Mode
+  // ─────────────────────────────────────────────────────────────────────────
+  if (isViewMode && viewData) {
+    const evalData = viewData.data || {};
+
+    return (
+      <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible" }}>
+        <CardContent>
+          {/* ── Page Header ─────────────────────────────────────────────── */}
+          <Box
+            sx={{
+              backgroundColor: "#014d88",
+              padding: "14px 20px",
+              marginBottom: "20px",
+            }}
+          >
+            <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
+              Initial Clinical Evaluation (View)
+            </Typography>
+          </Box>
+
+          {/* ── Visit Details ─────────────────────────────────────────────── */}
+          <Box
+            sx={{
+              background: "#f5f7fa",
+              border: "1px solid #e0e8f0",
+              borderRadius: "8px",
+              padding: "16px 20px",
+              marginBottom: "20px",
+            }}
+          >
+            <FieldRow>
+              <Col size={3}>
+                <FieldDisplay
+                  label="Visit Date"
+                  value={formatDate(evalData.visitDate)}
+                  classes={classes}
+                />
+              </Col>
+              <Col size={3}>
+                <FieldDisplay
+                  label="Clinician Name"
+                  value={evalData.clinicianName}
+                  classes={classes}
+                />
+              </Col>
+              {evalData.pregnancy && evalData.pregnancy.currentlyPregnant && (
+                <>
+                  <Col size={2}>
+                    <FieldDisplay
+                      label="Currently Pregnant"
+                      value={getYesNo(evalData.pregnancy.currentlyPregnant)}
+                      classes={classes}
+                    />
+                  </Col>
+                  {(evalData.pregnancy.currentlyPregnant === "Yes" || evalData.pregnancy.currentlyPregnant === true) && (
+                    <>
+                      <Col size={2}>
+                        <FieldDisplay
+                          label="Last Menstrual Period"
+                          value={formatDate(evalData.pregnancy.lastMenstrualPeriod)}
+                          classes={classes}
+                        />
+                      </Col>
+                      <Col size={2}>
+                        <FieldDisplay
+                          label="Gestational Age (Weeks)"
+                          value={evalData.pregnancy.gestationalAge}
+                          classes={classes}
+                        />
+                      </Col>
+                    </>
+                  )}
+                </>
+              )}
+            </FieldRow>
+            {evalData.pregnancy && (evalData.pregnancy.currentlyPregnant === "Yes" || evalData.pregnancy.currentlyPregnant === true) && (
+              <FieldRow style={{ marginTop: "12px" }}>
+                <Col size={3}>
+                  <FieldDisplay
+                    label="Expected Date of Delivery"
+                    value={formatDate(evalData.pregnancy.expectedDateOfDelivery)}
+                    classes={classes}
+                  />
+                </Col>
+              </FieldRow>
+            )}
+          </Box>
+
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/*  SECTION 1 — BASIC INFORMATION                               */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          <FormAccordion
+            panel="basic"
+            title="Basic Information"
+            index={0}
+            expanded={expanded}
+            onToggle={toggleAccordion}
+          >
+            <SubHeading>Symptoms</SubHeading>
+            <FieldRow>
+              <Col size={12}>
+                <ChipList
+                  label="Selected Symptoms"
+                  items={evalData.symptoms?.map(s => typeof s === 'string' ? s : s.label || s.value) || []}
+                />
+              </Col>
+            </FieldRow>
+            {evalData.otherSymptom && (
+              <FieldRow>
+                <Col size={12}>
+                  <FieldDisplay
+                    label="Other Symptom Details"
+                    value={evalData.otherSymptom}
+                    classes={classes}
+                  />
+                </Col>
+              </FieldRow>
+            )}
+          </FormAccordion>
+
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/*  SECTION 2 — TB ASSESSMENT                                   */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          <FormAccordion
+            panel="tb-assessment"
+            title="TB Assessment & Infant Care"
+            index={1}
+            expanded={expanded}
+            onToggle={toggleAccordion}
+          >
+            <FieldRow>
+              <Col size={3}>
+                <FieldDisplay
+                  label="Assessed for TB"
+                  value={getYesNo(evalData.tbAssessment?.assessedForTb)}
+                  classes={classes}
+                />
+              </Col>
+              <Col size={3}>
+                <FieldDisplay
+                  label="TB Status"
+                  value={evalData.tbAssessment?.tbStatus}
+                  classes={classes}
+                />
+              </Col>
+              <Col size={3}>
+                <FieldDisplay
+                  label="Developmental Assessment"
+                  value={evalData.tbAssessment?.developmentalAssessment}
+                  classes={classes}
+                />
+              </Col>
+              <Col size={3}>
+                <FieldDisplay
+                  label="Immunisation Complete"
+                  value={getYesNo(evalData.tbAssessment?.immunisationComplete)}
+                  classes={classes}
+                />
+              </Col>
+            </FieldRow>
+            <FieldRow>
+              <Col size={6}>
+                <FieldDisplay
+                  label="Mode of Infant Feeding"
+                  value={evalData.tbAssessment?.modeOfInfantFeeding}
+                  classes={classes}
+                />
+              </Col>
+              <Col size={6}>
+                <FieldDisplay
+                  label="Past Medical History"
+                  value={evalData.tbAssessment?.pastMedicalHistory}
+                  classes={classes}
+                />
+              </Col>
+            </FieldRow>
+          </FormAccordion>
+
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/*  SECTION 3 — MEDICATION HISTORY                              */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          <FormAccordion
+            panel="pregnancy"
+            title="Medication History"
+            index={2}
+            expanded={expanded}
+            onToggle={toggleAccordion}
+          >
+            <SubHeading>Drug Allergies & Current Medications</SubHeading>
+            <FieldRow>
+              <Col size={12}>
+                {Array.isArray(evalData.knownDrugAllergies) && evalData.knownDrugAllergies.length > 0 ? (
+                  <ChipList
+                    label="Known Drug Allergies"
+                    items={evalData.knownDrugAllergies}
+                  />
+                ) : (
+                  <FieldDisplay
+                    label="Known Drug Allergies"
+                    value={evalData.knownDrugAllergies}
+                    classes={classes}
+                  />
+                )}
+              </Col>
+            </FieldRow>
+            <FieldRow>
+              <Col size={12}>
+                {Array.isArray(evalData.currentMeds) && evalData.currentMeds.length > 0 ? (
+                  <ChipList
+                    label="Current Medications"
+                    items={evalData.currentMeds}
+                  />
+                ) : (
+                  <FieldDisplay
+                    label="Current Medications"
+                    value={evalData.currentMeds}
+                    classes={classes}
+                  />
+                )}
+              </Col>
+            </FieldRow>
+
+            <Divider sx={{ my: 2 }} />
+            <SubHeading>Disclosure & ARV History</SubHeading>
+            <FieldRow>
+              <Col size={12}>
+                {Array.isArray(evalData.disclosure) && evalData.disclosure.length > 0 ? (
+                  <ChipList
+                    label="Disclosure"
+                    items={evalData.disclosure}
+                  />
+                ) : (
+                  <FieldDisplay
+                    label="Disclosure"
+                    value={evalData.disclosure}
+                    classes={classes}
+                  />
+                )}
+              </Col>
+            </FieldRow>
+
+            {evalData.arvSideEffects && (
+              <>
+                <FieldRow>
+                  <Col size={4}>
+                    <FieldDisplay
+                      label="Has ARV Side Effects"
+                      value={getYesNo(evalData.arvSideEffects.hasSideEffects)}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={4}>
+                    <FieldDisplay
+                      label="Side Effects Detail"
+                      value={evalData.arvSideEffects.sideEffectsDetail}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={4}>
+                    <FieldDisplay
+                      label="Specify Medication"
+                      value={evalData.arvSideEffects.specifyMedication}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+              </>
+            )}
+
+            {evalData.arvHistory && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <SubHeading>ARV Exposure History</SubHeading>
+                <FieldRow>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Previous ARV Exposure"
+                      value={evalData.arvHistory.previousArvExposure}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Earlier ARV (Not Transfer)"
+                      value={getYesNo(evalData.arvHistory.earlierArvNotTransfer)}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={6}>
+                    <FieldDisplay
+                      label="Facility Name"
+                      value={evalData.arvHistory.nameOfFacility}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+                <FieldRow>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="PrEP"
+                      value={getYesNo(evalData.arvHistory.prep)}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="PEP"
+                      value={getYesNo(evalData.arvHistory.pep)}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Transfer"
+                      value={getYesNo(evalData.arvHistory.tran)}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+                <FieldRow>
+                  <Col size={4}>
+                    <FieldDisplay
+                      label="Duration of Care From"
+                      value={formatDate(evalData.arvHistory.durationOfCareFrom)}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={4}>
+                    <FieldDisplay
+                      label="Duration of Care To"
+                      value={formatDate(evalData.arvHistory.durationOfCareTo)}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+              </>
+            )}
+          </FormAccordion>
+
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/*  SECTION 4 — VITALS                                          */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          <FormAccordion
+            panel="vitals"
+            title="Vitals"
+            index={3}
+            expanded={expanded}
+            onToggle={toggleAccordion}
+          >
+            {evalData.vitals && (
+              <Box
+                sx={{
+                  background: "#fff",
+                  border: "1px solid #014d88",
+                  borderRadius: "4px",
+                  padding: "16px",
+                }}
+              >
+                <FieldRow>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Temperature (°C)"
+                      value={evalData.vitals.temperature}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="BP Systolic (mmHg)"
+                      value={evalData.vitals.bpSystolic}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="BP Diastolic (mmHg)"
+                      value={evalData.vitals.bpDiastolic}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Pulse (bpm)"
+                      value={evalData.vitals.pulse}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+                <FieldRow>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Respiratory Rate (breaths/min)"
+                      value={evalData.vitals.respiratoryRate}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Weight (kg)"
+                      value={evalData.vitals.weight}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Height (cm)"
+                      value={evalData.vitals.height}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Head Circumference (cm)"
+                      value={evalData.vitals.headCircumference}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="Surface Area (m²)"
+                      value={evalData.vitals.surfaceArea}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+                <FieldRow>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="BMI (kg/m²)"
+                      value={evalData.vitals.bmi}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+              </Box>
+            )}
+          </FormAccordion>
+
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/*  SECTION 5 — PHYSICAL EXAMINATION                            */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          <FormAccordion
+            panel="physical-exam"
+            title="Physical Examination (Body Systems)"
+            index={4}
+            expanded={expanded}
+            onToggle={toggleAccordion}
+          >
+            {evalData.physicalExam && (
+              <>
+                {Object.entries(evalData.physicalExam).map(([systemKey, systemData], idx) => {
+                  if (systemKey === "additionalFindings" || !systemData) return null;
+
+                  const systemName = systemKey
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^./, (str) => str.toUpperCase())
+                    .trim();
+
+                  return (
+                    <Box key={idx} sx={{ mb: 3 }}>
+                      <SubHeading>{systemName}</SubHeading>
+                      <Box
+                        sx={{
+                          background: "#f5f9ff",
+                          border: "1px solid #e0e0e0",
+                          borderRadius: "4px",
+                          padding: "12px",
+                        }}
+                      >
+                        <FieldRow>
+                          <Col size={2}>
+                            <FieldDisplay
+                              label="NSF (No Significant Finding)"
+                              value={getYesNo(systemData.nsf)}
+                              classes={classes}
+                            />
+                          </Col>
+                          {systemData.rate && (
+                            <Col size={3}>
+                              <FieldDisplay
+                                label="Rate"
+                                value={systemData.rate}
+                                classes={classes}
+                              />
+                            </Col>
+                          )}
+                          {systemData.tannerStage && (
+                            <Col size={3}>
+                              <FieldDisplay
+                                label="Tanner Stage"
+                                value={systemData.tannerStage}
+                                classes={classes}
+                              />
+                            </Col>
+                          )}
+                          {systemData.other && (
+                            <Col size={12}>
+                              <FieldDisplay
+                                label="Other Findings"
+                                value={systemData.other}
+                                classes={classes}
+                              />
+                            </Col>
+                          )}
+                        </FieldRow>
+                        {systemData.findings && systemData.findings.length > 0 && (
+                          <FieldRow>
+                            <Col size={12}>
+                              <ChipList
+                                label="Findings"
+                                items={systemData.findings.map(f => {
+                                  if (typeof f === 'string') return f;
+                                  if (f.label) return f.label;
+                                  if (f.value) return f.value;
+                                  if (f.finding) return f.finding;
+                                  return '';
+                                }).filter(Boolean)}
+                              />
+                            </Col>
+                          </FieldRow>
+                        )}
+                      </Box>
+                    </Box>
+                  );
+                })}
+
+                {evalData.physicalExam.additionalFindings && (
+                  <>
+                    <Divider sx={{ my: 2 }} />
+                    <FieldRow>
+                      <Col size={12}>
+                        <FieldDisplay
+                          label="Additional Findings"
+                          value={evalData.physicalExam.additionalFindings}
+                          classes={classes}
+                        />
+                      </Col>
+                    </FieldRow>
+                  </>
+                )}
+              </>
+            )}
+          </FormAccordion>
+
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/*  SECTION 6 — ASSESSMENT & PLAN                               */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          <FormAccordion
+            panel="assessment"
+            title="Assessment & Plan"
+            index={5}
+            expanded={expanded}
+            onToggle={toggleAccordion}
+          >
+            {evalData.assessment && (
+              <>
+                <FieldRow>
+                  <Col size={12}>
+                    <ChipList
+                      label="Assessment Items"
+                      items={evalData.assessment.assessmentItems}
+                    />
+                  </Col>
+                </FieldRow>
+
+                <Divider sx={{ my: 2 }} />
+                <SubHeading>WHO Stage</SubHeading>
+                <FieldRow>
+                  <Col size={3}>
+                    <FieldDisplay
+                      label="WHO Stage"
+                      value={evalData.assessment.whoStage}
+                      classes={classes}
+                    />
+                  </Col>
+                  <Col size={9}>
+                    <ChipList
+                      label="WHO Stage Criteria"
+                      items={evalData.assessment.whoStageCriteria}
+                    />
+                  </Col>
+                </FieldRow>
+
+                <Divider sx={{ my: 2 }} />
+                <SubHeading>Enrollment & ART Plan</SubHeading>
+                <FieldRow>
+                  <Col size={6}>
+                    <ChipList
+                      label="Enroll In"
+                      items={evalData.assessment.enrollInItems}
+                    />
+                  </Col>
+                  <Col size={6}>
+                    <ChipList
+                      label="Plan for ART"
+                      items={evalData.assessment.planForArtItems}
+                    />
+                  </Col>
+                </FieldRow>
+
+                <FieldRow>
+                  <Col size={12}>
+                    <FieldDisplay
+                      label="Drugs in Regimen"
+                      value={evalData.assessment.drugsInRegimen}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+
+                <FieldRow>
+                  <Col size={12}>
+                    <FieldDisplay
+                      label="Additional Comments"
+                      value={evalData.assessment.additionalComments}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+
+                <FieldRow>
+                  <Col size={4}>
+                    <FieldDisplay
+                      label="Next Appointment"
+                      value={formatDate(evalData.assessment.nextAppointment)}
+                      classes={classes}
+                    />
+                  </Col>
+                </FieldRow>
+              </>
+            )}
+          </FormAccordion>
+
+          {/* ── Action Buttons ─────────────────────────────────────────── */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: "12px",
+              justifyContent: "flex-end",
+              padding: "16px 0",
+              borderTop: "1px solid #e0e0e0",
+              marginTop: "8px",
+            }}
+          >
+            <MatButton
+              variant="contained"
+              className={classes.button}
+              startIcon={<ArrowBackIcon style={{ color: "#fff" }} />}
+              style={{ backgroundColor: "#992E62" }}
+              onClick={() =>
+                props.setActiveContent({
+                  ...props.activeContent,
+                  route: "recent-history",
+                })
+              }
+              type="button"
+            >
+              <span style={{ textTransform: "capitalize" }}>Back</span>
+            </MatButton>
+            <MatButton
+              variant="contained"
+              className={classes.button}
+              startIcon={<EditIcon />}
+              style={{ backgroundColor: "#014d88" }}
+              onClick={() =>
+                props.setActiveContent({
+                  ...props.activeContent,
+                  route: "initial-clinical-evaluation-update",
+                  id: viewData.id,
+                  actionType: "update",
+                })
+              }
+            >
+              <span style={{ textTransform: "capitalize" }}>Edit</span>
+            </MatButton>
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render Create/Edit Mode
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible" }}>
@@ -1567,7 +2525,7 @@ const InitialClinicalEvaluationForm = (props) => {
         >
           <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
             Initial Clinical Evaluation
-            {isUpdateMode && (
+            {isUpdateMode && !isReadOnly && (
               <span
                 style={{
                   marginLeft: "12px",
@@ -1606,6 +2564,7 @@ const InitialClinicalEvaluationForm = (props) => {
                   min={enrollDate}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={(e) => setVisitDate(e.target.value)}
+                  disabled={isReadOnly}
                 />
                 {errors.visitDate && (
                   <span className={classes.error}>{errors.visitDate}</span>
@@ -1616,7 +2575,7 @@ const InitialClinicalEvaluationForm = (props) => {
               <div className="form-group mb-0 col-md-6">
                 <FormGroup>
                   <label className={classes.fieldLabel}>Currently Pregnant</label>
-                  <Input type="select" name="currentlyPregnant" value={pregnancy.currentlyPregnant} onChange={handlePregnancy} disabled={loadingCodesets}>
+                  <Input type="select" name="currentlyPregnant" value={pregnancy.currentlyPregnant} onChange={handlePregnancy} disabled={loadingCodesets || isReadOnly}>
                     <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                     {codesets.currentlyPregnant.map((opt) => (
                       <option key={opt.id} value={opt.code}>{opt.display}</option>
@@ -1640,6 +2599,7 @@ const InitialClinicalEvaluationForm = (props) => {
                     onChange={handlePregnancy}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                     style={{ borderColor: pregnancyErrors.lastMenstrualPeriod ? "#d32f2f" : "" }}
+                    disabled={isReadOnly}
                   />
                   {pregnancyErrors.lastMenstrualPeriod && (
                     <span className={classes.error}>{pregnancyErrors.lastMenstrualPeriod}</span>
@@ -1694,6 +2654,7 @@ const InitialClinicalEvaluationForm = (props) => {
         </Box>
 
         <form onSubmit={handleSubmit}>
+          <fieldset disabled={isReadOnly} style={{ border: 'none', padding: 0, margin: 0 }}>
 
           {/* ══════════════════════════════════════════════════════════════ */}
           {/*  SECTION 1: SYMPTOMS REVIEW                                   */}
@@ -2128,7 +3089,7 @@ const InitialClinicalEvaluationForm = (props) => {
             >
               {/* Row 1: Temperature, BP, Pulse */}
               <div className="row">
-                <Col size={3}>
+                <Col size={4}>
                   <SectionLabel>Temperature (°C)</SectionLabel>
                   <Input
                     type="text"
@@ -2142,7 +3103,7 @@ const InitialClinicalEvaluationForm = (props) => {
                     <span className={classes.error}>{vitalsErrors.temperature}</span>
                   )}
                 </Col>
-                <div className="form-group mb-3 col-md-3">
+                <div className="form-group mb-3 col-md-4">
                   <SectionLabel>Blood Pressure (mmHg)</SectionLabel>
                   <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                     <div style={{ flex: 1 }}>
@@ -2174,7 +3135,7 @@ const InitialClinicalEvaluationForm = (props) => {
                     </div>
                   </div>
                 </div>
-                <Col size={3}>
+                <Col size={4}>
                   <SectionLabel>Pulse (bpm)</SectionLabel>
                   <Input
                     type="text"
@@ -2192,7 +3153,7 @@ const InitialClinicalEvaluationForm = (props) => {
 
               {/* Row 2: Weight, Height, BMI */}
               <div className="row" style={{ marginTop: "8px" }}>
-                <Col size={3}>
+                <Col size={4}>
                   <SectionLabel>Weight (kg)</SectionLabel>
                   <Input
                     type="text"
@@ -2206,7 +3167,7 @@ const InitialClinicalEvaluationForm = (props) => {
                     <span className={classes.error}>{vitalsErrors.weight}</span>
                   )}
                 </Col>
-                <Col size={3}>
+                <Col size={4}>
                   <SectionLabel>Height (cm)</SectionLabel>
                   <Input
                     type="text"
@@ -2220,7 +3181,7 @@ const InitialClinicalEvaluationForm = (props) => {
                     <span className={classes.error}>{vitalsErrors.height}</span>
                   )}
                 </Col>
-                <Col size={3}>
+                <Col size={4}>
                   <SectionLabel>BMI (kg/m²)</SectionLabel>
                   <Input
                     type="text"
@@ -2237,10 +3198,10 @@ const InitialClinicalEvaluationForm = (props) => {
                 </Col>
               </div>
 
-              {/* Row 3: Head Circumference (if age ≤ 15), Surface Area */}
+              {/* Row 3: Head Circumference (if age ≤ 15), Surface Area, Respiratory Rate */}
               <div className="row" style={{ marginTop: "8px" }}>
                 {patientAge <= 15 && (
-                  <Col size={3}>
+                  <Col size={4}>
                     <SectionLabel>Head Circumference (cm)</SectionLabel>
                     <Input
                       type="text"
@@ -2251,7 +3212,7 @@ const InitialClinicalEvaluationForm = (props) => {
                     />
                   </Col>
                 )}
-                <Col size={3}>
+                <Col size={4}>
                   <SectionLabel>Surface Area (m²)</SectionLabel>
                   <Input
                     type="text"
@@ -2259,6 +3220,16 @@ const InitialClinicalEvaluationForm = (props) => {
                     value={vitals.surfaceArea}
                     onChange={handleVitals}
                     placeholder="m²"
+                  />
+                </Col>
+                <Col size={4}>
+                  <SectionLabel>Respiratory Rate (breaths/min)</SectionLabel>
+                  <Input
+                    type="text"
+                    name="respiratoryRate"
+                    value={vitals.respiratoryRate}
+                    onChange={handleVitals}
+                    placeholder="breaths/min"
                   />
                 </Col>
               </div>
@@ -2506,6 +3477,8 @@ const InitialClinicalEvaluationForm = (props) => {
             </Alert>
           )}
 
+          </fieldset>
+
           <Box
             sx={{
               display: "flex",
@@ -2518,24 +3491,44 @@ const InitialClinicalEvaluationForm = (props) => {
           >
             <MatButton
               variant="contained"
-              startIcon={<CancelIcon style={{ color: "#fff" }} />}
+              startIcon={<ArrowBackIcon style={{ color: "#fff" }} />}
               style={{ backgroundColor: "#992E62", color: "#fff" }}
               onClick={() =>
                 props.setActiveContent({ ...props.activeContent, route: "recent-history" })
               }
               type="button"
             >
-              <span style={{ textTransform: "capitalize", color: "#fff" }}>Cancel</span>
+              <span style={{ textTransform: "capitalize", color: "#fff" }}>Back</span>
             </MatButton>
-            <MatButton
-              type="submit"
-              variant="contained"
-              startIcon={<SaveIcon style={{ color: "#fff" }} />}
-              style={{ backgroundColor: "#014d88", color: "#fff" }}
-              disabled={saving}
-            >
-              <span style={{ textTransform: "capitalize", color: "#fff" }}>{saving ? "Saving..." : "Save"}</span>
-            </MatButton>
+            {isReadOnly ? (
+              <MatButton
+                variant="contained"
+                startIcon={<EditIcon style={{ color: "#fff" }} />}
+                style={{ backgroundColor: "#014d88", color: "#fff" }}
+                onClick={() =>
+                  props.setActiveContent({
+                    ...props.activeContent,
+                    route: "initial-clinical-evaluation-update",
+                    actionType: "update",
+                  })
+                }
+                type="button"
+              >
+                <span style={{ textTransform: "capitalize", color: "#fff" }}>Edit</span>
+              </MatButton>
+            ) : (
+              <MatButton
+                type="submit"
+                variant="contained"
+                startIcon={<SaveIcon style={{ color: "#fff" }} />}
+                style={{ backgroundColor: "#014d88", color: "#fff" }}
+                disabled={saving}
+              >
+                <span style={{ textTransform: "capitalize", color: "#fff" }}>
+                  {saving ? (recordId ? "Updating..." : "Saving...") : (recordId ? "Update" : "Save")}
+                </span>
+              </MatButton>
+            )}
           </Box>
         </form>
       </CardContent>

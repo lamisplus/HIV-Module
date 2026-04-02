@@ -97,12 +97,17 @@ public class InitialClinicalEvaluationService {
         InitialClinicalEvaluation existingEvaluation = initialClinicalEvaluationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(InitialClinicalEvaluation.class, "id", String.valueOf(id)));
 
+        // Ensure person_uuid is populated (for records created before this field was added)
+        if (existingEvaluation.getPersonUuid() == null && existingEvaluation.getPerson() != null) {
+            existingEvaluation.setPersonUuid(existingEvaluation.getPerson().getUuid());
+        }
+
         // Update fields
         existingEvaluation.setVisitDate(evaluationDTO.getDateOfObservation());
         existingEvaluation.setClinicianName(evaluationDTO.getData().getClinicianName());
         existingEvaluation.setComment(evaluationDTO.getComment());
 
-        // Extract and update regimen fields from DTO
+        // Extract and update regimen and WHO Stage fields from DTO
         if (evaluationDTO.getData() != null && evaluationDTO.getData().getAssessment() != null) {
             // Convert Long to String for regimen fields
             Long regimenLineId = evaluationDTO.getData().getAssessment().getRegimenLineId();
@@ -111,15 +116,9 @@ public class InitialClinicalEvaluationService {
             Long regimenId = evaluationDTO.getData().getAssessment().getRegimenId();
             existingEvaluation.setRegimenId(regimenId != null ? String.valueOf(regimenId) : null);
 
-            // Convert WHO stage from String to Long
-            String whoStage = evaluationDTO.getData().getAssessment().getWhoStage();
-            if (whoStage != null && !whoStage.isEmpty()) {
-                try {
-                    existingEvaluation.setWhoStageId(Long.parseLong(whoStage));
-                } catch (NumberFormatException e) {
-                    log.warn("Invalid WHO stage value: {}", whoStage);
-                }
-            }
+            // WHO Stage ID: Update the numeric ID from the codeset in the database column
+            Long whoStageId = evaluationDTO.getData().getAssessment().getWhoStageId();
+            existingEvaluation.setWhoStageId(whoStageId);
 
             existingEvaluation.setNextAppointment(evaluationDTO.getData().getAssessment().getNextAppointment());
         }
@@ -237,6 +236,7 @@ public class InitialClinicalEvaluationService {
 
         // Set basic properties
         evaluation.setPersonId(person.getId());
+        evaluation.setPersonUuid(person.getUuid()); // Set person UUID
         evaluation.setVisitId(visit != null ? visit.getId() : null);
         evaluation.setUuid(UUID.randomUUID().toString());
         evaluation.setArchived(0);
@@ -248,7 +248,7 @@ public class InitialClinicalEvaluationService {
         evaluation.setLongitude(evaluationDTO.getLongitude());
         evaluation.setLatitude(evaluationDTO.getLatitude());
 
-        // Extract regimen fields from assessment data (NEW format)
+        // Extract regimen and WHO Stage fields from assessment data
         if (evaluationDTO.getData() != null && evaluationDTO.getData().getAssessment() != null) {
             // Convert Long to String for regimen fields
             Long regimenLineId = evaluationDTO.getData().getAssessment().getRegimenLineId();
@@ -257,15 +257,9 @@ public class InitialClinicalEvaluationService {
             Long regimenId = evaluationDTO.getData().getAssessment().getRegimenId();
             evaluation.setRegimenId(regimenId != null ? String.valueOf(regimenId) : null);
 
-            // Convert WHO stage from String to Long
-            String whoStage = evaluationDTO.getData().getAssessment().getWhoStage();
-            if (whoStage != null && !whoStage.isEmpty()) {
-                try {
-                    evaluation.setWhoStageId(Long.parseLong(whoStage));
-                } catch (NumberFormatException e) {
-                    log.warn("Invalid WHO stage value: {}", whoStage);
-                }
-            }
+            // WHO Stage ID: Save the numeric ID from the codeset to the database column
+            Long whoStageId = evaluationDTO.getData().getAssessment().getWhoStageId();
+            evaluation.setWhoStageId(whoStageId);
 
             evaluation.setNextAppointment(evaluationDTO.getData().getAssessment().getNextAppointment());
         }
@@ -364,9 +358,10 @@ public class InitialClinicalEvaluationService {
                 assessmentDTO.setRegimenId(null);
             }
 
-            // Convert WHO stage from Long to String
-            assessmentDTO.setWhoStage(evaluation.getWhoStageId() != null ?
-                    String.valueOf(evaluation.getWhoStageId()) : null);
+            // WHO Stage: Set both the code (from JSON) and the ID (from database column)
+            // The whoStage code is already populated from JSON by objectMapper.convertValue above
+            // Now also populate the whoStageId from the database column
+            assessmentDTO.setWhoStageId(evaluation.getWhoStageId());
 
             assessmentDTO.setNextAppointment(evaluation.getNextAppointment());
         }

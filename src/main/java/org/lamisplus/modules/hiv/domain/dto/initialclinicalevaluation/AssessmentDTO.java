@@ -23,6 +23,8 @@ public class AssessmentDTO implements Serializable {
     @NotBlank(message = "WHO stage is required")
     private String whoStage;
 
+    private Long whoStageId; // WHO Stage ID from application_codeset
+
     private List<String> whoStageCriteria;
     private List<String> enrollInItems;
     private List<String> planForArtItems;

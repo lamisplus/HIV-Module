@@ -14,12 +14,6 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
 
-/**
- * Entity for Initial Clinical Evaluation (ICE) - One-off form
- * This table stores BOTH:
- * 1. Old "Clinical evaluation" records migrated from hiv_observation
- * 2. New "Initial Clinical evaluation" records with structured regimen fields
- */
 @Entity
 @Table(name = "hiv_initial_clinical_evaluation")
 @Builder(toBuilder = true)
@@ -41,6 +35,9 @@ public class InitialClinicalEvaluation extends HivAuditEntity implements Persist
     @Column(name = "person_id", nullable = false)
     private Long personId;
 
+    @Column(name = "person_uuid")
+    private String personUuid;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "person_id", insertable = false, updatable = false)
     private Person person;
@@ -59,10 +56,6 @@ public class InitialClinicalEvaluation extends HivAuditEntity implements Persist
     @Column(name = "archived")
     private Integer archived = 0;
 
-    // ========================================================================
-    // Basic ICE Fields
-    // ========================================================================
-
     @NotNull
     @Column(name = "visit_date", nullable = false)
     @Convert(converter = LocalDateConverter.class)
@@ -72,33 +65,14 @@ public class InitialClinicalEvaluation extends HivAuditEntity implements Persist
     @Column(name = "clinician_name")
     private String clinicianName;
 
-    // ========================================================================
-    // Regimen Fields (Structured columns)
-    // These are extracted from JSONB for better querying
-    // Old format: data.regimen.regimen & data.regimen.regimenLine
-    // New format: data.assessment.regimenId & data.assessment.regimenLineId
-    // Note: Using VARCHAR to match enrollment_commencement table structure
-    // ========================================================================
-
     @Column(name = "regimen_line_id", length = 255)
     private String regimenLineId;
 
     @Column(name = "regimen_id", length = 255)
     private String regimenId;
 
-    // ========================================================================
-    // WHO Staging
-    // Old format: data.who.stage
-    // New format: data.assessment.whoStage
-    // ========================================================================
-
     @Column(name = "who_stage_id")
     private Long whoStageId;
-
-    // ========================================================================
-    // Complex Nested Data (JSONB)
-    // These remain as JSONB for flexibility and to preserve all data
-    // ========================================================================
 
     @Type(type = "jsonb")
     @Column(name = "symptoms", columnDefinition = "jsonb")
@@ -155,10 +129,6 @@ public class InitialClinicalEvaluation extends HivAuditEntity implements Persist
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate nextAppointment;
 
-    // ========================================================================
-    // Metadata
-    // ========================================================================
-
     @Column(name = "source")
     private String source;
 
@@ -171,18 +141,10 @@ public class InitialClinicalEvaluation extends HivAuditEntity implements Persist
     @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
 
-    // ========================================================================
-    // Persistable Implementation
-    // ========================================================================
-
     @Override
     public boolean isNew() {
         return id == null;
     }
-
-    // ========================================================================
-    // Helper Methods
-    // ========================================================================
 
     @PrePersist
     public void prePersist() {

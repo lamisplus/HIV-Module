@@ -64,6 +64,11 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "archived")
     private Integer archived;
 
+    @Column(name = "visit_date")
+    @Convert(converter = LocalDateConverter.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate visitDate;
+
     @Column(name = "date_enrolled_in_hiv_care", nullable = false)
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

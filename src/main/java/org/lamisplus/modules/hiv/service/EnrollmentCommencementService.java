@@ -227,11 +227,13 @@ public class EnrollmentCommencementService {
         RegistrationDto reg = request.getData().getRegistration();
         CommencementDto com = request.getData().getCommencement();
         LocalDate artStartDate = parseDate(com.getDateArtStarted());
+        LocalDate visitDate = parseDate(request.getDateOfObservation());
         Visit visit = hivVisitEncounter.processAndCreateVisit(person.getId(), artStartDate);
         EnrollmentCommencement entity = new EnrollmentCommencement();
         entity.setUuid(UUID.randomUUID().toString());
         entity.setPerson(person);
         entity.setVisit(visit);
+        entity.setVisitDate(visitDate != null ? visitDate : artStartDate); // Use dateOfObservation or fallback to artStartDate
         entity.setIsCommencement(Boolean.TRUE);
         entity.setArchived(0);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
