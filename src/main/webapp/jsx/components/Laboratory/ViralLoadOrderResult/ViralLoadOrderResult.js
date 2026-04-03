@@ -82,6 +82,12 @@ const Laboratory = (props) => {
     const [pcrs, setPcrs] = useState([]);
     const [showModal, setShowModal] = useState({ show: false, message: ""});
     const [eacCheckResult, setEacCheckResult] = useState(false);
+
+    // Check if this is a PEP client from the props (passed from index.js)
+    const isPepClient = props.pepClient || false;
+
+    console.log("ViralLoadOrderResult - props.pepClient:", props.pepClient, "isPepClient:", isPepClient);
+
     let temp = { ...errors }
     const [tests, setTests]=useState({
             approvedBy: "",
@@ -102,6 +108,7 @@ const Laboratory = (props) => {
             labTestId: "",
             orderBy: "",
             patientId: props.patientObj?props.patientObj.id:"",
+            patientCategory: isPepClient ? "PEP" : "NON-PEP",
             pcrLabName: "",
             pcrLabSampleNumber: "",
             result: "",
@@ -420,6 +427,7 @@ const Laboratory = (props) => {
                         labTestId: "",
                         orderBy: "",
                         patientId: props.patientObj?props.patientObj.id:"",
+                        patientCategory: isPepClient ? "PEP" : "NON-PEP",
                         pcrLabName: "",
                         pcrLabSampleNumber: "",
                         result: "",

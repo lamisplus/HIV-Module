@@ -33,6 +33,10 @@ const SubMenu = (props) => {
   const [activeItem, setActiveItem] = useState("recent-history");
   const patientObj = props.patientObj;
 
+  // Check if this is a PEP client
+  const isPepClient = props.pepClient || false;
+  const [pepHasPositiveResult, setPepHasPositiveResult] = useState(false);
+
   const [isOtzEnrollementDone, setIsOtzEnrollementDone] = useState(null);
   const [isEnrollmentCommencementDone, setIsEnrollmentCommencementDone] = useState(false);
   const [isICEDone, setIsICEDone] = useState(false);
@@ -215,6 +219,36 @@ const SubMenu = (props) => {
     },
     [patientObj?.age, currentStatus, isICEDone, isEnrollmentCommencementDone]
   );
+
+  // Check if PEP client has positive result
+  useEffect(() => {
+    const checkPepResult = async () => {
+      if (isPepClient && patientObj?.id) {
+        try {
+          const response = await axios.get(
+            `${baseUrl}laboratory/vl-results/patients/${patientObj.id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          // Check if there's a PEP viral load result that is positive
+          const pepResults = response.data.filter(
+            result => result.patientCategory?.toUpperCase() === 'PEP'
+          );
+
+          if (pepResults.length > 0) {
+            const latestResult = pepResults[pepResults.length - 1];
+            const isPositive = latestResult.result &&
+              latestResult.result.toLowerCase().includes('positive');
+            setPepHasPositiveResult(isPositive);
+          }
+        } catch (error) {
+          console.error("Error checking PEP result:", error);
+          setPepHasPositiveResult(false);
+        }
+      }
+    };
+    checkPepResult();
+  }, [isPepClient, patientObj?.id]);
 
   useEffect(() => {
     const initializeData = async () => {
@@ -572,12 +606,46 @@ const SubMenu = (props) => {
 
   console.log("SubMenu render - menuConditions:", menuConditions);
   console.log("SubMenu render - showing LIMITED menu?", menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment);
+  console.log("SubMenu render - isPepClient:", isPepClient, "pepHasPositiveResult:", pepHasPositiveResult);
 
   return (
     <div>
       {patientObj && (
         <Segment inverted>
-          {menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment ? (
+          {/* PEP CLIENT WITHOUT POSITIVE RESULT - Show only Viral Load */}
+          {isPepClient && !pepHasPositiveResult ? (
+            <>
+              {console.log("RENDERING PEP CLIENT MENU (No positive result yet)")}
+              <Menu size="tiny" color="blue" inverted pointing>
+                <MenuItem
+                  onClick={menuHandlers.onClickHome}
+                  name="home"
+                  active={activeItem === "recent-history"}
+                  title="Home"
+                >
+                  Home
+                </MenuItem>
+
+                <MenuItem
+                  onClick={menuHandlers.loadLaboratoryViralLoadOrderResult}
+                  name="lab"
+                  active={activeItem === "lab"}
+                  title="Viral Load Order & Result"
+                >
+                  Viral Load Order & Result
+                </MenuItem>
+
+                <MenuItem
+                  onClick={menuHandlers.loadPatientHistory}
+                  name="history"
+                  active={activeItem === "history"}
+                  title="History"
+                >
+                  History
+                </MenuItem>
+              </Menu>
+            </>
+          ) : menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment ? (
             <>
               {console.log("RENDERING LIMITED MENU (Pre-ICE or Post-ICE Pre-Enrollment)")}
               <Menu size="tiny" color="blue" inverted pointing>

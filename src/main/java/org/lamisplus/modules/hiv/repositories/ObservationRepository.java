@@ -376,13 +376,34 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
 
     @Query(value = "SELECT p.id AS id, prep.unique_id AS uniqueId, p.hospital_number AS hospitalNumber, " +
             "p.surname AS surname, p.first_name AS firstName, p.other_name AS otherName, " +
-            "prep.date_enrolled AS dateEnrolled, p.date_of_birth AS dateOfBirth, p.uuid AS personUuid " +
+            "prep.date_enrolled AS dateEnrolled, p.date_of_birth AS dateOfBirth, p.uuid AS personUuid, " +
+            "CASE WHEN ls.patient_uuid IS NOT NULL THEN TRUE ELSE FALSE END AS hasSample, " +
+            "CASE WHEN lr.patient_uuid IS NOT NULL THEN TRUE ELSE FALSE END AS hasResult, " +
+            "lr.result_reported AS testResult " +
             "FROM patient_person p " +
             "LEFT JOIN prep_enrollment prep ON prep.person_uuid = p.uuid " +
+            "LEFT JOIN ( " +
+            "    SELECT DISTINCT ON (patient_uuid) patient_uuid, date_sample_collected " +
+            "    FROM laboratory_sample " +
+            "    WHERE archived = 0 " +
+            "    AND LOWER(patient_category) = 'pep' " +
+            "    ORDER BY patient_uuid, date_sample_collected DESC " +
+            ") ls ON ls.patient_uuid = p.uuid " +
+            "LEFT JOIN ( " +
+            "    SELECT DISTINCT ON (lr.patient_uuid) lr.patient_uuid, lr.result_reported, lr.date_result_reported " +
+            "    FROM laboratory_result lr " +
+            "    INNER JOIN laboratory_test lt ON lt.id = lr.test_id " +
+            "    INNER JOIN laboratory_sample lsamp ON lsamp.test_id = lt.id " +
+            "    WHERE lr.archived = 0 " +
+            "    AND lt.lab_test_id = 16 " +
+            "    AND LOWER(lsamp.patient_category) = 'pep' " +
+            "    ORDER BY lr.patient_uuid, lr.date_result_reported DESC " +
+            ") lr ON lr.patient_uuid = p.uuid " +
             "WHERE prep.date_enrolled IS NOT NULL " +
             "AND p.archived = 0 " +
             "AND p.facility_id = :facilityId " +
             "AND CAST(prep.date_enrolled AS DATE) + INTERVAL '28 days' <= CURRENT_DATE " +
+            "AND (lr.result_reported IS NULL OR LOWER(lr.result_reported) NOT LIKE '%negative%') " +
             "AND (:searchValue IS NULL OR :searchValue = '' OR " +
             "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
             "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
@@ -392,10 +413,21 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             countQuery = "SELECT COUNT(*) " +
             "FROM patient_person p " +
             "LEFT JOIN prep_enrollment prep ON prep.person_uuid = p.uuid " +
+            "LEFT JOIN ( " +
+            "    SELECT DISTINCT ON (lr.patient_uuid) lr.patient_uuid, lr.result_reported " +
+            "    FROM laboratory_result lr " +
+            "    INNER JOIN laboratory_test lt ON lt.id = lr.test_id " +
+            "    INNER JOIN laboratory_sample lsamp ON lsamp.test_id = lt.id " +
+            "    WHERE lr.archived = 0 " +
+            "    AND lt.lab_test_id = 16 " +
+            "    AND LOWER(lsamp.patient_category) = 'pep' " +
+            "    ORDER BY lr.patient_uuid, lr.date_result_reported DESC " +
+            ") lr ON lr.patient_uuid = p.uuid " +
             "WHERE prep.date_enrolled IS NOT NULL " +
             "AND p.archived = 0 " +
             "AND p.facility_id = :facilityId " +
             "AND CAST(prep.date_enrolled AS DATE) + INTERVAL '28 days' <= CURRENT_DATE " +
+            "AND (lr.result_reported IS NULL OR LOWER(lr.result_reported) NOT LIKE '%negative%') " +
             "AND (:searchValue IS NULL OR :searchValue = '' OR " +
             "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
             "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +

@@ -131,8 +131,16 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.enrollmentFlow
       : false;
+  const pepClient =
+    history.location && history.location.state
+      ? history.location.state.pepClient
+      : false;
+  const viralLoadForm =
+    history.location && history.location.state
+      ? history.location.state.viralLoadForm
+      : false;
 
-  console.log("PatientDetail - enrollmentFlow:", enrollmentFlow, "location.state:", history.location?.state);
+  console.log("PatientDetail - enrollmentFlow:", enrollmentFlow, "pepClient:", pepClient, "viralLoadForm:", viralLoadForm, "location.state:", history.location?.state);
   const [patientObj1, setPatientObj1] = useState(null);
   const [showModal, setShowModal] = useState({ show: false, message: "" });
   const [checkingEnrollmentStatus, setCheckingEnrollmentStatus] = useState(enrollmentFlow);
@@ -358,6 +366,21 @@ function PatientCard(props) {
     checkEnrollmentStatusAndRoute();
   }, [enrollmentFlow, patientObj?.id]);
 
+  // Auto-open viral load form for PEP clients
+  useEffect(() => {
+    if (pepClient && viralLoadForm && patientObj?.id) {
+      console.log("Opening Viral Load Order & Result form for PEP client");
+      setActiveContent({
+        route: "laboratoryViralLoadOrderResult",
+        id: "",
+        activeTab: "viralLoad",
+        actionType: "create",
+        obj: {},
+        pepClient: true,  // Pass pepClient flag through activeContent
+      });
+    }
+  }, [pepClient, viralLoadForm, patientObj?.id]);
+
   // Show loading state while checking enrollment status
   if (checkingEnrollmentStatus) {
     return (
@@ -416,6 +439,8 @@ function PatientCard(props) {
               expandedPatientObj={patientObj1}
               art={art}
               activeContent={activeContent}
+              pepClient={pepClient}
+              viralLoadForm={viralLoadForm}
             />
           </Sticky>
           <br />

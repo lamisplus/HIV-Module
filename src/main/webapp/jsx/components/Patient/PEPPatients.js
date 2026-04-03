@@ -179,64 +179,149 @@ const PEPPatients = (props) => {
                     uniqueId: row.uniqueId || "N/A",
                     age: calculate_age(row.dateOfBirth),
                     dateEnrolled: row.dateEnrolled ? Moment(row.dateEnrolled).format("DD-MM-YYYY") : "N/A",
-                    actions: (
-                      <div>
-                        <Link
-                          to={{
-                            pathname: "/patient-history",
-                            state: {
-                              patientObj: {
-                                id: row.id,
-                                personUuid: row.personUuid,
-                                hospitalNumber: row.hospitalNumber,
-                                firstName: row.firstName,
-                                surname: row.surname,
-                                otherName: row.otherName,
-                                dateOfBirth: row.dateOfBirth,
-                              }
-                            },
-                          }}
-                        >
-                          <ButtonGroup
-                            variant="contained"
-                            aria-label="split button"
-                            style={{
-                              backgroundColor: "rgb(153, 46, 98)",
-                              height: "30px",
-                              width: "215px",
-                            }}
-                            size="large"
-                          >
-                            <Button
-                              color="primary"
-                              size="small"
-                              aria-label="select merge strategy"
-                              aria-haspopup="menu"
+                    actions: (() => {
+                      const hasSample = row.hasSample;
+                      const hasResult = row.hasResult;
+                      const testResult = row.testResult;
+
+                      // Determine button state based on workflow
+                      let buttonText = "Collect Sample";
+                      let buttonColor = "#014d88"; // Blue for collect sample
+                      let isDisabled = false;
+                      let targetPath = "/patient-history";
+                      let routeState = {
+                        pepClient: true,
+                        viralLoadForm: true,
+                      };
+
+                      if (hasResult && testResult && testResult.toLowerCase().includes("positive")) {
+                        // Result is positive - show Enroll Patient
+                        buttonText = "Enroll Patient";
+                        buttonColor = "rgb(153, 46, 98)"; // Purple for enrollment
+                        targetPath = "/patient-history";
+                        routeState = {
+                          enrollmentFlow: true,
+                        };
+                      } else if (hasSample && !hasResult) {
+                        // Sample collected but no result yet - show Awaiting Result
+                        buttonText = "Awaiting Result";
+                        buttonColor = "#FFA500"; // Orange for awaiting
+                        isDisabled = true;
+                        targetPath = "#";
+                        routeState = {};
+                      } else if (!hasSample) {
+                        // No sample collected - show Collect Sample
+                        buttonText = "Collect Sample";
+                        buttonColor = "#014d88";
+                        targetPath = "/patient-history";
+                        routeState = {
+                          pepClient: true,
+                          viralLoadForm: true,
+                        };
+                      }
+
+                      return (
+                        <div>
+                          {isDisabled ? (
+                            <ButtonGroup
+                              variant="contained"
+                              aria-label="split button"
                               style={{
-                                backgroundColor: "rgb(153, 46, 98)",
+                                backgroundColor: buttonColor,
+                                height: "30px",
+                                width: "215px",
+                                opacity: 0.7,
                               }}
+                              size="large"
+                              disabled
                             >
-                              <MdDashboard />
-                            </Button>
-                            <Button
-                              style={{
-                                backgroundColor: "rgb(153, 46, 98)",
-                              }}
-                            >
-                              <span
+                              <Button
+                                color="primary"
+                                size="small"
                                 style={{
-                                  fontSize: "12px",
-                                  color: "#fff",
-                                  fontWeight: "bolder",
+                                  backgroundColor: buttonColor,
                                 }}
+                                disabled
                               >
-                                Patient Dashboard
-                              </span>
-                            </Button>
-                          </ButtonGroup>
-                        </Link>
-                      </div>
-                    ),
+                                <MdDashboard />
+                              </Button>
+                              <Button
+                                style={{
+                                  backgroundColor: buttonColor,
+                                }}
+                                disabled
+                              >
+                                <span
+                                  style={{
+                                    fontSize: "12px",
+                                    color: "#fff",
+                                    fontWeight: "bolder",
+                                  }}
+                                >
+                                  {buttonText}
+                                </span>
+                              </Button>
+                            </ButtonGroup>
+                          ) : (
+                            <Link
+                              to={{
+                                pathname: targetPath,
+                                state: {
+                                  patientObj: {
+                                    id: row.id,
+                                    personUuid: row.personUuid,
+                                    hospitalNumber: row.hospitalNumber,
+                                    firstName: row.firstName,
+                                    surname: row.surname,
+                                    otherName: row.otherName,
+                                    dateOfBirth: row.dateOfBirth,
+                                  },
+                                  ...routeState,
+                                }
+                              }}
+                            >
+                              <ButtonGroup
+                                variant="contained"
+                                aria-label="split button"
+                                style={{
+                                  backgroundColor: buttonColor,
+                                  height: "30px",
+                                  width: "215px",
+                                }}
+                                size="large"
+                              >
+                                <Button
+                                  color="primary"
+                                  size="small"
+                                  aria-label="select merge strategy"
+                                  aria-haspopup="menu"
+                                  style={{
+                                    backgroundColor: buttonColor,
+                                  }}
+                                >
+                                  <MdDashboard />
+                                </Button>
+                                <Button
+                                  style={{
+                                    backgroundColor: buttonColor,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: "12px",
+                                      color: "#fff",
+                                      fontWeight: "bolder",
+                                    }}
+                                  >
+                                    {buttonText}
+                                  </span>
+                                </Button>
+                              </ButtonGroup>
+                            </Link>
+                          )}
+                        </div>
+                      );
+                    })(),
                   })),
                   page: query.page,
                   totalCount: result.data.totalRecords,

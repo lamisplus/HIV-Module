@@ -22,6 +22,8 @@ const LaboratoryModule = (props) => {
     const [refreshing, setRefreshing] = useState(false)
     const patientObj = props.patientObj
 
+    console.log("ViralLoadOrderResult index.js - props.activeContent:", props.activeContent, "pepClient:", props.activeContent?.pepClient);
+
     const initializeView = () => {
         setInitializing(true);
         axios
@@ -114,8 +116,8 @@ const LaboratoryModule = (props) => {
                     className="mb-3"
                 >
                  
-                  <Tab eventKey="viralLoad" title="VIRAL LOAD ORDER & RESULT">                   
-                    <ViralLoadOrderResult patientObj={patientObj} setActiveContent={props.setActiveContent} activeContent={props.activeContent} LabOrders={LabOrders}/>
+                  <Tab eventKey="viralLoad" title="VIRAL LOAD ORDER & RESULT">
+                    <ViralLoadOrderResult patientObj={patientObj} setActiveContent={props.setActiveContent} activeContent={props.activeContent} LabOrders={LabOrders} pepClient={props.activeContent?.pepClient}/>
                   </Tab>
                   <Tab eventKey="history" title=" HISTORY">
                     <ViralLoadOrderResultHistory patientObj={patientObj} setActiveContent={props.setActiveContent} orderList={orderList} LabOrders={LabOrders} loading={loading}/>

@@ -12,4 +12,7 @@ public interface PEPClientProjection {
     LocalDate getDateEnrolled();
     LocalDate getDateOfBirth();
     String getPersonUuid();
+    Boolean getHasSample();
+    Boolean getHasResult();
+    String getTestResult();
 }
