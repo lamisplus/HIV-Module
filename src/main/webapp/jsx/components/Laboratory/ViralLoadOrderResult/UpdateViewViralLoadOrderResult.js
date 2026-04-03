@@ -105,6 +105,7 @@ const Laboratory = (props) => {
             labTestId: "",
             orderBy: "",
             patientId: props.patientObj?props.patientObj.id:"",
+            patientCategory: "",  // Add patientCategory field
             pcrLabName: "",
             pcrLabSampleNumber: "",
             result: "",
@@ -116,11 +117,12 @@ const Laboratory = (props) => {
     })
 
     useEffect(() => {
-           
+
         CheckLabModule();
         LabTestDetail();
         PCRLabList();
-        setTests(props.activeContent.obj) 
+
+        setTests(props.activeContent.obj)
         tests.sampleCollectionDate=moment(props.activeContent.obj.sampleCollectionDate).format("YYYY-MM-DD HH:MM:SS")
         tests.dateResultReceived=props.activeContent.obj.dateResultReceived!==null && props.activeContent.obj.dateResultReceived!=="" ? moment(props.activeContent.obj.dateResultReceived).format("YYYY-MM-DD HH:MM:SS")  : ""
         showObj.isPcr=props.activeContent.obj.pcrLabName!==null && props.activeContent.obj.pcrLabName!=="" ? true :false
@@ -282,9 +284,9 @@ const Laboratory = (props) => {
         return Object.values(temp).every(x => x == "")
     }
 
-    const handleSubmit = (e) => {        
+    const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         if(validate()){
             setSaving(true);
             const payload = {

@@ -126,7 +126,6 @@ const PEPPatients = (props) => {
             hidden: showPPI,
           },
           { title: "Hospital Number", field: "hospitalNumber", filtering: false },
-          { title: "PrEP Unique ID", field: "uniqueId", filtering: false },
           { title: "Age", field: "age", filtering: false },
           { title: "Date Enrolled", field: "dateEnrolled", filtering: false },
           { title: "Actions", field: "actions", filtering: false },
@@ -176,13 +175,35 @@ const PEPPatients = (props) => {
                       </>
                     ),
                     hospitalNumber: row.hospitalNumber,
-                    uniqueId: row.uniqueId || "N/A",
                     age: calculate_age(row.dateOfBirth),
                     dateEnrolled: row.dateEnrolled ? Moment(row.dateEnrolled).format("DD-MM-YYYY") : "N/A",
                     actions: (() => {
                       const hasSample = row.hasSample;
                       const hasResult = row.hasResult;
                       const testResult = row.testResult;
+
+                      // Helper function to check if result is positive
+                      const isPositiveResult = (result) => {
+                        if (!result) return false;
+
+                        const resultStr = String(result).trim().toLowerCase();
+
+                        // Check for "detected" or "positive"
+                        if (resultStr.includes("detected") && !resultStr.includes("undetected")) {
+                          return true;
+                        }
+                        if (resultStr.includes("positive")) {
+                          return true;
+                        }
+
+                        // Check for numeric values
+                        const numericValue = parseFloat(resultStr);
+                        if (!isNaN(numericValue) && numericValue > 0) {
+                          return true;
+                        }
+
+                        return false;
+                      };
 
                       // Determine button state based on workflow
                       let buttonText = "Collect Sample";
@@ -194,21 +215,36 @@ const PEPPatients = (props) => {
                         viralLoadForm: true,
                       };
 
-                      if (hasResult && testResult && testResult.toLowerCase().includes("positive")) {
-                        // Result is positive - show Enroll Patient
+                      if (hasResult && isPositiveResult(testResult)) {
+                        // Result is positive (detected or numeric > 0) - show Enroll Patient
                         buttonText = "Enroll Patient";
                         buttonColor = "rgb(153, 46, 98)"; // Purple for enrollment
                         targetPath = "/patient-history";
                         routeState = {
                           enrollmentFlow: true,
                         };
+                      } else if (hasResult && !isPositiveResult(testResult)) {
+                        // Result is negative (undetected or 0) - patient remains in PEP monitoring
+                        // Can view history or collect another sample if needed
+                        buttonText = "View History";
+                        buttonColor = "#28a745"; // Green for negative result
+                        isDisabled = false;
+                        targetPath = "/patient-history";
+                        routeState = {
+                          pepClient: true,
+                          viralLoadHistory: true,
+                        };
                       } else if (hasSample && !hasResult) {
                         // Sample collected but no result yet - show Awaiting Result
+                        // Route to history tab so user can update the record when result is available
                         buttonText = "Awaiting Result";
                         buttonColor = "#FFA500"; // Orange for awaiting
-                        isDisabled = true;
-                        targetPath = "#";
-                        routeState = {};
+                        isDisabled = false;  // Make it clickable
+                        targetPath = "/patient-history";
+                        routeState = {
+                          pepClient: true,
+                          viralLoadHistory: true,  // Flag to open history tab
+                        };
                       } else if (!hasSample) {
                         // No sample collected - show Collect Sample
                         buttonText = "Collect Sample";

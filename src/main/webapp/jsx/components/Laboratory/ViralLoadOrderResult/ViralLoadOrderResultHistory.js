@@ -219,6 +219,7 @@ const LabHistory = (props) => {
             field: "testGroup",
           },
           { title: "Test Name", field: "testName", filtering: false },
+          { title: "Patient Category", field: "patientCategory", filtering: false },
           { title: "Lab Number", field: "labNumber", filtering: false },
           { title: "Sample Number", field: "sampleNumber", filtering: false },
           {
@@ -243,6 +244,7 @@ const LabHistory = (props) => {
         data={props.orderList.map((row) => ({
           testGroup: row.labTestGroupName,
           testName: row.labTestName,
+          patientCategory: row.patientCategory || "N/A",
           labNumber: row.labNumber,
           sampleNumber: row.sampleNumber,
           sampleCollectionDate: row.sampleCollectionDate,

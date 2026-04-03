@@ -139,8 +139,12 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.viralLoadForm
       : false;
+  const viralLoadHistory =
+    history.location && history.location.state
+      ? history.location.state.viralLoadHistory
+      : false;
 
-  console.log("PatientDetail - enrollmentFlow:", enrollmentFlow, "pepClient:", pepClient, "viralLoadForm:", viralLoadForm, "location.state:", history.location?.state);
+
   const [patientObj1, setPatientObj1] = useState(null);
   const [showModal, setShowModal] = useState({ show: false, message: "" });
   const [checkingEnrollmentStatus, setCheckingEnrollmentStatus] = useState(enrollmentFlow);
@@ -281,7 +285,6 @@ function PatientCard(props) {
         return;
       }
 
-      console.log("Auto-open form useEffect - enrollmentFlow:", enrollmentFlow, "patientObj?.id:", patientObj?.id);
 
       try {
         // Check if ICE form is already completed
@@ -291,7 +294,6 @@ function PatientCard(props) {
         );
 
         const isICECompleted = typeof iceResponse.data === 'boolean' ? iceResponse.data : false;
-        console.log("ICE completed?", isICECompleted);
 
         if (isICECompleted) {
           // ICE is done, now check if Enrollment & Commencement is also done
@@ -303,11 +305,8 @@ function PatientCard(props) {
 
             // If we get a response with data, enrollment exists
             const isEnrollmentCompleted = enrollmentResponse.data && enrollmentResponse.data.id;
-            console.log("Enrollment & Commencement completed?", isEnrollmentCompleted);
-
             if (isEnrollmentCompleted) {
               // Both ICE and Enrollment are done, route to recent history
-              console.log("Both ICE and Enrollment & Commencement are complete. Routing to recent history.");
               setActiveContent({
                 route: "recent-history",
                 id: "",
@@ -317,7 +316,6 @@ function PatientCard(props) {
               });
             } else {
               // ICE is done but Enrollment is not, route to Enrollment & Commencement form
-              console.log("Opening Enrollment & Commencement form automatically!");
               setActiveContent({
                 route: "enrollment-and-commencement",
                 id: "",
@@ -328,7 +326,6 @@ function PatientCard(props) {
             }
           } catch (enrollmentError) {
             // If 404 or any error, enrollment doesn't exist
-            console.log("Enrollment & Commencement not found, opening form");
             setActiveContent({
               route: "enrollment-and-commencement",
               id: "",
@@ -339,7 +336,6 @@ function PatientCard(props) {
           }
         } else {
           // ICE not done yet, open ICE form
-          console.log("Opening ICE form automatically!");
           setActiveContent({
             route: "initial-clinical-evaluation",
             id: "",
@@ -349,7 +345,6 @@ function PatientCard(props) {
           });
         }
       } catch (error) {
-        console.log("Error checking enrollment status:", error);
         // Default to ICE form if check fails
         setActiveContent({
           route: "initial-clinical-evaluation",
@@ -369,7 +364,6 @@ function PatientCard(props) {
   // Auto-open viral load form for PEP clients
   useEffect(() => {
     if (pepClient && viralLoadForm && patientObj?.id) {
-      console.log("Opening Viral Load Order & Result form for PEP client");
       setActiveContent({
         route: "laboratoryViralLoadOrderResult",
         id: "",
@@ -380,6 +374,20 @@ function PatientCard(props) {
       });
     }
   }, [pepClient, viralLoadForm, patientObj?.id]);
+
+  // Auto-open viral load history tab for PEP clients with sample awaiting result
+  useEffect(() => {
+    if (pepClient && viralLoadHistory && patientObj?.id) {
+      setActiveContent({
+        route: "laboratoryViralLoadOrderResult",
+        id: "",
+        activeTab: "history",
+        actionType: "",
+        obj: {},
+        pepClient: true,
+      });
+    }
+  }, [pepClient, viralLoadHistory, patientObj?.id]);
 
   // Show loading state while checking enrollment status
   if (checkingEnrollmentStatus) {
