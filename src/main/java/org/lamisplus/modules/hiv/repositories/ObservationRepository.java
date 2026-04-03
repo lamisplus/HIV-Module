@@ -374,6 +374,39 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "WHERE tbImpl.person_uuid = ?1", nativeQuery = true)
     Optional<String> findCurrentTbStatus(String personUuid);
 
+    @Query(value = "SELECT p.id AS id, prep.unique_id AS uniqueId, p.hospital_number AS hospitalNumber, " +
+            "p.surname AS surname, p.first_name AS firstName, p.other_name AS otherName, " +
+            "prep.date_enrolled AS dateEnrolled, p.date_of_birth AS dateOfBirth, p.uuid AS personUuid " +
+            "FROM patient_person p " +
+            "LEFT JOIN prep_enrollment prep ON prep.person_uuid = p.uuid " +
+            "WHERE prep.date_enrolled IS NOT NULL " +
+            "AND p.archived = 0 " +
+            "AND p.facility_id = :facilityId " +
+            "AND CAST(prep.date_enrolled AS DATE) + INTERVAL '28 days' <= CURRENT_DATE " +
+            "AND (:searchValue IS NULL OR :searchValue = '' OR " +
+            "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
+            "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
+            "LOWER(p.surname) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
+            "LOWER(prep.unique_id) LIKE LOWER(CONCAT('%', :searchValue, '%'))) " +
+            "ORDER BY prep.date_enrolled DESC",
+            countQuery = "SELECT COUNT(*) " +
+            "FROM patient_person p " +
+            "LEFT JOIN prep_enrollment prep ON prep.person_uuid = p.uuid " +
+            "WHERE prep.date_enrolled IS NOT NULL " +
+            "AND p.archived = 0 " +
+            "AND p.facility_id = :facilityId " +
+            "AND CAST(prep.date_enrolled AS DATE) + INTERVAL '28 days' <= CURRENT_DATE " +
+            "AND (:searchValue IS NULL OR :searchValue = '' OR " +
+            "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
+            "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
+            "LOWER(p.surname) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
+            "LOWER(prep.unique_id) LIKE LOWER(CONCAT('%', :searchValue, '%')))",
+            nativeQuery = true)
+    Page<PEPClientProjection> findAllPEPClients(
+            @Param("facilityId") Long facilityId,
+            @Param("searchValue") String searchValue,
+            Pageable pageable);
+
     // get all client eligible for viral load - using materialized view for performance
     @Query(value = "SELECT patientId, patientUuid, firstName, lastName, otherName, gender, " +
             "dateOfBirth, hospitalNumber, artStartDate, vlEligibilityStatus " +

@@ -4,6 +4,7 @@ import LoadingSpinner from "../../reuseables/Loading";
 const Dashboard = lazy(() => import("./Patient/PatientList"));
 const CheckedInPatients = lazy(() => import("./Patient/CheckedInPatients"));
 const ArtPatients = lazy(() => import("./Patient/ArtPatients"));
+const PEPPatients = lazy(() => import("./Patient/PEPPatients"));
 const Ovc = lazy(() => import("./Ovc/Index"));
 import { Link } from "react-router-dom";
 import Button from "@material-ui/core/Button";
@@ -98,13 +99,21 @@ const Home = () => {
                     </Tab>
                   {/* )} */}
             
-                  {permissions.canSeeFindPatients && ( 
+                  {permissions.canSeeFindPatients && (
                     <Tab eventKey="home" title="Find Patients">
                       <Suspense fallback={<LoadingSpinner />}>
                         {activeTab === "home" && <Dashboard />}
                       </Suspense>
                     </Tab>
-                   )} 
+                   )}
+
+                  {permissions.canSeeFindPatients && (
+                    <Tab eventKey="pep-patients" title="PEP Patients">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        {activeTab === "pep-patients" && <PEPPatients />}
+                      </Suspense>
+                    </Tab>
+                   )}
 
                   {/* {permissions.canSeeArtPatients && ( */}
                     <Tab eventKey="art-patients" title="ART Patients">
