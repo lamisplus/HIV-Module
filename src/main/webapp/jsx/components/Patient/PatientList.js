@@ -24,17 +24,13 @@ import ViewColumn from "@material-ui/icons/ViewColumn";
 import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { makeStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import ButtonGroup from "@material-ui/core/ButtonGroup";
-import { MdDashboard } from "react-icons/md";
 import "@reach/menu-button/styles.css";
 import { Label } from "semantic-ui-react";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
 import { calculate_age } from "../../../utils";
-//import { FaUserPlus } from "react-icons/fa";
-import { TiArrowForward } from "react-icons/ti";
+import FindPatientActions from "../Globals/FindPatientActions";
 
 //Dtate Picker package
 Moment.locale("en");
@@ -154,56 +150,7 @@ const Patients = (props) => {
                     hospital_number: row.hospitalNumber,
                     sex: row.sex,
                     age: calculate_age(row.dateOfBirth),
-                    actions: (
-                      <div>
-                          <>
-                            <Link
-                              to={{
-                                pathname: "/patient-history",
-                                state: { patientObj: row, enrollmentFlow: true },
-                              }}
-                            >
-                              <ButtonGroup
-                                variant="contained"
-                                aria-label="split button"
-                                style={{
-                                  backgroundColor: "rgb(153, 46, 98)",
-                                  height: "30px",
-                                  width: "215px",
-                                }}
-                                size="large"
-                              >
-                                <Button
-                                  color="primary"
-                                  size="small"
-                                  aria-label="select merge strategy"
-                                  aria-haspopup="menu"
-                                  style={{
-                                    backgroundColor: "rgb(153, 46, 98)",
-                                  }}
-                                >
-                                  <TiArrowForward />
-                                </Button>
-                                <Button
-                                  style={{
-                                    backgroundColor: "rgb(153, 46, 98)",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      fontSize: "12px",
-                                      color: "#fff",
-                                      fontWeight: "bolder",
-                                    }}
-                                  >
-                                    Enroll Patient
-                                  </span>
-                                </Button>
-                              </ButtonGroup>
-                            </Link>
-                          </>
-                      </div>
-                    ),
+                    actions: <FindPatientActions row={row} />,
                   })),
                   page: query.page,
                   totalCount: result.data.totalRecords,
