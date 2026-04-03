@@ -1452,7 +1452,7 @@ const CareCardFollowUpForm = (props) => {
                 />
               </Col>
             </FieldRow>
-            {isFemale && (
+            {isFemale && patientAge >= 10 && (
               <>
                 <FieldRow>
                   <Col size={6}>
