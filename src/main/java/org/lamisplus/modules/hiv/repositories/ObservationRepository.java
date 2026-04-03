@@ -403,7 +403,11 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "AND p.archived = 0 " +
             "AND p.facility_id = :facilityId " +
             "AND CAST(prep.date_enrolled AS DATE) + INTERVAL '28 days' <= CURRENT_DATE " +
-            "AND (lr.result_reported IS NULL OR LOWER(lr.result_reported) NOT LIKE '%negative%') " +
+            "AND (lr.result_reported IS NULL OR " +
+            "(LOWER(lr.result_reported) NOT LIKE '%negative%' " +
+            "AND LOWER(lr.result_reported) NOT LIKE '%undetected%' " +
+            "AND TRIM(lr.result_reported) != '0' " +
+            "AND TRIM(lr.result_reported) != '0.0')) " +
             "AND (:searchValue IS NULL OR :searchValue = '' OR " +
             "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
             "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
@@ -427,7 +431,11 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "AND p.archived = 0 " +
             "AND p.facility_id = :facilityId " +
             "AND CAST(prep.date_enrolled AS DATE) + INTERVAL '28 days' <= CURRENT_DATE " +
-            "AND (lr.result_reported IS NULL OR LOWER(lr.result_reported) NOT LIKE '%negative%') " +
+            "AND (lr.result_reported IS NULL OR " +
+            "(LOWER(lr.result_reported) NOT LIKE '%negative%' " +
+            "AND LOWER(lr.result_reported) NOT LIKE '%undetected%' " +
+            "AND TRIM(lr.result_reported) != '0' " +
+            "AND TRIM(lr.result_reported) != '0.0')) " +
             "AND (:searchValue IS NULL OR :searchValue = '' OR " +
             "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
             "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
