@@ -754,8 +754,6 @@ const InitialClinicalEvaluationForm = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Codeset  Response:", response.data);
-
       setCodesets({
         tbStatus: response.data.TB_STATUS || [],
         developmentalAssessment: response.data.STI_ASSESSED_BY || [],
@@ -772,8 +770,6 @@ const InitialClinicalEvaluationForm = (props) => {
     } catch (error) {
       console.error("Error fetching codesets:", error);
       console.error("Error details:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      toast.error("Failed to load dropdown options");
     } finally {
       setLoadingCodesets(false);
     }
@@ -940,10 +936,6 @@ const InitialClinicalEvaluationForm = (props) => {
 
         // Assessment
         if (formData.assessment) {
-          console.log("📊 Assessment Data from API:", formData.assessment);
-          console.log("WHO Stage from API:", formData.assessment.whoStage);
-          console.log("WHO Stage Type:", typeof formData.assessment.whoStage);
-
           setAssessment({
             assessmentItems: formData.assessment.assessmentItems || [],
             whoStage: formData.assessment.whoStage || "",
@@ -1587,11 +1579,6 @@ const InitialClinicalEvaluationForm = (props) => {
       },
     };
 
-    console.log("═══════════════════════════════════════════════════════");
-    console.log("🔄 REAL-TIME ICE FORM DATA");
-    console.log("═══════════════════════════════════════════════════════");
-    console.log(JSON.stringify(currentPayload, null, 2));
-    console.log("═══════════════════════════════════════════════════════");
   }, [
     visitDate,
     clinicianName,
@@ -1614,21 +1601,15 @@ const InitialClinicalEvaluationForm = (props) => {
     props.patientObj.id
   ]);
 
-  console.log("selectedSymptoms :", selectedSymptoms)
 
   // ── Validation ───────────────────────────────────────────────────────────
   const validate = () => {
     const temp = {};
-
-    // Required fields
     if (!visitDate) temp.visitDate = "Visit date is required";
     if (!tbAssessment.assessedForTb) temp.assessedForTb = "Patient Assessed for TB is required";
-
-    // Conditional validation based on TB assessment
     if (tbAssessment.assessedForTb === "No") {
       if (!tbAssessment.developmentalAssessment) temp.developmentalAssessment = "Developmental Assessment is required";
     }
-
     // Validate symptom durations
     const durationErrors = {};
     selectedSymptoms.forEach((symptom) => {
@@ -1715,23 +1696,9 @@ const InitialClinicalEvaluationForm = (props) => {
         },
       };
 
-      // Log the complete payload structure
-      console.log("═══════════════════════════════════════════════════════");
-      console.log("📋 INITIAL CLINICAL EVALUATION PAYLOAD");
-      console.log("═══════════════════════════════════════════════════════");
-      console.log("Complete Payload:", JSON.stringify(payload, null, 2));
-      console.log("───────────────────────────────────────────────────────");
-      console.log("Assessment State:", assessment);
-      console.log("WHO Stage Value:", assessment.whoStage);
-      console.log("WHO Stage Type:", typeof assessment.whoStage);
-      console.log("───────────────────────────────────────────────────────");
-      console.log("Payload Object:", payload);
-      console.log("═══════════════════════════════════════════════════════");
-
       // Add ID to payload if updating
       if (recordId) {
         payload.id = recordId;
-        console.log("📝 Updating existing record with ID:", recordId);
       } else {
         console.log("✨ Creating new record");
       }
@@ -1753,7 +1720,6 @@ const InitialClinicalEvaluationForm = (props) => {
           ? "Initial Clinical Evaluation updated successfully"
           : "Initial Clinical Evaluation saved successfully"
       );
-      console.log("Response:", response.data);
 
       // After creating new ICE form, redirect to Enrollment & Commencement form
       // After updating existing ICE form, go back to recent history
@@ -1772,10 +1738,6 @@ const InitialClinicalEvaluationForm = (props) => {
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Helper Functions
-  // ─────────────────────────────────────────────────────────────────────────
-
   const formatDate = (date) => {
     return date ? moment(date).format("DD-MMM-YYYY") : "—";
   };
@@ -1790,10 +1752,6 @@ const InitialClinicalEvaluationForm = (props) => {
     if (isEditMode) return "(Update)";
     return "";
   };
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────────────────────────────────
 
   // Show loading state while fetching existing record
   if (loadingRecord) {
@@ -1825,9 +1783,6 @@ const InitialClinicalEvaluationForm = (props) => {
 
   const isUpdateMode = recordId !== null;
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Render View Mode
-  // ─────────────────────────────────────────────────────────────────────────
   if (isViewMode && viewData) {
     const evalData = viewData.data || {};
 
@@ -2508,14 +2463,9 @@ const InitialClinicalEvaluationForm = (props) => {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Render Create/Edit Mode
-  // ─────────────────────────────────────────────────────────────────────────
-
   return (
     <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible" }}>
       <CardContent>
-        {/* ── Page Header ──────────────────────────────────────────────── */}
         <Box
           sx={{
             backgroundColor: "#014d88",
