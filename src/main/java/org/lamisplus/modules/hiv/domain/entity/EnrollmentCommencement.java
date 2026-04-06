@@ -46,9 +46,6 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "is_commencement")
     private Boolean isCommencement;
 
-    @Column(name = "art_status_id")
-    private Long artStatusId;
-
     @Column(name = "status_at_registration_id")
     private Long statusAtRegistrationId;
 
