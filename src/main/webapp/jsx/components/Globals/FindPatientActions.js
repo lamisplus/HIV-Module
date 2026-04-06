@@ -22,7 +22,7 @@ const FindPatientActions = memo(({ row }) => {
   const [isEnrollmentDone, setIsEnrollmentDone] = useState(null);
   const [isCheckingForms, setIsCheckingForms] = useState(true);
 
-  console.log("FindPatientActions - canEnroll:", canEnroll, "row:", row, "isICEDone:", isICEDone, "isEnrollmentDone:", isEnrollmentDone, "showEnrollmentTypeModal:", showEnrollmentTypeModal);
+  // console.log("FindPatientActions - canEnroll:", canEnroll, "row:", row, "isICEDone:", isICEDone, "isEnrollmentDone:", isEnrollmentDone, "showEnrollmentTypeModal:", showEnrollmentTypeModal);
 
   // Check if ICE and Enrollment forms have been filled
   useEffect(() => {
@@ -161,6 +161,7 @@ const FindPatientActions = memo(({ row }) => {
   const handleTransferFormClose = () => {
     setShowTransferFormModal(false);
     localStorage.removeItem("currentStatus");
+    history.replace("/", {});
   };
 
   // This will be called after transfer form is saved successfully
@@ -317,6 +318,7 @@ const FindPatientActions = memo(({ row }) => {
             patientObj={row}
             activeContent={mockActiveContent}
             setActiveContent={mockSetActiveContent}
+            onClose={handleTransferFormClose} // 👇 Pass navigation handler
           />
         </DialogContent>
       </Dialog>

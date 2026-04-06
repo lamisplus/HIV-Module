@@ -206,15 +206,6 @@ const SubMenu = (props) => {
         showPediatricChecklist: patientObj?.age <= 19,
       };
 
-      console.log("SubMenu menuConditions:", {
-        isICEDone,
-        isEnrollmentCommencementDone,
-        isPreICE,
-        isPostICEPreEnrollment,
-        showFullMenu,
-        isDeadOrTransferred: conditions.isDeadOrTransferred
-      });
-
       return conditions;
     },
     [patientObj?.age, currentStatus, isICEDone, isEnrollmentCommencementDone]
@@ -323,7 +314,7 @@ const SubMenu = (props) => {
         `${baseUrl}hiv/enrollment-commencement/person/${patientObj?.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log("checkEnrollmentCommencement - response:", response.data);
+      // console.log("checkEnrollmentCommencement - response:", response.data);
       setIsEnrollmentCommencementDone(true); // Record exists
     } catch (error) {
       console.log("checkEnrollmentCommencement - error:", error.response?.status, error.message);
@@ -341,7 +332,7 @@ const SubMenu = (props) => {
         `${baseUrl}hiv/observation/initial-clinical-evaluation/exists/person/${patientObj?.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log("checkICEExists - response.data:", response.data, "type:", typeof response.data);
+      // console.log("checkICEExists - response.data:", response.data, "type:", typeof response.data);
       // Only accept boolean values, otherwise default to false
       const isBoolean = typeof response.data === 'boolean';
       setIsICEDone(isBoolean ? response.data : false);
@@ -604,9 +595,9 @@ const SubMenu = (props) => {
     [props.activeContent, props.expandedPatientObj, labResult]
   );
 
-  console.log("SubMenu render - menuConditions:", menuConditions);
-  console.log("SubMenu render - showing LIMITED menu?", menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment);
-  console.log("SubMenu render - isPepClient:", isPepClient, "pepHasPositiveResult:", pepHasPositiveResult);
+  // console.log("SubMenu render - menuConditions:", menuConditions);
+  // console.log("SubMenu render - showing LIMITED menu?", menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment);
+  // console.log("SubMenu render - isPepClient:", isPepClient, "pepHasPositiveResult:", pepHasPositiveResult);
 
   return (
     <div>
@@ -647,7 +638,7 @@ const SubMenu = (props) => {
             </>
           ) : menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment ? (
             <>
-              {console.log("RENDERING LIMITED MENU (Pre-ICE or Post-ICE Pre-Enrollment)")}
+              {/*{console.log("RENDERING LIMITED MENU (Pre-ICE or Post-ICE Pre-Enrollment)")}*/}
               <Menu size="tiny" color="blue" inverted pointing>
               <MenuItem
                 onClick={menuHandlers.onClickHome}
@@ -770,7 +761,6 @@ const SubMenu = (props) => {
               ) :
               (
                 <>
-                  {console.log("RENDERING FULL MENU")}
                   <Menu size="tiny" color="black" inverted>
                   <MenuItem
                     onClick={menuHandlers.onClickHome}

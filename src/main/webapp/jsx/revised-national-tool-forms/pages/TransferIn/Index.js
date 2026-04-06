@@ -132,6 +132,12 @@ const TransferInForm = (props) => {
     };
 
     const handleCancel = () => {
+        // 👇 Call parent's onClose if provided (for navigation)
+        if (props.onClose) {
+            props.onClose();
+            return;
+        }
+        // Fallback to old behavior
         if (props.setActiveContent) {
             props.setActiveContent({
                 ...props.activeContent,
