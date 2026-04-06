@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
@@ -34,6 +35,9 @@ public class InitialClinicalEvaluationDTO implements Serializable {
     @NotNull(message = "Data is required")
     private InitialClinicalEvaluationDataDTO data;
 
+    @Valid
+    @NotNull(message = "Transfer-in  is required")
+    private boolean transferIn;
     // Visit information
     private Long visitId;
     private Long facilityId;

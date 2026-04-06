@@ -30,8 +30,11 @@ public class InitialClinicalEvaluationService {
     private final ObjectMapper objectMapper;
     private final HIVStatusTrackerService hivStatusTrackerService;
 
-    private static final String PRE_ART_STATUS = "HIV+ NON ART";
-
+//    private static final String PRE_ART_STATUS = "HIV+ NON ART";
+    private static final String HIV_STATUS_ENROL_HIV_NON_ART = "HIV+ NON ART";
+    private static final String HIV_STATUS_ENROL_PRE_ART_TRANSFER_IN = "Pre-ART Transfer In";
+    private static final Long HIV_STATUS_ENROL_HIV_NON_ART_54 = 54L;
+    private static final Long HIV_STATUS_ENROL_PRE_ART_TRANSFER_IN_56 = 56L;
 
     public InitialClinicalEvaluationDTO createInitialClinicalEvaluation(InitialClinicalEvaluationDTO evaluationDTO)
             throws RecordExistException {
@@ -74,9 +77,11 @@ public class InitialClinicalEvaluationService {
 
             // Save the evaluation
             saveInitialClinicalEvaluation(evaluationDTO, person, visit);
-
+             //
             // Update HIV Status to Pre-ART after initial clinical evaluation
-            hivStatusTrackerService.autoUpdateHIVStatus(person, visit, PRE_ART_STATUS, evaluationDTO.getDateOfObservation());
+            String hivStatus = evaluationDTO.isTransferIn() ?
+                    HIV_STATUS_ENROL_PRE_ART_TRANSFER_IN : HIV_STATUS_ENROL_HIV_NON_ART;
+            hivStatusTrackerService.autoUpdateHIVStatus(person, visit, hivStatus, evaluationDTO.getDateOfObservation());
 
             log.info("Initial Clinical Evaluation saved successfully for person ID: {}", personId);
             return evaluationDTO;
@@ -106,6 +111,7 @@ public class InitialClinicalEvaluationService {
         existingEvaluation.setVisitDate(evaluationDTO.getDateOfObservation());
         existingEvaluation.setClinicianName(evaluationDTO.getData().getClinicianName());
         existingEvaluation.setComment(evaluationDTO.getComment());
+        existingEvaluation.setTransferIn(existingEvaluation.isTransferIn());
 
         // Extract and update regimen and WHO Stage fields from DTO
         if (evaluationDTO.getData() != null && evaluationDTO.getData().getAssessment() != null) {
@@ -116,7 +122,6 @@ public class InitialClinicalEvaluationService {
             Long regimenId = evaluationDTO.getData().getAssessment().getRegimenId();
             existingEvaluation.setRegimenId(regimenId != null ? String.valueOf(regimenId) : null);
 
-            // WHO Stage ID: Update the numeric ID from the codeset in the database column
             Long whoStageId = evaluationDTO.getData().getAssessment().getWhoStageId();
             existingEvaluation.setWhoStageId(whoStageId);
 
@@ -236,10 +241,11 @@ public class InitialClinicalEvaluationService {
 
         // Set basic properties
         evaluation.setPersonId(person.getId());
-        evaluation.setPersonUuid(person.getUuid()); // Set person UUID
+        evaluation.setPersonUuid(person.getUuid());
         evaluation.setVisitId(visit != null ? visit.getId() : null);
         evaluation.setUuid(UUID.randomUUID().toString());
         evaluation.setArchived(0);
+        evaluation.setTransferIn(evaluationDTO.isTransferIn());
         evaluation.setFacilityId(evaluationDTO.getFacilityId());
         evaluation.setVisitDate(evaluationDTO.getDateOfObservation());
         evaluation.setClinicianName(evaluationDTO.getData().getClinicianName());
@@ -335,13 +341,10 @@ public class InitialClinicalEvaluationService {
         dataDTO.setPhysicalExam(evaluation.getPhysicalExam() != null ?
                 objectMapper.convertValue(evaluation.getPhysicalExam(), PhysicalExamDTO.class) : null);
 
-        // Reconstruct assessment with structured fields
         AssessmentDTO assessmentDTO = evaluation.getAssessment() != null ?
                 objectMapper.convertValue(evaluation.getAssessment(), AssessmentDTO.class) : null;
 
         if (assessmentDTO != null) {
-            // Override with structured columns (these are the source of truth now)
-            // Convert String to Long for regimen fields
             try {
                 assessmentDTO.setRegimenLineId(evaluation.getRegimenLineId() != null ?
                         Long.parseLong(evaluation.getRegimenLineId()) : null);
@@ -357,10 +360,6 @@ public class InitialClinicalEvaluationService {
                 log.warn("Invalid regimen ID: {}", evaluation.getRegimenId());
                 assessmentDTO.setRegimenId(null);
             }
-
-            // WHO Stage: Set both the code (from JSON) and the ID (from database column)
-            // The whoStage code is already populated from JSON by objectMapper.convertValue above
-            // Now also populate the whoStageId from the database column
             assessmentDTO.setWhoStageId(evaluation.getWhoStageId());
 
             assessmentDTO.setNextAppointment(evaluation.getNextAppointment());

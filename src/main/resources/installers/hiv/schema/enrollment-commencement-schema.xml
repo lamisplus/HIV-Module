@@ -398,4 +398,26 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="20260404-combined-updates-01" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <addColumn tableName="hiv_initial_clinical_evaluation">
+            <column name="transfer_in" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <dropColumn tableName="hiv_enrollment_commencement" columnName="art_status_id"/>
+
+        <rollback>
+            <dropColumn tableName="hiv_initial_clinical_evaluation" columnName="transfer_in"/>
+            <addColumn tableName="hiv_enrollment_commencement">
+                <column name="art_status_id" type="BIGINT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

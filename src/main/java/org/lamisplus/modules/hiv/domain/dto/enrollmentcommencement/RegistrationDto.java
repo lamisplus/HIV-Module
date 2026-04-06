@@ -3,6 +3,8 @@ package org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import javax.persistence.Column;
+
 @Data
 public class RegistrationDto {
 
@@ -14,6 +16,9 @@ public class RegistrationDto {
 
     @JsonProperty("date_confirmed_hiv_test")
     private String dateConfirmedHivTest;
+
+    @JsonProperty("status_at_registration_id")
+    private Long statusAtRegistrationId;
 
     @JsonProperty("hiv_test_location")
     private String hivTestLocation;

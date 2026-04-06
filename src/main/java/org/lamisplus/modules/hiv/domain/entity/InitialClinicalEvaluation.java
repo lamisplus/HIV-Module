@@ -45,6 +45,9 @@ public class InitialClinicalEvaluation extends HivAuditEntity implements Persist
     @Column(name = "visit_id")
     private Long visitId;
 
+    @Column(name = "transfer_in", nullable = false)
+    private boolean transferIn;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "visit_id", insertable = false, updatable = false)
     private Visit visit;

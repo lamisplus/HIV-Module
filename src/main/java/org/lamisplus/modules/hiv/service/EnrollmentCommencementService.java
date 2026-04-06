@@ -8,7 +8,9 @@ import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.CommencementD
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.EnrollmentCommencementRequestDto;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.RegistrationDto;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.TbPreventiveTherapyDto;
+import org.lamisplus.modules.hiv.domain.dto.initialclinicalevaluation.InitialClinicalEvaluationDTO;
 import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
+import org.lamisplus.modules.hiv.domain.entity.InitialClinicalEvaluation;
 import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.utility.Constants;
 import org.lamisplus.modules.patient.domain.entity.Person;
@@ -35,7 +37,10 @@ public class EnrollmentCommencementService {
     private final HIVStatusTrackerService hivStatusTrackerService;
     private final InitialClinicalEvaluationService initialClinicalEvaluationService;
 
-    private static final String ART_START_STATUS = "ART Start";
+    private static final String ART_START_STATUS_ART_START = "ART Start";
+    private static final String HIV_STATUS_ART_TRANSFER_IN = "ART Transfer In";
+    private static final Long ART_START_STATUS_ART_START_441 = 441L;
+    private static final Long HIV_STATUS_ART_TRANSFER_IN_445 = 445L;
 
     public EnrollmentCommencement create(EnrollmentCommencementRequestDto request) {
         Person person = resolvePerson(request.getPersonId());
@@ -57,7 +62,7 @@ public class EnrollmentCommencementService {
         EnrollmentCommencement entity = buildEntity(request, person);
         EnrollmentCommencement saved = repository.save(entity);
         // Update HIV Status to ART Start after enrollment commencement
-        hivStatusTrackerService.autoUpdateHIVStatus(person, entity.getVisit(), ART_START_STATUS, entity.getDateArtStarted());
+        hivStatusTrackerService.autoUpdateHIVStatus(person, entity.getVisit(), getStatusAtRegistration(person.getId()), entity.getDateArtStarted());
         return saved;
     }
 
@@ -223,6 +228,18 @@ public class EnrollmentCommencementService {
         return value == null || value.trim().isEmpty();
     }
 
+    private Long getStatusAtRegistrationId(Long id){
+       InitialClinicalEvaluationDTO ice = initialClinicalEvaluationService.getInitialClinicalEvaluationByPersonId(id);
+        return ice.isTransferIn() ?
+                HIV_STATUS_ART_TRANSFER_IN_445 : ART_START_STATUS_ART_START_441;
+    }
+
+    private String getStatusAtRegistration(Long id){
+        InitialClinicalEvaluationDTO ice = initialClinicalEvaluationService.getInitialClinicalEvaluationByPersonId(id);
+        return ice.isTransferIn() ?
+                HIV_STATUS_ART_TRANSFER_IN : ART_START_STATUS_ART_START;
+    }
+
     private EnrollmentCommencement buildEntity(EnrollmentCommencementRequestDto request, Person person) {
         RegistrationDto reg = request.getData().getRegistration();
         CommencementDto com = request.getData().getCommencement();
@@ -240,6 +257,7 @@ public class EnrollmentCommencementService {
         entity.setSource(Constants.WEB_SOURCE);
         // ── Registration fields ───────────────────────────────────────────────
         entity.setUniqueId(reg.getUniqueId());
+        entity.setStatusAtRegistrationId(getStatusAtRegistrationId(person.getId()));
         entity.setDateEnrolledInHivCare(parseDate(reg.getDateEnrolledInHivCare()));
         entity.setDateConfirmedHivTest(parseDate(reg.getDateConfirmedHivTest()));
         entity.setHivTestLocation(reg.getHivTestLocation());
