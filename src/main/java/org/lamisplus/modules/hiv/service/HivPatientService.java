@@ -9,10 +9,19 @@ import org.lamisplus.modules.base.domain.dto.PageDTO;
 import org.lamisplus.modules.base.domain.entities.ApplicationCodeSet;
 import org.lamisplus.modules.base.domain.repositories.ApplicationCodesetRepository;
 import org.lamisplus.modules.hiv.domain.dto.*;
+import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.CommencementDto;
+import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.EnrollmentCommencementRequestDto;
+import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.RegistrationDto;
+import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.TbPreventiveTherapyDto;
+import org.lamisplus.modules.hiv.domain.dto.initialclinicalevaluation.InitialClinicalEvaluationDTO;
 import org.lamisplus.modules.hiv.domain.entity.ARTClinical;
+import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
+import org.lamisplus.modules.hiv.domain.entity.InitialClinicalEvaluation;
 import org.lamisplus.modules.hiv.domain.entity.Observation;
 import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
+import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
+import org.lamisplus.modules.hiv.repositories.InitialClinicalEvaluationRepository;
 import org.lamisplus.modules.hiv.repositories.ObservationRepository;
 import org.lamisplus.modules.hiv.repositories.PatientFlagRepository;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
@@ -57,6 +66,12 @@ public class HivPatientService {
     private final HivEnrollmentRepository enrollmentRepository;
 
     private final PatientFlagRepository patientFlagRepository;
+
+    private final InitialClinicalEvaluationRepository initialClinicalEvaluationRepository;
+
+    private final EnrollmentCommencementRepository enrollmentCommencementRepository;
+
+    private final InitialClinicalEvaluationService initialClinicalEvaluationService;
 
     public HivEnrollmentDTO registerAndEnrollHivPatient(HivPatientEnrollmentDto hivPatientEnrollmentDto) {
         HivEnrollmentDTO hivEnrollmentDto = hivPatientEnrollmentDto.getHivEnrollment();
@@ -283,43 +298,63 @@ public class HivPatientService {
         if (Boolean.TRUE.equals(personService.isPersonExist(personId))) {
             Person person = getPerson(personId);
             PersonResponseDto bioData = personService.getPersonById(personId);
-            Optional<HivEnrollmentDTO> enrollment =
-                    hivEnrollmentService.getHivEnrollmentByPersonIdAndArchived(bioData.getId());
-            Optional<ARTClinical> artCommencement =
-                    artClinicalRepository.findTopByPersonAndIsCommencementIsTrueAndArchived(person, 0);
+            // Using new table: hiv_initial_clinical_evaluation (replaces hiv_enrollment)
+            Optional<InitialClinicalEvaluation> initialClinicalEvaluation =
+                    initialClinicalEvaluationRepository.findByPersonAndArchived(person, 0);
+            // Using new table: hiv_enrollment_commencement (replaces hiv_art_clinical)
+            Optional<EnrollmentCommencement> enrollmentCommencement =
+                    enrollmentCommencementRepository.findByPersonAndArchived(person, 0);
             HivPatientDto hivPatientDto = new HivPatientDto();
             BeanUtils.copyProperties(bioData, hivPatientDto);
             hivPatientDto.setCreateBy(person.getCreatedBy());
-            addEnrollmentInfo(enrollment, hivPatientDto);
-            addArtCommencementInfo(person.getId(), artCommencement, hivPatientDto);
+            addInitialClinicalEvaluationInfo(initialClinicalEvaluation, hivPatientDto);
+            addEnrollmentCommencementInfo(person.getId(), enrollmentCommencement, hivPatientDto);
             processAndSetObservationStatus(person, hivPatientDto);
             return hivPatientDto;
         }
         return null;
     }
 
-    private void addArtCommencementInfo(Long personId, Optional<ARTClinical> artCommencement, HivPatientDto hivPatientDto) {
-        if (artCommencement.isPresent()) {
+    private void addEnrollmentCommencementInfo(Long personId, Optional<EnrollmentCommencement> enrollmentCommencement, HivPatientDto hivPatientDto) {
+        if (enrollmentCommencement.isPresent()) {
             hivPatientDto.setCommenced(true);
-            ARTClinicalCommenceDto artClinicalCommenceDto =
-                    commenceService.convertArtToResponseDto(artCommencement.get());
-            hivPatientDto.setArtCommence(artClinicalCommenceDto);
-            hivPatientDto.setCurrentStatus(statusManagementService.getCurrentStatus(personId));
+            EnrollmentCommencement ec = enrollmentCommencement.get();
+            // Enrollment Commencement represents ART Start status
+            Long statusAtRegistrationId = ec.getStatusAtRegistrationId();
+            if (statusAtRegistrationId != null) {
+                Optional<ApplicationCodeSet> status = applicationCodesetRepository.findById(statusAtRegistrationId);
+                status.ifPresent(applicationCodeSet -> hivPatientDto.setCurrentStatus(applicationCodeSet.getDisplay()));
+            } else {
+                hivPatientDto.setCurrentStatus(statusManagementService.getCurrentStatus(personId));
+            }
+            // Convert entity to DTO
+            try {
+                EnrollmentCommencementRequestDto ecDto = convertEnrollmentCommencementToDto(ec);
+                hivPatientDto.setEnrollmentCommencement(ecDto);
+            } catch (Exception e) {
+                log.warn("Could not convert Enrollment Commencement to DTO for person ID: {}", personId, e);
+            }
         }
     }
 
 
-    private void addEnrollmentInfo(Optional<HivEnrollmentDTO> enrollment, HivPatientDto hivPatientDto) {
-        if (enrollment.isPresent()) {
+    private void addInitialClinicalEvaluationInfo(Optional<InitialClinicalEvaluation> initialClinicalEvaluation, HivPatientDto hivPatientDto) {
+        if (initialClinicalEvaluation.isPresent()) {
             hivPatientDto.setEnrolled(true);
-            Long enrollStatus = enrollment.get().getStatusAtRegistrationId();
-            if (enrollStatus != null) {
-                Optional<ApplicationCodeSet> status = applicationCodesetRepository.findById(enrollStatus);
-                status.ifPresent(applicationCodeSet -> hivPatientDto.setCurrentStatus(applicationCodeSet.getDisplay()));
+            InitialClinicalEvaluation ice = initialClinicalEvaluation.get();
+            // Initial Clinical Evaluation represents Pre-ART status
+            if (ice.isTransferIn()) {
+                hivPatientDto.setCurrentStatus("Pre-ART Transfer In");
             } else {
-                hivPatientDto.setCurrentStatus("Enrolled but status not known");
+                hivPatientDto.setCurrentStatus("HIV+ NON ART");
             }
-            hivPatientDto.setEnrollment(enrollment.get());
+            // Convert entity to DTO using the service's converter method
+            try {
+                InitialClinicalEvaluationDTO iceDto = initialClinicalEvaluationService.getInitialClinicalEvaluationById(ice.getId());
+                hivPatientDto.setInitialClinicalEvaluation(iceDto);
+            } catch (Exception e) {
+                log.warn("Could not convert Initial Clinical Evaluation to DTO for person ID: {}", ice.getPersonId(), e);
+            }
         } else {
             hivPatientDto.setCurrentStatus("Not Enrolled");
         }
@@ -360,6 +395,72 @@ public class HivPatientService {
         return artClinicalRepository.getPatientMetaData(personIdd, facilityId, suppressionValue);
     }
 
+    /**
+     * Converts EnrollmentCommencement entity to EnrollmentCommencementRequestDto
+     */
+    private EnrollmentCommencementRequestDto convertEnrollmentCommencementToDto(EnrollmentCommencement ec) {
+        EnrollmentCommencementRequestDto dto = new EnrollmentCommencementRequestDto();
+        // Set basic fields
+        dto.setPersonId(ec.getPerson() != null ? ec.getPerson().getId() : null);
+        dto.setDateOfObservation(ec.getVisitDate() != null ? ec.getVisitDate().toString() : null);
+        dto.setType("enrollment_commencement");
 
+        // Create data object
+        EnrollmentCommencementRequestDto.EnrollmentCommencementData data =
+                new EnrollmentCommencementRequestDto.EnrollmentCommencementData();
+        // Set registration data
+        RegistrationDto registration = new RegistrationDto();
+        registration.setUniqueId(ec.getUniqueId());
+        registration.setStatusAtRegistrationId(ec.getStatusAtRegistrationId());
+        registration.setDateEnrolledInHivCare(ec.getDateEnrolledInHivCare() != null ? ec.getDateEnrolledInHivCare().toString() : null);
+        registration.setDateConfirmedHivTest(ec.getDateConfirmedHivTest() != null ? ec.getDateConfirmedHivTest().toString() : null);
+        registration.setHivTestLocation(ec.getHivTestLocation());
+        registration.setModeOfHivTest(ec.getModeOfHivTestId());
+        registration.setCareEntryPoint(ec.getCareEntryPointId());
+        registration.setCareEntryPointOther(ec.getCareEntryPointOther());
+        registration.setMotherUniqueId(ec.getMotherUniqueId());
+        registration.setPriorArt(ec.getPriorArtId());
+        registration.setIsKp(ec.getIsKp() != null && ec.getIsKp() ? "Yes" : "No");
+        registration.setKpTypology(ec.getKpTypologyId());
+        registration.setDateTransferredIn(ec.getDateTransferredIn() != null ? ec.getDateTransferredIn().toString() : null);
+        registration.setFacilityTransferredFrom(ec.getFacilityTransferredFrom());
+        data.setRegistration(registration);
+
+        // Set commencement data
+        CommencementDto commencement = new CommencementDto();
+        commencement.setVisitDate(ec.getVisitDate() != null ? ec.getVisitDate().toString() : null);
+        commencement.setClinicalStageAtArtStart(ec.getClinicalStageId());
+        commencement.setCd4AtArtStart(ec.getCd4AtArtStart() != null ? ec.getCd4AtArtStart().toString() : null);
+        commencement.setCd4Percentage(ec.getCd4Percentage() != null ? ec.getCd4Percentage().toString() : null);
+        commencement.setCd4Lf(ec.getCd4LfId());
+        commencement.setDateAdherenceCounselingCompleted(ec.getDateAdherenceCounselingCompleted() != null ?
+                ec.getDateAdherenceCounselingCompleted().toString() : null);
+        commencement.setDateArtStarted(ec.getDateArtStarted() != null ? ec.getDateArtStarted().toString() : null);
+        commencement.setRegimenLineId(ec.getRegimenLineId());
+        commencement.setFirstArtRegimen(ec.getRegimenId());
+        commencement.setWeightKg(ec.getWeightKg() != null ? ec.getWeightKg().toString() : null);
+        commencement.setHeightCm(ec.getHeightCm() != null ? ec.getHeightCm().toString() : null);
+        commencement.setBmi(ec.getBmi() != null ? ec.getBmi().toString() : null);
+        commencement.setMuac(ec.getMuac() != null ? ec.getMuac().toString() : null);
+        commencement.setMuacIndication(ec.getMuacIndication());
+        commencement.setIsPregnant(ec.getIsPregnant() != null && ec.getIsPregnant() ? "Yes" : "No");
+        commencement.setPregnancyStatus(ec.getPregnancyStatus());
+
+        // Set TPT data if available
+        if (ec.getTptMedication() != null || ec.getTptStartDate() != null) {
+            TbPreventiveTherapyDto tpt = new TbPreventiveTherapyDto();
+            tpt.setMedication(ec.getTptMedication());
+            tpt.setDose(ec.getTptDose());
+            tpt.setStartDate(ec.getTptStartDate() != null ? ec.getTptStartDate().toString() : null);
+            tpt.setTptCompleted(ec.getTptCompleted());
+            tpt.setCompletionDate(ec.getTptCompletionDate() != null ? ec.getTptCompletionDate().toString() : null);
+            commencement.setTbPreventiveTherapy(tpt);
+        }
+
+        data.setCommencement(commencement);
+        dto.setData(data);
+
+        return dto;
+    }
 
 }
