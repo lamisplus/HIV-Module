@@ -188,9 +188,12 @@ public class HivPatientService {
                 .createBy(p.getCreateBy())
                 .uniqueId(p.getUniqueId())
                 .dateOfRegistration(p.getDateOfRegistration())
+                .hasiceform(p.getHasiceform())
+                .hasenrollmentform(p.getHasenrollmentform())
 //                .currentStatus(p.getStatus())
                 .build();
-        patientDTO.setCommenced(p.getCommenced() != null);
+//        patientDTO.setCommenced(p.getCommenced() != null);
+        patientDTO.setCommenced(Boolean.TRUE.equals(p.getCommenced()));
         patientDTO.setBiometricStatus(p.getBiometricStatus() != null);
         List<Observation> clinicalEvaluationAndMentalHealth =
                 observationRepository.getClinicalEvaluationAndMentalHealth(p.getPersonUuid());

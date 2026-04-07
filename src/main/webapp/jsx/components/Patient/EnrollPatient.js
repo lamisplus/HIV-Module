@@ -285,82 +285,6 @@ const UserRegistration = (props) => {
     return result;
   };
 
-  // const CareEntryPoint = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/POINT_ENTRY`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setCarePoints(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  //Get list of Source of Referral
-  // const SourceReferral = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/SOURCE_REFERRAL`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setSourceReferral(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  //Get list of HIV STATUS ENROLLMENT
-  // const HivStatus = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/HIV_STATUS_ENROL`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setHivStatus(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  //Get list of HIV STATUS ENROLLMENT
-  // const EnrollmentSetting = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/ENROLLMENT_SETTING`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setEnrollSetting(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  //Get list of HIV STATUS ENROLLMENT
-  // const TBStatus = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setTbStatus(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  //Get list of KP
-  // const KP = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/TARGET_GROUP`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setKP(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
-  //Get list of KP
-  // const PregnancyStatus = () => {
-  //   axios
-  //     .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setPregnancyStatus(response.data);
-  //     })
-  //     .catch((error) => {});
-  // };
   const handleInputChange = (e) => {
     setErrors({ ...errors, [e.target.name]: "" });
     setObjValues({ ...objValues, [e.target.name]: e.target.value });
@@ -450,44 +374,6 @@ const UserRegistration = (props) => {
             position: toast.POSITION.BOTTOM_CENTER,
           });
         });
-      // }
-      // catch (error) {
-
-      //   setSaving(false);
-      //   toast.error("Something went wrong. Please try again...", {
-      //     position: toast.POSITION.BOTTOM_CENTER,
-      //   });
-      //   // if (error.response && error.response.data) {
-      //   //   let errorMessage =
-      //   //     error.response.data.apierror &&
-      //   //     error.response.data.apierror.message !== ""
-      //   //       ? error.response.data.apierror.message
-      //   //       : "Something went wrong, please try again";
-      //   //   if (
-      //   //     error.response.data.apierror &&
-      //   //     error.response.data.apierror.message !== "" &&
-      //   //     error.response.data.apierror &&
-      //   //     error.response.data.apierror.subErrors[0].message !== ""
-      //   //   ) {
-      //   //     toast.error(
-      //   //       error.response.data.apierror.message +
-      //   //         " : " +
-      //   //         error.response.data.apierror.subErrors[0].field +
-      //   //         " " +
-      //   //         error.response.data.apierror.subErrors[0].message,
-      //   //       { position: toast.POSITION.BOTTOM_CENTER }
-      //   //     );
-      //   //   } else {
-      //   //     toast.error(errorMessage, {
-      //   //       position: toast.POSITION.BOTTOM_CENTER,
-      //   //     });
-      //   //   }
-      //   // } else {
-      //   //   toast.error("Something went wrong. Please try again...", {
-      //   //     position: toast.POSITION.BOTTOM_CENTER,
-      //   //   });
-      //   // }
-      // }
     }
   };
 
