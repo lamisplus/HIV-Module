@@ -32,15 +32,33 @@ const SubMenu = (props) => {
   const { hasRole } = useRoles();
   const [activeItem, setActiveItem] = useState("recent-history");
   const patientObj = props.patientObj;
-
+  console.log("props.patientObj", props.patientObj)
   // Check if this is a PEP client
   const isPepClient = props.pepClient || false;
   const [pepHasPositiveResult, setPepHasPositiveResult] = useState(false);
 
   const [isOtzEnrollementDone, setIsOtzEnrollementDone] = useState(null);
+  // Use expandedPatientObj values if available, otherwise fall back to state
   const [isEnrollmentCommencementDone, setIsEnrollmentCommencementDone] = useState(false);
   const [isICEDone, setIsICEDone] = useState(false);
   const [labResult, setLabResult] = useState(null);
+
+  // Sync state with expandedPatientObj when it updates
+  useEffect(() => {
+    if (props.expandedPatientObj) {
+      setIsICEDone(props.expandedPatientObj.hasiceform || false);
+      setIsEnrollmentCommencementDone(props.expandedPatientObj.hasenrollmentform || false);
+    }
+  }, [props.expandedPatientObj?.hasiceform, props.expandedPatientObj?.hasenrollmentform]);
+
+  // Immediately update isICEDone when navigating to enrollment form from ICE form
+  // This ensures the menu updates instantly without waiting for API refresh
+  useEffect(() => {
+    if (props.activeContent?.route === 'enrollment-and-commencement' && !isEnrollmentCommencementDone) {
+      // User is on enrollment form but enrollment not done yet = ICE must be done
+      setIsICEDone(true);
+    }
+  }, [props.activeContent?.route]);
   const patientCurrentStatus = patientObj?.currentStatus === "Died (Confirmed)";
   const [currentStatus, setCurrentStatus] = useState(() => {
     const savedStatus = localStorage.getItem(`status_${patientObj?.id}`) || "";
@@ -112,7 +130,6 @@ const SubMenu = (props) => {
 
 
     if (patientObj.commenced === true) {
-  
       localStorage.removeItem("artCommencement");
     }
 
@@ -220,7 +237,6 @@ const SubMenu = (props) => {
             `${baseUrl}laboratory/vl-results/patients/${patientObj.id}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
-
           // Check if there's a PEP viral load result that is positive
           const pepResults = response.data.filter(
             result => result.patientCategory?.toUpperCase() === 'PEP'
@@ -317,7 +333,7 @@ const SubMenu = (props) => {
       // console.log("checkEnrollmentCommencement - response:", response.data);
       setIsEnrollmentCommencementDone(true); // Record exists
     } catch (error) {
-      console.log("checkEnrollmentCommencement - error:", error.response?.status, error.message);
+      // console.log("checkEnrollmentCommencement - error:", error.response?.status, error.message);
       if (error.response?.status === 404) {
         setIsEnrollmentCommencementDone(false); // No record, can fill form
       } else {

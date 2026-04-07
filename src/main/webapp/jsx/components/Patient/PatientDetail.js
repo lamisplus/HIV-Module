@@ -131,6 +131,10 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.enrollmentFlow
       : false;
+  const skipICE =
+    history.location && history.location.state
+      ? history.location.state.skipICE
+      : false;
   const pepClient =
     history.location && history.location.state
       ? history.location.state.pepClient
@@ -174,6 +178,28 @@ function PatientCard(props) {
       getCurrentPatientRecord(patientObj.id);
     }
   }, [patientObj?.id]);
+
+  // Refresh patient data when navigating to enrollment form or recent history
+  // This ensures hasiceform and hasenrollmentform flags are up to date
+  useEffect(() => {
+    const refreshPatientData = async () => {
+      if (patientObj?.id && (
+        activeContent.route === 'enrollment-and-commencement' ||
+        activeContent.route === 'recent-history'
+      )) {
+        try {
+          const response = await axios.get(`${baseUrl}hiv/patient/${patientObj.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setPatientObj1(response.data);
+        } catch (error) {
+          console.log("Error refreshing patient data:", error);
+        }
+      }
+    };
+
+    refreshPatientData();
+  }, [activeContent.route, activeContent.refreshTimestamp, patientObj?.id]);
 
   const PatientCurrentObject = () => {
     useEffect(() => {
@@ -285,6 +311,18 @@ function PatientCard(props) {
         return;
       }
 
+      // If skipICE flag is set, go directly to enrollment form without checking
+      if (skipICE) {
+        setActiveContent({
+          route: "enrollment-and-commencement",
+          id: "",
+          activeTab: "home",
+          actionType: "create",
+          obj: {},
+        });
+        setCheckingEnrollmentStatus(false);
+        return;
+      }
 
       try {
         // Check if ICE form is already completed

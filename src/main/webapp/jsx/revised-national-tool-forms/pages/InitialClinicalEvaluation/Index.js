@@ -1721,11 +1721,17 @@ const InitialClinicalEvaluationForm = (props) => {
           : "Initial Clinical Evaluation saved successfully"
       );
 
+      // Small delay to ensure backend has updated the patient record
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // After creating new ICE form, redirect to Enrollment & Commencement form
       // After updating existing ICE form, go back to recent history
+      // The navigation trigger will cause the parent component to refresh patient data
       props.setActiveContent({
         ...props.activeContent,
-        route: recordId ? "recent-history" : "enrollment-and-commencement"
+        route: recordId ? "recent-history" : "enrollment-and-commencement",
+        // Add a timestamp to force re-render and data refresh
+        refreshTimestamp: new Date().getTime()
       });
     } catch (err) {
       const msg =
