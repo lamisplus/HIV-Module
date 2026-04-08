@@ -896,14 +896,7 @@ const SubMenu = (props) => {
                         >
                           <Dropdown item text="Other Forms">
                             <Dropdown.Menu>
-                              <Dropdown.Item
-                                onClick={menuHandlers.loadInitializationEvaluation}
-                                name="initialization-evaluation"
-                                active={activeItem === "initialization-evaluation"}
-                                title="Initial Clinical Evaluation Form"
-                              >
-                                Initial Clinical Evaluation
-                              </Dropdown.Item>
+                              {/* Initial Clinical Evaluation removed from full menu - only available during enrollment flow */}
                               {!isEnrollmentCommencementDone && (
                                 <Dropdown.Item
                                   onClick={menuHandlers.loadEnrollmentAndCommencement}
@@ -922,14 +915,14 @@ const SubMenu = (props) => {
                               >
                                 Health Services
                               </Dropdown.Item>
-                              {/* <Dropdown.Item
+                              <Dropdown.Item
                                 onClick={menuHandlers.loadSubstitutionSwitch}
                                 name="substitution-switch"
                                 active={activeItem === "substitution-switch"}
                                 title="Substitutions / Switches"
                               >
                                 Substitution / Switch
-                              </Dropdown.Item> */}
+                              </Dropdown.Item>
                               <Dropdown.Item
                                 onClick={menuHandlers.loadTrackingForm}
                                 name="tracking"
