@@ -691,8 +691,31 @@ const InitialClinicalEvaluationForm = (props) => {
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
   const isFemale = ["female", "FEMALE", "Female"].includes(props.patientObj.sex);
 
+  // Determine if this is a transfer-in enrollment
+  // Check 1: fromTransferIn prop passed from router state
+  // Check 2: localStorage flag (fallback if user doesn't fill ICE immediately)
+  // Check 3: Verify it's for the current patient (patient ID match)
+  const determineTransferInStatus = () => {
+    // If passed via props, use that
+    if (props.fromTransferIn === true) {
+      return true;
+    }
+
+    // Check localStorage as fallback
+    const isTransferInEnrollment = localStorage.getItem("isTransferInEnrollment") === "true";
+    const enrollingPatientId = localStorage.getItem("enrollingPatientId");
+
+    // Only trust localStorage if it's for the current patient
+    if (isTransferInEnrollment && enrollingPatientId === String(props.patientObj.id)) {
+      return true;
+    }
+
+    return false;
+  };
+
   const [enrollDate, setEnrollDate] = useState("");
   const [saving, setSaving] = useState(false);
+  const [transferIn] = useState(determineTransferInStatus());
   const [errors, setErrors] = useState({});
   const [expanded, setExpanded] = useState(
     isViewMode
@@ -1669,6 +1692,7 @@ const InitialClinicalEvaluationForm = (props) => {
       const payload = {
         dateOfObservation: visitDate,
         personId: props.patientObj.id,
+        transferIn: transferIn,  // Boolean field indicating if patient is transfer-in
         data: {
           visitDate,
           clinicianName,
@@ -1720,6 +1744,11 @@ const InitialClinicalEvaluationForm = (props) => {
           ? "Initial Clinical Evaluation updated successfully"
           : "Initial Clinical Evaluation saved successfully"
       );
+
+      // Clear localStorage flags after successful submission
+      // This ensures they won't affect future enrollments
+      localStorage.removeItem("isTransferInEnrollment");
+      localStorage.removeItem("enrollingPatientId");
 
       // Small delay to ensure backend has updated the patient record
       await new Promise(resolve => setTimeout(resolve, 500));

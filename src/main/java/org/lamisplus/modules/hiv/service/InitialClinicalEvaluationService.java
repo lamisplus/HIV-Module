@@ -302,6 +302,7 @@ public class InitialClinicalEvaluationService {
         dto.setSource(evaluation.getSource());
         dto.setLongitude(evaluation.getLongitude());
         dto.setLatitude(evaluation.getLatitude());
+        dto.setTransferIn(evaluation.isTransferIn()); // Set transferIn field from entity
 
         // Reconstruct the data DTO from JSONB fields and structured columns
         InitialClinicalEvaluationDataDTO dataDTO = new InitialClinicalEvaluationDataDTO();

@@ -135,6 +135,10 @@ function PatientCard(props) {
     history.location && history.location.state
       ? history.location.state.skipICE
       : false;
+  const fromTransferIn =
+    history.location && history.location.state
+      ? history.location.state.fromTransferIn
+      : false;
   const pepClient =
     history.location && history.location.state
       ? history.location.state.pepClient
@@ -570,6 +574,7 @@ function PatientCard(props) {
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
+              fromTransferIn={fromTransferIn}
             />
           )}
           {activeContent.route === "initial-clinical-evaluation-view" && (

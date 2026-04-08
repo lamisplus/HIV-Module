@@ -104,7 +104,6 @@ const TransferInForm = (props) => {
             personId: patientObj.id,
             personUuid: patientObj.personUuid,
             facilityId: facilityId,
-            currentStatus: "ART TRANSFER IN",
         };
 
         try {

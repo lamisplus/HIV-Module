@@ -8,7 +8,7 @@ import org.springframework.core.annotation.Order;
 @Installer(
         name = "enrollment-commencement-installer",
         description = "Creates the enrollment_commencement and ICE tables and adds regimen_line_id column",
-        version = 8
+        version = 9
 )
 public class EnrollmentCommencementInstaller extends AcrossLiquibaseInstaller {
 

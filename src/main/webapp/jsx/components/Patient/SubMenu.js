@@ -33,6 +33,7 @@ const SubMenu = (props) => {
   const [activeItem, setActiveItem] = useState("recent-history");
   const patientObj = props.patientObj;
   console.log("props.patientObj", props.patientObj)
+  console.log("props.expandable", props.expandedPatientObj)
   // Check if this is a PEP client
   const isPepClient = props.pepClient || false;
   const [pepHasPositiveResult, setPepHasPositiveResult] = useState(false);
@@ -43,19 +44,38 @@ const SubMenu = (props) => {
   const [isICEDone, setIsICEDone] = useState(false);
   const [labResult, setLabResult] = useState(null);
 
-  // Sync state with expandedPatientObj when it updates
+  // Sync state with expandedPatientObj or patientObj when they update
   useEffect(() => {
-    if (props.expandedPatientObj) {
-      setIsICEDone(props.expandedPatientObj.hasiceform || false);
-      setIsEnrollmentCommencementDone(props.expandedPatientObj.hasenrollmentform || false);
+    // Primary source: expandedPatientObj (has hasiceform and hasenrollmentform from backend query)
+    if (props.expandedPatientObj &&
+        (props.expandedPatientObj.hasiceform !== undefined || props.expandedPatientObj.hasenrollmentform !== undefined)) {
+      console.log("SubMenu - Using expandedPatientObj:", {
+        hasiceform: props.expandedPatientObj.hasiceform,
+        hasenrollmentform: props.expandedPatientObj.hasenrollmentform
+      });
+      setIsICEDone(!!props.expandedPatientObj.hasiceform);
+      setIsEnrollmentCommencementDone(!!props.expandedPatientObj.hasenrollmentform);
     }
-  }, [props.expandedPatientObj?.hasiceform, props.expandedPatientObj?.hasenrollmentform]);
+    // Fallback: Use patientObj (has isEnrolled and commenced)
+    else if (patientObj) {
+      console.log("SubMenu - Using patientObj (fallback):", {
+        isEnrolled: patientObj.isEnrolled,
+        commenced: patientObj.commenced
+      });
+      setIsICEDone(!!patientObj.isEnrolled);
+      setIsEnrollmentCommencementDone(!!patientObj.commenced);
+    }
+  }, [
+    props.expandedPatientObj?.hasiceform,
+    props.expandedPatientObj?.hasenrollmentform,
+    patientObj?.isEnrolled,
+    patientObj?.commenced
+  ]);
 
   // Immediately update isICEDone when navigating to enrollment form from ICE form
   // This ensures the menu updates instantly without waiting for API refresh
   useEffect(() => {
     if (props.activeContent?.route === 'enrollment-and-commencement' && !isEnrollmentCommencementDone) {
-      // User is on enrollment form but enrollment not done yet = ICE must be done
       setIsICEDone(true);
     }
   }, [props.activeContent?.route]);
@@ -264,21 +284,21 @@ const SubMenu = (props) => {
           getOldRecordIfExists(),
           getCurrentLabResult(patientObj.id),
           Observation(),
-          checkEnrollmentCommencement(),
-          checkICEExists(),
+          // checkEnrollmentCommencement() and checkICEExists() removed
+          // These values are already available in expandedPatientObj (hasiceform, hasenrollmentform)
         ]);
       }
     };
     initializeData();
   }, [patientObj?.id]);
 
-  // Re-check enrollment status when navigating back to home/recent-history
-  useEffect(() => {
-    if (props.activeContent?.route === 'recent-history' && patientObj?.id) {
-      checkEnrollmentCommencement();
-      checkICEExists();
-    }
-  }, [props.activeContent?.route, patientObj?.id]);
+  // Re-check enrollment status removed - values come from expandedPatientObj
+  // useEffect(() => {
+  //   if (props.activeContent?.route === 'recent-history' && patientObj?.id) {
+  //     checkEnrollmentCommencement();
+  //     checkICEExists();
+  //   }
+  // }, [props.activeContent?.route, patientObj?.id]);
 
   const Observation = async () => {
     try {
@@ -324,42 +344,9 @@ const SubMenu = (props) => {
     }
   };
 
-  const checkEnrollmentCommencement = async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}hiv/enrollment-commencement/person/${patientObj?.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      // console.log("checkEnrollmentCommencement - response:", response.data);
-      setIsEnrollmentCommencementDone(true); // Record exists
-    } catch (error) {
-      // console.log("checkEnrollmentCommencement - error:", error.response?.status, error.message);
-      if (error.response?.status === 404) {
-        setIsEnrollmentCommencementDone(false); // No record, can fill form
-      } else {
-        setIsEnrollmentCommencementDone(false);
-      }
-    }
-  };
-
-  const checkICEExists = async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}hiv/observation/initial-clinical-evaluation/exists/person/${patientObj?.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      // console.log("checkICEExists - response.data:", response.data, "type:", typeof response.data);
-      // Only accept boolean values, otherwise default to false
-      const isBoolean = typeof response.data === 'boolean';
-      setIsICEDone(isBoolean ? response.data : false);
-      if (!isBoolean) {
-        console.warn("checkICEExists returned non-boolean value:", response.data);
-      }
-    } catch (error) {
-      console.log("checkICEExists - error:", error.response?.status, error.message);
-      setIsICEDone(false);
-    }
-  };
+  // checkEnrollmentCommencement and checkICEExists functions removed
+  // These values are now sourced directly from expandedPatientObj (hasiceform, hasenrollmentform)
+  // which are populated by the backend queries in HivEnrollmentRepository.java
 
   const updateCurrentEnrollmentStatus = async () => {
     try {
@@ -611,9 +598,10 @@ const SubMenu = (props) => {
     [props.activeContent, props.expandedPatientObj, labResult]
   );
 
-  // console.log("SubMenu render - menuConditions:", menuConditions);
-  // console.log("SubMenu render - showing LIMITED menu?", menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment);
-  // console.log("SubMenu render - isPepClient:", isPepClient, "pepHasPositiveResult:", pepHasPositiveResult);
+  console.log("SubMenu render - menuConditions:", menuConditions);
+  console.log("SubMenu render - isICEDone:", isICEDone, "isEnrollmentCommencementDone:", isEnrollmentCommencementDone);
+  console.log("SubMenu render - showing LIMITED menu?", menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment);
+  console.log("SubMenu render - showing FULL menu?", menuConditions.showFullMenu);
 
   return (
     <div>

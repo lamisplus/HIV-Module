@@ -12,6 +12,8 @@ import java.util.List;
 public class HivPatientDto extends PersonResponseDto  implements Serializable {
     private boolean isEnrolled;
     private boolean isCommenced;
+    private boolean hasenrollmentform;
+    private boolean  hasiceform;
     private boolean isClinicalEvaluation;
     private boolean isMentalHealth;
     private String currentStatus;

@@ -47,6 +47,9 @@ const FindPatientActions = memo(({ row }) => {
   const handleTransferIn = () => {
     setShowEnrollmentTypeModal(false);
     localStorage.setItem("currentStatus", "ART TRANSFER IN");
+    // Store patient ID to track which patient this enrollment session is for
+    localStorage.setItem("enrollingPatientId", row.id);
+    localStorage.setItem("isTransferInEnrollment", "true");
     setShowTransferFormModal(true);
   };
 
@@ -61,11 +64,15 @@ const FindPatientActions = memo(({ row }) => {
   const handleTransferFormClose = () => {
     setShowTransferFormModal(false);
     localStorage.removeItem("currentStatus");
+    localStorage.removeItem("enrollingPatientId");
+    localStorage.removeItem("isTransferInEnrollment");
   };
 
   const handleTransferFormSuccess = () => {
     setShowTransferFormModal(false);
     localStorage.removeItem("currentStatus");
+    // Keep enrollingPatientId and isTransferInEnrollment in localStorage
+    // They will be used by ICE form and cleared after ICE submission
     history.push({
       pathname: "/patient-history",
       state: { patientObj: row, enrollmentFlow: true, fromTransferIn: true },

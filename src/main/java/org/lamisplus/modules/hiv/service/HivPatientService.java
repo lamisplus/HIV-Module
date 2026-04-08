@@ -318,6 +318,7 @@ public class HivPatientService {
     private void addEnrollmentCommencementInfo(Long personId, Optional<EnrollmentCommencement> enrollmentCommencement, HivPatientDto hivPatientDto) {
         if (enrollmentCommencement.isPresent()) {
             hivPatientDto.setCommenced(true);
+            hivPatientDto.setHasenrollmentform(true);
             EnrollmentCommencement ec = enrollmentCommencement.get();
             // Enrollment Commencement represents ART Start status
             Long statusAtRegistrationId = ec.getStatusAtRegistrationId();
@@ -341,6 +342,7 @@ public class HivPatientService {
     private void addInitialClinicalEvaluationInfo(Optional<InitialClinicalEvaluation> initialClinicalEvaluation, HivPatientDto hivPatientDto) {
         if (initialClinicalEvaluation.isPresent()) {
             hivPatientDto.setEnrolled(true);
+            hivPatientDto.setHasiceform(true);
             InitialClinicalEvaluation ice = initialClinicalEvaluation.get();
             // Initial Clinical Evaluation represents Pre-ART status
             if (ice.isTransferIn()) {

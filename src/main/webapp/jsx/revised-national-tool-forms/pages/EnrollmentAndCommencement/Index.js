@@ -2042,12 +2042,12 @@ const EnrollmentAndCommencementForm = (props) => {
                   }
                   type="button"
                 >
-                  <span style={{ textTransform: "capitalize" }}>Back</span>
+                  <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>Back</span>
                 </MatButton>
                 <MatButton
                   variant="contained"
                   className={classes.button}
-                  startIcon={<EditIcon />}
+                  startIcon={<EditIcon style={{ color: "#fff" }} />}
                   style={{ backgroundColor: "#014d88" }}
                   onClick={() =>
                     props.setActiveContent({
@@ -2056,7 +2056,7 @@ const EnrollmentAndCommencementForm = (props) => {
                     })
                   }
                 >
-                  <span style={{ textTransform: "capitalize" }}>Edit</span>
+                  <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>Edit</span>
                 </MatButton>
               </>
             ) : (
@@ -2075,17 +2075,17 @@ const EnrollmentAndCommencementForm = (props) => {
                   }
                   type="button"
                 >
-                  <span style={{ textTransform: "capitalize" }}>Cancel</span>
+                  <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>Cancel</span>
                 </MatButton>
                 <MatButton
                   type="submit"
                   variant="contained"
                   className={classes.button}
-                  startIcon={<SaveIcon />}
+                  startIcon={<SaveIcon style={{ color: "#fff" }} />}
                   style={{ backgroundColor: "#014d88" }}
                   disabled={saving}
                 >
-                  <span style={{ textTransform: "capitalize" }}>
+                  <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>
                     {saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update" : "Save")}
                   </span>
                 </MatButton>
