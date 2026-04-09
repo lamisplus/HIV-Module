@@ -64,7 +64,7 @@ const Home = () => {
           </li>
         </ol>
       </div>
-      {/* {isRDE && ( */}
+      {/* {isRDE && (
                 <Link to={"register-patient"}>
                   <Button
                     variant="contained"
@@ -76,8 +76,8 @@ const Home = () => {
                     <span style={{ textTransform: "capitalize" }}>New Patient</span>
                   </Button>
                 </Link>
-              {/* )} */}
-     
+              )} */}
+
       <br />
       <br />
       <Row>
