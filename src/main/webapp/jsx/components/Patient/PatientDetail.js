@@ -10,6 +10,9 @@ import { Modal } from "react-bootstrap";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
 import PatientCardDetail from "./PatientCard";
 import { useHistory } from "react-router-dom";
 import SubMenu from "./SubMenu";
@@ -33,6 +36,7 @@ import EnrollmentAndCommencementUpdate from "../../revised-national-tool-forms/p
 import CareCardFollowUpForm from "../../revised-national-tool-forms/pages/CareCardFollowUp/CareCardFollowUpTabs";
 import HealthServicesForm from "../../revised-national-tool-forms/pages/HealthServices/Index";
 import SubstitutionSwitchForm from "../../revised-national-tool-forms/pages/SubstitutionSwitch/Index";
+import TransferInForm from "../../revised-national-tool-forms/pages/TransferIn/Index";
 import MentalHealthScreening from "../MentalHealthScreening/index";
 import LabHistory from "./../Laboratory/LabHistory";
 import PatientHistory from "./../History/PatientHistory";
@@ -923,6 +927,29 @@ function PatientCard(props) {
           )}
         </CardContent>
       </Card>
+
+      {/* Transfer-In Acknowledgement Modal for View/Edit */}
+      {activeContent.route === "transfer-in-acknowledgement-view" && (
+        <Dialog
+          open={true}
+          onClose={() => setActiveContent({ ...activeContent, route: "recent-history" })}
+          maxWidth="lg"
+          fullWidth
+        >
+          <DialogTitle style={{ backgroundColor: "#014d88", color: "#fff" }}>
+            {activeContent.actionType === "view"
+              ? "View Transfer-In Acknowledgement"
+              : "Edit Transfer-In Acknowledgement"}
+          </DialogTitle>
+          <DialogContent>
+            <TransferInForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {showModal.show && (
         <Modal

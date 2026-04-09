@@ -42,9 +42,19 @@ const useStyles = makeStyles((theme) => ({
 const TransferInForm = (props) => {
     const classes = useStyles();
     const patientObj = props.patientObj;
+    const { mode = 'create' } = props;
+    const isViewMode = mode === 'view';
+    const isEditMode = mode === 'edit';
+    const isCreateMode = mode === 'create';
+
+    // Check if this is read-only view (from Recent Activities "View" button)
+    const isReadOnly = props.activeContent?.actionType === 'view';
+
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [facilityId, setFacilityId] = useState(null);
+    const [recordId, setRecordId] = useState(null);
+    const [loadingRecord, setLoadingRecord] = useState(false);
 
     const [formData, setFormData] = useState({
         patientCameWithTransferForm: "",
@@ -62,6 +72,47 @@ const TransferInForm = (props) => {
         };
         init();
     }, []);
+
+    // Fetch existing record for edit/view mode
+    useEffect(() => {
+        if ((props.activeContent?.actionType === "update" || props.activeContent?.actionType === "view")
+            && props.activeContent?.id) {
+            fetchExistingRecord(props.activeContent.id);
+        }
+    }, [props.activeContent?.id, props.activeContent?.actionType]);
+
+    const fetchExistingRecord = async (id) => {
+        setLoadingRecord(true);
+        try {
+            const response = await axios.get(
+                `${baseUrl}hiv/patient-transfer-in/${id}`,
+                { headers: { Authorization: `Bearer ${authToken}` } }
+            );
+            const record = response.data;
+            setRecordId(record.id);
+
+            // Populate form with existing data
+            setFormData({
+                patientCameWithTransferForm: record.patientCameWithTransferForm || "",
+                patientAttendedFirstVisit: record.patientAttendedFirstVisit || "",
+                receivedDate: record.receivedDate || "",
+                dateOfVisit: record.dateOfVisit || "",
+                clinicianName: record.clinicianName || "",
+                telephoneNumber: record.telephoneNumber || "",
+            });
+        } catch (error) {
+            const msg =
+                error?.response?.data?.message ||
+                error?.response?.data?.apierror?.message ||
+                "Failed to load Transfer-In record";
+            toast.error(msg);
+            if (props.setActiveContent) {
+                props.setActiveContent({ ...props.activeContent, route: "recent-history" });
+            }
+        } finally {
+            setLoadingRecord(false);
+        }
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -99,22 +150,41 @@ const TransferInForm = (props) => {
 
         setSaving(true);
 
-        const payload = {
-            ...formData,
-            personId: patientObj.id,
-            personUuid: patientObj.personUuid,
-            facilityId: facilityId,
-        };
-
         try {
-            await axios.post(`${baseUrl}hiv/transfer-acknowledgement/save`, payload, {
-                headers: { Authorization: `Bearer ${authToken}` },
-            });
+            if (isEditMode || (props.activeContent?.actionType === "update" && recordId)) {
+                // Update existing record
+                const payload = {
+                    ...formData,
+                };
 
-            toast.success("Client Transfer-In Acknowledge Form Submitted Successfully");
+                await axios.put(
+                    `${baseUrl}hiv/patient-transfer-in/${recordId}`,
+                    payload,
+                    { headers: { Authorization: `Bearer ${authToken}` } }
+                );
+
+                toast.success("Transfer-In Acknowledgement record updated successfully");
+            } else {
+                // Create new record
+                const payload = {
+                    ...formData,
+                    personId: patientObj.id,
+                    personUuid: patientObj.personUuid,
+                    facilityId: facilityId,
+                };
+
+                await axios.post(
+                    `${baseUrl}hiv/transfer-acknowledgement/save`,
+                    payload,
+                    { headers: { Authorization: `Bearer ${authToken}` } }
+                );
+
+                toast.success("Client Transfer-In Acknowledge Form Submitted Successfully");
+            }
+
             setSaving(false);
 
-            // Route to ICE form after successful save
+            // Route back to history after successful save
             if (props.setActiveContent) {
                 props.setActiveContent({
                     ...props.activeContent,
@@ -145,11 +215,25 @@ const TransferInForm = (props) => {
         }
     };
 
-    return (
-        <div>
-            <Card className={classes.root}>
-                <CardBody style={{ padding: "30px" }}>
-                    <form onSubmit={handleSubmit}>
+    // Show loading state while fetching record
+    if (loadingRecord) {
+        return (
+            <div>
+                <Card className={classes.root}>
+                    <CardBody style={{ padding: "30px", textAlign: "center" }}>
+                        <Spinner color="primary" />
+                        <p style={{ marginTop: "10px" }}>Loading Transfer-In record...</p>
+                    </CardBody>
+                </Card>
+            </div>
+        );
+    }
+
+    // Don't show Card wrapper when in modal (view/edit mode)
+    const isInModal = isViewMode || isEditMode || props.activeContent?.actionType === "view" || props.activeContent?.actionType === "update";
+
+    const formContent = (
+        <form onSubmit={handleSubmit}>
                         {/* Row 1: Patient came with Transfer form, Patient attended first visit, Received date */}
                         <div className="row mb-3">
                             <div className="col-md-4">
@@ -160,6 +244,7 @@ const TransferInForm = (props) => {
                                         name="patientCameWithTransferForm"
                                         value={formData.patientCameWithTransferForm}
                                         onChange={handleInputChange}
+                                        disabled={isReadOnly}
                                     >
                                         <option value=""></option>
                                         <option value="Yes">Yes</option>
@@ -181,6 +266,7 @@ const TransferInForm = (props) => {
                                         name="patientAttendedFirstVisit"
                                         value={formData.patientAttendedFirstVisit}
                                         onChange={handleInputChange}
+                                        disabled={isReadOnly}
                                     >
                                         <option value=""></option>
                                         <option value="Yes">Yes</option>
@@ -204,6 +290,7 @@ const TransferInForm = (props) => {
                                         onChange={handleInputChange}
                                         max={moment().format("YYYY-MM-DD")}
                                         placeholder="dd/mm/yyyy"
+                                        disabled={isReadOnly}
                                     />
                                     {errors.receivedDate && (
                                         <span className={classes.error}>{errors.receivedDate}</span>
@@ -224,6 +311,7 @@ const TransferInForm = (props) => {
                                         onChange={handleInputChange}
                                         max={moment().format("YYYY-MM-DD")}
                                         placeholder="dd/mm/yyyy"
+                                        disabled={isReadOnly}
                                     />
                                     {errors.dateOfVisit && (
                                         <span className={classes.error}>{errors.dateOfVisit}</span>
@@ -239,6 +327,7 @@ const TransferInForm = (props) => {
                                         name="clinicianName"
                                         value={formData.clinicianName}
                                         onChange={handleInputChange}
+                                        disabled={isReadOnly}
                                     />
                                     {errors.clinicianName && (
                                         <span className={classes.error}>{errors.clinicianName}</span>
@@ -255,6 +344,7 @@ const TransferInForm = (props) => {
                                         value={formData.telephoneNumber}
                                         onChange={handleInputChange}
                                         maxLength="11"
+                                        disabled={isReadOnly}
                                     />
                                     {errors.telephoneNumber && (
                                         <span className={classes.error}>{errors.telephoneNumber}</span>
@@ -268,23 +358,28 @@ const TransferInForm = (props) => {
                             <div className="col-md-12 text-center">
                                 {saving && <Spinner color="primary" style={{ marginBottom: "10px" }} />}
 
-                                <MatButton
-                                    type="submit"
-                                    variant="contained"
-                                    color="primary"
-                                    className={classes.button}
-                                    startIcon={<SaveIcon />}
-                                    disabled={saving}
-                                    style={{
-                                        backgroundColor: "#014d88",
-                                        padding: "10px 30px",
-                                        fontSize: "14px",
-                                        fontWeight: "600",
-                                        marginRight: "15px",
-                                    }}
-                                >
-                                    {saving ? "Saving..." : "Save"}
-                                </MatButton>
+                                {!isReadOnly && (
+                                    <MatButton
+                                        type="submit"
+                                        variant="contained"
+                                        color="primary"
+                                        className={classes.button}
+                                        startIcon={<SaveIcon />}
+                                        disabled={saving}
+                                        style={{
+                                            backgroundColor: "#014d88",
+                                            padding: "10px 30px",
+                                            fontSize: "14px",
+                                            fontWeight: "600",
+                                            marginRight: "15px",
+                                        }}
+                                    >
+                                        {saving
+                                            ? (isEditMode || props.activeContent?.actionType === "update" ? "Updating..." : "Saving...")
+                                            : (isEditMode || props.activeContent?.actionType === "update" ? "Update" : "Save")
+                                        }
+                                    </MatButton>
+                                )}
 
                                 <MatButton
                                     type="button"
@@ -294,18 +389,30 @@ const TransferInForm = (props) => {
                                     onClick={handleCancel}
                                     disabled={saving}
                                     style={{
-                                        borderColor: "#dc3545",
-                                        color: "#dc3545",
+                                        borderColor: isReadOnly ? "#014d88" : "#dc3545",
+                                        color: isReadOnly ? "#014d88" : "#dc3545",
                                         padding: "10px 30px",
                                         fontSize: "14px",
                                         fontWeight: "600",
                                     }}
                                 >
-                                    Cancel
+                                    {isReadOnly ? "Close" : "Cancel"}
                                 </MatButton>
                             </div>
                         </div>
                     </form>
+    );
+
+    // Return with or without Card wrapper based on context
+    if (isInModal) {
+        return <div>{formContent}</div>;
+    }
+
+    return (
+        <div>
+            <Card className={classes.root}>
+                <CardBody style={{ padding: "30px" }}>
+                    {formContent}
                 </CardBody>
             </Card>
         </div>

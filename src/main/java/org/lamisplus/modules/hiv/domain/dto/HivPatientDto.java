@@ -20,6 +20,7 @@ public class HivPatientDto extends PersonResponseDto  implements Serializable {
     // Updated to use new table structure
     private InitialClinicalEvaluationDTO initialClinicalEvaluation;
     private EnrollmentCommencementRequestDto enrollmentCommencement;
+    private PatientTransferInDTO transferIn;
     // Keep old fields for backward compatibility (deprecated)
     @Deprecated
     private HivEnrollmentDTO enrollment;

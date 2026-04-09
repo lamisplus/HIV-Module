@@ -18,12 +18,14 @@ import org.lamisplus.modules.hiv.domain.entity.ARTClinical;
 import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
 import org.lamisplus.modules.hiv.domain.entity.InitialClinicalEvaluation;
 import org.lamisplus.modules.hiv.domain.entity.Observation;
+import org.lamisplus.modules.hiv.domain.entity.PatientTransferIn;
 import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
 import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
 import org.lamisplus.modules.hiv.repositories.InitialClinicalEvaluationRepository;
 import org.lamisplus.modules.hiv.repositories.ObservationRepository;
 import org.lamisplus.modules.hiv.repositories.PatientFlagRepository;
+import org.lamisplus.modules.hiv.repositories.PatientTransferInRepository;
 import org.lamisplus.modules.patient.domain.dto.PersonResponseDto;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.repository.PersonRepository;
@@ -72,6 +74,10 @@ public class HivPatientService {
     private final EnrollmentCommencementRepository enrollmentCommencementRepository;
 
     private final InitialClinicalEvaluationService initialClinicalEvaluationService;
+
+    private final PatientTransferInRepository patientTransferInRepository;
+
+    private final PatientTransferInService patientTransferInService;
 
     public HivEnrollmentDTO registerAndEnrollHivPatient(HivPatientEnrollmentDto hivPatientEnrollmentDto) {
         HivEnrollmentDTO hivEnrollmentDto = hivPatientEnrollmentDto.getHivEnrollment();
@@ -304,11 +310,15 @@ public class HivPatientService {
             // Using new table: hiv_enrollment_commencement (replaces hiv_art_clinical)
             Optional<EnrollmentCommencement> enrollmentCommencement =
                     enrollmentCommencementRepository.findByPersonAndArchived(person, 0);
+            // Fetch Transfer-In data
+            Optional<PatientTransferIn> transferIn =
+                    patientTransferInRepository.findByPersonAndArchived(person, 0);
             HivPatientDto hivPatientDto = new HivPatientDto();
             BeanUtils.copyProperties(bioData, hivPatientDto);
             hivPatientDto.setCreateBy(person.getCreatedBy());
             addInitialClinicalEvaluationInfo(initialClinicalEvaluation, hivPatientDto);
             addEnrollmentCommencementInfo(person.getId(), enrollmentCommencement, hivPatientDto);
+            addTransferInInfo(transferIn, hivPatientDto);
             processAndSetObservationStatus(person, hivPatientDto);
             return hivPatientDto;
         }
@@ -359,6 +369,19 @@ public class HivPatientService {
             }
         } else {
             hivPatientDto.setCurrentStatus("Not Enrolled");
+        }
+    }
+
+    private void addTransferInInfo(Optional<PatientTransferIn> transferIn, HivPatientDto hivPatientDto) {
+        if (transferIn.isPresent()) {
+            PatientTransferIn ti = transferIn.get();
+            // Convert entity to DTO using the service's converter method
+            try {
+                PatientTransferInDTO tiDto = patientTransferInService.getPatientTransferInById(ti.getId());
+                hivPatientDto.setTransferIn(tiDto);
+            } catch (Exception e) {
+                log.warn("Could not convert Transfer-In to DTO for person ID: {}", ti.getPersonId(), e);
+            }
         }
     }
 

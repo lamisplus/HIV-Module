@@ -253,6 +253,14 @@ const PatientnHistory = (props) => {
         activeTab: "home",
         actionType: action,
       });
+    } else if (row.path === "Transfer-In-Acknowledgement") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "transfer-in-acknowledgement-view",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
     } else if (row.path === "enrollment-commencement") {
       props.setActiveContent({
         ...props.activeContent,
@@ -753,6 +761,31 @@ const PatientnHistory = (props) => {
           })
           .then((response) => {
             toast.success("Initial Clinical Evaluation record deleted successfully");
+            PatientHistory();
+            toggle();
+            setSaving(false);
+          })
+          .catch((error) => {
+            setSaving(false);
+            if (error.response && error.response.data) {
+              let errorMessage =
+                  error.response.data.apierror &&
+                  error.response.data.apierror.message !== ""
+                      ? error.response.data.apierror.message
+                      : "Something went wrong, please try again";
+              toast.error(errorMessage);
+            } else {
+              toast.error("Something went wrong. Please try again...");
+            }
+          });
+    } else if (row.path === "Transfer-In-Acknowledgement") {
+      setSaving(true);
+      axios
+          .delete(`${baseUrl}hiv/patient-transfer-in/${row.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => {
+            toast.success("Transfer-In Acknowledgement record deleted successfully");
             PatientHistory();
             toggle();
             setSaving(false);
