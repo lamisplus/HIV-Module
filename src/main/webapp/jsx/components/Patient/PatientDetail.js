@@ -37,6 +37,7 @@ import CareCardFollowUpForm from "../../revised-national-tool-forms/pages/CareCa
 import HealthServicesForm from "../../revised-national-tool-forms/pages/HealthServices/Index";
 import SubstitutionSwitchForm from "../../revised-national-tool-forms/pages/SubstitutionSwitch/Index";
 import TransferInForm from "../../revised-national-tool-forms/pages/TransferIn/Index";
+import IntegratedLabOrderForm from "../../revised-national-tool-forms/pages/IntegratedLabOrderForm/Index";
 import MentalHealthScreening from "../MentalHealthScreening/index";
 import LabHistory from "./../Laboratory/LabHistory";
 import PatientHistory from "./../History/PatientHistory";
@@ -632,6 +633,13 @@ function PatientCard(props) {
           )}
           {activeContent.route === "substitution-switch" && (
             <SubstitutionSwitchForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "integrated-lab-order" && (
+            <IntegratedLabOrderForm
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

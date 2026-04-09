@@ -431,6 +431,14 @@ const SubMenu = (props) => {
         });
       },
 
+      loadIntegratedLabOrder: () => {
+        setActiveItem("integrated-lab-order");
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "integrated-lab-order",
+        });
+      },
+
       loadArtCommencement: () => {
         setActiveItem("art");
         props.setActiveContent({
@@ -922,6 +930,14 @@ const SubMenu = (props) => {
                                 title="Substitutions / Switches"
                               >
                                 Substitution / Switch
+                              </Dropdown.Item>
+                              <Dropdown.Item
+                                onClick={menuHandlers.loadIntegratedLabOrder}
+                                name="integrated-lab-order"
+                                active={activeItem === "integrated-lab-order"}
+                                title="Integrated Lab Order & Result"
+                              >
+                                Integrated Lab Order & Result
                               </Dropdown.Item>
                               <Dropdown.Item
                                 onClick={menuHandlers.loadTrackingForm}
