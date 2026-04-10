@@ -1160,6 +1160,16 @@ const CareCardFollowUpForm = (props) => {
       }
     }
 
+    // Validate RBS to ensure it doesn't exceed database limit
+    if (name === "rbs" && value) {
+      const rbsValue = parseFloat(value);
+      if (!isNaN(rbsValue) && rbsValue > 999.99) {
+        toast.warning("RBS value will be capped at 999.99 due to system limits.", {
+          position: toast.POSITION.TOP_CENTER,
+        });
+      }
+    }
+
     setLab(updatedLab);
   };
 
@@ -1177,9 +1187,69 @@ const CareCardFollowUpForm = (props) => {
   };
 
   // ── Validation ────────────────────────────────────────────────────────────
-  const validate = () => {
+  const validate = async () => {
     const temp = {};
-    if (!visitInfo.visit_date) temp.visit_date = "Visit date is required";
+    if (!visitInfo.visit_date) {
+      temp.visit_date = "Visit date is required";
+      setErrors(temp);
+      return false;
+    }
+
+    // Check for duplicate visit date (only for new visits, not edits)
+    if (!isEditMode) {
+      try {
+        const visitCheckResponse = await axios.get(
+          `${baseUrl}hiv/art/clinic-visit/person/${props.patientObj.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const existingVisits = visitCheckResponse.data || [];
+        const isDuplicate = existingVisits.some(
+          (visit) => moment(visit.visitDate).format("YYYY-MM-DD") === visitInfo.visit_date
+        );
+
+        if (isDuplicate) {
+          temp.visit_date = "A visit already exists for this date. Please select a different date.";
+          setErrors(temp);
+          toast.error("A visit already exists for this date", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+          return false;
+        }
+      } catch (error) {
+        console.error("Error checking for duplicate visit date:", error);
+      }
+    }
+
+    // Check if care and support exists for the visit date
+    try {
+      const careAndSupportResponse = await axios.get(
+        `${baseUrl}observation/person/${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const careAndSupportRecords = careAndSupportResponse.data || [];
+      const hasCareAndSupportForDate = careAndSupportRecords.some(
+        (record) =>
+          record.type === "Chronic Care" &&
+          moment(record.dateOfObservation).format("YYYY-MM-DD") === visitInfo.visit_date
+      );
+
+      if (!hasCareAndSupportForDate) {
+        temp.visit_date = "Care and Support must be documented for this visit date before creating a Care Card Follow-up.";
+        setErrors(temp);
+        toast.error("Please document Care and Support for this date first", {
+          position: toast.POSITION.TOP_CENTER,
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Error checking care and support:", error);
+      toast.error("Unable to verify Care and Support documentation", {
+        position: toast.POSITION.TOP_CENTER,
+      });
+      return false;
+    }
 
     // Check if at least one ARV entry has a regimen
     const hasAtLeastOneRegimen = arvList.some((arv) => arv.regimen);
@@ -1199,7 +1269,8 @@ const CareCardFollowUpForm = (props) => {
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) {
+    const isValid = await validate();
+    if (!isValid) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -1328,7 +1399,7 @@ const CareCardFollowUpForm = (props) => {
         cd4Ordered: cd4Ordered,
         viralLoadOrdered: viralLoadOrdered,
         eac: lab.eac || "",
-        rbs: lab.rbs ? parseFloat(lab.rbs) : null,
+        rbs: lab.rbs ? Math.min(parseFloat(lab.rbs), 999.99) : null,
         otherTestsDone: otherTestsDone,
         typeOfAppointment: lab.type_of_appointment || "",
         healthInsuranceCoverage: followUp.health_insurance_coverage || "",

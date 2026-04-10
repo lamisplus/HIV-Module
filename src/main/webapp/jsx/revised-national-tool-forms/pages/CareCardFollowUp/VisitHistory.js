@@ -119,6 +119,14 @@ const CareCardVisitHistory = (props) => {
     fetchVisits();
   }, [props.onEditVisit]);
 
+  // Handle incoming visit from Patient History
+  useEffect(() => {
+    if (props.visitFromHistory) {
+      setSelectedVisit(props.visitFromHistory);
+      setViewMode("view");
+    }
+  }, [props.visitFromHistory]);
+
   const fetchVisits = async () => {
     setLoading(true);
     try {
@@ -185,7 +193,7 @@ const CareCardVisitHistory = (props) => {
     <div className={classes.container}>
       <Grid container spacing={3}>
         {/* Left Column: Accordion Visit List */}
-        <Grid item xs={12} md={5}>
+        <Grid item xs={12} md={3}>
           <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
             <Typography variant="h6" style={{ color: "#014d88", fontWeight: 700 }}>
               Visit History
@@ -300,7 +308,7 @@ const CareCardVisitHistory = (props) => {
         </Grid>
 
         {/* Right Column: Selected Visit Details */}
-        <Grid item xs={12} md={7}>
+        <Grid item xs={12} md={9}>
           {!selectedVisit || !viewMode ? (
             <Card style={{ border: "1px solid #e0e0e0", borderRadius: "8px" }}>
               <CardHeader

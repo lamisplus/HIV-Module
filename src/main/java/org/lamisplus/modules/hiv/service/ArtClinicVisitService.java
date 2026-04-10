@@ -9,7 +9,6 @@ import org.lamisplus.modules.hiv.domain.dto.ARTClinicVisitDto;
 import org.lamisplus.modules.hiv.domain.dto.ARTClinicalVisitDisplayDto;
 import org.lamisplus.modules.hiv.domain.entity.ARTClinical;
 import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
-import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
 import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
 import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
@@ -166,6 +165,7 @@ public class ArtClinicVisitService {
 				.personId(visit.getPerson().getId())
 				.hivEnrollmentId(visit.getEnrollmentCommencement().getId())
 				.adherenceLevel(visit.getAdherenceLevel())
+//				.isCommencement(visit.getEnrollmentCommencement().getIsCommencement())
 				.isCommencement(visit.getEnrollmentCommencement().getIsCommencement())
 				.adheres(visit.getAdheres())
 				.clinicalNote(visit.getClinicalNote())

@@ -8,9 +8,11 @@ import org.lamisplus.modules.base.service.ApplicationCodesetService;
 import org.lamisplus.modules.hiv.domain.dto.HIVStatusTrackerDto;
 import org.lamisplus.modules.hiv.domain.dto.StatusDto;
 import org.lamisplus.modules.hiv.domain.entity.ArtPharmacy;
+import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
 import org.lamisplus.modules.hiv.domain.entity.HIVStatusTracker;
 import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
 import org.lamisplus.modules.hiv.repositories.ArtPharmacyRepository;
+import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.repositories.HIVStatusTrackerRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
 import org.lamisplus.modules.hiv.utility.Constants;
@@ -54,8 +56,9 @@ public class HIVStatusTrackerService {
 
     private final HandleHIVVisitEncounter hivVisitEncounter;
 
-
     private final ApplicationCodesetService applicationCodesetService;
+
+    private final EnrollmentCommencementRepository enrollmentCommencementRepository;
 
     public HIVStatusTrackerDto registerHIVStatusTracker(HIVStatusTrackerDto hivStatusTrackerDto) {
         if (hivStatusTrackerDto != null) {
@@ -106,41 +109,14 @@ public class HIVStatusTrackerService {
                     .orElse(statusDto);
         }
 
-        HivEnrollment hivEnrollment = hivEnrollmentRepository.getHivEnrollmentByPersonAndArchived(person, 0)
-                .orElseThrow(() -> new EntityNotFoundException(HivEnrollment.class, "person id", String.valueOf(person.getId())));
-        LocalDate dateOfRegistration = hivEnrollment.getDateOfRegistration();
+        EnrollmentCommencement hivEnrollment = enrollmentCommencementRepository.findByPersonAndArchived(person, 0)
+                .orElseThrow(() -> new EntityNotFoundException(EnrollmentCommencement.class, "person id", String.valueOf(person.getId())));
+        LocalDate dateOfRegistration = hivEnrollment.getDateEnrolledInHivCare();
         Long statusAtRegistrationId = hivEnrollment.getStatusAtRegistrationId();
         String statusAtRegistration = applicationCodesetService.getApplicationCodeset(statusAtRegistrationId).getDisplay();
         return new StatusDto(statusAtRegistration, dateOfRegistration);
 
     }
-
-    public StatusDto getPersonCurrentHIVStatusByPersonId(Long personId, LocalDate startDate, LocalDate endDate) {
-        Person person = getPerson(personId);
-        Comparator<HIVStatusTracker> personStatusDateComparator = Comparator.comparing(HIVStatusTracker::getStatusDate);
-        Optional<HIVStatusTracker> currentStatus = hivStatusTrackerRepository.findAllByPersonAndArchived(person, 0)
-                .stream()
-                .filter(status ->
-                        status.getStatusDate().isAfter(startDate.minusDays(1))
-                                && status.getStatusDate().isBefore(endDate.plusDays(1)))
-                .max(personStatusDateComparator);
-        List<ArtPharmacy> pharmacyRefills = artPharmacyRepository.getArtPharmaciesByPersonAndArchived(person, 0);
-        StatusDto statusDto = new StatusDto(HIV_PLUS_NON_ART, null);
-        if (!pharmacyRefills.isEmpty()) {
-            return currentStatus.map(this::calculatePatientCurrentStatus)
-                    .orElse(statusDto);
-        }
-
-        HivEnrollment hivEnrollment = hivEnrollmentRepository.getHivEnrollmentByPersonAndArchived(person, 0)
-                .orElseThrow(() -> new EntityNotFoundException(HivEnrollment.class, "person id", String.valueOf(person.getId())));
-        LocalDate dateOfRegistration = hivEnrollment.getDateOfRegistration();
-        Long statusAtRegistrationId = hivEnrollment.getStatusAtRegistrationId();
-        String statusAtRegistration = applicationCodesetService.getApplicationCodeset(statusAtRegistrationId).getDisplay();
-        return new StatusDto(statusAtRegistration, dateOfRegistration);
-
-
-    }
-
 
     private StatusDto calculatePatientCurrentStatus(HIVStatusTracker statusTracker) {
         if (statusTracker.getStatusDate() == null) statusTracker.setStatusDate(INVALID_DATE);

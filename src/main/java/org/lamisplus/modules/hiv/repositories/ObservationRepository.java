@@ -359,7 +359,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
 
 
     @Query(value = "WITH tbStatusImpl AS (\n" +
-            "SELECT he.person_uuid FROM hiv_enrollment he WHERE archived = 0),\n" +
+            "SELECT he.person_uuid FROM hiv_enrollment_commencement he WHERE archived = 0),\n" +
             "tbStatus AS (\n" +
             "SELECT * FROM (\n" +
             "SELECT person_uuid, (CASE WHEN data->'tbIptScreening'->>'status' = 'Presumptive TB and referred for evaluation' THEN 'Presumptive TB'\n" +

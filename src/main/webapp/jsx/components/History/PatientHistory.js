@@ -176,7 +176,7 @@ const PatientnHistory = (props) => {
     } else if (row.path === "clinic-visit") {
       props.setActiveContent({
         ...props.activeContent,
-        route: "consultation",
+        route: "care-card-follow-up",
         id: row.id,
         activeTab: "history",
         actionType: action,

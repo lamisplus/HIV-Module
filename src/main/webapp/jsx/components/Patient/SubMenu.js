@@ -32,8 +32,8 @@ const SubMenu = (props) => {
   const { hasRole } = useRoles();
   const [activeItem, setActiveItem] = useState("recent-history");
   const patientObj = props.patientObj;
-  console.log("props.patientObj", props.patientObj)
-  console.log("props.expandable", props.expandedPatientObj)
+  // console.log("props.patientObj", props.patientObj)
+  // console.log("props.expandable", props.expandedPatientObj)
   // Check if this is a PEP client
   const isPepClient = props.pepClient || false;
   const [pepHasPositiveResult, setPepHasPositiveResult] = useState(false);
@@ -49,19 +49,11 @@ const SubMenu = (props) => {
     // Primary source: expandedPatientObj (has hasiceform and hasenrollmentform from backend query)
     if (props.expandedPatientObj &&
         (props.expandedPatientObj.hasiceform !== undefined || props.expandedPatientObj.hasenrollmentform !== undefined)) {
-      console.log("SubMenu - Using expandedPatientObj:", {
-        hasiceform: props.expandedPatientObj.hasiceform,
-        hasenrollmentform: props.expandedPatientObj.hasenrollmentform
-      });
       setIsICEDone(!!props.expandedPatientObj.hasiceform);
       setIsEnrollmentCommencementDone(!!props.expandedPatientObj.hasenrollmentform);
     }
     // Fallback: Use patientObj (has isEnrolled and commenced)
     else if (patientObj) {
-      console.log("SubMenu - Using patientObj (fallback):", {
-        isEnrolled: patientObj.isEnrolled,
-        commenced: patientObj.commenced
-      });
       setIsICEDone(!!patientObj.isEnrolled);
       setIsEnrollmentCommencementDone(!!patientObj.commenced);
     }
@@ -606,11 +598,6 @@ const SubMenu = (props) => {
     [props.activeContent, props.expandedPatientObj, labResult]
   );
 
-  console.log("SubMenu render - menuConditions:", menuConditions);
-  console.log("SubMenu render - isICEDone:", isICEDone, "isEnrollmentCommencementDone:", isEnrollmentCommencementDone);
-  console.log("SubMenu render - showing LIMITED menu?", menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment);
-  console.log("SubMenu render - showing FULL menu?", menuConditions.showFullMenu);
-
   return (
     <div>
       {patientObj && (
@@ -618,7 +605,6 @@ const SubMenu = (props) => {
           {/* PEP CLIENT WITHOUT POSITIVE RESULT - Show only Viral Load */}
           {isPepClient && !pepHasPositiveResult ? (
             <>
-              {console.log("RENDERING PEP CLIENT MENU (No positive result yet)")}
               <Menu size="tiny" color="blue" inverted pointing>
                 <MenuItem
                   onClick={menuHandlers.onClickHome}
@@ -708,10 +694,8 @@ const SubMenu = (props) => {
             </>
           ) : (
             <>
-              {console.log("ELSE BRANCH - isDeadOrTransferred:", menuConditions.isDeadOrTransferred)}
               {menuConditions.isDeadOrTransferred ? (
                 <>
-                  {console.log("RENDERING DEAD/TRANSFERRED MENU")}
                   <Menu
                     size="tiny"
                     style={{
@@ -807,18 +791,6 @@ const SubMenu = (props) => {
                           active={activeItem === "chronic-care"}
                         >
                           Care & Support
-                        </MenuItem>
-                      )}
-
-                      {permissions.canSeeCareCard && (
-                        <MenuItem
-                          onClick={menuHandlers.onClickConsultation}
-                          disabled={patientCurrentStatus}
-                          name="visit"
-                          active={activeItem === "visit"}
-                          title="Care Card"
-                        >
-                          Care Card
                         </MenuItem>
                       )}
 
@@ -974,7 +946,7 @@ const SubMenu = (props) => {
                             </Dropdown.Menu>
                           </Dropdown>
 
-                          {menuConditions.canShowOTZ && (
+                          {/* {menuConditions.canShowOTZ && (
                             <Dropdown item text="OTZ">
                               <Dropdown.Menu>
                                 {menuConditions.canShowOTZEnrollment && (
@@ -1028,7 +1000,7 @@ const SubMenu = (props) => {
                                 )}
                               </Dropdown.Menu>
                             </Dropdown>
-                          )}
+                          )} */}
                         </Menu.Menu>
                       )}
 

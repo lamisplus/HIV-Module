@@ -122,7 +122,7 @@ const FindPatientActions = memo(({ row }) => {
           </Button>
           <Button style={{ backgroundColor: hasCompletedICE ? "#28a745" : "rgb(153, 46, 98)" }}>
           <span style={{ fontSize: "10px", color: "#fff", fontWeight: "bolder" }}>
-            {hasCompletedICE ? "Complete Enrollment" : "Enroll Patient"}
+            {hasCompletedICE ? "Commence ART" : "Enroll Patient"}
           </span>
           </Button>
         </ButtonGroup>

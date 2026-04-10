@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, Tab, Box, Chip } from "@mui/material";
 import { makeStyles } from "@material-ui/core/styles";
 import CareCardFollowUpForm from "./Index";
 import CareCardVisitHistory from "./VisitHistory";
 import * as moment from "moment";
+import axios from "axios";
+import { token, url as baseUrl } from "../../../../api";
 
 const useStyles = makeStyles((theme) => ({
   tabsContainer: {
@@ -29,11 +31,43 @@ const CareCardFollowUpTabs = (props) => {
   const classes = useStyles();
   const [activeTab, setActiveTab] = useState(0);
   const [editingVisit, setEditingVisit] = useState(null);
+  const [visitFromHistory, setVisitFromHistory] = useState(null);
+
+  // Handle incoming visit from Patient History
+  useEffect(() => {
+    const fetchVisitFromHistory = async () => {
+      if (props.activeContent?.id && props.activeContent?.activeTab === "history") {
+        try {
+          const response = await axios.get(
+            `${baseUrl}hiv/art/clinic-visit/${props.activeContent.id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const visit = response.data;
+
+          if (props.activeContent.actionType === "view") {
+            setVisitFromHistory(visit);
+            setActiveTab(1); // Switch to Visit History tab
+          } else if (props.activeContent.actionType === "update") {
+            setEditingVisit(visit);
+            setActiveTab(0); // Switch to Form tab for editing
+          }
+        } catch (error) {
+          console.error("Error fetching visit from history:", error);
+        }
+      }
+    };
+
+    fetchVisitFromHistory();
+  }, [props.activeContent?.id, props.activeContent?.actionType]);
 
   const handleTabChange = (event, newValue) => {
     // If switching away from the form tab and there's an editing visit, clear it
     if (newValue !== 0 && editingVisit) {
       setEditingVisit(null);
+    }
+    // Clear visitFromHistory when manually switching tabs
+    if (visitFromHistory) {
+      setVisitFromHistory(null);
     }
     setActiveTab(newValue);
   };
@@ -96,6 +130,7 @@ const CareCardFollowUpTabs = (props) => {
         <CareCardVisitHistory
           {...props}
           onEditVisit={handleEditVisit}
+          visitFromHistory={visitFromHistory}
         />
       )}
     </div>
