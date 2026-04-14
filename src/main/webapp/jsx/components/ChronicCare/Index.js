@@ -24,6 +24,7 @@ import ReproductiveIntentions from "./ReproductiveIntentions";
 import Tb from "./Tb";
 import Tpt from "./Tpt";
 import ChronicConditionsTwo from "./ChronicConditionsTwo";
+import PHDPServices from "./PHDPServices";
 import { Modal } from "react-bootstrap";
 import { Button } from "semantic-ui-react";
 
@@ -231,6 +232,8 @@ const ChronicCare = (props) => {
     nutrituional: "",
     wash: " ",
     phdp: "",
+    phdpServices: [],
+    phdpComment: "",
   });
   //Reproductive Object
   const [reproductive, setReproductive] = useState({
@@ -717,54 +720,54 @@ const ChronicCare = (props) => {
                 </div>
               </div>
               {/* Eligibility Assessment */}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    Eligibility Assessment
-                  </h5>
-                  {showEligibility === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickEligibility}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickEligibility}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
-                  )}
-                </div>
-                {showEligibility && (
-                  <Eligibilty
-                    setEligibility={setEligibility}
-                    eligibility={eligibility}
-                    setErrors={setErrors}
-                    errors={errors}
-                    encounterDate={observation.dateOfObservation}
-                    patientObj={patientObj}
-                    entryPointId={entryPointId}
-                    enrollDate={enrollDate}
-                  />
-                )}
-              </div>
+              {/*<div className="card">*/}
+              {/*  <div*/}
+              {/*    className="card-header"*/}
+              {/*    style={{*/}
+              {/*      backgroundColor: "#014d88",*/}
+              {/*      color: "#fff",*/}
+              {/*      fontWeight: "bolder",*/}
+              {/*      borderRadius: "0.2rem",*/}
+              {/*    }}*/}
+              {/*  >*/}
+              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
+              {/*      Eligibility Assessment*/}
+              {/*    </h5>*/}
+              {/*    {showEligibility === false ? (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickEligibility}*/}
+              {/*        >*/}
+              {/*          <FaPlus />*/}
+              {/*        </span>*/}
+              {/*      </>*/}
+              {/*    ) : (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickEligibility}*/}
+              {/*        >*/}
+              {/*          <FaAngleDown />*/}
+              {/*        </span>{" "}*/}
+              {/*      </>*/}
+              {/*    )}*/}
+              {/*  </div>*/}
+              {/*  {showEligibility && (*/}
+              {/*    <Eligibilty*/}
+              {/*      setEligibility={setEligibility}*/}
+              {/*      eligibility={eligibility}*/}
+              {/*      setErrors={setErrors}*/}
+              {/*      errors={errors}*/}
+              {/*      encounterDate={observation.dateOfObservation}*/}
+              {/*      patientObj={patientObj}*/}
+              {/*      entryPointId={entryPointId}*/}
+              {/*      enrollDate={enrollDate}*/}
+              {/*    />*/}
+              {/*  )}*/}
+              {/*</div>*/}
               {/* End Eligibility Assessment */}
               {/* TB & IPT  Screening  */}
               <div className="card">
@@ -864,211 +867,211 @@ const ChronicCare = (props) => {
 
               {/* End TPT MONITORING */}
               {/* End Nutritional Status Assessment */}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    Nutritional Status Assessment
-                  </h5>
-                  {showNutrition === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickNutrition}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickNutrition}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
-                  )}
-                </div>
-                {showNutrition && (
-                  <NutritionalStatus
-                    nutrition={nutrition}
-                    setNutrition={setNutrition}
-                    setErrors={setErrors}
-                    errors={errors}
-                    encounterDate={observation.dateOfObservation}
-                    patientObj={patientObj}
-                    action={props.activeContent.actionType}
-                  />
-                )}
-              </div>
+              {/*<div className="card">*/}
+              {/*  <div*/}
+              {/*    className="card-header"*/}
+              {/*    style={{*/}
+              {/*      backgroundColor: "#014d88",*/}
+              {/*      color: "#fff",*/}
+              {/*      fontWeight: "bolder",*/}
+              {/*      borderRadius: "0.2rem",*/}
+              {/*    }}*/}
+              {/*  >*/}
+              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
+              {/*      Nutritional Status Assessment*/}
+              {/*    </h5>*/}
+              {/*    {showNutrition === false ? (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickNutrition}*/}
+              {/*        >*/}
+              {/*          <FaPlus />*/}
+              {/*        </span>*/}
+              {/*      </>*/}
+              {/*    ) : (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickNutrition}*/}
+              {/*        >*/}
+              {/*          <FaAngleDown />*/}
+              {/*        </span>{" "}*/}
+              {/*      </>*/}
+              {/*    )}*/}
+              {/*  </div>*/}
+              {/*  {showNutrition && (*/}
+              {/*    <NutritionalStatus*/}
+              {/*      nutrition={nutrition}*/}
+              {/*      setNutrition={setNutrition}*/}
+              {/*      setErrors={setErrors}*/}
+              {/*      errors={errors}*/}
+              {/*      encounterDate={observation.dateOfObservation}*/}
+              {/*      patientObj={patientObj}*/}
+              {/*      action={props.activeContent.actionType}*/}
+              {/*    />*/}
+              {/*  )}*/}
+              {/*</div>*/}
               {/* End Nutritional Status Assessment */}
               {/*SWO-FEATURE*/}
               {/* Gender Based Violence Screening*/}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    Intimate Partner Violence Form{" "}
-                  </h5>
-                  {showGenderBase === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickGenderBase}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickGenderBase}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
-                  )}
-                </div>
-                {showGenderBase && (
-                  <div className="card-body">
-                    <div className="row">
-                      <GenderBase
-                        setGenderBase={setGenderBase}
-                        genderBase={genderBase}
-                        setErrors={setErrors}
-                        errors={errors}
-                        encounterDate={observation.dateOfObservation}
-                        patientObj={patientObj}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/*<div className="card">*/}
+              {/*  <div*/}
+              {/*    className="card-header"*/}
+              {/*    style={{*/}
+              {/*      backgroundColor: "#014d88",*/}
+              {/*      color: "#fff",*/}
+              {/*      fontWeight: "bolder",*/}
+              {/*      borderRadius: "0.2rem",*/}
+              {/*    }}*/}
+              {/*  >*/}
+              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
+              {/*      Intimate Partner Violence Form{" "}*/}
+              {/*    </h5>*/}
+              {/*    {showGenderBase === false ? (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickGenderBase}*/}
+              {/*        >*/}
+              {/*          <FaPlus />*/}
+              {/*        </span>*/}
+              {/*      </>*/}
+              {/*    ) : (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickGenderBase}*/}
+              {/*        >*/}
+              {/*          <FaAngleDown />*/}
+              {/*        </span>{" "}*/}
+              {/*      </>*/}
+              {/*    )}*/}
+              {/*  </div>*/}
+              {/*  {showGenderBase && (*/}
+              {/*    <div className="card-body">*/}
+              {/*      <div className="row">*/}
+              {/*        <GenderBase*/}
+              {/*          setGenderBase={setGenderBase}*/}
+              {/*          genderBase={genderBase}*/}
+              {/*          setErrors={setErrors}*/}
+              {/*          errors={errors}*/}
+              {/*          encounterDate={observation.dateOfObservation}*/}
+              {/*          patientObj={patientObj}*/}
+              {/*        />*/}
+              {/*      </div>*/}
+              {/*    </div>*/}
+              {/*  )}*/}
+              {/*</div>*/}
               {/*End Gender Based Violence Screening*/}
               {/* End Screening for Chronic Conditions */}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    Screening for Chronic Conditions Hypertension
-                  </h5>
-                  {showChronicCondition === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickChronicCondition}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickChronicCondition}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
-                  )}
-                </div>
-                {showChronicCondition && (
-                  <div className="card-body">
-                    <div className="row">
-                      <ChronicConditions
-                        chronicConditions={chronicConditions}
-                        setChronicConditions={setChronicConditions}
-                        setErrors={setErrors}
-                        errors={errors}
-                        encounterDate={observation.dateOfObservation}
-                        patientObj={patientObj}
-                        isHypertensive={isHypertensive}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/*<div className="card">*/}
+              {/*  <div*/}
+              {/*    className="card-header"*/}
+              {/*    style={{*/}
+              {/*      backgroundColor: "#014d88",*/}
+              {/*      color: "#fff",*/}
+              {/*      fontWeight: "bolder",*/}
+              {/*      borderRadius: "0.2rem",*/}
+              {/*    }}*/}
+              {/*  >*/}
+              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
+              {/*      Screening for Chronic Conditions Hypertension*/}
+              {/*    </h5>*/}
+              {/*    {showChronicCondition === false ? (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickChronicCondition}*/}
+              {/*        >*/}
+              {/*          <FaPlus />*/}
+              {/*        </span>*/}
+              {/*      </>*/}
+              {/*    ) : (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickChronicCondition}*/}
+              {/*        >*/}
+              {/*          <FaAngleDown />*/}
+              {/*        </span>{" "}*/}
+              {/*      </>*/}
+              {/*    )}*/}
+              {/*  </div>*/}
+              {/*  {showChronicCondition && (*/}
+              {/*    <div className="card-body">*/}
+              {/*      <div className="row">*/}
+              {/*        <ChronicConditions*/}
+              {/*          chronicConditions={chronicConditions}*/}
+              {/*          setChronicConditions={setChronicConditions}*/}
+              {/*          setErrors={setErrors}*/}
+              {/*          errors={errors}*/}
+              {/*          encounterDate={observation.dateOfObservation}*/}
+              {/*          patientObj={patientObj}*/}
+              {/*          isHypertensive={isHypertensive}*/}
+              {/*        />*/}
+              {/*      </div>*/}
+              {/*    </div>*/}
+              {/*  )}*/}
+              {/*</div>*/}
 
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{
-                    backgroundColor: "#014d88",
-                    color: "#fff",
-                    fontWeight: "bolder",
-                    borderRadius: "0.2rem",
-                  }}
-                >
-                  <h5 className="card-title" style={{ color: "#fff" }}>
-                    Screening for Chronic Conditions Diabetics
-                  </h5>
-                  {showChronicConditionTwo === false ? (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickChronicConditionTwo}
-                      >
-                        <FaPlus />
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span
-                        className="float-end"
-                        style={{ cursor: "pointer" }}
-                        onClick={onClickChronicConditionTwo}
-                      >
-                        <FaAngleDown />
-                      </span>{" "}
-                    </>
-                  )}
-                </div>
-                {showChronicConditionTwo && (
-                  <div className="card-body">
-                    <div className="row">
-                      <ChronicConditionsTwo
-                        chronicConditions={chronicConditions}
-                        setChronicConditions={setChronicConditions}
-                        setErrors={setErrors}
-                        errors={errors}
-                        encounterDate={observation.dateOfObservation}
-                        patientObj={patientObj}
-                        isHypertensive={isHypertensive}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/*<div className="card">*/}
+              {/*  <div*/}
+              {/*    className="card-header"*/}
+              {/*    style={{*/}
+              {/*      backgroundColor: "#014d88",*/}
+              {/*      color: "#fff",*/}
+              {/*      fontWeight: "bolder",*/}
+              {/*      borderRadius: "0.2rem",*/}
+              {/*    }}*/}
+              {/*  >*/}
+              {/*    <h5 className="card-title" style={{ color: "#fff" }}>*/}
+              {/*      Screening for Chronic Conditions Diabetics*/}
+              {/*    </h5>*/}
+              {/*    {showChronicConditionTwo === false ? (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickChronicConditionTwo}*/}
+              {/*        >*/}
+              {/*          <FaPlus />*/}
+              {/*        </span>*/}
+              {/*      </>*/}
+              {/*    ) : (*/}
+              {/*      <>*/}
+              {/*        <span*/}
+              {/*          className="float-end"*/}
+              {/*          style={{ cursor: "pointer" }}*/}
+              {/*          onClick={onClickChronicConditionTwo}*/}
+              {/*        >*/}
+              {/*          <FaAngleDown />*/}
+              {/*        </span>{" "}*/}
+              {/*      </>*/}
+              {/*    )}*/}
+              {/*  </div>*/}
+              {/*  {showChronicConditionTwo && (*/}
+              {/*    <div className="card-body">*/}
+              {/*      <div className="row">*/}
+              {/*        <ChronicConditionsTwo*/}
+              {/*          chronicConditions={chronicConditions}*/}
+              {/*          setChronicConditions={setChronicConditions}*/}
+              {/*          setErrors={setErrors}*/}
+              {/*          errors={errors}*/}
+              {/*          encounterDate={observation.dateOfObservation}*/}
+              {/*          patientObj={patientObj}*/}
+              {/*          isHypertensive={isHypertensive}*/}
+              {/*        />*/}
+              {/*      </div>*/}
+              {/*    </div>*/}
+              {/*  )}*/}
+              {/*</div>*/}
               {/* End Screening for Chronic Conditions */}
               {/* Positive Health Dignity and Prevention */}
               <div className="card">
@@ -1109,7 +1112,7 @@ const ChronicCare = (props) => {
                 {showPositiveHealth && (
                   <div className="card-body">
                     <div className="row">
-                      <PositiveHealthDignity
+                      <PHDPServices
                         preventive={preventive}
                         setPreventive={setPreventive}
                         setErrors={setErrors}
