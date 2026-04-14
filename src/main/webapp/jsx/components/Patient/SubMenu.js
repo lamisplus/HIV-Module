@@ -857,7 +857,7 @@ const SubMenu = (props) => {
                         </MenuItem>
                       )}
 
-                      {permissions.canSeeCervicalCancer && (
+                      {/* {permissions.canSeeCervicalCancer && (
                         <MenuItem
                           onClick={menuHandlers.loadCervicalCancer}
                           name="cancer"
@@ -866,7 +866,7 @@ const SubMenu = (props) => {
                         >
                           Cervical Cancer
                         </MenuItem>
-                      )}
+                      )} */}
 
                       {permissions.canSeeTracking && (
                         <Menu.Menu
@@ -919,14 +919,14 @@ const SubMenu = (props) => {
                               >
                                 Tracking Form
                               </Dropdown.Item>
-                              <Dropdown.Item
+                              {/* <Dropdown.Item
                                 onClick={menuHandlers.loadIntensiveForm}
                                 name="intensive"
                                 active={activeItem === "intensive"}
                                 title="Intensive Follow Up"
                               >
                                 Intensive Follow Up
-                              </Dropdown.Item>
+                              </Dropdown.Item> */}
                               <Dropdown.Item
                                 onClick={menuHandlers.clientVerificationForm}
                                 name="clientVerificationForm"
