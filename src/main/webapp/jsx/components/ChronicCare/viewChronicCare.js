@@ -22,6 +22,7 @@ import PositiveHealthDignity from "./PositiveHealthDignity";
 import ReproductiveIntentions from "./ReproductiveIntentions";
 import Tb from "./Tb";
 import Tpt from "./Tpt";
+import PHDPServices from "./PHDPServices";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -153,17 +154,8 @@ const ViewChronicCare = (props) => {
   });
   //Preventive Object
   const [preventive, setPreventive] = useState({
-    lastAppointment: "",
-    medication: "",
-    cotrimoxazole: "",
-    parentStatus: "",
-    condoms: "",
-    condomCounseling: "",
-    preventDiseases: "",
-    alcohol: "",
-    nutrituional: "",
-    wash: " ",
-    phdp: "",
+    phdpServices: [],
+    phdpComment: "",
   });
   //Reproductive Object
   const [reproductive, setReproductive] = useState({
@@ -346,7 +338,12 @@ const ViewChronicCare = (props) => {
           ...response.data.data.chronicCondition,
         });
         setNutrition({ ...nutrition, ...response.data.data.nutrition });
-        setPreventive({ ...preventive, ...response.data.data.positiveHealth });
+        // Only extract phdpServices and phdpComment from the API response
+        const positiveHealthData = response.data.data.positiveHealth || {};
+        setPreventive({
+          phdpServices: positiveHealthData.phdpServices || [],
+          phdpComment: positiveHealthData.phdpComment || "",
+        });
         setReproductive({
           ...reproductive,
           ...response.data.data.peproductive,
@@ -561,7 +558,7 @@ const ViewChronicCare = (props) => {
                 </div>
               </div>
               {/* Eligibility Assessment */}
-              <div className="card">
+              {/* <div className="card">
                 <div
                   className="card-header"
                   style={{
@@ -607,7 +604,7 @@ const ViewChronicCare = (props) => {
                     action={props.activeContent.actionType}
                   />
                 )}
-              </div>
+              </div> */}
               {/* End Eligibility Assessment */}
               {/* TB & IPT  Screening  */}
               <div className="card">
@@ -714,8 +711,8 @@ const ViewChronicCare = (props) => {
                   </div>
                 )}
               {/* End TPT MONITORING */}
-              {/* End Nutritional Status Assessment */}
-              <div className="card">
+              {/* Nutritional Status Assessment */}
+              {/* <div className="card">
                 <div
                   className="card-header"
                   style={{
@@ -761,11 +758,11 @@ const ViewChronicCare = (props) => {
                     action={props.activeContent.actionType}
                   />
                 )}
-              </div>
+              </div> */}
               {/* End Nutritional Status Assessment */}
               {/* SWO-FEATURE */}
               {/* Gender Based Violence Screening*/}
-              <div className="card">
+              {/* <div className="card">
                 <div
                   className="card-header"
                   style={{
@@ -815,10 +812,10 @@ const ViewChronicCare = (props) => {
                     </div>
                   </div>
                 )}
-              </div>
+              </div> */}
               {/*End Gender Based Violence Screening*/}
-              {/* End Screening for Chronic Conditions */}
-              <div className="card">
+              {/* Screening for Chronic Conditions */}
+              {/* <div className="card">
                 <div
                   className="card-header"
                   style={{
@@ -868,7 +865,7 @@ const ViewChronicCare = (props) => {
                     </div>
                   </div>
                 )}
-              </div>
+              </div> */}
               {/* End Screening for Chronic Conditions */}
               {/* Positive Health Dignity and Prevention */}
               <div className="card">
@@ -909,14 +906,13 @@ const ViewChronicCare = (props) => {
                 {showPositiveHealth && (
                   <div className="card-body">
                     <div className="row">
-                      <PositiveHealthDignity
+                      <PHDPServices
                         preventive={preventive}
                         setPreventive={setPreventive}
                         setErrors={setErrors}
                         errors={errors}
                         encounterDate={observation.dateOfObservation}
                         patientObj={patientObj}
-                        action={props.activeContent.actionType}
                       />
                     </div>
                   </div>

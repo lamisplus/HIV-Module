@@ -221,17 +221,6 @@ const ChronicCare = (props) => {
   });
   //Preventive Object
   const [preventive, setPreventive] = useState({
-    lastAppointment: "",
-    medication: "",
-    cotrimoxazole: "",
-    parentStatus: "",
-    condoms: "",
-    condomCounseling: "",
-    preventDiseases: "",
-    alcohol: "",
-    nutrituional: "",
-    wash: " ",
-    phdp: "",
     phdpServices: [],
     phdpComment: "",
   });
