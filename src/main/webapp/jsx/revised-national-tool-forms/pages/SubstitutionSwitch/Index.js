@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Input } from "reactstrap";
+import { Input, FormGroup, Label } from "reactstrap";
 import * as moment from "moment";
 import { Typography, Box, Divider } from "@mui/material";
 import { makeStyles } from "@material-ui/core/styles";
@@ -96,6 +96,50 @@ const SubstitutionSwitchForm = (props) => {
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  // ── New State Variables ────────────────────────────────────────────────────
+  const [objValues, setObjValues] = useState({
+    currentRegimen: "",
+    planAction: "",
+    id: "",
+    outComeDate: "",
+    outcome: "",
+    repeatViralLoader: "",
+    personId: props.patientObj.id,
+    plan: "",
+    visitId: "",
+    switchRegimen: "",
+    comment: "",
+    postViralLoadResult: "",
+    postViralLoadResultDate: "",
+    visitDate: ""
+  });
+
+  const [switchs, setSwitchs] = useState({
+    currentRegimen: "",
+    dateSwitched: "",
+    reasonSwitched: "",
+    switchRegimenLine: "",
+    switchRegimenLineType: ""
+  });
+
+  const [Substitutes, setSubstitutes] = useState({
+    currentRegimen: "",
+    substituteRegimen: "",
+    dateSubstituted: "",
+    reasonSubstituted: "",
+    substituteRegimenLineType: "",
+  });
+
+  const [regimenLine, setRegimenLine] = useState([]);
+  const [regimenLineLineType, setRegimenLineLineType] = useState([]);
+  const [currentViralLoad, setCurrentViralLoad] = useState({});
+  const [currentRegimen, setCurrentRegimen] = useState(null);
+  const [patientRegimenInfo, setPatientRegimenInfo] = useState(null);
+  const [regimenType, setRegimenType] = useState([]);
+  const [patientAge, setPatientAge] = useState(0);
+  const [isPediatric, setIsPediatric] = useState(false);
 
   // ── Section A: Substitution within line ────────────────────────────────────
   const [substitution, setSubstitution] = useState({
@@ -148,6 +192,163 @@ const SubstitutionSwitchForm = (props) => {
     }));
   };
 
+  // ── New Handler Functions ──────────────────────────────────────────────────
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setObjValues({ ...objValues, [name]: value });
+
+    if (name === "plan") {
+      switch (value) {
+        case "Switch Regimen":
+          setSubstitutes({
+            currentRegimen: "",
+            substituteRegimen: "",
+            dateSubstituted: "",
+            reasonSubstituted: "",
+            substituteRegimenLineType: "",
+          });
+          break;
+        case "Substitute Regimen":
+          setSwitchs({
+            currentRegimen: "",
+            dateSwitched: "",
+            reasonSwitched: "",
+            switchRegimenLine: "",
+            switchRegimenLineType: ""
+          });
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
+  const handleSelectedRegimen = (e) => {
+    const regimenId = e.target.value;
+    setSwitchs({ ...switchs, [e.target.name]: e.target.value });
+    if (regimenId !== "") {
+      RegimenType(regimenId);
+    } else {
+      setRegimenType([]);
+    }
+  };
+
+  const handleInputSwitchChange = (e) => {
+    setSwitchs({ ...switchs, [e.target.name]: e.target.value });
+  };
+
+  const handleSelectedSubstituteRegimen = (e) => {
+    const regimenId = e.target.value;
+    setSubstitutes({ ...Substitutes, [e.target.name]: e.target.value });
+    if (regimenId !== "") {
+      RegimenType(regimenId);
+    } else {
+      setRegimenType([]);
+    }
+  };
+
+  // ── API Calls ───────────────────────────────────────────────────────────────
+  const CurrentRegimen = () => {
+    setLoading(true);
+    axios
+      .get(`${baseUrl}hiv/art/pharmacy/patient/current-regimen/${props.patientObj.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((response) => {
+        setLoading(false);
+        setCurrentRegimen(response.data);
+        if (response.data) {
+          const regimenTypeID = response.data && response.data.regimenType ? response.data.regimenType.id : "";
+          axios
+            .get(`${baseUrl}hiv/regimen/types/${regimenTypeID}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            .then((response) => {
+              setLoading(false);
+              setRegimenType(response.data);
+            })
+            .catch((error) => {});
+        }
+      })
+      .catch((error) => {});
+  };
+
+  const getPatientCurrentRegimen = () => {
+    setLoading(true);
+    axios
+      .get(`${baseUrl}hiv/art/pharmacy/get-current-regimen-info?personUuid=${props.patientObj.personUuid}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((response) => {
+        setLoading(false);
+        setPatientRegimenInfo(response.data);
+        setObjValues((prev) => ({
+          ...prev,
+          currentRegimen: response.data?.currentartregimen
+        }));
+      })
+      .catch((error) => {
+        console.log("Error ", error);
+        setLoading(false);
+      });
+  };
+
+  function RegimenType(id) {
+    async function getCharacters() {
+      try {
+        const response = await axios.get(`${baseUrl}hiv/regimen/types/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data.length > 0) {
+          setRegimenLineLineType(response.data);
+        }
+      } catch (e) {}
+    }
+    getCharacters();
+  }
+
+  const getRegimenLine = () => {
+    setLoading(true);
+    axios
+      .get(`${baseUrl}hiv/regimen/types`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((response) => {
+        setLoading(false);
+        setRegimenLine(response.data);
+      })
+      .catch((error) => {
+        setLoading(false);
+      });
+  };
+
+  // ── Helper: Calculate Patient Age ──────────────────────────────────────────
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return 0;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // ── useEffect ───────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (props.patientObj && props.patientObj.id && props.patientObj.personUuid) {
+      // Calculate patient age and determine if pediatric
+      const age = calculateAge(props.patientObj.dateOfBirth);
+      setPatientAge(age);
+      setIsPediatric(age < 15); // Pediatric is typically < 15 years
+
+      CurrentRegimen();
+      getPatientCurrentRegimen();
+      getRegimenLine();
+    }
+  }, [props.patientObj]);
+
   // ── Validation ──────────────────────────────────────────────────────────────
 
   const validate = () => {
@@ -186,7 +387,11 @@ const SubstitutionSwitchForm = (props) => {
         dateOfObservation: observationDate,
         personId: props.patientObj.id,
         type: "Substitutions and Switches",
+        visitDate: objValues.visitDate,
         data: {
+          objValues,
+          switchs,
+          Substitutes,
           substitution,
           switchSection,
         },
@@ -224,136 +429,307 @@ const SubstitutionSwitchForm = (props) => {
         <form onSubmit={handleSubmit}>
 
           {/* ══════════════════════════════════════════════════════════════════ */}
-          {/* SECTION A — SUBSTITUTION WITHIN LINE                              */}
+          {/* SECTION A — PLAN AND REGIMEN MANAGEMENT                           */}
           {/* ══════════════════════════════════════════════════════════════════ */}
-          <Box
-            sx={{
-              background: "#fff",
-              border: "1px solid #014d88",
-              borderRadius: "4px",
-              padding: "16px 20px",
-              marginBottom: "20px",
-            }}
-          >
-            <SubHeading>Substitution Within Line</SubHeading>
-
-            {/* Line checkboxes */}
-            <div style={{ display: "flex", gap: "24px", marginBottom: "18px", flexWrap: "wrap" }}>
-              {[
-                { name: "within_1st_line", label: "1st Line" },
-                { name: "within_2nd_line", label: "2nd Line" },
-                { name: "within_3rd_line", label: "3rd Line" },
-              ].map(({ name, label }) => (
-                <label
-                  key={name}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "7px",
-                    cursor: "pointer",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    color: "#333",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    name={name}
-                    checked={substitution[name]}
-                    onChange={handleSubstitution}
-                    style={{
-                      width: "15px",
-                      height: "15px",
-                      margin: 0,
-                      accentColor: "#014d88",
-                      cursor: "pointer",
-                    }}
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-
-            {/* Row 35-37 */}
-            <div className="row" style={{ marginBottom: "12px" }}>
-              <div className="form-group mb-3 col-md-3">
-                <SectionLabel>Date of New Regimen</SectionLabel>
+          <div className="row">
+            <div className="form-group mb-3 col-md-6">
+              <FormGroup>
+                <Label>Visit Date</Label>
                 <Input
-                  type="date"
-                  name="date_new_regimen_35"
-                  value={substitution.date_new_regimen_35}
-                  max={today}
-                  onChange={handleSubstitution}
+                    type="date"
+                    name="visitDate"
+                    id="visitDate"
+                    value={objValues.visitDate}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                    required
+                    onKeyPress={(e) => e.preventDefault()}
                 />
-              </div>
-              <div className="form-group mb-3 col-md-3">
-                <SectionLabel>Why</SectionLabel>
+              </FormGroup>
+            </div>
+            <div className="form-group mb-3 col-md-6">
+              <FormGroup>
+                <Label>Plan</Label>
                 <Input
-                  type="select"
-                  name="why_36"
-                  value={substitution.why_36}
-                  onChange={handleSubstitution}
+                    type="select"
+                    name="plan"
+                    id="plan"
+                    value={objValues.plan}
+                    onChange={handleInputChange}
+                    style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
                 >
-                  <option value="">Select reason code</option>
-                  {SUBSTITUTION_WHY_CODES.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
+                  <option value="">Select</option>
+                  <option value="Switch Regimen">Switch Regimen</option>
+                  <option value="Substitute Regimen">Substitute Regimen</option>
                 </Input>
-              </div>
-              <div className="form-group mb-3 col-md-6">
-                <SectionLabel>New Regimen</SectionLabel>
-                <Input
-                  type="text"
-                  name="new_regimen_37"
-                  value={substitution.new_regimen_37}
-                  onChange={handleSubstitution}
-                  placeholder="e.g. TDF/3TC/DTG"
-                />
-              </div>
+              </FormGroup>
             </div>
+          </div>
 
-            {/* Row 38-40 */}
-            <div className="row">
-              <div className="form-group mb-3 col-md-3">
-                <SectionLabel>Date of New Regimen</SectionLabel>
-                <Input
-                  type="date"
-                  name="date_new_regimen_38"
-                  value={substitution.date_new_regimen_38}
-                  max={today}
-                  onChange={handleSubstitution}
-                />
-              </div>
-              <div className="form-group mb-3 col-md-3">
-                <SectionLabel>Why</SectionLabel>
-                <Input
-                  type="select"
-                  name="why_39"
-                  value={substitution.why_39}
-                  onChange={handleSubstitution}
-                >
-                  <option value="">Select reason code</option>
-                  {SUBSTITUTION_WHY_CODES.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </Input>
-              </div>
-              <div className="form-group mb-3 col-md-6">
-                <SectionLabel>New Regimen</SectionLabel>
-                <Input
-                  type="text"
-                  name="new_regimen_40"
-                  value={substitution.new_regimen_40}
-                  onChange={handleSubstitution}
-                  placeholder="e.g. AZT/3TC/EFV"
-                />
-              </div>
-            </div>
-          </Box>
+          {objValues.plan === "Switch Regimen" && (
+              <>
+                <div className="row">
+
+                  <div className="col-md-12">
+                    <h4>Switch Regimen</h4>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>Current Regimen Line</Label>
+                      <Input
+                          type="text"
+                          name="currentRegimenLine"
+                          id="currentRegimenLine"
+                          value={patientRegimenInfo && patientRegimenInfo.currentregimenline ? patientRegimenInfo.currentregimenline : ""}
+                          onChange={handleInputChange}
+                        disabled
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      />
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>Current Regimen</Label>
+                      <Input
+                        type="text"
+                        name="currentRegimen"
+                        id="currentRegimen"
+                        value={patientRegimenInfo && patientRegimenInfo.currentartregimen ? patientRegimenInfo.currentartregimen : ""}
+                        onChange={handleInputChange}
+                        disabled
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      />
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>Switch Regimen Line</Label>
+                      <Input
+                        type="select"
+                        name="switchRegimenLine"
+                        id="switchRegimenLine"
+                        value={switchs.switchRegimenLine}
+                        onChange={handleSelectedRegimen}
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      >
+                        <option value="">Select</option>
+                        {regimenLine
+                          .filter((value) => {
+                            if (!value.description) return false;
+
+                            const desc = value.description.toLowerCase();
+
+                            // Filter for 2nd and 3rd line only
+                            const isSecondOrThirdLine =
+                              desc.includes('2nd line') ||
+                              desc.includes('second line') ||
+                              desc.includes('3rd line') ||
+                              desc.includes('third line');
+
+                            if (!isSecondOrThirdLine) return false;
+
+                            // Filter based on age: pediatric or adult
+                            if (isPediatric) {
+                              return desc.includes('pediatric') || desc.includes('paediatric') || desc.includes('child');
+                            } else {
+                              return desc.includes('adult');
+                            }
+                          })
+                          .map((value) => (
+                            <option key={value.id} value={value.id}>
+                              {value.description}
+                            </option>
+                          ))
+                        }
+                      </Input>
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>Switch Regimen Type</Label>
+                      <Input
+                        type="select"
+                        name="switchRegimenLineType"
+                        id="switchRegimenLineType"
+                        value={switchs.switchRegimenLineType}
+                        onChange={handleInputSwitchChange}
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      >
+                        <option value="">Select</option>
+                        {regimenLineLineType && regimenLineLineType.length > 0 && regimenLineLineType.map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.description}
+                          </option>
+                        ))}
+                      </Input>
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label for="">Switch Date</Label>
+                      <Input
+                        type="date"
+                        name="dateSwitched"
+                        id="dateSwitched"
+                        value={switchs.dateSwitched}
+                        onChange={handleInputSwitchChange}
+                        min={moment(currentViralLoad && currentViralLoad.dateResultReceived ? currentViralLoad.dateResultReceived : "").format("YYYY-MM-DD")}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                        required
+                        onKeyPress={(e) => e.preventDefault()}
+                      />
+                      {errors.dateSwitched && (
+                        <span className={classes.error}>{errors.dateSwitched}</span>
+                      )}
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label for="">Reason for switching Regimen</Label>
+                      <Input
+                        type="textarea"
+                        name="reasonSwitched"
+                        id="reasonSwitched"
+                        value={switchs.reasonSwitched}
+                        onChange={handleInputSwitchChange}
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      />
+                    </FormGroup>
+                  </div>
+                </div>
+              </>
+            )}
+
+          {objValues.plan === "Substitute Regimen" && (
+            <>
+              <div className="row">
+                <div className="col-md-12">
+                  <h4>Substitute Regimen</h4>
+                </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>Current Regimen Line</Label>
+                      <Input
+                        type="text"
+                        name="currentRegimenLine"
+                        id="currentRegimenLine"
+                        value={patientRegimenInfo && patientRegimenInfo.currentregimenline ? patientRegimenInfo.currentregimenline : ""}
+                        onChange={handleInputChange}
+                        disabled
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      />
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>Current Regimen</Label>
+                      <Input
+                        type="text"
+                        name="currentRegimen"
+                        id="currentRegimen"
+                        value={patientRegimenInfo && patientRegimenInfo.currentartregimen ? patientRegimenInfo.currentartregimen : ""}
+                        onChange={handleInputChange}
+                        disabled
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      />
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>Substitute Regimen Line</Label>
+                      <Input
+                        type="select"
+                        name="substituteRegimen"
+                        id="substituteRegimen"
+                        value={Substitutes.substituteRegimen}
+                        onChange={handleSelectedSubstituteRegimen}
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      >
+                        <option value="">Select</option>
+                        {regimenLine
+                          .filter((value) => {
+                            if (!value.description) return false;
+
+                            const desc = value.description.toLowerCase();
+
+                            // Exclude TB treatment regimens
+                            if (desc.includes('tb') || desc.includes('tuberculosis')) {
+                              return false;
+                            }
+
+                            // Filter based on age: pediatric or adult
+                            if (isPediatric) {
+                              return desc.includes('pediatric') || desc.includes('paediatric') || desc.includes('child');
+                            } else {
+                              return desc.includes('adult');
+                            }
+                          })
+                          .map((value) => (
+                            <option key={value.id} value={value.id}>
+                              {value.description}
+                            </option>
+                          ))
+                        }
+                      </Input>
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label>Substitute Regimen Type</Label>
+                      <Input
+                        type="select"
+                        name="substituteRegimenLineType"
+                        id="substituteRegimenLineType"
+                        value={Substitutes.substituteRegimenLineType}
+                        onChange={handleSelectedSubstituteRegimen}
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      >
+                        <option value="">Select</option>
+                        {regimenLineLineType && regimenLineLineType.length > 0 && regimenLineLineType.map((value) => (
+                          <option key={value.id} value={value.id}>
+                            {value.description}
+                          </option>
+                        ))}
+                      </Input>
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label for="">Substitute Date</Label>
+                      <Input
+                        type="date"
+                        name="dateSubstituted"
+                        id="dateSubstituted"
+                        value={Substitutes.dateSubstituted}
+                        onChange={handleSelectedSubstituteRegimen}
+                        min={moment(currentViralLoad && currentViralLoad.dateResultReceived ? currentViralLoad.dateResultReceived : "").format("YYYY-MM-DD")}
+                        max={moment(new Date()).format("YYYY-MM-DD")}
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                        required
+                        onKeyPress={(e) => e.preventDefault()}
+                      />
+                      {errors.dateSubstituted && (
+                        <span className={classes.error}>{errors.dateSubstituted}</span>
+                      )}
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-6">
+                    <FormGroup>
+                      <Label for="">Reason for Substitute Regimen</Label>
+                      <Input
+                        type="textarea"
+                        name="reasonSubstituted"
+                        id="reasonSubstituted"
+                        value={Substitutes.reasonSubstituted}
+                        onChange={handleSelectedSubstituteRegimen}
+                        style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                      />
+                    </FormGroup>
+                  </div>
+                </div>
+              </>
+            )}
 
           {/* ══════════════════════════════════════════════════════════════════ */}
           {/* SECTION B — SWITCH TO LINE                                        */}
@@ -367,44 +743,7 @@ const SubstitutionSwitchForm = (props) => {
               marginBottom: "20px",
             }}
           >
-            <SubHeading>Switch to Line</SubHeading>
-
-            {/* Target line checkboxes */}
-            <div style={{ display: "flex", gap: "24px", marginBottom: "18px", flexWrap: "wrap" }}>
-              {[
-                { name: "switch_to_2nd_line", label: "2nd Line" },
-                { name: "switch_to_3rd_line", label: "3rd Line" },
-              ].map(({ name, label }) => (
-                <label
-                  key={name}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "7px",
-                    cursor: "pointer",
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    color: "#333",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    name={name}
-                    checked={switchSection[name]}
-                    onChange={handleSwitch}
-                    style={{
-                      width: "15px",
-                      height: "15px",
-                      margin: 0,
-                      accentColor: "#014d88",
-                      cursor: "pointer",
-                    }}
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-
+            <SubHeading> Drug Resistance (DR) Genotyping</SubHeading>
             {/* DR Genotyping row (41a – 41e) */}
             <Divider sx={{ mb: 2 }} />
             <div
@@ -416,11 +755,11 @@ const SubstitutionSwitchForm = (props) => {
                 marginBottom: "18px",
               }}
             >
-              <Typography
-                sx={{ fontWeight: 700, color: "#014d88", fontSize: "13px", marginBottom: "12px" }}
-              >
-                Drug Resistance (DR) Genotyping
-              </Typography>
+              {/*<Typography*/}
+              {/*  sx={{ fontWeight: 700, color: "#014d88", fontSize: "13px", marginBottom: "12px" }}*/}
+              {/*>*/}
+              {/*  Drug Resistance (DR) Genotyping*/}
+              {/*</Typography>*/}
               <div className="row">
                 <div className="form-group mb-3 col-md-2">
                   <SectionLabel>DR Genotyping Done</SectionLabel>
@@ -435,136 +774,61 @@ const SubstitutionSwitchForm = (props) => {
                     <option value="No">No</option>
                   </Input>
                 </div>
-                <div className="form-group mb-3 col-md-2">
-                  <SectionLabel>Sample Collection Date</SectionLabel>
-                  <Input
-                    type="date"
-                    name="dr_sample_collection_date"
-                    value={switchSection.dr_sample_collection_date}
-                    max={today}
-                    onChange={handleSwitch}
-                  />
-                </div>
-                <div className="form-group mb-3 col-md-2">
-                  <SectionLabel>Date Result Received</SectionLabel>
-                  <Input
-                    type="date"
-                    name="dr_date_result_received"
-                    value={switchSection.dr_date_result_received}
-                    onChange={handleSwitch}
-                  />
-                </div>
-                <div className="form-group mb-3 col-md-3">
-                  <SectionLabel>Result</SectionLabel>
-                  <Input
-                    type="select"
-                    name="dr_result"
-                    value={switchSection.dr_result}
-                    onChange={handleSwitch}
-                  >
-                    <option value="">Select result</option>
-                    {DR_RESULT_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </Input>
-                </div>
-                <div className="form-group mb-3 col-md-3">
-                  <SectionLabel>If Resistant, Specify</SectionLabel>
-                  <Input
-                    type="text"
-                    name="dr_if_resistant_specify"
-                    value={switchSection.dr_if_resistant_specify}
-                    onChange={handleSwitch}
-                    placeholder="Specify resistance details..."
-                    disabled={switchSection.dr_result !== "2" && switchSection.dr_result !== "4"}
-                  />
-                </div>
+
+                {switchSection.dr_genotyping_done === "Yes" && (
+                  <>
+                    <div className="form-group mb-3 col-md-2">
+                      <SectionLabel>Sample Collection Date</SectionLabel>
+                      <Input
+                        type="date"
+                        name="dr_sample_collection_date"
+                        value={switchSection.dr_sample_collection_date}
+                        max={today}
+                        onChange={handleSwitch}
+                      />
+                    </div>
+                    <div className="form-group mb-3 col-md-2">
+                      <SectionLabel>Date Result Received</SectionLabel>
+                      <Input
+                        type="date"
+                        name="dr_date_result_received"
+                        value={switchSection.dr_date_result_received}
+                        onChange={handleSwitch}
+                      />
+                    </div>
+                    <div className="form-group mb-3 col-md-3">
+                      <SectionLabel>Result</SectionLabel>
+                      <Input
+                        type="select"
+                        name="dr_result"
+                        value={switchSection.dr_result}
+                        onChange={handleSwitch}
+                      >
+                        <option value="">Select result</option>
+                        {DR_RESULT_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </Input>
+                    </div>
+                    <div className="form-group mb-3 col-md-3">
+                      <SectionLabel>If Resistant, Specify</SectionLabel>
+                      <Input
+                        type="text"
+                        name="dr_if_resistant_specify"
+                        value={switchSection.dr_if_resistant_specify}
+                        onChange={handleSwitch}
+                        placeholder="Specify resistance details..."
+                        disabled={switchSection.dr_result !== "2" && switchSection.dr_result !== "4"}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Row 42-44 */}
-            <div className="row" style={{ marginBottom: "12px" }}>
-              <div className="form-group mb-3 col-md-3">
-                <SectionLabel>Date New Regimen</SectionLabel>
-                <Input
-                  type="date"
-                  name="date_new_regimen_42"
-                  value={switchSection.date_new_regimen_42}
-                  max={today}
-                  onChange={handleSwitch}
-                />
-              </div>
-              <div className="form-group mb-3 col-md-3">
-                <SectionLabel>Why</SectionLabel>
-                <Input
-                  type="select"
-                  name="why_43"
-                  value={switchSection.why_43}
-                  onChange={handleSwitch}
-                >
-                  <option value="">Select reason code</option>
-                  {SUBSTITUTION_WHY_CODES.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </Input>
-              </div>
-              <div className="form-group mb-3 col-md-6">
-                <SectionLabel>New Regimen</SectionLabel>
-                <Input
-                  type="text"
-                  name="new_regimen_44"
-                  value={switchSection.new_regimen_44}
-                  onChange={handleSwitch}
-                  placeholder="e.g. LPV/r + AZT/3TC"
-                />
-              </div>
-            </div>
-
-            {/* Row 45-47 */}
-            <div className="row">
-              <div className="form-group mb-3 col-md-3">
-                <SectionLabel>Date New Regimen</SectionLabel>
-                <Input
-                  type="date"
-                  name="date_new_regimen_45"
-                  value={switchSection.date_new_regimen_45}
-                  max={today}
-                  onChange={handleSwitch}
-                />
-              </div>
-              <div className="form-group mb-3 col-md-3">
-                <SectionLabel>Why</SectionLabel>
-                <Input
-                  type="select"
-                  name="why_46"
-                  value={switchSection.why_46}
-                  onChange={handleSwitch}
-                >
-                  <option value="">Select reason code</option>
-                  {SUBSTITUTION_WHY_CODES.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </Input>
-              </div>
-              <div className="form-group mb-3 col-md-6">
-                <SectionLabel>New Regimen</SectionLabel>
-                <Input
-                  type="text"
-                  name="new_regimen_47"
-                  value={switchSection.new_regimen_47}
-                  onChange={handleSwitch}
-                  placeholder="e.g. DRV/r + TDF/3TC"
-                />
-              </div>
-            </div>
           </Box>
-
           {/* ── Error Banner ─────────────────────────────────────────────────── */}
           {errors.general && (
             <div
