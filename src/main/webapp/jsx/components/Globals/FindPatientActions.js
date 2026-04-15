@@ -8,7 +8,7 @@ import { usePermissions } from "../../../hooks/usePermissions";
 import TransferInForm from "../../revised-national-tool-forms/pages/TransferIn/Index";
 
 const FindPatientActions = memo(({ row }) => {
-  const { hasiceform, hasenrollmentform } = row;
+  const { hasiceform, hasenrollmentform , hivTestResult, hasTransferIn} = row;
   const { hasPermission } = usePermissions();
   const history = useHistory();
   const canEnroll = hasPermission("hiv_enrollment_register");
@@ -21,13 +21,16 @@ const FindPatientActions = memo(({ row }) => {
   // 2. Logic: Determine patient enrollment status
   const isFullyEnrolled = hasiceform && hasenrollmentform; // Both ICE and Enrollment done
   const hasCompletedICE = hasiceform && !hasenrollmentform; // ICE done, Enrollment pending
-
   const handleEnrollClick = (e) => {
     if (e) e.preventDefault();
     // If ICE is already done, skip the transfer-in question and go directly to enrollment
     if (hasCompletedICE) {
       handleDirectEnrollment();
-    } else {
+    }
+    else if (hivTestResult === "Positive" || hasTransferIn) {
+      handleNewEnrollment();
+    }
+    else {
       setShowEnrollmentTypeModal(true);
     }
   };
@@ -140,7 +143,7 @@ const FindPatientActions = memo(({ row }) => {
               <Button onClick={handleTransferIn} variant="contained" style={{ backgroundColor: "#014d88", color: "white" }}>
                 <FaExchangeAlt style={{ marginRight: "8px" }} /> Yes, Transfer-In
               </Button>
-              <Button onClick={handleNewEnrollment} variant="contained" style={{ backgroundColor: "#992E62", color: "white" }}>
+              <Button onClick={() => setShowEnrollmentTypeModal(false)} variant="contained" style={{ backgroundColor: "#992E62", color: "white" }}>
                 <FaUserPlus style={{ marginRight: "8px" }} /> No, New Enrollment
               </Button>
             </div>

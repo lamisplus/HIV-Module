@@ -79,6 +79,7 @@ public class HivPatientService {
 
     private final PatientTransferInService patientTransferInService;
 
+
     public HivEnrollmentDTO registerAndEnrollHivPatient(HivPatientEnrollmentDto hivPatientEnrollmentDto) {
         HivEnrollmentDTO hivEnrollmentDto = hivPatientEnrollmentDto.getHivEnrollment();
         Long personId = hivPatientEnrollmentDto.getPerson().getId();
@@ -211,6 +212,8 @@ public class HivPatientService {
                 .dateOfRegistration(p.getDateOfRegistration())
                 .hasiceform(p.getHasiceform())
                 .hasenrollmentform(p.getHasenrollmentform())
+                .hivTestResult(enrollmentCommencementRepository.getLatestHivTestResultByPersonUuid(p.getPersonUuid()))
+                .hasTransferIn(patientTransferInService.hasExistingTransferInByPersonUuid(p.getPersonUuid()))
 //                .currentStatus(p.getStatus())
                 .build();
 //        patientDTO.setCommenced(p.getCommenced() != null);

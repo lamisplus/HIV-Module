@@ -16,6 +16,7 @@ public interface PatientTransferInRepository extends JpaRepository<PatientTransf
     Optional<PatientTransferIn> findByUuid(String uuid);
     boolean existsByPersonIdAndArchived(Long personId, Integer archived);
     boolean existsByPersonAndArchived(Person person, Integer archived);
+    boolean existsByPersonUuidAndArchived(String personUuid, Integer archived);
     List<PatientTransferIn> findAllByFacilityIdAndArchived(Long facilityId, Integer archived);
 
     List<PatientTransferIn> findAllByPersonIdOrderByReceivedDateDesc(Long personId);

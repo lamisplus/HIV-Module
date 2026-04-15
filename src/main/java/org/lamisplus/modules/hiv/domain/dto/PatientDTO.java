@@ -34,4 +34,6 @@ public class PatientDTO {
 
 	private Boolean hasiceform;
 	private Boolean hasenrollmentform;
+	private String hivTestResult;
+	private boolean hasTransferIn;
 }

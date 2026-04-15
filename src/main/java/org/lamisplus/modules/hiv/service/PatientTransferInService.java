@@ -143,6 +143,19 @@ public class PatientTransferInService {
         return exists;
     }
 
+    public boolean hasExistingTransferInByPersonUuid(String personId) {
+        log.info("Checking if person ID: {} has an existing Transfer-In record", personId);
+
+        Person person =  personRepository.findByUuid(personId)
+                .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
+//        Person person = getPerson(personId);
+
+        boolean exists = patientTransferInRepository.existsByPersonUuidAndArchived(person.getUuid(), 0);
+
+        log.info("Transfer-In exists check for person ID {}: {}", personId, exists);
+        return exists;
+    }
+
     private void checkForExistingTransferIn(Person person, Long orgId) throws RecordExistException {
         boolean exists = patientTransferInRepository
                 .findByPersonAndFacilityIdAndArchived(person, orgId, 0)
