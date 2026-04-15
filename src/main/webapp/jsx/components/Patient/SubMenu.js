@@ -43,6 +43,7 @@ const SubMenu = (props) => {
   const [isEnrollmentCommencementDone, setIsEnrollmentCommencementDone] = useState(false);
   const [isICEDone, setIsICEDone] = useState(false);
   const [labResult, setLabResult] = useState(null);
+  const [hasPharmacyRecords, setHasPharmacyRecords] = useState(false);
 
   // Sync state with expandedPatientObj or patientObj when they update
   useEffect(() => {
@@ -276,6 +277,7 @@ const SubMenu = (props) => {
           getOldRecordIfExists(),
           getCurrentLabResult(patientObj.id),
           Observation(),
+          checkPharmacyRecords(),
           // checkEnrollmentCommencement() and checkICEExists() removed
           // These values are already available in expandedPatientObj (hasiceform, hasenrollmentform)
         ]);
@@ -317,6 +319,20 @@ const SubMenu = (props) => {
         error.response?.data?.apierror?.message ||
         "Something went wrong, please try again";
       toast.error(errorMessage);
+    }
+  };
+
+  const checkPharmacyRecords = async () => {
+    if (!patientObj?.id) return;
+    try {
+      const response = await axios.get(
+        `${baseUrl}hiv/art/pharmacy/patient?pageNo=0&pageSize=10&personId=${patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setHasPharmacyRecords(response.data && response.data.length > 0);
+    } catch (error) {
+      console.error("Error checking pharmacy records:", error);
+      setHasPharmacyRecords(false);
     }
   };
 
@@ -416,6 +432,10 @@ const SubMenu = (props) => {
       },
 
       loadSubstitutionSwitch: () => {
+        if (!hasPharmacyRecords) {
+          toast.error("Patient must have pharmacy records before accessing Substitution/Switch form");
+          return;
+        }
         setActiveItem("substitution-switch");
         props.setActiveContent({
           ...props.activeContent,
@@ -519,6 +539,10 @@ const SubMenu = (props) => {
       },
 
       loadTrackingForm: () => {
+        if (!hasPharmacyRecords) {
+          toast.error("Patient must have pharmacy records before accessing Client Tracking form");
+          return;
+        }
         setActiveItem("tracking");
         props.setActiveContent({
           ...props.activeContent,
@@ -595,7 +619,7 @@ const SubMenu = (props) => {
         });
       },
     }),
-    [props.activeContent, props.expandedPatientObj, labResult]
+    [props.activeContent, props.expandedPatientObj, labResult, hasPharmacyRecords]
   );
 
   return (
@@ -887,14 +911,14 @@ const SubMenu = (props) => {
                                   Enrollment &amp; Commencement
                                 </Dropdown.Item>
                               )}
-                              <Dropdown.Item
+                              {/* <Dropdown.Item
                                 onClick={menuHandlers.loadHealthServices}
                                 name="health-services"
                                 active={activeItem === "health-services"}
                                 title="Health Services (Adherence & PHDP)"
                               >
                                 Health Services
-                              </Dropdown.Item>
+                              </Dropdown.Item> */}
                               <Dropdown.Item
                                 onClick={menuHandlers.loadSubstitutionSwitch}
                                 name="substitution-switch"
@@ -903,14 +927,14 @@ const SubMenu = (props) => {
                               >
                                 Substitution / Switch
                               </Dropdown.Item>
-                              <Dropdown.Item
-                                onClick={menuHandlers.loadIntegratedLabOrder}
-                                name="integrated-lab-order"
-                                active={activeItem === "integrated-lab-order"}
-                                title="Integrated Lab Order & Result"
-                              >
-                                Integrated Lab Order & Result
-                              </Dropdown.Item>
+                              {/*<Dropdown.Item*/}
+                              {/*  onClick={menuHandlers.loadIntegratedLabOrder}*/}
+                              {/*  name="integrated-lab-order"*/}
+                              {/*  active={activeItem === "integrated-lab-order"}*/}
+                              {/*  title="Integrated Lab Order & Result"*/}
+                              {/*>*/}
+                              {/*  Integrated Lab Order & Result*/}
+                              {/*</Dropdown.Item>*/}
                               <Dropdown.Item
                                 onClick={menuHandlers.loadTrackingForm}
                                 name="tracking"
@@ -935,14 +959,14 @@ const SubMenu = (props) => {
                               >
                                 Client Verification Form
                               </Dropdown.Item>
-                              <Dropdown.Item
-                                onClick={menuHandlers.DsdServiceForm}
-                                name="DsdServiceForm"
-                                active={activeItem === "DsdServiceForm"}
-                                title="DSD ASSESSMENT AND ACCEPTANCE FORM"
-                              >
-                                Dsd Service Form
-                              </Dropdown.Item>
+                              {/*<Dropdown.Item*/}
+                              {/*  onClick={menuHandlers.DsdServiceForm}*/}
+                              {/*  name="DsdServiceForm"*/}
+                              {/*  active={activeItem === "DsdServiceForm"}*/}
+                              {/*  title="DSD ASSESSMENT AND ACCEPTANCE FORM"*/}
+                              {/*>*/}
+                              {/*  Dsd Service Form*/}
+                              {/*</Dropdown.Item>*/}
                             </Dropdown.Menu>
                           </Dropdown>
 

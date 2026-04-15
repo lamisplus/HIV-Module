@@ -891,31 +891,6 @@ const Tracking = (props) => {
               </div>
               <div className="form-group mb-3 col-md-4">
                 <FormGroup>
-                  <Label for="">Next Agreed Clinic Appointment Date</Label>
-                  <Input
-                    type="date"
-                    name="nextAgreedClinicAppointmentDate"
-                    id="nextAgreedClinicAppointmentDate"
-                    onChange={handleInputChange}
-                    value={objValues.nextAgreedClinicAppointmentDate}
-                    min={enrollDate !== "" ? enrollDate : ""}
-                    style={{
-                      border: "1px solid #014D88",
-                      borderRadius: "0.25rem",
-                    }}
-                    onKeyPress={(e) => e.preventDefault()}
-                  />
-                  {errors.nextAgreedClinicAppointmentDate !== "" ? (
-                    <span className={classes.error}>
-                      {errors.nextAgreedClinicAppointmentDate}
-                    </span>
-                  ) : (
-                    ""
-                  )}
-                </FormGroup>
-              </div>
-              <div className="form-group mb-3 col-md-4">
-                <FormGroup>
                   <Label for="">Date Patient Returned</Label>
                   <Input
                     type="date"
@@ -1199,6 +1174,31 @@ const Tracking = (props) => {
                       {errors.dateReturnToCare !== "" ? (
                         <span className={classes.error}>
                           {errors.dateReturnToCare}
+                        </span>
+                      ) : (
+                        ""
+                      )}
+                    </FormGroup>
+                  </div>
+                  <div className="form-group mb-3 col-md-4">
+                    <FormGroup>
+                      <Label for="">Next Agreed Clinic Appointment Date</Label>
+                      <Input
+                        type="date"
+                        name="nextAgreedClinicAppointmentDate"
+                        id="nextAgreedClinicAppointmentDate"
+                        onChange={handleInputChange}
+                        value={objValues.nextAgreedClinicAppointmentDate}
+                        min={enrollDate !== "" ? enrollDate : ""}
+                        style={{
+                          border: "1px solid #014D88",
+                          borderRadius: "0.25rem",
+                        }}
+                        onKeyPress={(e) => e.preventDefault()}
+                      />
+                      {errors.nextAgreedClinicAppointmentDate !== "" ? (
+                        <span className={classes.error}>
+                          {errors.nextAgreedClinicAppointmentDate}
                         </span>
                       ) : (
                         ""
