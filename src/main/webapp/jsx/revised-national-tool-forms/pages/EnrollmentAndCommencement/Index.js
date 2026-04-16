@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { Input } from "reactstrap";
 import * as moment from "moment";
+import Select from "react-select";
 import {
   Accordion,
   AccordionSummary,
@@ -258,7 +259,6 @@ const EnrollmentAndCommencementForm = (props) => {
   // ── Facility State ──────────────────────────────────────────────────────
   const [facilities, setFacilities] = useState([]);
   const [loadingFacilities, setLoadingFacilities] = useState(false);
-  const [facilitySearchQuery, setFacilitySearchQuery] = useState('');
 
   // ── Check if patient already has enrollment-commencement record ──────────
   // Only check for existing record in CREATE mode
@@ -553,6 +553,30 @@ const EnrollmentAndCommencementForm = (props) => {
     setExpanded((prev) =>
       prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
     );
+  };
+
+  // ── Format Facilities for react-select ─────────────────────────────────
+  const getFacilityOptions = () => {
+    return facilities.map(facility => ({
+      label: facility.name,
+      value: facility.name
+    }));
+  };
+
+  // ── Handle Facility Selection ──────────────────────────────────────────
+  const handleFacilitySelect = (selectedOption) => {
+    const facilityName = selectedOption ? selectedOption.value : "";
+    setRegistration((prev) => ({
+      ...prev,
+      facility_transferred_from: facilityName
+    }));
+
+    // Clear error if facility is selected
+    if (facilityName && errors.facility_transferred_from) {
+      const newErrors = { ...errors };
+      delete newErrors.facility_transferred_from;
+      setErrors(newErrors);
+    }
   };
 
   // ── Check if Unique ID already exists ────────────────────────────────────
@@ -1382,19 +1406,32 @@ const EnrollmentAndCommencementForm = (props) => {
                       style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}
                     />
                   ) : (
-                    <Input
-                      type="select"
+                    <Select
                       name="facility_transferred_from"
-                      value={registration.facility_transferred_from}
-                      onChange={handleReg}
-                    >
-                      <option value="">{loadingFacilities ? "Loading..." : "Select facility"}</option>
-                      {facilities.map((facility) => (
-                        <option key={facility.id} value={facility.name}>
-                          {facility.name}
-                        </option>
-                      ))}
-                    </Input>
+                      value={getFacilityOptions().find(option => option.value === registration.facility_transferred_from)}
+                      onChange={handleFacilitySelect}
+                      options={getFacilityOptions()}
+                      isLoading={loadingFacilities}
+                      placeholder="Search or select facility..."
+                      isSearchable={true}
+                      isClearable={true}
+                      noOptionsMessage={() => "No facilities found"}
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          minHeight: '41px',
+                          borderColor: '#ced4da',
+                          borderRadius: '0.25rem',
+                          '&:hover': {
+                            borderColor: '#ced4da'
+                          }
+                        }),
+                        valueContainer: (base) => ({
+                          ...base,
+                          padding: '2px 8px'
+                        })
+                      }}
+                    />
                   )}
                   {errors.facility_transferred_from && (
                     <span className={classes.error}>
