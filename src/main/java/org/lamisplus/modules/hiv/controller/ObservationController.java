@@ -3,6 +3,7 @@ package org.lamisplus.modules.hiv.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lamisplus.modules.hiv.domain.dto.FacilityProjection;
 import org.lamisplus.modules.hiv.domain.dto.ObservationDto;
 import org.lamisplus.modules.hiv.domain.dto.PEPClientProjection;
 import org.lamisplus.modules.hiv.domain.dto.TBCompletionStatusDTO;
@@ -130,6 +131,15 @@ public class ObservationController {
                 pepClientsPage.getContent().size(), pepClientsPage.getTotalElements(), facilityId);
 
         return ResponseEntity.ok(response);
+    }
+
+    // Get all facilities for facility transfer from dropdown
+    @GetMapping("/facilities")
+    public ResponseEntity<List<FacilityProjection>> getAllFacilities() {
+        log.info("Fetching all facilities for transfer dropdown");
+        List<FacilityProjection> facilities = observationRepository.getAllFacilities();
+        log.info("Found {} facilities", facilities.size());
+        return ResponseEntity.ok(facilities);
     }
 
     /**

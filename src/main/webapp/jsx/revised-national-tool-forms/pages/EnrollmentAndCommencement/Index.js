@@ -258,6 +258,7 @@ const EnrollmentAndCommencementForm = (props) => {
   // ── Facility State ──────────────────────────────────────────────────────
   const [facilities, setFacilities] = useState([]);
   const [loadingFacilities, setLoadingFacilities] = useState(false);
+  const [facilitySearchQuery, setFacilitySearchQuery] = useState('');
 
   // ── Check if patient already has enrollment-commencement record ──────────
   // Only check for existing record in CREATE mode
@@ -547,82 +548,6 @@ const EnrollmentAndCommencementForm = (props) => {
       setLoadingFacilities(false);
     }
   };
-
-  // ── Debounced Facility Search ────────────────────────────────────────────
-  // const searchFacilities = useCallback(async (searchQuery) => {
-  //   if (!searchQuery || searchQuery.trim().length < 2) {
-  //     if (isMounted.current) {
-  //       setFacilities([]);
-  //     }
-  //     return;
-  //   }
-  //
-  //   // Cancel previous request if it exists
-  //   if (facilityAbortController.current) {
-  //     facilityAbortController.current.abort();
-  //   }
-
-    // Create new abort controller for this request
-    // facilityAbortController.current = new AbortController();
-  //
-  //   if (isMounted.current) {
-  //     setLoadingFacilities(true);
-  //   }
-  //
-  //   try {
-  //     // Fetch facilities from the new optimized endpoint
-  //     const response = await axios.get(
-  //       `${baseUrl}observation/facilities`,
-  //       {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //         signal: facilityAbortController.current.signal
-  //       }
-  //     );
-  //
-  //     if (!isMounted.current) return;
-  //
-  //     if (response.data && Array.isArray(response.data)) {
-  //       // Filter facilities by search term (case-insensitive)
-  //       const filtered = response.data.filter((facility) =>
-  //         facility.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  //       );
-  //
-  //       // Limit results to 50 for performance
-  //       setFacilities(filtered.slice(0, 50));
-  //     } else {
-  //       setFacilities([]);
-  //     }
-  //   } catch (error) {
-  //     if (!isMounted.current) return;
-  //
-  //     // Don't show error if request was aborted
-  //     if (error.name !== 'CanceledError' && !axios.isCancel(error)) {
-  //       console.error("Error searching facilities:", error);
-  //       toast.error("Failed to search facilities");
-  //       setFacilities([]);
-  //     }
-  //   } finally {
-  //     if (isMounted.current) {
-  //       setLoadingFacilities(false);
-  //     }
-  //   }
-  // }, []);
-
-  // Debounced input handler for facility search
-  // const handleFacilityInputChange = useCallback((event, newInputValue) => {
-  //   setFacilityInputValue(newInputValue);
-  //
-  //   // Clear previous timeout
-  //   if (facilitySearchTimeout.current) {
-  //     clearTimeout(facilitySearchTimeout.current);
-  //   }
-  //
-  //   // Set new timeout for debounced search
-  //   facilitySearchTimeout.current = setTimeout(() => {
-  //     searchFacilities(newInputValue);
-  //   }, 500); // 500ms delay
-  // }, [searchFacilities]);
-
 
   const toggleAccordion = (panel) => {
     setExpanded((prev) =>
@@ -1441,90 +1366,42 @@ const EnrollmentAndCommencementForm = (props) => {
                     </span>
                   )}
                 </Col>
-                {/*<Col>*/}
-                {/*  <SectionLabel>*/}
-                {/*    Facility Transferred From*/}
-                {/*    {registration.date_transferred_in && registration.date_transferred_in.trim() !== "" && (*/}
-                {/*      <span style={{ color: "red" }}> *</span>*/}
-                {/*    )}*/}
-                {/*  </SectionLabel>*/}
-                {/*  {isViewMode ? (*/}
-                {/*    <Input*/}
-                {/*      type="text"*/}
-                {/*      name="facility_transferred_from"*/}
-                {/*      value={registration.facility_transferred_from}*/}
-                {/*      readOnly*/}
-                {/*      style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}*/}
-                {/*    />*/}
-                {/*  ) : (*/}
-                {/*    <Autocomplete*/}
-                {/*      freeSolo*/}
-                {/*      options={facilities}*/}
-                {/*      getOptionLabel={(option) => (typeof option === 'string' ? option : option.name || '')}*/}
-                {/*      value={facilities.find(f => f.name === registration.facility_transferred_from) || null}*/}
-                {/*      onChange={handleFacilityChange}*/}
-                {/*      onInputChange={handleFacilityInputChange}*/}
-                {/*      inputValue={facilityInputValue}*/}
-                {/*      loading={loadingFacilities}*/}
-                {/*      noOptionsText={facilityInputValue.length < 2 ? "Type at least 2 characters to search" : "No facilities found"}*/}
-                {/*      renderInput={(params) => (*/}
-                {/*        <TextField*/}
-                {/*          {...params}*/}
-                {/*          placeholder="Search for facility..."*/}
-                {/*          variant="outlined"*/}
-                {/*          size="small"*/}
-                {/*          sx={{*/}
-                {/*            '& .MuiOutlinedInput-root': {*/}
-                {/*              height: '41px',*/}
-                {/*              fontSize: '14px',*/}
-                {/*              borderRadius: '0.25rem',*/}
-                {/*              '& fieldset': {*/}
-                {/*                borderColor: '#ced4da',*/}
-                {/*              },*/}
-                {/*              '&:hover fieldset': {*/}
-                {/*                borderColor: '#014d88',*/}
-                {/*              },*/}
-                {/*              '&.Mui-focused fieldset': {*/}
-                {/*                borderColor: '#014d88',*/}
-                {/*              },*/}
-                {/*            },*/}
-                {/*            '& .MuiInputBase-input': {*/}
-                {/*              padding: '8.5px 14px',*/}
-                {/*            },*/}
-                {/*          }}*/}
-                {/*          InputProps={{*/}
-                {/*            ...params.InputProps,*/}
-                {/*            endAdornment: (*/}
-                {/*              <>*/}
-                {/*                {loadingFacilities ? <CircularProgress color="inherit" size={20} /> : null}*/}
-                {/*                {params.InputProps.endAdornment}*/}
-                {/*              </>*/}
-                {/*            ),*/}
-                {/*          }}*/}
-                {/*        />*/}
-                {/*      )}*/}
-                {/*      renderOption={(props, option) => (*/}
-                {/*        <li {...props} key={option.id}>*/}
-                {/*          <Box>*/}
-                {/*            <Typography variant="body2" sx={{ fontWeight: 500 }}>*/}
-                {/*              {option.name}*/}
-                {/*            </Typography>*/}
-                {/*            {option.description && (*/}
-                {/*              <Typography variant="caption" sx={{ color: '#666' }}>*/}
-                {/*                {option.description}*/}
-                {/*              </Typography>*/}
-                {/*            )}*/}
-                {/*          </Box>*/}
-                {/*        </li>*/}
-                {/*      )}*/}
-                {/*    />*/}
-                {/*  )}*/}
-                {/*  {errors.facility_transferred_from && (*/}
-                {/*    <span className={classes.error}>*/}
-                {/*      {errors.facility_transferred_from}*/}
-                {/*    </span>*/}
-                {/*  )}*/}
-                {/*</Col>*/}
+                <Col>
+                  <SectionLabel>
+                    Facility Transferred From
+                    {registration.date_transferred_in && registration.date_transferred_in.trim() !== "" && (
+                      <span style={{ color: "red" }}> *</span>
+                    )}
+                  </SectionLabel>
+                  {isViewMode ? (
+                    <Input
+                      type="text"
+                      name="facility_transferred_from"
+                      value={registration.facility_transferred_from}
+                      readOnly
+                      style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}
+                    />
+                  ) : (
+                    <Input
+                      type="select"
+                      name="facility_transferred_from"
+                      value={registration.facility_transferred_from}
+                      onChange={handleReg}
+                    >
+                      <option value="">{loadingFacilities ? "Loading..." : "Select facility"}</option>
+                      {facilities.map((facility) => (
+                        <option key={facility.id} value={facility.name}>
+                          {facility.name}
+                        </option>
+                      ))}
+                    </Input>
+                  )}
+                  {errors.facility_transferred_from && (
+                    <span className={classes.error}>
+                      {errors.facility_transferred_from}
+                    </span>
+                  )}
+                </Col>
               </FieldRow>
             )}
 

@@ -447,6 +447,16 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             @Param("searchValue") String searchValue,
             Pageable pageable);
 
+    // Get all facilities - for facility transfer from dropdown
+    @Query(value = "SELECT id, name " +
+            "FROM base_organisation_unit " +
+            "WHERE organisation_unit_level_id = 4 " +
+            "AND name IS NOT NULL " +
+            "AND name != '' " +
+            "ORDER BY name ASC",
+            nativeQuery = true)
+    List<FacilityProjection> getAllFacilities();
+
     // get all client eligible for viral load - using materialized view for performance
     @Query(value = "SELECT patientId, patientUuid, firstName, lastName, otherName, gender, " +
             "dateOfBirth, hospitalNumber, artStartDate, vlEligibilityStatus " +
