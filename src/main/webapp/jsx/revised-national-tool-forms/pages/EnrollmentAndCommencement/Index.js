@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { Input } from "reactstrap";
 import * as moment from "moment";
@@ -255,6 +255,10 @@ const EnrollmentAndCommencementForm = (props) => {
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [checkingUniqueId, setCheckingUniqueId] = useState(false);
 
+  // ── Facility State ──────────────────────────────────────────────────────
+  const [facilities, setFacilities] = useState([]);
+  const [loadingFacilities, setLoadingFacilities] = useState(false);
+
   // ── Check if patient already has enrollment-commencement record ──────────
   // Only check for existing record in CREATE mode
   useEffect(() => {
@@ -288,6 +292,7 @@ const EnrollmentAndCommencementForm = (props) => {
     fetchCodesets();
     fetchRegimenLines(); // Fetch regimen lines in all modes for proper display
     fetchTptMedications(); // Fetch TPT medications in all modes for proper display
+    fetchFacilities(); // Fetch facilities for transfer-in dropdown
     if (isEditMode || isViewMode) {
       fetchExistingData();
     }
@@ -373,10 +378,10 @@ const EnrollmentAndCommencementForm = (props) => {
     try {
       const params = new URLSearchParams();
       params.append('codes', 'POINT_ENTRY');
-      params.append('codes', 'FACILITY_HTS_TEST_SETTING');
+      params.append('codes', 'MODE_HIV_TEST');
       params.append('codes', 'TARGET_GROUP');
       params.append('codes', 'CLINICAL_STAGE');
-      params.append('codes', 'PREVIOUSLY_KNOWN_HIV_+VE_STATUS');
+      params.append('codes', 'PRIOR_ART');
       params.append('codes', 'VISITECT_CD4_TEST_RESULT');
       params.append('codes', 'PREGNANCY_STATUS');
 
@@ -385,14 +390,13 @@ const EnrollmentAndCommencementForm = (props) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Codeset API Response:", response.data);
 
       setCodesets({
         careEntryPoints: response.data.POINT_ENTRY || [],
-        priorArt: response.data['PREVIOUSLY_KNOWN_HIV_+VE_STATUS'] || [],
+        priorArt: response.data.PRIOR_ART || [],
         kpTypology: response.data.TARGET_GROUP || [],
         clinicalStages: response.data.CLINICAL_STAGE || [],
-        mode_of_hiv_test: response.data.FACILITY_HTS_TEST_SETTING || [],
+        mode_of_hiv_test: response.data.MODE_HIV_TEST || [],
         cd4_lf: response.data.VISITECT_CD4_TEST_RESULT || [],
         pregnancyStatus: response.data.PREGNANCY_STATUS || [],
       });
@@ -440,6 +444,23 @@ const EnrollmentAndCommencementForm = (props) => {
       }
 
       // PWID, TG, Persons in custodial centers - always show
+      return true;
+    });
+  };
+
+  // Helper to filter Prior ART options based on Care Entry Point
+  const getFilteredPriorArt = (priorArtArray) => {
+    // Check if Care Entry Point is Transfer-in
+    const transferInCode = getCodesetCodeByPattern(codesets.careEntryPoints, "TRANSFER");
+    const isTransferIn = registration.care_entry_point == transferInCode;
+
+    return priorArtArray.filter(opt => {
+      // "Transfer in without records" should only show if Care Entry Point is "Transfer-in"
+      if (opt.code?.includes('TRANSFER_IN_WITHOUT_RECORDS')) {
+        return isTransferIn;
+      }
+
+      // All other options are always available
       return true;
     });
   };
@@ -507,6 +528,101 @@ const EnrollmentAndCommencementForm = (props) => {
       setLoadingTptMedications(false);
     }
   };
+
+  // Fetch Facilities for transfer-in dropdown
+  const fetchFacilities = async () => {
+    setLoadingFacilities(true);
+    try {
+      const response = await axios.get(`${baseUrl}observation/facilities`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      console.log("Facilities fetched:", response.data);
+      setFacilities(response.data || []);
+    } catch (error) {
+      console.error("Error fetching facilities:", error);
+      toast.error("Failed to load facilities");
+      setFacilities([]);
+    } finally {
+      setLoadingFacilities(false);
+    }
+  };
+
+  // ── Debounced Facility Search ────────────────────────────────────────────
+  // const searchFacilities = useCallback(async (searchQuery) => {
+  //   if (!searchQuery || searchQuery.trim().length < 2) {
+  //     if (isMounted.current) {
+  //       setFacilities([]);
+  //     }
+  //     return;
+  //   }
+  //
+  //   // Cancel previous request if it exists
+  //   if (facilityAbortController.current) {
+  //     facilityAbortController.current.abort();
+  //   }
+
+    // Create new abort controller for this request
+    // facilityAbortController.current = new AbortController();
+  //
+  //   if (isMounted.current) {
+  //     setLoadingFacilities(true);
+  //   }
+  //
+  //   try {
+  //     // Fetch facilities from the new optimized endpoint
+  //     const response = await axios.get(
+  //       `${baseUrl}observation/facilities`,
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //         signal: facilityAbortController.current.signal
+  //       }
+  //     );
+  //
+  //     if (!isMounted.current) return;
+  //
+  //     if (response.data && Array.isArray(response.data)) {
+  //       // Filter facilities by search term (case-insensitive)
+  //       const filtered = response.data.filter((facility) =>
+  //         facility.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  //       );
+  //
+  //       // Limit results to 50 for performance
+  //       setFacilities(filtered.slice(0, 50));
+  //     } else {
+  //       setFacilities([]);
+  //     }
+  //   } catch (error) {
+  //     if (!isMounted.current) return;
+  //
+  //     // Don't show error if request was aborted
+  //     if (error.name !== 'CanceledError' && !axios.isCancel(error)) {
+  //       console.error("Error searching facilities:", error);
+  //       toast.error("Failed to search facilities");
+  //       setFacilities([]);
+  //     }
+  //   } finally {
+  //     if (isMounted.current) {
+  //       setLoadingFacilities(false);
+  //     }
+  //   }
+  // }, []);
+
+  // Debounced input handler for facility search
+  // const handleFacilityInputChange = useCallback((event, newInputValue) => {
+  //   setFacilityInputValue(newInputValue);
+  //
+  //   // Clear previous timeout
+  //   if (facilitySearchTimeout.current) {
+  //     clearTimeout(facilitySearchTimeout.current);
+  //   }
+  //
+  //   // Set new timeout for debounced search
+  //   facilitySearchTimeout.current = setTimeout(() => {
+  //     searchFacilities(newInputValue);
+  //   }, 500); // 500ms delay
+  // }, [searchFacilities]);
+
 
   const toggleAccordion = (panel) => {
     setExpanded((prev) =>
@@ -1325,29 +1441,90 @@ const EnrollmentAndCommencementForm = (props) => {
                     </span>
                   )}
                 </Col>
-                <Col>
-                  <SectionLabel>
-                    Facility Transferred From
-                    {registration.date_transferred_in && registration.date_transferred_in.trim() !== "" && (
-                      <span style={{ color: "red" }}> *</span>
-                    )}
-                  </SectionLabel>
-                  <Input
-                    type="text"
-                    name="facility_transferred_from"
-                    value={registration.facility_transferred_from}
-                    onChange={handleReg}
-                    placeholder="Name of sending facility"
-                    disabled={isViewMode}
-                    readOnly={isViewMode}
-                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                  />
-                  {errors.facility_transferred_from && (
-                    <span className={classes.error}>
-                      {errors.facility_transferred_from}
-                    </span>
-                  )}
-                </Col>
+                {/*<Col>*/}
+                {/*  <SectionLabel>*/}
+                {/*    Facility Transferred From*/}
+                {/*    {registration.date_transferred_in && registration.date_transferred_in.trim() !== "" && (*/}
+                {/*      <span style={{ color: "red" }}> *</span>*/}
+                {/*    )}*/}
+                {/*  </SectionLabel>*/}
+                {/*  {isViewMode ? (*/}
+                {/*    <Input*/}
+                {/*      type="text"*/}
+                {/*      name="facility_transferred_from"*/}
+                {/*      value={registration.facility_transferred_from}*/}
+                {/*      readOnly*/}
+                {/*      style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}*/}
+                {/*    />*/}
+                {/*  ) : (*/}
+                {/*    <Autocomplete*/}
+                {/*      freeSolo*/}
+                {/*      options={facilities}*/}
+                {/*      getOptionLabel={(option) => (typeof option === 'string' ? option : option.name || '')}*/}
+                {/*      value={facilities.find(f => f.name === registration.facility_transferred_from) || null}*/}
+                {/*      onChange={handleFacilityChange}*/}
+                {/*      onInputChange={handleFacilityInputChange}*/}
+                {/*      inputValue={facilityInputValue}*/}
+                {/*      loading={loadingFacilities}*/}
+                {/*      noOptionsText={facilityInputValue.length < 2 ? "Type at least 2 characters to search" : "No facilities found"}*/}
+                {/*      renderInput={(params) => (*/}
+                {/*        <TextField*/}
+                {/*          {...params}*/}
+                {/*          placeholder="Search for facility..."*/}
+                {/*          variant="outlined"*/}
+                {/*          size="small"*/}
+                {/*          sx={{*/}
+                {/*            '& .MuiOutlinedInput-root': {*/}
+                {/*              height: '41px',*/}
+                {/*              fontSize: '14px',*/}
+                {/*              borderRadius: '0.25rem',*/}
+                {/*              '& fieldset': {*/}
+                {/*                borderColor: '#ced4da',*/}
+                {/*              },*/}
+                {/*              '&:hover fieldset': {*/}
+                {/*                borderColor: '#014d88',*/}
+                {/*              },*/}
+                {/*              '&.Mui-focused fieldset': {*/}
+                {/*                borderColor: '#014d88',*/}
+                {/*              },*/}
+                {/*            },*/}
+                {/*            '& .MuiInputBase-input': {*/}
+                {/*              padding: '8.5px 14px',*/}
+                {/*            },*/}
+                {/*          }}*/}
+                {/*          InputProps={{*/}
+                {/*            ...params.InputProps,*/}
+                {/*            endAdornment: (*/}
+                {/*              <>*/}
+                {/*                {loadingFacilities ? <CircularProgress color="inherit" size={20} /> : null}*/}
+                {/*                {params.InputProps.endAdornment}*/}
+                {/*              </>*/}
+                {/*            ),*/}
+                {/*          }}*/}
+                {/*        />*/}
+                {/*      )}*/}
+                {/*      renderOption={(props, option) => (*/}
+                {/*        <li {...props} key={option.id}>*/}
+                {/*          <Box>*/}
+                {/*            <Typography variant="body2" sx={{ fontWeight: 500 }}>*/}
+                {/*              {option.name}*/}
+                {/*            </Typography>*/}
+                {/*            {option.description && (*/}
+                {/*              <Typography variant="caption" sx={{ color: '#666' }}>*/}
+                {/*                {option.description}*/}
+                {/*              </Typography>*/}
+                {/*            )}*/}
+                {/*          </Box>*/}
+                {/*        </li>*/}
+                {/*      )}*/}
+                {/*    />*/}
+                {/*  )}*/}
+                {/*  {errors.facility_transferred_from && (*/}
+                {/*    <span className={classes.error}>*/}
+                {/*      {errors.facility_transferred_from}*/}
+                {/*    </span>*/}
+                {/*  )}*/}
+                {/*</Col>*/}
               </FieldRow>
             )}
 
@@ -1436,7 +1613,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                  {codesets.priorArt.map((opt) => (
+                  {getFilteredPriorArt(codesets.priorArt).map((opt) => (
                     <option key={opt.id} value={opt.code}>
                       {opt.display}
                     </option>
