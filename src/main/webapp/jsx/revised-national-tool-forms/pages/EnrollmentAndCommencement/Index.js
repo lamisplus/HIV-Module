@@ -164,8 +164,11 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
           minHeight: "52px !important",
           height: "auto !important",
           padding: "0 16px !important",
+          width: "100% !important",
+          margin: "0 !important",
           "& .MuiAccordionSummary-content": {
             margin: "16px 0 !important",
+            width: "100%",
           },
         }}
       >
@@ -176,7 +179,7 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
         </Typography>
       </AccordionSummary>
       <AccordionDetails
-        sx={{ padding: "20px 24px", background: "#fff" }}
+        sx={{ padding: "20px 24px", background: "#fff", width: "100%" }}
       >
         {children}
       </AccordionDetails>
@@ -1203,7 +1206,7 @@ const EnrollmentAndCommencementForm = (props) => {
   return (
     <Card
       className={classes.root}
-      style={{ borderRadius: "12px", overflow: "visible" }}
+      style={{ borderRadius: "12px", overflow: "visible", width: "100%" }}
     >
       <CardContent>
         {/* ── Page Header ─────────────────────────────────────────────── */}

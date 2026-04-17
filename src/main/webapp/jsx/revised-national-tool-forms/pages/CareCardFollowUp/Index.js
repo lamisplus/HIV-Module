@@ -444,8 +444,11 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
           minHeight: "52px !important",
           height: "auto !important",
           padding: "0 16px !important",
+          width: "100% !important",
+          margin: "0 !important",
           "& .MuiAccordionSummary-content": {
             margin: "16px 0 !important",
+            width: "100%",
           },
         }}
       >
