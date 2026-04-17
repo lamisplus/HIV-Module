@@ -73,9 +73,6 @@ const useStyles = makeStyles((theme) => ({
     "& select": {
       "-webkit-appearance": "listbox !important",
     },
-    "& p": {
-      color: "red",
-    },
     "& label": {
       fontSize: "14px",
       color: "#014d88",
