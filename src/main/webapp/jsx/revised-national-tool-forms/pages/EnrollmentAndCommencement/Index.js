@@ -380,7 +380,7 @@ const EnrollmentAndCommencementForm = (props) => {
       const params = new URLSearchParams();
       params.append('codes', 'POINT_ENTRY');
       params.append('codes', 'MODE_HIV_TEST');
-      params.append('codes', 'TARGET_GROUP');
+      params.append('codes', 'KP_TYPE');
       params.append('codes', 'CLINICAL_STAGE');
       params.append('codes', 'PRIOR_ART');
       params.append('codes', 'VISITECT_CD4_TEST_RESULT');
@@ -395,7 +395,7 @@ const EnrollmentAndCommencementForm = (props) => {
       setCodesets({
         careEntryPoints: response.data.POINT_ENTRY || [],
         priorArt: response.data.PRIOR_ART || [],
-        kpTypology: response.data.TARGET_GROUP || [],
+        kpTypology: response.data.KP_TYPE || [],
         clinicalStages: response.data.CLINICAL_STAGE || [],
         mode_of_hiv_test: response.data.MODE_HIV_TEST || [],
         cd4_lf: response.data.VISITECT_CD4_TEST_RESULT || [],

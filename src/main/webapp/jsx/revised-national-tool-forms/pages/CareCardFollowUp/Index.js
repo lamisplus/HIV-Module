@@ -95,13 +95,6 @@ const PAEDIATRIC_DISCLOSURE_OPTIONS = [
   { id: 2003, code: "PAEDIATRIC_DISCLOSURE_COMPLETED_FULL", display: "Completed (Full disclosure)" },
 ];
 
-const DSD_STATUS_OPTIONS = [
-  { id: 3000, code: "DSD_STATUS_FACILITY_BASED", display: "Facility-Based" },
-  { id: 3001, code: "DSD_STATUS_NON_DEVOLVED", display: "Non-devolved" },
-  { id: 3002, code: "DSD_STATUS_NOT_ELIGIBLE", display: "Not-Eligible" },
-  { id: 3003, code: "DSD_STATUS_COMMUNITY_BASED", display: "Community-Based" },
-];
-
 // WHO Stage Clinical Criteria Options - these are hardcoded on the frontend
 // Each WHO stage code maps to an array of available clinical criteria
 const WHO_STAGE_CRITERIA_OPTIONS = {
@@ -223,7 +216,7 @@ const SectionLabel = ({ children }) => (
 );
 
 const FieldRow = ({ children, style }) => (
-  <div className="row" style={{ marginBottom: "8px", ...style }}>
+  <div className="row" style={{ marginBottom: "8px", width: "100%", marginLeft: 0, marginRight: 0, ...style }}>
     {children}
   </div>
 );
@@ -422,34 +415,45 @@ const TransferList = ({ availableItems, selectedItems, onTransfer, stageName }) 
 };
 
 // FormAccordion — module scope only
-const FormAccordion = ({ panel, title, children, expanded, onToggle }) => {
+const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) => {
   const isOpen = expanded.includes(panel);
   return (
     <Accordion
       expanded={isOpen}
       onChange={() => onToggle(panel)}
+      disableGutters
       sx={{
+        width: "100%",
         marginBottom: "12px",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-        borderRadius: "4px !important",
-        "&:before": { display: "none" },
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        borderRadius: "8px !important",
+        "&:before": { display: "none !important" },
         border: "1px solid #014d88",
+        overflow: "visible",
+        position: "relative",
+        zIndex: 1,
       }}
     >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
+        aria-controls={`${panel}-content`}
+        id={`${panel}-header`}
         sx={{
-          backgroundColor: "#014d88",
-          borderRadius: isOpen ? "4px 4px 0 0" : "4px",
-          minHeight: "45px",
-          "& .MuiAccordionSummary-content": { margin: "0" },
+          backgroundColor: "#014d88 !important",
+          borderRadius: isOpen ? "8px 8px 0 0" : "8px",
+          minHeight: "52px !important",
+          height: "auto !important",
+          padding: "0 16px !important",
+          "& .MuiAccordionSummary-content": {
+            margin: "16px 0 !important",
+          },
         }}
       >
         <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>
           {title}
         </Typography>
       </AccordionSummary>
-      <AccordionDetails sx={{ padding: "20px 24px", background: "#fff" }}>
+      <AccordionDetails sx={{ padding: "20px 24px", background: "#fff", width: "100%" }}>
         {children}
       </AccordionDetails>
     </Accordion>
@@ -489,8 +493,10 @@ const CareCardFollowUpForm = (props) => {
   const [opportunisticInfectionCodeset, setOpportunisticInfectionCodeset] = useState([]);
   const [whyPoorFairAdherenceCodeset, setWhyPoorFairAdherenceCodeset] = useState([]);
   const [functionalStatusCodeset, setFunctionalStatusCodeset] = useState([]);
+  const [dsdStatusCodeset, setDsdStatusCodeset] = useState([]);
   const [dsdModelFacilityCodeset, setDsdModelFacilityCodeset] = useState([]);
   const [dsdModelCommunityCodeset, setDsdModelCommunityCodeset] = useState([]);
+  const [sideEffectsCodeset, setSideEffectsCodeset] = useState([]);
   const [labOrderIndicationCodeset, setLabOrderIndicationCodeset] = useState([]);
   const [labTestGroups, setLabTestGroups] = useState([]);
   const [labTestOptions, setLabTestOptions] = useState([]);
@@ -527,8 +533,10 @@ const CareCardFollowUpForm = (props) => {
         params.append('codes', 'OPPORTUNISTIC_INFECTION_ILLNESS');
         params.append('codes', 'WHY_POOR_FAIR_ADHERENCE');
         params.append('codes', 'FUNCTIONAL _STATUS');
+        params.append('codes', 'DSD_STATUS');
         params.append('codes', 'DSD_MODEL_FACILITY');
         params.append('codes', 'DSD_MODEL_COMMUNITY');
+        params.append('codes', 'PREP_SIDE_EFFECTS');
         params.append('codes', 'LAB_ORDER_INDICATION');
         params.append('codes', 'Consult Hospitalise Refer');
         params.append('codes', 'HEALTH_INSURANCE_COVERAGE');
@@ -555,8 +563,10 @@ const CareCardFollowUpForm = (props) => {
         setOpportunisticInfectionCodeset(data.OPPORTUNISTIC_INFECTION_ILLNESS || []);
         setWhyPoorFairAdherenceCodeset(data.WHY_POOR_FAIR_ADHERENCE || []);
         setFunctionalStatusCodeset(data['FUNCTIONAL _STATUS'] || []);
+        setDsdStatusCodeset(data.DSD_STATUS || []);
         setDsdModelFacilityCodeset(data.DSD_MODEL_FACILITY || []);
         setDsdModelCommunityCodeset(data.DSD_MODEL_COMMUNITY || []);
+        setSideEffectsCodeset(data.PREP_SIDE_EFFECTS || []);
         setLabOrderIndicationCodeset(data.LAB_ORDER_INDICATION || []);
         setTypeOfAppointmentCodeset(data['Consult Hospitalise Refer'] || []);
         setHealthInsuranceCoverageCodeset(data.HEALTH_INSURANCE_COVERAGE || []);
@@ -660,7 +670,7 @@ const CareCardFollowUpForm = (props) => {
         cryptococcal_status: visit.cryptococcalScreeningStatus || "",
         hepatitis_status: visit.hepatitisScreeningResult || "",
         oral_problems: visit.opportunisticInfections ? visit.opportunisticInfections.map(oi => ({ value: oi.code, label: oi.display })) : [],
-        noted_side_effect: visit.notedSideEffect || "",
+        noted_side_effect: visit.sideEffects ? visit.sideEffects.map(se => ({ value: se.code, label: se.display })) : [],
         dsd_status: visit.dsdStatus || "",
         dsd_model: visit.dsdModel || "",
         date_devolved: visit.dateDevolved ? moment(visit.dateDevolved).format("YYYY-MM-DD") : "",
@@ -821,7 +831,7 @@ const CareCardFollowUpForm = (props) => {
     cryptococcal_status: "",
     hepatitis_status: "",
     oral_problems: [],
-    noted_side_effect: "",
+    noted_side_effect: [],
     dsd_status: "",
     dsd_model: "",
     date_devolved: "",
@@ -838,12 +848,12 @@ const CareCardFollowUpForm = (props) => {
       }));
     } else if (name === "dsd_status") {
       // If DSD status is being changed, clear the DSD model and date devolved
-      const shouldClearDate = !value.includes("FACILITY_BASED") && !value.includes("COMMUNITY_BASED");
+      const isFacilityOrCommunity = value && (value.includes("FACILITY") || value.includes("COMMUNITY") || value.includes("Facility") || value.includes("Community"));
       setClinical((prev) => ({
         ...prev,
         [name]: value,
         dsd_model: "", // Clear DSD model when status changes
-        date_devolved: shouldClearDate ? "" : prev.date_devolved // Clear date if not facility/community
+        date_devolved: isFacilityOrCommunity ? prev.date_devolved : "" // Clear date if not facility/community
       }));
     } else if (name === "tb_status") {
       // Clear tb_status_confirmed when tb_status changes away from "Confirmed TB"
@@ -870,6 +880,16 @@ const CareCardFollowUpForm = (props) => {
 
   // Transform opportunistic infection codeset to ReactSelect format
   const oralProblemsOptions = opportunisticInfectionCodeset.map((option) => ({
+    value: option.code,
+    label: option.display,
+  }));
+
+  const handleSideEffectsChange = (selectedOptions) => {
+    setClinical((prev) => ({ ...prev, noted_side_effect: selectedOptions || [] }));
+  };
+
+  // Transform side effects codeset to ReactSelect format
+  const sideEffectsOptions = sideEffectsCodeset.map((option) => ({
     value: option.code,
     label: option.display,
   }));
@@ -1404,7 +1424,7 @@ const CareCardFollowUpForm = (props) => {
         bmiMuac: vitals.bmi_muac ? parseFloat(vitals.bmi_muac) : null,
         paediatricDisclosure: clinical.paediatric_disclosure || "",
         whoStageCriteria: clinical.who_stage_criteria,
-        notedSideEffect: clinical.noted_side_effect || "",
+        sideEffects: clinical.noted_side_effect.map(se => se.value),
         dsdStatus: clinical.dsd_status || "",
         dsdModel: clinical.dsd_model || "",
         dateDevolved: clinical.date_devolved || "",
@@ -1457,11 +1477,11 @@ const CareCardFollowUpForm = (props) => {
   // Render
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible" }}>
+    <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible", width: "100%" }}>
       <CardContent>
 
         {/* ── Page Header ──────────────────────────────────────────────── */}
-        <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "20px", marginTop: "-16px", marginLeft: "-16px", marginRight: "-16px", width: "calc(100% + 32px)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
             {isEditMode ? (
               <>
@@ -1500,7 +1520,7 @@ const CareCardFollowUpForm = (props) => {
           )}
         </Box>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ width: "100%" }}>
 
           {/* ══════════════════════════════════════════════════════════════ */}
           {/*  SECTION 1 — VISIT INFORMATION                               */}
@@ -1799,12 +1819,11 @@ const CareCardFollowUpForm = (props) => {
               </Col>
               <Col size={6}>
                 <SectionLabel>Noted Side Effect</SectionLabel>
-                <Input
-                  type="text"
-                  name="noted_side_effect"
+                <MultiSelect
+                  options={sideEffectsOptions}
                   value={clinical.noted_side_effect}
-                  onChange={handleClinical}
-                  placeholder="e.g. Nausea, rash, hepatotoxicity..."
+                  onChange={handleSideEffectsChange}
+                  placeholder="Select side effects..."
                 />
               </Col>
             </FieldRow>
@@ -1818,14 +1837,14 @@ const CareCardFollowUpForm = (props) => {
                   onChange={handleClinical}
                 >
                   <option value="">Select</option>
-                  {DSD_STATUS_OPTIONS.map((option) => (
+                  {dsdStatusCodeset.map((option) => (
                     <option key={option.id} value={option.code}>
                       {option.display}
                     </option>
                   ))}
                 </Input>
               </Col>
-              {clinical.dsd_status === "DSD_STATUS_FACILITY_BASED" && (
+              {(clinical.dsd_status && (clinical.dsd_status.includes("FACILITY") || clinical.dsd_status.includes("Facility"))) && (
                 <Col size={6}>
                   <SectionLabel>Facility Based DSD Model</SectionLabel>
                   <Input
@@ -1843,7 +1862,7 @@ const CareCardFollowUpForm = (props) => {
                   </Input>
                 </Col>
               )}
-              {clinical.dsd_status === "DSD_STATUS_COMMUNITY_BASED" && (
+              {(clinical.dsd_status && (clinical.dsd_status.includes("COMMUNITY") || clinical.dsd_status.includes("Community"))) && (
                 <Col size={6}>
                   <SectionLabel>Community Based DSD Model</SectionLabel>
                   <Input
@@ -1862,7 +1881,7 @@ const CareCardFollowUpForm = (props) => {
                 </Col>
               )}
             </FieldRow>
-            {(clinical.dsd_status === "DSD_STATUS_FACILITY_BASED" || clinical.dsd_status === "DSD_STATUS_COMMUNITY_BASED") && (
+            {(clinical.dsd_status && (clinical.dsd_status.includes("FACILITY") || clinical.dsd_status.includes("COMMUNITY") || clinical.dsd_status.includes("Facility") || clinical.dsd_status.includes("Community"))) && (
               <FieldRow>
                 <Col size={6}>
                   <SectionLabel>Date Devolved</SectionLabel>

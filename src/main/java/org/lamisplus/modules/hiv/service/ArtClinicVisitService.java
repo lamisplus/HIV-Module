@@ -1,9 +1,11 @@
 package org.lamisplus.modules.hiv.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
+import org.lamisplus.modules.base.domain.dto.ApplicationCodesetDTO;
 import org.lamisplus.modules.base.service.ApplicationCodesetService;
 import org.lamisplus.modules.hiv.domain.dto.ARTClinicVisitDto;
 import org.lamisplus.modules.hiv.domain.dto.ARTClinicalVisitDisplayDto;
@@ -193,13 +195,14 @@ public class ArtClinicVisitService {
 				.levelOfAdherence(visit.getLevelOfAdherence())
 				.tbPrevention(visit.getTbPrevention())
 				.tbStatus(visit.getTbStatus())
+				.tbStatusConfirmed(visit.getTbStatusConfirmed())
 				// Care Card Follow-Up specific fields
 				.durationOnArtMonths(visit.getDurationOnArtMonths())
 				.clinicianName(visit.getClinicianName())
 				.bmiMuac(visit.getBmiMuac())
 				.paediatricDisclosure(visit.getPaediatricDisclosure())
 				.whoStageCriteria(visit.getWhoStageCriteria())
-				.notedSideEffect(visit.getNotedSideEffect())
+				.sideEffects(convertSideEffectsToDisplayFormat(visit.getNotedSideEffect()))
 				.dsdStatus(visit.getDsdStatus())
 				.dsdModel(visit.getDsdModel())
 				.dateDevolved(visit.getDateDevolved())
@@ -261,12 +264,64 @@ public class ArtClinicVisitService {
 		artClinical.setOtherTestsDone(artClinicVisitDto.getOtherTestsDone());
 		artClinical.setCd4Data(artClinicVisitDto.getCd4Data());
 
+		// Convert side effects list to JsonNode
+		if (artClinicVisitDto.getSideEffects() != null && !artClinicVisitDto.getSideEffects().isEmpty()) {
+			artClinical.setNotedSideEffect(convertListToJsonNode(artClinicVisitDto.getSideEffects()));
+		}
+
 		return artClinical;
 	}
 	
 	private VitalSign getVitalSign(Long vitalSignId) {
 		return vitalSignRepository.findById(vitalSignId).orElseThrow(() -> new EntityNotFoundException(VitalSign.class, "id", String.valueOf(vitalSignId)));
-		
+
 	}
-	
+
+	// Helper method to convert List<String> to JsonNode
+	private JsonNode convertListToJsonNode(List<String> list) {
+		try {
+			com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+			return mapper.valueToTree(list);
+		} catch (Exception e) {
+			log.error("Error converting list to JsonNode", e);
+			return null;
+		}
+	}
+
+	// Helper method to convert side effects JsonNode to list with codeset information
+	private JsonNode convertSideEffectsToDisplayFormat(JsonNode sideEffectsNode) {
+		if (sideEffectsNode == null || sideEffectsNode.isNull()) {
+			return null;
+		}
+
+		try {
+			com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+			List<Map<String, String>> displayList = new ArrayList<>();
+
+			if (sideEffectsNode.isArray()) {
+				for (JsonNode codeNode : sideEffectsNode) {
+					String code = codeNode.asText();
+					try {
+						ApplicationCodesetDTO codeset = applicationCodesetService.getOneByCode(code);
+						Map<String, String> item = new HashMap<>();
+						item.put("code", code);
+						item.put("display", codeset.getDisplay());
+						displayList.add(item);
+					} catch (Exception e) {
+						// If codeset not found, just include the code
+						Map<String, String> item = new HashMap<>();
+						item.put("code", code);
+						item.put("display", code);
+						displayList.add(item);
+					}
+				}
+			}
+
+			return mapper.valueToTree(displayList);
+		} catch (Exception e) {
+			log.error("Error converting side effects to display format", e);
+			return sideEffectsNode; // Return original if conversion fails
+		}
+	}
+
 }

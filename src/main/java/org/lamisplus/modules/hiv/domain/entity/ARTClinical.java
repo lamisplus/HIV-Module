@@ -132,6 +132,7 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	private String onFamilyPlaning;
 	private String levelOfAdherence;
 	private String tbStatus;
+	private String tbStatusConfirmed;
 	private String tbPrevention;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb", name = "arvdrugs_regimen")
@@ -172,8 +173,9 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	@Column(columnDefinition = "jsonb", name = "who_stage_criteria")
 	private JsonNode whoStageCriteria;
 
-	@Column(name = "noted_side_effect")
-	private String notedSideEffect;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "noted_side_effect")
+	private JsonNode notedSideEffect;
 
 	@Column(name = "dsd_status")
 	private String dsdStatus;

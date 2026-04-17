@@ -76,6 +76,7 @@ public class ARTClinicVisitDto implements Serializable {
 	private String onFamilyPlaning;
 	private String levelOfAdherence;
 	private String tbStatus;
+	private String tbStatusConfirmed;
 	private String tbPrevention;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
@@ -98,7 +99,7 @@ public class ARTClinicVisitDto implements Serializable {
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
 	private JsonNode whoStageCriteria;
-	private String notedSideEffect;
+	private java.util.List<String> sideEffects;
 	private String dsdStatus;
 	private String dsdModel;
 	@Convert(converter = LocalDateConverter.class)

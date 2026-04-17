@@ -107,8 +107,8 @@ const CareCardFollowUpTabs = (props) => {
   };
 
   return (
-    <div>
-      <Box className={classes.tabsContainer}>
+    <div style={{ width: "100%" }}>
+      <Box className={classes.tabsContainer} sx={{ width: "100%" }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}

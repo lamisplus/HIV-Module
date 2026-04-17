@@ -536,4 +536,105 @@
         </rollback>
     </changeSet>
 
+    <!-- Convert noted_side_effect from TEXT to JSONB for multi-select support -->
+    <changeSet id="20260417-art-clinical-01" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+            <columnExists tableName="hiv_art_clinical" columnName="noted_side_effect"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- First, backup any existing text data by converting to JSON array
+            -- If the column has text data, wrap it in a JSON array with a single element
+            UPDATE hiv_art_clinical
+            SET noted_side_effect = CASE
+                WHEN noted_side_effect IS NOT NULL AND noted_side_effect != '' AND noted_side_effect !~ '^\[.*\]$'
+                THEN ('["' || noted_side_effect || '"]')::text
+                ELSE noted_side_effect
+            END
+            WHERE noted_side_effect IS NOT NULL AND noted_side_effect != '';
+
+            -- Change column type from TEXT to JSONB
+            ALTER TABLE hiv_art_clinical
+            ALTER COLUMN noted_side_effect TYPE JSONB USING noted_side_effect::jsonb;
+
+            -- Create GIN index for better JSONB query performance
+            CREATE INDEX IF NOT EXISTS idx_art_clinical_noted_side_effect
+            ON hiv_art_clinical USING GIN(noted_side_effect)
+            WHERE noted_side_effect IS NOT NULL;
+
+            -- Update comment
+            COMMENT ON COLUMN hiv_art_clinical.noted_side_effect IS 'JSON array of side effect codes from PREP_SIDE_EFFECTS codeset';
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS idx_art_clinical_noted_side_effect;
+                ALTER TABLE hiv_art_clinical ALTER COLUMN noted_side_effect TYPE TEXT;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Add tb_status_confirmed column to hiv_art_clinical table -->
+    <changeSet id="20260417-art-clinical-02" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+            <not>
+                <columnExists tableName="hiv_art_clinical" columnName="tb_status_confirmed"/>
+            </not>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Add tb_status_confirmed column
+            ALTER TABLE hiv_art_clinical ADD COLUMN IF NOT EXISTS tb_status_confirmed VARCHAR(255);
+
+            -- Create index for filtering
+            CREATE INDEX IF NOT EXISTS idx_art_clinical_tb_status_confirmed
+            ON hiv_art_clinical(tb_status_confirmed)
+            WHERE tb_status_confirmed IS NOT NULL;
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_art_clinical.tb_status_confirmed IS 'Confirmed TB status - shown conditionally when TB Status is "Currently on TB Treatment"';
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS idx_art_clinical_tb_status_confirmed;
+                ALTER TABLE hiv_art_clinical DROP COLUMN IF EXISTS tb_status_confirmed;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Fix noted_side_effect data migration - convert remaining text to JSONB arrays -->
+    <changeSet id="20260417-art-clinical-03" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+            <columnExists tableName="hiv_art_clinical" columnName="noted_side_effect"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Clean up any records that still have invalid JSONB values
+            -- This handles cases where the column type was changed but data wasn't properly migrated
+
+            -- Set all non-JSONB values to NULL (they will be re-entered through the new UI)
+            UPDATE hiv_art_clinical
+            SET noted_side_effect = NULL
+            WHERE noted_side_effect IS NOT NULL
+            AND NOT (
+                -- Check if it's valid JSONB
+                (noted_side_effect::text ~ '^\s*\[.*\]\s*$' OR noted_side_effect::text ~ '^\s*\{.*\}\s*$')
+                AND noted_side_effect::text::jsonb IS NOT NULL
+            );
+
+            -- Add comment about the cleanup
+            COMMENT ON COLUMN hiv_art_clinical.noted_side_effect IS 'JSON array of side effect codes from PREP_SIDE_EFFECTS codeset. Old text values were cleared during migration.';
+        </sql>
+
+        <rollback>
+            <sql>
+                -- No rollback needed - this is a data cleanup operation
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

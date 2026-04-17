@@ -17,24 +17,24 @@ import CancelIcon from "@material-ui/icons/Cancel";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SUBSTITUTION_WHY_CODES = [
-  { value: "1", label: "1 — Toxicity / side effects" },
-  { value: "2", label: "2 — Pregnancy" },
-  { value: "3", label: "3 — Risk of pregnancy" },
-  { value: "4", label: "4 — Due to new TB" },
-  { value: "5", label: "5 — New drug available" },
-  { value: "6", label: "6 — Drug out of stock" },
-  { value: "7", label: "7 — Clinical treatment failure" },
-  { value: "8", label: "8 — Immunologic failure" },
-  { value: "9", label: "9 — Virologic failure" },
-  { value: "10", label: "10 — Other reason (specify)" },
+  { id: 4000, code: "SUBSTITUTION_TOXICITY", display: "Toxicity / side effects" },
+  { id: 4001, code: "SUBSTITUTION_PREGNANCY", display: "Pregnancy" },
+  { id: 4002, code: "SUBSTITUTION_PREGNANCY_RISK", display: "Risk of pregnancy" },
+  { id: 4003, code: "SUBSTITUTION_NEW_TB", display: "Due to new TB" },
+  { id: 4004, code: "SUBSTITUTION_NEW_DRUG", display: "New drug available" },
+  { id: 4005, code: "SUBSTITUTION_DRUG_OUT_OF_STOCK", display: "Drug out of stock" },
+  { id: 4006, code: "SUBSTITUTION_CLINICAL_FAILURE", display: "Clinical treatment failure" },
+  { id: 4007, code: "SUBSTITUTION_IMMUNOLOGIC_FAILURE", display: "Immunologic failure" },
+  { id: 4008, code: "SUBSTITUTION_VIROLOGIC_FAILURE", display: "Virologic failure" },
+  { id: 4009, code: "SUBSTITUTION_OTHER", display: "Other reason (specify)" },
 ];
 
 const DR_RESULT_OPTIONS = [
-  { value: "1", label: "1 — Wild type" },
-  { value: "2", label: "2 — Resistant detected" },
-  { value: "3", label: "3 — No resistance detected" },
-  { value: "4", label: "4 — Partial or mixed resistance" },
-  { value: "5", label: "5 — Indeterminate or unsuccessful tests" },
+  { id: 3000, code: "DR_WILD_TYPE", display: "Wild type" },
+  { id: 3001, code: "DR_RESISTANT_DETECTED", display: "Resistant detected" },
+  { id: 3002, code: "DR_NO_RESISTANCE", display: "No resistance detected" },
+  { id: 3003, code: "DR_PARTIAL_MIXED_RESISTANCE", display: "Partial or mixed resistance" },
+  { id: 3004, code: "DR_INDETERMINATE", display: "Indeterminate or unsuccessful tests" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -190,6 +190,26 @@ const SubstitutionSwitchForm = (props) => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    // Validate date result received is not before sample collection date
+    if (name === "dr_date_result_received" || name === "dr_sample_collection_date") {
+      const sampleDate = name === "dr_sample_collection_date" ? value : switchSection.dr_sample_collection_date;
+      const resultDate = name === "dr_date_result_received" ? value : switchSection.dr_date_result_received;
+
+      if (sampleDate && resultDate && new Date(resultDate) < new Date(sampleDate)) {
+        setErrors((prev) => ({
+          ...prev,
+          dr_date_result_received: "Date Result Received cannot be before Sample Collection Date"
+        }));
+      } else {
+        // Clear the error if validation passes
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.dr_date_result_received;
+          return newErrors;
+        });
+      }
+    }
   };
 
   // ── New Handler Functions ──────────────────────────────────────────────────
@@ -353,15 +373,69 @@ const SubstitutionSwitchForm = (props) => {
 
   const validate = () => {
     const temp = {};
-    const anySubstitution =
-      substitution.date_new_regimen_35 ||
-      substitution.date_new_regimen_38;
-    const anySwitch =
-      switchSection.date_new_regimen_42 ||
-      switchSection.date_new_regimen_45;
-    if (!anySubstitution && !anySwitch) {
-      temp.general = "At least one substitution or switch entry must be filled.";
+
+    // Validate Visit Date
+    if (!objValues.visitDate) {
+      temp.visitDate = "Visit Date is required";
     }
+
+    // Validate Plan is selected
+    if (!objValues.plan) {
+      temp.plan = "Please select either Switch Regimen or Substitute Regimen";
+    }
+
+    // Validate Switch Regimen fields
+    if (objValues.plan === "Switch Regimen") {
+      if (!switchs.switchRegimenLine) {
+        temp.switchRegimenLine = "Switch Regimen Line is required";
+      }
+      if (!switchs.switchRegimenLineType) {
+        temp.switchRegimenLineType = "Switch Regimen Type is required";
+      }
+      if (!switchs.dateSwitched) {
+        temp.dateSwitched = "Switch Date is required";
+      }
+    }
+
+    // Validate Substitute Regimen fields
+    if (objValues.plan === "Substitute Regimen") {
+      if (!Substitutes.substituteRegimen) {
+        temp.substituteRegimen = "Substitute Regimen Line is required";
+      }
+      if (!Substitutes.substituteRegimenLineType) {
+        temp.substituteRegimenLineType = "Substitute Regimen Type is required";
+      }
+      if (!Substitutes.dateSubstituted) {
+        temp.dateSubstituted = "Substitute Date is required";
+      }
+    }
+
+    // Validate DR Genotyping dates if DR Genotyping is done
+    if (switchSection.dr_genotyping_done === "Yes") {
+      if (!switchSection.dr_sample_collection_date) {
+        temp.dr_sample_collection_date = "Sample Collection Date is required when DR Genotyping is done";
+      }
+      if (!switchSection.dr_date_result_received) {
+        temp.dr_date_result_received = "Date Result Received is required when DR Genotyping is done";
+      }
+      if (!switchSection.dr_result) {
+        temp.dr_result = "Result is required when DR Genotyping is done";
+      }
+
+      // Validate date order
+      if (switchSection.dr_sample_collection_date && switchSection.dr_date_result_received) {
+        if (new Date(switchSection.dr_date_result_received) < new Date(switchSection.dr_sample_collection_date)) {
+          temp.dr_date_result_received = "Date Result Received cannot be before Sample Collection Date";
+        }
+      }
+
+      // Validate resistant specify field
+      if ((switchSection.dr_result === "DR_RESISTANT_DETECTED" || switchSection.dr_result === "DR_PARTIAL_MIXED_RESISTANCE")
+          && !switchSection.dr_if_resistant_specify) {
+        temp.dr_if_resistant_specify = "Please specify resistance details";
+      }
+    }
+
     setErrors(temp);
     return Object.keys(temp).length === 0;
   };
@@ -371,30 +445,62 @@ const SubstitutionSwitchForm = (props) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
-      toast.error("Please fill at least one substitution or switch entry.");
+      // Show the first error message
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError || "Please fill all required fields");
       return;
     }
     setSaving(true);
     try {
-      const observationDate =
-        substitution.date_new_regimen_35 ||
-        substitution.date_new_regimen_38 ||
-        switchSection.date_new_regimen_42 ||
-        switchSection.date_new_regimen_45 ||
-        today;
+      // Determine observation date based on which form was filled
+      const observationDate = objValues.plan === "Switch Regimen"
+        ? switchs.dateSwitched
+        : Substitutes.dateSubstituted || today;
+
+      // Build clean payload with only relevant data
+      const data = {
+        plan: objValues.plan,
+        currentRegimen: objValues.currentRegimen,
+        currentRegimenLine: patientRegimenInfo?.currentregimenline || "",
+      };
+
+      // Add switch-specific data
+      if (objValues.plan === "Switch Regimen") {
+        data.switch = {
+          dateSwitched: switchs.dateSwitched,
+          reasonSwitched: switchs.reasonSwitched,
+          switchRegimenLine: switchs.switchRegimenLine,
+          switchRegimenLineType: switchs.switchRegimenLineType,
+        };
+
+        // Add DR Genotyping data if present
+        if (switchSection.dr_genotyping_done === "Yes") {
+          data.drGenotyping = {
+            done: switchSection.dr_genotyping_done,
+            sampleCollectionDate: switchSection.dr_sample_collection_date,
+            dateResultReceived: switchSection.dr_date_result_received,
+            result: switchSection.dr_result,
+            resistantSpecify: switchSection.dr_if_resistant_specify || "",
+          };
+        }
+      }
+
+      // Add substitute-specific data
+      if (objValues.plan === "Substitute Regimen") {
+        data.substitute = {
+          dateSubstituted: Substitutes.dateSubstituted,
+          reasonSubstituted: Substitutes.reasonSubstituted,
+          substituteRegimen: Substitutes.substituteRegimen,
+          substituteRegimenLineType: Substitutes.substituteRegimenLineType,
+        };
+      }
 
       const payload = {
         dateOfObservation: observationDate,
         personId: props.patientObj.id,
         type: "Substitutions and Switches",
         visitDate: objValues.visitDate,
-        data: {
-          objValues,
-          switchs,
-          Substitutes,
-          substitution,
-          switchSection,
-        },
+        data: data,
       };
       await axios.post(`${baseUrl}observation`, payload, {
         headers: { Authorization: `Bearer ${token}` },
@@ -445,6 +551,9 @@ const SubstitutionSwitchForm = (props) => {
                     required
                     onKeyPress={(e) => e.preventDefault()}
                 />
+                {errors.visitDate && (
+                  <span className={classes.error}>{errors.visitDate}</span>
+                )}
               </FormGroup>
             </div>
             <div className="form-group mb-3 col-md-6">
@@ -462,6 +571,9 @@ const SubstitutionSwitchForm = (props) => {
                   <option value="Switch Regimen">Switch Regimen</option>
                   <option value="Substitute Regimen">Substitute Regimen</option>
                 </Input>
+                {errors.plan && (
+                  <span className={classes.error}>{errors.plan}</span>
+                )}
               </FormGroup>
             </div>
           </div>
@@ -542,6 +654,9 @@ const SubstitutionSwitchForm = (props) => {
                           ))
                         }
                       </Input>
+                      {errors.switchRegimenLine && (
+                        <span className={classes.error}>{errors.switchRegimenLine}</span>
+                      )}
                     </FormGroup>
                   </div>
                   <div className="form-group mb-3 col-md-6">
@@ -562,6 +677,9 @@ const SubstitutionSwitchForm = (props) => {
                           </option>
                         ))}
                       </Input>
+                      {errors.switchRegimenLineType && (
+                        <span className={classes.error}>{errors.switchRegimenLineType}</span>
+                      )}
                     </FormGroup>
                   </div>
                   <div className="form-group mb-3 col-md-6">
@@ -672,6 +790,9 @@ const SubstitutionSwitchForm = (props) => {
                           ))
                         }
                       </Input>
+                      {errors.substituteRegimen && (
+                        <span className={classes.error}>{errors.substituteRegimen}</span>
+                      )}
                     </FormGroup>
                   </div>
                   <div className="form-group mb-3 col-md-6">
@@ -692,6 +813,9 @@ const SubstitutionSwitchForm = (props) => {
                           </option>
                         ))}
                       </Input>
+                      {errors.substituteRegimenLineType && (
+                        <span className={classes.error}>{errors.substituteRegimenLineType}</span>
+                      )}
                     </FormGroup>
                   </div>
                   <div className="form-group mb-3 col-md-6">
@@ -786,6 +910,9 @@ const SubstitutionSwitchForm = (props) => {
                         max={today}
                         onChange={handleSwitch}
                       />
+                      {errors.dr_sample_collection_date && (
+                        <span className={classes.error}>{errors.dr_sample_collection_date}</span>
+                      )}
                     </div>
                     <div className="form-group mb-3 col-md-2">
                       <SectionLabel>Date Result Received</SectionLabel>
@@ -794,7 +921,12 @@ const SubstitutionSwitchForm = (props) => {
                         name="dr_date_result_received"
                         value={switchSection.dr_date_result_received}
                         onChange={handleSwitch}
+                        min={switchSection.dr_sample_collection_date || ""}
+                        max={today}
                       />
+                      {errors.dr_date_result_received && (
+                        <span className={classes.error}>{errors.dr_date_result_received}</span>
+                      )}
                     </div>
                     <div className="form-group mb-3 col-md-3">
                       <SectionLabel>Result</SectionLabel>
@@ -806,11 +938,14 @@ const SubstitutionSwitchForm = (props) => {
                       >
                         <option value="">Select result</option>
                         {DR_RESULT_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
+                          <option key={opt.id} value={opt.code}>
+                            {opt.display}
                           </option>
                         ))}
                       </Input>
+                      {errors.dr_result && (
+                        <span className={classes.error}>{errors.dr_result}</span>
+                      )}
                     </div>
                     <div className="form-group mb-3 col-md-3">
                       <SectionLabel>If Resistant, Specify</SectionLabel>
@@ -820,8 +955,11 @@ const SubstitutionSwitchForm = (props) => {
                         value={switchSection.dr_if_resistant_specify}
                         onChange={handleSwitch}
                         placeholder="Specify resistance details..."
-                        disabled={switchSection.dr_result !== "2" && switchSection.dr_result !== "4"}
+                        disabled={switchSection.dr_result !== "DR_RESISTANT_DETECTED" && switchSection.dr_result !== "DR_PARTIAL_MIXED_RESISTANCE"}
                       />
+                      {errors.dr_if_resistant_specify && (
+                        <span className={classes.error}>{errors.dr_if_resistant_specify}</span>
+                      )}
                     </div>
                   </>
                 )}
@@ -829,8 +967,8 @@ const SubstitutionSwitchForm = (props) => {
             </div>
 
           </Box>
-          {/* ── Error Banner ─────────────────────────────────────────────────── */}
-          {errors.general && (
+          {/* ── Error Summary Banner ─────────────────────────────────────────────────── */}
+          {Object.keys(errors).length > 0 && (
             <div
               style={{
                 color: "#d32f2f",
@@ -842,7 +980,12 @@ const SubstitutionSwitchForm = (props) => {
                 border: "1px solid #ef9a9a",
               }}
             >
-              {errors.general}
+              Please fix the following errors before submitting:
+              <ul style={{ marginTop: "8px", marginBottom: "0", paddingLeft: "20px" }}>
+                {Object.values(errors).map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
             </div>
           )}
 
