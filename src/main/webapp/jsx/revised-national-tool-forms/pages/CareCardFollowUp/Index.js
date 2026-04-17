@@ -482,6 +482,7 @@ const CareCardFollowUpForm = (props) => {
   // Codesets from application
   const [yesNoCodeset, setYesNoCodeset] = useState([]);
   const [familyPlanningMethodCodeset, setFamilyPlanningMethodCodeset] = useState([]);
+  const [familyPlanningStatusCodeset, setFamilyPlanningStatusCodeset] = useState([]);
   const [whoStagingCodeset, setWhoStagingCodeset] = useState([]);
   const [pregnancyStatusCodeset, setPregnancyStatusCodeset] = useState([]);
   const [tbStatusCodeset, setTbStatusCodeset] = useState([]);
@@ -491,7 +492,9 @@ const CareCardFollowUpForm = (props) => {
   const [hepatitisCodeset, setHepatitisCodeset] = useState([]);
   const [cryptococcalCodeset, setCryptococcalCodeset] = useState([]);
   const [opportunisticInfectionCodeset, setOpportunisticInfectionCodeset] = useState([]);
+  const [arvDrugAdherenceCodeset, setArvDrugAdherenceCodeset] = useState([]);
   const [whyPoorFairAdherenceCodeset, setWhyPoorFairAdherenceCodeset] = useState([]);
+  const [paediatricAdolescentDisclosureCodeset, setPaediatricAdolescentDisclosureCodeset] = useState([]);
   const [functionalStatusCodeset, setFunctionalStatusCodeset] = useState([]);
   const [dsdStatusCodeset, setDsdStatusCodeset] = useState([]);
   const [dsdModelFacilityCodeset, setDsdModelFacilityCodeset] = useState([]);
@@ -522,6 +525,7 @@ const CareCardFollowUpForm = (props) => {
         const params = new URLSearchParams();
         params.append('codes', 'YES_NO_OUTBREAK');
         params.append('codes', 'FAMILY_PLANNING_METHOD');
+        params.append('codes', 'FAMILY_PLANNING_STATUS');
         params.append('codes', 'WHO_STAGING_CRITERIA');
         params.append('codes', 'PREGNANCY_STATUS');
         params.append('codes', 'TB_STATUS');
@@ -531,7 +535,9 @@ const CareCardFollowUpForm = (props) => {
         params.append('codes', 'HEPATITIS_SCREENING_RESULT');
         params.append('codes', 'CRYPTOCOCCAL_SCREENING_STATUS');
         params.append('codes', 'OPPORTUNISTIC_INFECTION_ILLNESS');
+        params.append('codes', 'ARV_DRUG_ADHERENCE');
         params.append('codes', 'WHY_POOR_FAIR_ADHERENCE');
+        params.append('codes', 'PEDIATRIC_ADOLESCENT_DISCLOSURE_STATUS');
         params.append('codes', 'FUNCTIONAL _STATUS');
         params.append('codes', 'DSD_STATUS');
         params.append('codes', 'DSD_MODEL_FACILITY');
@@ -552,6 +558,7 @@ const CareCardFollowUpForm = (props) => {
 
         setYesNoCodeset(data.YES_NO_OUTBREAK || []);
         setFamilyPlanningMethodCodeset(data.FAMILY_PLANNING_METHOD || []);
+        setFamilyPlanningStatusCodeset(data.FAMILY_PLANNING_STATUS || []);
         setWhoStagingCodeset(data.WHO_STAGING_CRITERIA || []);
         setPregnancyStatusCodeset(data.PREGNANCY_STATUS || []);
         setTbStatusCodeset(data.TB_STATUS || []);
@@ -561,7 +568,9 @@ const CareCardFollowUpForm = (props) => {
         setHepatitisCodeset(data.HEPATITIS_SCREENING_RESULT || []);
         setCryptococcalCodeset(data.CRYPTOCOCCAL_SCREENING_STATUS || []);
         setOpportunisticInfectionCodeset(data.OPPORTUNISTIC_INFECTION_ILLNESS || []);
+        setArvDrugAdherenceCodeset(data.ARV_DRUG_ADHERENCE || []);
         setWhyPoorFairAdherenceCodeset(data.WHY_POOR_FAIR_ADHERENCE || []);
+        setPaediatricAdolescentDisclosureCodeset(data.PEDIATRIC_ADOLESCENT_DISCLOSURE_STATUS || []);
         setFunctionalStatusCodeset(data['FUNCTIONAL _STATUS'] || []);
         setDsdStatusCodeset(data.DSD_STATUS || []);
         setDsdModelFacilityCodeset(data.DSD_MODEL_FACILITY || []);
@@ -811,9 +820,9 @@ const CareCardFollowUpForm = (props) => {
       updatedVitals.bmi_muac = calculateBmiMuac(newHeight, newWeight);
     }
 
-    // Clear "On Family Planning" when Family Planning Status changes to No/Unknown
+    // Clear "On Family Planning" when Family Planning Status changes to not "on family planning"
     if (name === "family_planning_status") {
-      if (value !== "YES_NO_OUTBREAK_YES" && !value?.endsWith("_YES")) {
+      if (value !== "FAMILY_PLANNING_STATUS_ON_FAMILY_PLANNING") {
         updatedVitals.on_family_planning = "";
       }
     }
@@ -1129,8 +1138,8 @@ const CareCardFollowUpForm = (props) => {
 
   // Get adherence display name
   const getAdherenceDisplay = (adherenceCode) => {
-    const adherence = ADHERENCE_OPTIONS.find((o) => o.value === adherenceCode);
-    return adherence ? adherence.label : "";
+    const adherence = arvDrugAdherenceCodeset.find((o) => o.code === adherenceCode);
+    return adherence ? adherence.display : "";
   };
 
   // Handle regimen line selection and fetch regimen types
@@ -1580,7 +1589,7 @@ const CareCardFollowUpForm = (props) => {
                     <SectionLabel>Family Planning Status</SectionLabel>
                     <Input type="select" name="family_planning_status" value={vitals.family_planning_status} onChange={handleVitals}>
                       <option value="">Select</option>
-                      {yesNoCodeset.map((option) => (
+                      {familyPlanningStatusCodeset.map((option) => (
                         <option key={option.id} value={option.code}>
                           {option.display}
                         </option>
@@ -1588,8 +1597,7 @@ const CareCardFollowUpForm = (props) => {
                     </Input>
                   </Col>
                 </FieldRow>
-                {(vitals.family_planning_status === "YES_NO_OUTBREAK_YES" ||
-                  vitals.family_planning_status?.endsWith("_YES")) && (
+                {vitals.family_planning_status === "FAMILY_PLANNING_STATUS_ON_FAMILY_PLANNING" && (
                   <FieldRow>
                     <Col size={6}>
                       <SectionLabel>On Family Planning</SectionLabel>
@@ -1674,7 +1682,7 @@ const CareCardFollowUpForm = (props) => {
                 <SectionLabel>Paediatric and Adolescent Disclosure</SectionLabel>
                 <Input type="select" name="paediatric_disclosure" value={clinical.paediatric_disclosure} onChange={handleClinical}>
                   <option value="">Select</option>
-                  {PAEDIATRIC_DISCLOSURE_OPTIONS.map((option) => (
+                  {paediatricAdolescentDisclosureCodeset.map((option) => (
                     <option key={option.id} value={option.code}>
                       {option.display}
                     </option>
@@ -2041,9 +2049,9 @@ const CareCardFollowUpForm = (props) => {
                       onChange={handleAddModalChange}
                     >
                       <option value="">Select</option>
-                      {ADHERENCE_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
+                      {arvDrugAdherenceCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
                         </option>
                       ))}
                     </Input>
@@ -2161,9 +2169,9 @@ const CareCardFollowUpForm = (props) => {
                       onChange={handleEditModalChange}
                     >
                       <option value="">Select</option>
-                      {ADHERENCE_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
+                      {arvDrugAdherenceCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
                         </option>
                       ))}
                     </Input>
