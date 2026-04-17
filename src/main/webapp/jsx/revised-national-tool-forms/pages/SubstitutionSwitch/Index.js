@@ -97,6 +97,7 @@ const SubstitutionSwitchForm = (props) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const isViewMode = props.activeContent && props.activeContent.actionType === "view";
 
   // ── New State Variables ────────────────────────────────────────────────────
   const [objValues, setObjValues] = useState({
@@ -355,6 +356,88 @@ const SubstitutionSwitchForm = (props) => {
     return age;
   };
 
+  // ── Load existing record for view/update ───────────────────────────────────
+  useEffect(() => {
+    if (props.activeContent && props.activeContent.id && props.activeContent.actionType !== "create") {
+      axios
+        .get(`${baseUrl}observation/${props.activeContent.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((response) => {
+          const record = response.data;
+          const data = record.data;
+
+          // Set visit date - format to YYYY-MM-DD
+          const formattedVisitDate = record.dateOfObservation
+            ? moment(record.dateOfObservation).format("YYYY-MM-DD")
+            : "";
+
+          setObjValues((prev) => ({
+            ...prev,
+            visitDate: formattedVisitDate,
+            plan: data.plan || "",
+            currentRegimen: data.currentRegimen || "",
+          }));
+
+          // Load switch data
+          if (data.plan === "Switch Regimen" && data.switch) {
+            setSwitchs({
+              currentRegimen: data.currentRegimen || "",
+              dateSwitched: data.switch.dateSwitched
+                ? moment(data.switch.dateSwitched).format("YYYY-MM-DD")
+                : "",
+              reasonSwitched: data.switch.reasonSwitched || "",
+              switchRegimenLine: data.switch.switchRegimenLine || "",
+              switchRegimenLineType: data.switch.switchRegimenLineType || ""
+            });
+
+            // Load regimen types for the selected switch regimen line
+            if (data.switch.switchRegimenLine) {
+              RegimenType(data.switch.switchRegimenLine);
+            }
+
+            // Load DR Genotyping data if exists
+            if (data.drGenotyping) {
+              setSwitchSection((prev) => ({
+                ...prev,
+                dr_genotyping_done: data.drGenotyping.done || "",
+                dr_sample_collection_date: data.drGenotyping.sampleCollectionDate
+                  ? moment(data.drGenotyping.sampleCollectionDate).format("YYYY-MM-DD")
+                  : "",
+                dr_date_result_received: data.drGenotyping.dateResultReceived
+                  ? moment(data.drGenotyping.dateResultReceived).format("YYYY-MM-DD")
+                  : "",
+                dr_result: data.drGenotyping.result || "",
+                dr_if_resistant_specify: data.drGenotyping.resistantSpecify || "",
+              }));
+            }
+          }
+
+          // Load substitute data
+          if (data.plan === "Substitute Regimen" && data.substitute) {
+            setSubstitutes({
+              currentRegimen: data.currentRegimen || "",
+              substituteRegimen: data.substitute.substituteRegimen || "",
+              dateSubstituted: data.substitute.dateSubstituted
+                ? moment(data.substitute.dateSubstituted).format("YYYY-MM-DD")
+                : "",
+              reasonSubstituted: data.substitute.reasonSubstituted || "",
+              substituteRegimenLineType: data.substitute.substituteRegimenLineType || "",
+            });
+
+            // Load regimen types for the selected substitute regimen line
+            if (data.substitute.substituteRegimen) {
+              RegimenType(data.substitute.substituteRegimen);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading record:", error);
+          toast.error("Failed to load record");
+        });
+    }
+  }, [props.activeContent]);
+
   // ── useEffect ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (props.patientObj && props.patientObj.id && props.patientObj.personUuid) {
@@ -502,10 +585,22 @@ const SubstitutionSwitchForm = (props) => {
         visitDate: objValues.visitDate,
         data: data,
       };
-      await axios.post(`${baseUrl}observation`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success("Substitution / Switch record saved successfully");
+
+      // Check if update or create
+      if (props.activeContent && props.activeContent.id && props.activeContent.actionType === "update") {
+        // Update existing record
+        await axios.put(`${baseUrl}observation/${props.activeContent.id}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Substitution / Switch record updated successfully");
+      } else {
+        // Create new record
+        await axios.post(`${baseUrl}observation`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        toast.success("Substitution / Switch record saved successfully");
+      }
+
       props.setActiveContent({ ...props.activeContent, route: "recent-history" });
     } catch (err) {
       const msg =
@@ -549,6 +644,7 @@ const SubstitutionSwitchForm = (props) => {
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
                     required
+                    disabled={isViewMode}
                     onKeyPress={(e) => e.preventDefault()}
                 />
                 {errors.visitDate && (
@@ -566,6 +662,7 @@ const SubstitutionSwitchForm = (props) => {
                     value={objValues.plan}
                     onChange={handleInputChange}
                     style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
+                    disabled={isViewMode}
                 >
                   <option value="">Select</option>
                   <option value="Switch Regimen">Switch Regimen</option>
@@ -623,6 +720,7 @@ const SubstitutionSwitchForm = (props) => {
                         value={switchs.switchRegimenLine}
                         onChange={handleSelectedRegimen}
                         style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                        disabled={isViewMode}
                       >
                         <option value="">Select</option>
                         {regimenLine
@@ -669,6 +767,7 @@ const SubstitutionSwitchForm = (props) => {
                         value={switchs.switchRegimenLineType}
                         onChange={handleInputSwitchChange}
                         style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                        disabled={isViewMode}
                       >
                         <option value="">Select</option>
                         {regimenLineLineType && regimenLineLineType.length > 0 && regimenLineLineType.map((value) => (
@@ -695,6 +794,7 @@ const SubstitutionSwitchForm = (props) => {
                         max={moment(new Date()).format("YYYY-MM-DD")}
                         style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
                         required
+                        disabled={isViewMode}
                         onKeyPress={(e) => e.preventDefault()}
                       />
                       {errors.dateSwitched && (
@@ -712,6 +812,7 @@ const SubstitutionSwitchForm = (props) => {
                         value={switchs.reasonSwitched}
                         onChange={handleInputSwitchChange}
                         style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                        disabled={isViewMode}
                       />
                     </FormGroup>
                   </div>
@@ -763,6 +864,7 @@ const SubstitutionSwitchForm = (props) => {
                         value={Substitutes.substituteRegimen}
                         onChange={handleSelectedSubstituteRegimen}
                         style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                        disabled={isViewMode}
                       >
                         <option value="">Select</option>
                         {regimenLine
@@ -805,6 +907,7 @@ const SubstitutionSwitchForm = (props) => {
                         value={Substitutes.substituteRegimenLineType}
                         onChange={handleSelectedSubstituteRegimen}
                         style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                        disabled={isViewMode}
                       >
                         <option value="">Select</option>
                         {regimenLineLineType && regimenLineLineType.length > 0 && regimenLineLineType.map((value) => (
@@ -831,6 +934,7 @@ const SubstitutionSwitchForm = (props) => {
                         max={moment(new Date()).format("YYYY-MM-DD")}
                         style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
                         required
+                        disabled={isViewMode}
                         onKeyPress={(e) => e.preventDefault()}
                       />
                       {errors.dateSubstituted && (
@@ -848,6 +952,7 @@ const SubstitutionSwitchForm = (props) => {
                         value={Substitutes.reasonSubstituted}
                         onChange={handleSelectedSubstituteRegimen}
                         style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+                        disabled={isViewMode}
                       />
                     </FormGroup>
                   </div>
@@ -892,6 +997,7 @@ const SubstitutionSwitchForm = (props) => {
                     name="dr_genotyping_done"
                     value={switchSection.dr_genotyping_done}
                     onChange={handleSwitch}
+                    disabled={isViewMode}
                   >
                     <option value="">Select</option>
                     <option value="Yes">Yes</option>
@@ -909,6 +1015,7 @@ const SubstitutionSwitchForm = (props) => {
                         value={switchSection.dr_sample_collection_date}
                         max={today}
                         onChange={handleSwitch}
+                        disabled={isViewMode}
                       />
                       {errors.dr_sample_collection_date && (
                         <span className={classes.error}>{errors.dr_sample_collection_date}</span>
@@ -923,6 +1030,7 @@ const SubstitutionSwitchForm = (props) => {
                         onChange={handleSwitch}
                         min={switchSection.dr_sample_collection_date || ""}
                         max={today}
+                        disabled={isViewMode}
                       />
                       {errors.dr_date_result_received && (
                         <span className={classes.error}>{errors.dr_date_result_received}</span>
@@ -935,6 +1043,7 @@ const SubstitutionSwitchForm = (props) => {
                         name="dr_result"
                         value={switchSection.dr_result}
                         onChange={handleSwitch}
+                        disabled={isViewMode}
                       >
                         <option value="">Select result</option>
                         {DR_RESULT_OPTIONS.map((opt) => (
@@ -955,7 +1064,7 @@ const SubstitutionSwitchForm = (props) => {
                         value={switchSection.dr_if_resistant_specify}
                         onChange={handleSwitch}
                         placeholder="Specify resistance details..."
-                        disabled={switchSection.dr_result !== "DR_RESISTANT_DETECTED" && switchSection.dr_result !== "DR_PARTIAL_MIXED_RESISTANCE"}
+                        disabled={isViewMode || (switchSection.dr_result !== "DR_RESISTANT_DETECTED" && switchSection.dr_result !== "DR_PARTIAL_MIXED_RESISTANCE")}
                       />
                       {errors.dr_if_resistant_specify && (
                         <span className={classes.error}>{errors.dr_if_resistant_specify}</span>
@@ -1009,18 +1118,22 @@ const SubstitutionSwitchForm = (props) => {
               }
               type="button"
             >
-              <span style={{ textTransform: "capitalize" }}>Cancel</span>
+              <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>{isViewMode ? "Close" : "Cancel"}</span>
             </MatButton>
-            <MatButton
-              type="submit"
-              variant="contained"
-              className={classes.button}
-              startIcon={<SaveIcon />}
-              style={{ backgroundColor: "#014d88" }}
-              disabled={saving}
-            >
-              <span style={{ textTransform: "capitalize" }}>{saving ? "Saving..." : "Save"}</span>
-            </MatButton>
+            {!isViewMode && (
+              <MatButton
+                type="submit"
+                variant="contained"
+                className={classes.button}
+                startIcon={<SaveIcon style={{ color: "#fff" }} />}
+                style={{ backgroundColor: "#014d88" }}
+                disabled={saving}
+              >
+                <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>
+                  {saving ? "Saving..." : props.activeContent.actionType === "update" ? "Update" : "Save"}
+                </span>
+              </MatButton>
+            )}
           </div>
         </form>
       </CardContent>

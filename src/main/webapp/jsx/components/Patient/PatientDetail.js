@@ -638,6 +638,20 @@ function PatientCard(props) {
               activeContent={activeContent}
             />
           )}
+          {activeContent.route === "substitution-switch-view" && (
+            <SubstitutionSwitchForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
+          {activeContent.route === "substitution-switch-update" && (
+            <SubstitutionSwitchForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
           {activeContent.route === "integrated-lab-order" && (
             <IntegratedLabOrderForm
               patientObj={patientObj}

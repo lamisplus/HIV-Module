@@ -395,6 +395,15 @@ const RecentHistory = (props) => {
         actionType: action,
       });
     }
+    else if (row.path === "Substitutions-and-Switches") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: action === "view" ? "substitution-switch-view" : "substitution-switch-update",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
+    }
     else {
     }
   };
@@ -871,6 +880,31 @@ const RecentHistory = (props) => {
         })
         .then((response) => {
           toast.success("Initial Clinical Evaluation record deleted successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
+    } else if (row.path === "Substitutions-and-Switches") {
+      setSaving(true);
+      axios
+        .delete(`${baseUrl}observation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("Substitution / Switch record deleted successfully");
           RecentActivities();
           toggle();
           setSaving(false);
