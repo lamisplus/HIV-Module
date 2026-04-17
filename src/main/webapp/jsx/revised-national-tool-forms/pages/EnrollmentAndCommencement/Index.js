@@ -141,21 +141,32 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
     <Accordion
       expanded={isOpen}
       onChange={() => onToggle(panel)}
+      disableGutters
       sx={{
+        width: "100%",
         marginBottom: "12px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         borderRadius: "8px !important",
-        "&:before": { display: "none" },
+        "&:before": { display: "none !important" },
         border: "1px solid #014d88",
+        overflow: "visible",
+        position: "relative",
+        zIndex: 1,
       }}
     >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
+        aria-controls={`${panel}-content`}
+        id={`${panel}-header`}
         sx={{
-          backgroundColor: "#014d88",
+          backgroundColor: "#014d88 !important",
           borderRadius: isOpen ? "8px 8px 0 0" : "8px",
-          minHeight: "52px",
-          "& .MuiAccordionSummary-content": { margin: "0" },
+          minHeight: "52px !important",
+          height: "auto !important",
+          padding: "0 16px !important",
+          "& .MuiAccordionSummary-content": {
+            margin: "16px 0 !important",
+          },
         }}
       >
         <Typography
