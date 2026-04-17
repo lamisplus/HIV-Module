@@ -242,6 +242,11 @@ const CareCardVisitDetails = ({
           <Grid item xs={12} md={4}>
             {renderField("TB Status", formatCodeToDisplay(visit.tbStatus))}
           </Grid>
+          {visit.tbStatus === "TB_STATUS_CONFIRMED_TB" && visit.tbStatusConfirmed && (
+            <Grid item xs={12} md={4}>
+              {renderField("Confirmed TB", formatCodeToDisplay(visit.tbStatusConfirmed))}
+            </Grid>
+          )}
           <Grid item xs={12} md={6}>
             {renderField("Paediatric Disclosure", formatCodeToDisplay(visit.paediatricDisclosure))}
           </Grid>

@@ -182,19 +182,6 @@ const EAC_OPTIONS = [
   "Additional EAC",
 ];
 
-const TYPE_OF_APPOINTMENT_OPTIONS = [
-  { id: 4000, code: "TYPE_OF_APPOINTMENT_CONDUCT", display: "Conduct" },
-  { id: 4001, code: "TYPE_OF_APPOINTMENT_HOSPITALISED", display: "Hospitalised" },
-  { id: 4002, code: "TYPE_OF_APPOINTMENT_REFER", display: "Refer" },
-];
-
-const HEALTH_INSURANCE_OPTIONS = [
-  { id: 5000, code: "HEALTH_INSURANCE_NHIA", display: "NHIA" },
-  { id: 5001, code: "HEALTH_INSURANCE_BHCPF", display: "BHCPF" },
-  { id: 5002, code: "HEALTH_INSURANCE_SHIA", display: "SHIA" },
-  { id: 5003, code: "HEALTH_INSURANCE_PRIVATE_HMO", display: "Private Insurance -HMO" },
-];
-
 // Single system color — matches #014d88 used throughout the application
 const ACCORDION_STYLES = [
   { bg: "#014d88" },
@@ -494,6 +481,7 @@ const CareCardFollowUpForm = (props) => {
   const [whoStagingCodeset, setWhoStagingCodeset] = useState([]);
   const [pregnancyStatusCodeset, setPregnancyStatusCodeset] = useState([]);
   const [tbStatusCodeset, setTbStatusCodeset] = useState([]);
+  const [tbStatusConfirmedCodeset, setTbStatusConfirmedCodeset] = useState([]);
   const [cervicalCancerCodeset, setCervicalCancerCodeset] = useState([]);
   const [cervicalCancerTreatmentCodeset, setCervicalCancerTreatmentCodeset] = useState([]);
   const [hepatitisCodeset, setHepatitisCodeset] = useState([]);
@@ -506,6 +494,8 @@ const CareCardFollowUpForm = (props) => {
   const [labOrderIndicationCodeset, setLabOrderIndicationCodeset] = useState([]);
   const [labTestGroups, setLabTestGroups] = useState([]);
   const [labTestOptions, setLabTestOptions] = useState([]);
+  const [typeOfAppointmentCodeset, setTypeOfAppointmentCodeset] = useState([]);
+  const [healthInsuranceCoverageCodeset, setHealthInsuranceCoverageCodeset] = useState([]);
 
   // Regimen data from API
   const [adultRegimenLine, setAdultRegimenLine] = useState([]);
@@ -529,6 +519,7 @@ const CareCardFollowUpForm = (props) => {
         params.append('codes', 'WHO_STAGING_CRITERIA');
         params.append('codes', 'PREGNANCY_STATUS');
         params.append('codes', 'TB_STATUS');
+        params.append('codes', 'TB_STAUS_CONFIRMED');
         params.append('codes', 'CERVICAL_CANCER_SCREENING_STATUS');
         params.append('codes', 'CERVICAL_CANCER_TREATMENT');
         params.append('codes', 'HEPATITIS_SCREENING_RESULT');
@@ -539,6 +530,8 @@ const CareCardFollowUpForm = (props) => {
         params.append('codes', 'DSD_MODEL_FACILITY');
         params.append('codes', 'DSD_MODEL_COMMUNITY');
         params.append('codes', 'LAB_ORDER_INDICATION');
+        params.append('codes', 'Consult Hospitalise Refer');
+        params.append('codes', 'HEALTH_INSURANCE_COVERAGE');
 
         const response = await axios.get(
           `${baseUrl}application-codesets/v2/codeSets?${params}`,
@@ -554,6 +547,7 @@ const CareCardFollowUpForm = (props) => {
         setWhoStagingCodeset(data.WHO_STAGING_CRITERIA || []);
         setPregnancyStatusCodeset(data.PREGNANCY_STATUS || []);
         setTbStatusCodeset(data.TB_STATUS || []);
+        setTbStatusConfirmedCodeset(data.TB_STAUS_CONFIRMED || []);
         setCervicalCancerCodeset(data.CERVICAL_CANCER_SCREENING_STATUS || []);
         setCervicalCancerTreatmentCodeset(data.CERVICAL_CANCER_TREATMENT || []);
         setHepatitisCodeset(data.HEPATITIS_SCREENING_RESULT || []);
@@ -564,6 +558,8 @@ const CareCardFollowUpForm = (props) => {
         setDsdModelFacilityCodeset(data.DSD_MODEL_FACILITY || []);
         setDsdModelCommunityCodeset(data.DSD_MODEL_COMMUNITY || []);
         setLabOrderIndicationCodeset(data.LAB_ORDER_INDICATION || []);
+        setTypeOfAppointmentCodeset(data['Consult Hospitalise Refer'] || []);
+        setHealthInsuranceCoverageCodeset(data.HEALTH_INSURANCE_COVERAGE || []);
       } catch (error) {
         console.error("Error fetching codesets:", error);
         toast.error("Failed to load form options. Please refresh.");
@@ -660,6 +656,7 @@ const CareCardFollowUpForm = (props) => {
         who_stage: whoStageCode,
         who_stage_criteria: visit.whoStageCriteria || [],
         tb_status: visit.tbStatus || "",
+        tb_status_confirmed: visit.tbStatusConfirmed || "",
         cryptococcal_status: visit.cryptococcalScreeningStatus || "",
         hepatitis_status: visit.hepatitisScreeningResult || "",
         oral_problems: visit.opportunisticInfections ? visit.opportunisticInfections.map(oi => ({ value: oi.code, label: oi.display })) : [],
@@ -820,6 +817,7 @@ const CareCardFollowUpForm = (props) => {
     who_stage: "",
     who_stage_criteria: [],
     tb_status: "",
+    tb_status_confirmed: "",
     cryptococcal_status: "",
     hepatitis_status: "",
     oral_problems: [],
@@ -847,6 +845,14 @@ const CareCardFollowUpForm = (props) => {
         dsd_model: "", // Clear DSD model when status changes
         date_devolved: shouldClearDate ? "" : prev.date_devolved // Clear date if not facility/community
       }));
+    } else if (name === "tb_status") {
+      // Clear tb_status_confirmed when tb_status changes away from "Confirmed TB"
+      const isConfirmedTB = value === "TB_STATUS_CONFIRMED_TB";
+      setClinical((prev) => ({
+        ...prev,
+        tb_status: value,
+        tb_status_confirmed: isConfirmedTB ? prev.tb_status_confirmed : "",
+      }));
     } else {
       setClinical((prev) => ({ ...prev, [name]: value }));
     }
@@ -871,6 +877,18 @@ const CareCardFollowUpForm = (props) => {
   // ── Cervical Cancer (Female patients only) ───────────────────────────────
   const [cervical_cancer_screening, setCervicalCancer] = useState("");
   const [cervical_cancer_treatment, setCervicalCancerTreatment] = useState("");
+
+  // Handle cervical cancer screening change - clear treatment if not "Screened positive & treated"
+  const handleCervicalCancerScreeningChange = (e) => {
+    const value = e.target.value;
+    const isTreated = value === "CERVICAL_CANCER_SCREENING_STATUS_SCREENED_POSITIVE_&_TREATED";
+    setCervicalCancer(value);
+
+    // Clear treatment if screening status is not "Screened positive & treated"
+    if (!isTreated) {
+      setCervicalCancerTreatment("");
+    }
+  };
 
   // ── Section 4: Medications ───────────────────────────────────────────────
   const [arvList, setArvList] = useState([]);
@@ -1370,6 +1388,7 @@ const CareCardFollowUpForm = (props) => {
         viralLoadOrder: viralLoadOrder,
         opportunisticInfections: opportunisticInfections,
         tbStatus: clinical.tb_status || "",
+        tbStatusConfirmed: clinical.tb_status_confirmed || "",
         cryptococcalScreeningStatus: clinical.cryptococcal_status || "",
         cervicalCancerScreeningStatus: isFemale ? cervical_cancer_screening : "",
         cervicalCancerTreatmentProvided: isFemale ? cervical_cancer_treatment : "",
@@ -1679,6 +1698,23 @@ const CareCardFollowUpForm = (props) => {
               </Col>
             </FieldRow>
 
+            {/* Confirmed TB - Conditional Field */}
+            {clinical.tb_status === "TB_STATUS_CONFIRMED_TB" && (
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel>Confirmed TB</SectionLabel>
+                  <Input type="select" name="tb_status_confirmed" value={clinical.tb_status_confirmed} onChange={handleClinical}>
+                    <option value="">Select</option>
+                    {tbStatusConfirmedCodeset.map((option) => (
+                      <option key={option.id} value={option.code}>
+                        {option.display}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
+              </FieldRow>
+            )}
+
             {/* WHO Stage Criteria - Conditional Transfer List */}
             {clinical.who_stage && WHO_STAGE_CRITERIA_OPTIONS[clinical.who_stage] && (
               <TransferList
@@ -1720,7 +1756,7 @@ const CareCardFollowUpForm = (props) => {
                   <Input
                     type="select"
                     value={cervical_cancer_screening}
-                    onChange={(e) => setCervicalCancer(e.target.value)}
+                    onChange={handleCervicalCancerScreeningChange}
                   >
                     <option value="">Select</option>
                     {cervicalCancerCodeset.map((option) => (
@@ -1730,21 +1766,25 @@ const CareCardFollowUpForm = (props) => {
                     ))}
                   </Input>
                 </Col>
-                <Col size={6}>
-                  <SectionLabel>Cervical Cancer Treatment</SectionLabel>
-                  <Input
-                    type="select"
-                    value={cervical_cancer_treatment}
-                    onChange={(e) => setCervicalCancerTreatment(e.target.value)}
-                  >
-                    <option value="">Select</option>
-                    {cervicalCancerTreatmentCodeset.map((option) => (
-                      <option key={option.id} value={option.code}>
-                        {option.display}
-                      </option>
-                    ))}
-                  </Input>
-                </Col>
+
+                {/* Cervical Cancer Treatment - Conditional Field (beside status) */}
+                {cervical_cancer_screening === "CERVICAL_CANCER_SCREENING_STATUS_SCREENED_POSITIVE_&_TREATED" && (
+                  <Col size={6}>
+                    <SectionLabel>Cervical Cancer Treatment</SectionLabel>
+                    <Input
+                      type="select"
+                      value={cervical_cancer_treatment}
+                      onChange={(e) => setCervicalCancerTreatment(e.target.value)}
+                    >
+                      <option value="">Select</option>
+                      {cervicalCancerTreatmentCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+                )}
               </FieldRow>
             )}
             <FieldRow>
@@ -2366,7 +2406,7 @@ const CareCardFollowUpForm = (props) => {
                 <SectionLabel>Type of Appointment</SectionLabel>
                 <Input type="select" name="type_of_appointment" value={lab.type_of_appointment} onChange={handleLab}>
                   <option value="">Select</option>
-                  {TYPE_OF_APPOINTMENT_OPTIONS.map((option) => (
+                  {typeOfAppointmentCodeset.map((option) => (
                     <option key={option.id} value={option.code}>
                       {option.display}
                     </option>
@@ -2383,7 +2423,7 @@ const CareCardFollowUpForm = (props) => {
                 <SectionLabel>Currently on any health insurance coverage</SectionLabel>
                 <Input type="select" name="health_insurance_coverage" value={followUp.health_insurance_coverage} onChange={handleFollowUp}>
                   <option value="">Select</option>
-                  {HEALTH_INSURANCE_OPTIONS.map((option) => (
+                  {healthInsuranceCoverageCodeset.map((option) => (
                     <option key={option.id} value={option.code}>
                       {option.display}
                     </option>
