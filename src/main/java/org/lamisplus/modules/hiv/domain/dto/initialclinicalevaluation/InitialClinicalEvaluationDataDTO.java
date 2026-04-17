@@ -37,7 +37,7 @@ public class InitialClinicalEvaluationDataDTO implements Serializable {
     @Valid
     private PregnancyDTO pregnancy;
 
-    private List<String> currentMeds;
+    private Object currentMeds;  // Can be List<String> (old format) or Map with codes and otherText (new format)
 
     private List<String> disclosure;
 

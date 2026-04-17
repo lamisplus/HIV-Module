@@ -323,8 +323,9 @@ public class InitialClinicalEvaluationService {
         dataDTO.setPregnancy(evaluation.getPregnancy() != null ?
                 objectMapper.convertValue(evaluation.getPregnancy(), PregnancyDTO.class) : null);
 
+        // Handle currentMeds: can be List<String> (old format) or Map with codes and otherText (new format)
         dataDTO.setCurrentMeds(evaluation.getCurrentMedications() != null ?
-                objectMapper.convertValue(evaluation.getCurrentMedications(), new TypeReference<List<String>>() {}) : null);
+                objectMapper.convertValue(evaluation.getCurrentMedications(), Object.class) : null);
 
         dataDTO.setDisclosure(evaluation.getDisclosure() != null ?
                 objectMapper.convertValue(evaluation.getDisclosure(), new TypeReference<List<String>>() {}) : null);

@@ -769,8 +769,8 @@ const InitialClinicalEvaluationForm = (props) => {
       params.append('codes', 'PHYSICAL_EXAM_ASSESSMENT');
       params.append('codes', 'ENROLL_IN');
       params.append('codes', 'PLAN_FOR_ART');
-      params.append('codes', 'PERSON_CONTACTED');
-      params.append('codes', 'HIVST_KIT_USER');
+      params.append('codes', 'CURRENT_MEDICATIONS');
+      params.append('codes', 'PATIENT_HIV_STATUS_DISCLOSURE');
 
       const response = await axios.get(
         `${baseUrl}application-codesets/v2/codeSets?${params}`,
@@ -787,8 +787,8 @@ const InitialClinicalEvaluationForm = (props) => {
         assessment: response.data.PHYSICAL_EXAM_ASSESSMENT || [],
         enrollIn: response.data.ENROLL_IN || [],
         planForArt: response.data.PLAN_FOR_ART || [],
-        currentMedications: response.data.PERSON_CONTACTED || [],
-        patientDiscloseStatus: response.data.HIVST_KIT_USER || [],
+        currentMedications: response.data.CURRENT_MEDICATIONS || [],
+        patientDiscloseStatus: response.data.PATIENT_HIV_STATUS_DISCLOSURE || [],
       });
     } catch (error) {
       console.error("Error fetching codesets:", error);
@@ -901,9 +901,18 @@ const InitialClinicalEvaluationForm = (props) => {
           });
         }
 
-        // Current Medications
-        if (Array.isArray(formData.currentMeds)) {
-          setCurrentMeds(formData.currentMeds);
+        // Current Medications - handle both old format (array) and new format (object)
+        if (formData.currentMeds) {
+          if (Array.isArray(formData.currentMeds)) {
+            // Old format: convert array to new object structure
+            setCurrentMeds({ codes: formData.currentMeds, otherText: formData.currentMedsOtherText || "" });
+          } else if (typeof formData.currentMeds === 'object') {
+            // New format: use object directly
+            setCurrentMeds({
+              codes: formData.currentMeds.codes || [],
+              otherText: formData.currentMeds.otherText || ""
+            });
+          }
         }
 
         // Disclosure
@@ -1157,13 +1166,20 @@ const InitialClinicalEvaluationForm = (props) => {
     }
   };
 
-  const [currentMeds, setCurrentMeds] = useState([]);  // Array of selected medication codes
+  const [currentMeds, setCurrentMeds] = useState({ codes: [], otherText: "" });  // Object with codes array and otherText
 
   const handleMedsCheckbox = (code, checked) => {
     setCurrentMeds((prev) => {
-      return checked
-        ? [...prev, code]  // Add code if checked
-        : prev.filter((item) => item !== code);  // Remove code if unchecked
+      const updatedCodes = checked
+        ? [...prev.codes, code]  // Add code if checked
+        : prev.codes.filter((item) => item !== code);  // Remove code if unchecked
+
+      // Clear "Other (specify)" text if "Other" option is unchecked
+      const otherText = (!checked && code === 'CURRENT_MEDICATIONS_OTHER_(SPECIFY)')
+        ? ""
+        : prev.otherText;
+
+      return { codes: updatedCodes, otherText };
     });
   };
 
@@ -1498,8 +1514,19 @@ const InitialClinicalEvaluationForm = (props) => {
     // Pregnancy
     if (data.pregnancy && isFemale) setPregnancy(data.pregnancy);
 
-    // Current Medications
-    if (data.currentMeds) setCurrentMeds(data.currentMeds);
+    // Current Medications - handle both old format (array) and new format (object)
+    if (data.currentMeds) {
+      if (Array.isArray(data.currentMeds)) {
+        // Old format: convert array to new object structure
+        setCurrentMeds({ codes: data.currentMeds, otherText: data.currentMedsOtherText || "" });
+      } else if (typeof data.currentMeds === 'object') {
+        // New format: use object directly
+        setCurrentMeds({
+          codes: data.currentMeds.codes || [],
+          otherText: data.currentMeds.otherText || ""
+        });
+      }
+    }
 
     // Disclosure
     if (data.disclosure) setDisclosure(data.disclosure);
@@ -1647,6 +1674,12 @@ const InitialClinicalEvaluationForm = (props) => {
     }
 
     if (!knownDrugAllergies || knownDrugAllergies.trim() === "") temp.knownDrugAllergies = "Known Drug Allergies is required";
+
+    // Validate current medications "Other (specify)" text if "Other" option is selected
+    const hasOtherMedication = currentMeds.codes && currentMeds.codes.some(code => code === 'CURRENT_MEDICATIONS_OTHER_(SPECIFY)');
+    if (hasOtherMedication && (!currentMeds.otherText || currentMeds.otherText.trim() === "")) {
+      temp.currentMedsOtherText = "Please specify other medication details";
+    }
 
     // Validate disclosure "Other (specify)" text if "Other" option is selected
     const hasOtherDisclosure = disclosure.some(code => code.toLowerCase().includes('other') || code === 'OTHER');
@@ -2024,18 +2057,54 @@ const InitialClinicalEvaluationForm = (props) => {
             </FieldRow>
             <FieldRow>
               <Col size={12}>
-                {Array.isArray(evalData.currentMeds) && evalData.currentMeds.length > 0 ? (
-                  <ChipList
-                    label="Current Medications"
-                    items={evalData.currentMeds}
-                  />
-                ) : (
-                  <FieldDisplay
-                    label="Current Medications"
-                    value={evalData.currentMeds}
-                    classes={classes}
-                  />
-                )}
+                {(() => {
+                  // Handle new object format with codes array
+                  if (evalData.currentMeds && typeof evalData.currentMeds === 'object' && !Array.isArray(evalData.currentMeds)) {
+                    const hasCodes = evalData.currentMeds.codes && evalData.currentMeds.codes.length > 0;
+                    return (
+                      <>
+                        {hasCodes ? (
+                          <ChipList
+                            label="Current Medications"
+                            items={evalData.currentMeds.codes}
+                          />
+                        ) : (
+                          <FieldDisplay
+                            label="Current Medications"
+                            value="None"
+                            classes={classes}
+                          />
+                        )}
+                        {evalData.currentMeds.otherText && (
+                          <FieldDisplay
+                            label="Other Medication Details"
+                            value={evalData.currentMeds.otherText}
+                            classes={classes}
+                          />
+                        )}
+                      </>
+                    );
+                  }
+                  // Handle old array format (backwards compatibility)
+                  else if (Array.isArray(evalData.currentMeds) && evalData.currentMeds.length > 0) {
+                    return (
+                      <ChipList
+                        label="Current Medications"
+                        items={evalData.currentMeds}
+                      />
+                    );
+                  }
+                  // Default fallback
+                  else {
+                    return (
+                      <FieldDisplay
+                        label="Current Medications"
+                        value={evalData.currentMeds || "None"}
+                        classes={classes}
+                      />
+                    );
+                  }
+                })()}
               </Col>
             </FieldRow>
 
@@ -2909,13 +2978,31 @@ const InitialClinicalEvaluationForm = (props) => {
                       name={`meds_${opt.code}`}
                       id={`meds_${opt.code}`}
                       label={opt.display}
-                      checked={currentMeds.includes(opt.code)}
+                      checked={currentMeds.codes.includes(opt.code)}
                       onChange={(e) => handleMedsCheckbox(opt.code, e.target.checked)}
                     />
                   ))}
                 </Box>
               )}
             </Box>
+
+            {/* Show text field if "Other (specify)" is selected */}
+            {currentMeds.codes.includes('CURRENT_MEDICATIONS_OTHER_(SPECIFY)') && (
+              <FieldRow style={{ marginTop: "12px" }}>
+                <Col size={12}>
+                  <SectionLabel>Specify <span style={{ color: "red" }}>*</span></SectionLabel>
+                  <Input
+                    type="text"
+                    value={currentMeds.otherText}
+                    onChange={(e) => setCurrentMeds(prev => ({ ...prev, otherText: e.target.value }))}
+                    placeholder="Please specify other medication details..."
+                  />
+                  {errors.currentMedsOtherText && (
+                    <span className={classes.error}>{errors.currentMedsOtherText}</span>
+                  )}
+                </Col>
+              </FieldRow>
+            )}
 
             {/* Patient Disclosure */}
             <Divider sx={{ my: 2 }} />
