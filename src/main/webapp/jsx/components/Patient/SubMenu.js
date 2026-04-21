@@ -278,8 +278,6 @@ const SubMenu = (props) => {
           getCurrentLabResult(patientObj.id),
           Observation(),
           checkPharmacyRecords(),
-          // checkEnrollmentCommencement() and checkICEExists() removed
-          // These values are already available in expandedPatientObj (hasiceform, hasenrollmentform)
         ]);
       }
     };
@@ -431,16 +429,30 @@ const SubMenu = (props) => {
         });
       },
 
-      loadSubstitutionSwitch: () => {
-        if (!hasPharmacyRecords) {
+      loadSubstitutionSwitch: async () => {
+        // Re-check pharmacy records before validating
+        try {
+          const response = await axios.get(
+            `${baseUrl}hiv/art/pharmacy/patient?pageNo=0&pageSize=10&personId=${patientObj.id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const hasRecords = response.data && response.data.length > 0;
+
+          if (!hasRecords) {
+            toast.error("Patient must have pharmacy records before accessing Substitution/Switch form");
+            return;
+          }
+
+          setHasPharmacyRecords(hasRecords);
+          setActiveItem("substitution-switch");
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "substitution-switch",
+          });
+        } catch (error) {
+          console.error("Error checking pharmacy records:", error);
           toast.error("Patient must have pharmacy records before accessing Substitution/Switch form");
-          return;
         }
-        setActiveItem("substitution-switch");
-        props.setActiveContent({
-          ...props.activeContent,
-          route: "substitution-switch",
-        });
       },
 
       loadIntegratedLabOrder: () => {
@@ -538,17 +550,31 @@ const SubMenu = (props) => {
         });
       },
 
-      loadTrackingForm: () => {
-        if (!hasPharmacyRecords) {
+      loadTrackingForm: async () => {
+        // Re-check pharmacy records before validating
+        try {
+          const response = await axios.get(
+            `${baseUrl}hiv/art/pharmacy/patient?pageNo=0&pageSize=10&personId=${patientObj.id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const hasRecords = response.data && response.data.length > 0;
+
+          if (!hasRecords) {
+            toast.error("Patient must have pharmacy records before accessing Client Tracking form");
+            return;
+          }
+
+          setHasPharmacyRecords(hasRecords);
+          setActiveItem("tracking");
+          props.setActiveContent({
+            ...props.activeContent,
+            route: "tracking-form",
+            activeTab: "home",
+          });
+        } catch (error) {
+          console.error("Error checking pharmacy records:", error);
           toast.error("Patient must have pharmacy records before accessing Client Tracking form");
-          return;
         }
-        setActiveItem("tracking");
-        props.setActiveContent({
-          ...props.activeContent,
-          route: "tracking-form",
-          activeTab: "home",
-        });
       },
 
       loadTransferForm: () => {
