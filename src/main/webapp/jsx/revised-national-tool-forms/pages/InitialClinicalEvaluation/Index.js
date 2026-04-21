@@ -73,53 +73,44 @@ const SYMPTOM_OPTIONS = [
 const WHO_STAGE_CRITERIA_OPTIONS = {
   "WHO_STAGING_CRITERIA_STAGE_1": [
     "Asymptomatic",
-    "Persistent Generalized Lymphadenopathy",
+    "Persistent generalized lymphadenopathy",
+    "Performance scale: 1 asymptomatic, normal activity",
   ],
   "WHO_STAGING_CRITERIA_STAGE_2": [
-    "Moderate Unexplained Weight Loss (<10% of presumed or measured body weight)",
-    "Recurrent Respiratory Tract Infections (sinusitis, tonsillitis, otitis media, pharyngitis)",
-    "Herpes Zoster",
-    "Angular Cheilitis",
-    "Recurrent Oral Ulceration",
-    "Papular Pruritic Eruptions",
-    "Seborrheic Dermatitis",
-    "Fungal Nail Infections",
+    "Weight loss <10% of body weight",
+    "Minor Mucocutaneous Manifestations",
+    "Herpes Zoster (within last 5 years)",
+    "Recurrent Upper Respiratory Tract Infections",
+    "Performance scale: 2 symptomatic, normal activity",
   ],
   "WHO_STAGING_CRITERIA_STAGE_3": [
-    "Weight loss greater than 10% of body weight",
-    "Unexplained Chronic Diarrhea less than 1 month",
+    "Weight loss >10% of body weight",
+    "Unexplained Chronic Diarrhea (>1 month)",
+    "Unexplained Prolonged Fever",
     "Oral Candidiasis",
+    "Oral Hairy Leukoplakia",
     "TB, Pulmonary (within previous year)",
     "Severe Bacterial Infections",
-    "Performance scale: 3 bedridden less than 50%",
-    "Unexplained Prolonged Fever",
-    "Oral Hairy Leukoplakia",
-    "Acute Necrotizing Ulcerative Stomatitis, Gingivitis or Periodontitis",
-    "Unexplained Anemia (<8 g/dl), neutropenia, and/or chronic thrombocytopenia",
+    "Performance scale: 3 bedridden <50% of day in last month",
   ],
   "WHO_STAGING_CRITERIA_STAGE_4": [
-    "HIV Wasting Syndrome",
-    "Pneumocystis Pneumonia",
-    "Recurrent Severe Bacterial Pneumonia",
-    "Chronic Herpes Simplex Infection (orolabial, genital or anorectal >1 month)",
-    "Esophageal Candidiasis (or candidiasis of trachea, bronchi or lungs)",
-    "Extrapulmonary Tuberculosis",
-    "Kaposi Sarcoma",
-    "Cytomegalovirus Infection (retinitis or infection of other organs)",
-    "CNS Toxoplasmosis",
-    "HIV Encephalopathy",
-    "Extrapulmonary Cryptococcosis including Meningitis",
-    "Disseminated Non-tuberculosis Mycobacterial Infection",
+    "HIV Wasting syndrome",
+    "PCP",
+    "Toxoplasmosis, CNS",
+    "Cryptosporidiosis with Diarrhea (>1 month)",
+    "Cryptococcosis, Extrapulmonary",
+    "Cytomegalovirus disease",
+    "Herpes Simplex (mucotaneous >1 month)",
     "Progressive Multifocal Leukoencephalopathy",
-    "Chronic Cryptosporidiosis",
-    "Chronic Isosporiasis",
-    "Disseminated Mycosis (extrapulmonary histoplasmosis, coccidioidomycosis)",
-    "Recurrent Septicemia (including non-typhoidal Salmonella)",
-    "Lymphoma (cerebral or B-cell non-Hodgkin)",
-    "Invasive Cervical Carcinoma",
-    "Atypical Disseminated Leishmaniasis",
-    "Symptomatic HIV-associated Nephropathy",
-    "Symptomatic HIV-associated Cardiomyopathy",
+    "Mycosis, disseminated",
+    "Oesophageal Candidiasis",
+    "Atypical Mycobacteriosis, disseminated",
+    "Salmonella Septicemia, Non-typhoid",
+    "TB, Extrapulmonary",
+    "Lymphoma",
+    "Kaposi's Sarcoma",
+    "HIV encephalopathy",
+    "Performance scale: 4 bedridden >50% of the day in last month",
   ],
 };
 
@@ -139,6 +130,7 @@ const SYSTEM_FINDINGS = {
     { value: "abnormal_fundoscopy", label: "Abnormal Fundoscopy" },
     { value: "gingivitis", label: "Gingivitis" },
     { value: "otitis_media", label: "Otitis Media" },
+    { value: "ear_discharge", label: "Ear discharge" },
   ],
   cardiovascular: [
     { value: "abnormal_heart_rate", label: "Abnormal Heart Rate" },
@@ -150,6 +142,7 @@ const SYSTEM_FINDINGS = {
     { value: "cyanosis", label: "Cyanosis" },
     { value: "wheezing", label: "Wheezing" },
     { value: "auscultation_finding", label: "Auscultation Finding" },
+    { value: "rate_breathe_min", label: "Rate(breathe/min)" },
   ],
   gastrointestinal: [
     { value: "distention", label: "Distention" },
@@ -179,11 +172,15 @@ const SYSTEM_FINDINGS = {
     { value: "scabies", label: "Scabies" },
   ],
   neurological: [
+    { value: "orientation_tpp", label: "Orientation to TPP" },
     { value: "disoriented_tpp", label: "Disoriented in TPP" },
     { value: "impaired_consciousness", label: "Impaired Consciousness" },
     { value: "slurred_speech", label: "Slurred Speech" },
     { value: "blindness_1_2_eyes", label: "Blindness 1 or 2 Eyes" },
     { value: "weakness_paralysis", label: "Weakness / Paralysis" },
+    { value: "fisting_spasticity", label: "Fisting/spasticity" },
+    { value: "neck_stiffness", label: "Neck stiffness" },
+    { value: "hemiplegia_paresis", label: "Hemiplegia/paresis" },
     { value: "numbness_extremities", label: "Numbness of Extremities" },
   ],
   mentalStatus: [
@@ -748,10 +745,15 @@ const InitialClinicalEvaluationForm = (props) => {
   const [regimens, setRegimens] = useState([]);
   const [loadingRegimens, setLoadingRegimens] = useState(false);
 
+  // ── Facility State ────────────────────────────────────────────────────────
+  const [facilities, setFacilities] = useState([]);
+  const [loadingFacilities, setLoadingFacilities] = useState(false);
+
   // ── Fetch Data on Mount ──────────────────────────────────────────────────
   useEffect(() => {
     fetchCodesets();
     fetchRegimenLines(); // Fetch regimen lines on mount
+    fetchFacilities(); // Fetch facilities for ARV History dropdown
     if (isViewMode || isEditMode) {
       fetchExistingData();
     }
@@ -762,7 +764,8 @@ const InitialClinicalEvaluationForm = (props) => {
     try {
       const params = new URLSearchParams();
       params.append('codes', 'TB_STATUS');
-      params.append('codes', 'STI_ASSESSED_BY');
+      params.append('codes', 'DEVELOPMENTAL_ASSESSMENT');
+      params.append('codes', 'YES_NO');
       params.append('codes', 'YES_NO_OUTBREAK');
       params.append('codes', 'DO_YOU_HAVE_THE_FOLLOWING');
       params.append('codes', 'WHO_STAGING_CRITERIA');
@@ -779,8 +782,8 @@ const InitialClinicalEvaluationForm = (props) => {
 
       setCodesets({
         tbStatus: response.data.TB_STATUS || [],
-        developmentalAssessment: response.data.STI_ASSESSED_BY || [],
-        immunisationComplete: response.data.YES_NO_OUTBREAK || [],
+        developmentalAssessment: response.data.DEVELOPMENTAL_ASSESSMENT || [],
+        immunisationComplete: response.data.YES_NO || [],
         knownDrugAllergies: response.data.DO_YOU_HAVE_THE_FOLLOWING || [],
         currentlyPregnant: response.data.YES_NO_OUTBREAK || [],
         whoStage: response.data.WHO_STAGING_CRITERIA || [],
@@ -839,6 +842,24 @@ const InitialClinicalEvaluationForm = (props) => {
       setRegimens([]);
     } finally {
       setLoadingRegimens(false);
+    }
+  };
+
+  // ── Fetch Facilities for ARV History ──────────────────────────────────────
+  const fetchFacilities = async () => {
+    setLoadingFacilities(true);
+    try {
+      const response = await axios.get(`${baseUrl}observation/facilities`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setFacilities(response.data || []);
+    } catch (error) {
+      console.error("Error fetching facilities:", error);
+      toast.error("Failed to load facilities");
+      setFacilities([]);
+    } finally {
+      setLoadingFacilities(false);
     }
   };
 
@@ -1225,7 +1246,29 @@ const InitialClinicalEvaluationForm = (props) => {
 
   const handleArv = (e) => {
     const { name, type, value, checked } = e.target;
-    setArvHistory((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setArvHistory((prev) => {
+      const updated = { ...prev, [name]: type === "checkbox" ? checked : value };
+
+      // Clear facility and duration fields if no ARV Exposure Type is selected
+      if (type === "checkbox" && ["earlierArvNotTransfer", "prep", "pep", "tran"].includes(name)) {
+        const hasAnySelected = updated.earlierArvNotTransfer || updated.prep || updated.pep || updated.tran;
+        if (!hasAnySelected) {
+          updated.nameOfFacility = "";
+          updated.durationOfCareFrom = "";
+          updated.durationOfCareTo = "";
+          // Clear validation errors for these fields
+          setErrors((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors.nameOfFacility;
+            delete newErrors.durationOfCareFrom;
+            delete newErrors.durationOfCareTo;
+            return newErrors;
+          });
+        }
+      }
+
+      return updated;
+    });
 
     // Validate duration dates for date inputs
     if (type === "date" && (name === "durationOfCareFrom" || name === "durationOfCareTo")) {
@@ -1251,6 +1294,30 @@ const InitialClinicalEvaluationForm = (props) => {
           }));
         }
       }
+    }
+  };
+
+  // ── Format Facilities for react-select ────────────────────────────────────
+  const getFacilityOptions = () => {
+    return facilities.map(facility => ({
+      label: facility.name,
+      value: facility.name
+    }));
+  };
+
+  // ── Handle Facility Selection ─────────────────────────────────────────────
+  const handleFacilitySelect = (selectedOption) => {
+    const facilityName = selectedOption ? selectedOption.value : "";
+    setArvHistory((prev) => ({
+      ...prev,
+      nameOfFacility: facilityName
+    }));
+
+    // Clear error if facility is selected
+    if (facilityName && errors.nameOfFacility) {
+      const newErrors = { ...errors };
+      delete newErrors.nameOfFacility;
+      setErrors(newErrors);
     }
   };
 
@@ -1685,6 +1752,20 @@ const InitialClinicalEvaluationForm = (props) => {
     const hasOtherDisclosure = disclosure.some(code => code.toLowerCase().includes('other') || code === 'OTHER');
     if (hasOtherDisclosure && (!disclosureOtherText || disclosureOtherText.trim() === "")) {
       temp.disclosureOtherText = "Please specify other disclosure details";
+    }
+
+    // Validate ARV History fields if any ARV Exposure Type is selected
+    const hasArvExposureTypeSelected = arvHistory.earlierArvNotTransfer || arvHistory.prep || arvHistory.pep || arvHistory.tran;
+    if (hasArvExposureTypeSelected) {
+      if (!arvHistory.nameOfFacility || arvHistory.nameOfFacility.trim() === "") {
+        temp.nameOfFacility = "Name of Facility is required when ARV Exposure Type is selected";
+      }
+      if (!arvHistory.durationOfCareFrom) {
+        temp.durationOfCareFrom = "Duration of Care From is required when ARV Exposure Type is selected";
+      }
+      if (!arvHistory.durationOfCareTo) {
+        temp.durationOfCareTo = "Duration of Care To is required when ARV Exposure Type is selected";
+      }
     }
 
     if (assessment.assessmentItems.length === 0) temp.assessmentItems = "Assessment is required (select at least one option)";
@@ -2615,7 +2696,7 @@ const InitialClinicalEvaluationForm = (props) => {
                 <Input
                   type="date"
                   value={visitDate}
-                  min={enrollDate}
+                  min={enrollDate || props.patientObj?.dateOfBirth}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={(e) => setVisitDate(e.target.value)}
                   disabled={isReadOnly}
@@ -3100,39 +3181,79 @@ const InitialClinicalEvaluationForm = (props) => {
                   </Box>
                 </Box>
 
-                <SubHeading>Facility &amp; Duration</SubHeading>
-                <FieldRow>
-                  <Col>
-                    <SectionLabel>Name of Facility</SectionLabel>
-                    <Input type="text" name="nameOfFacility" value={arvHistory.nameOfFacility} onChange={handleArv} placeholder="Facility where patient received ARV" />
-                  </Col>
-                </FieldRow>
-                <FieldRow>
-                  <Col>
-                    <SectionLabel>Duration of Care From</SectionLabel>
-                    <Input
-                      type="date"
-                      name="durationOfCareFrom"
-                      value={arvHistory.durationOfCareFrom}
-                      onChange={handleArv}
-                      max={arvHistory.durationOfCareTo || undefined}
-                    />
-                  </Col>
-                  <Col>
-                    <SectionLabel>Duration of Care To</SectionLabel>
-                    <Input
-                      type="date"
-                      name="durationOfCareTo"
-                      value={arvHistory.durationOfCareTo}
-                      onChange={handleArv}
-                      min={arvHistory.durationOfCareFrom || undefined}
-                      style={{ borderColor: arvHistoryErrors.durationOfCareTo ? "#d32f2f" : "" }}
-                    />
-                    {arvHistoryErrors.durationOfCareTo && (
-                      <span className={classes.error}>{arvHistoryErrors.durationOfCareTo}</span>
-                    )}
-                  </Col>
-                </FieldRow>
+                {(arvHistory.earlierArvNotTransfer || arvHistory.prep || arvHistory.pep || arvHistory.tran) && (
+                  <>
+                    <SubHeading>Facility &amp; Duration</SubHeading>
+                    <FieldRow>
+                      <Col>
+                        <SectionLabel>Name of Facility <span style={{ color: "red" }}>*</span></SectionLabel>
+                        <ReactSelect
+                          name="nameOfFacility"
+                          value={getFacilityOptions().find(option => option.value === arvHistory.nameOfFacility)}
+                          onChange={handleFacilitySelect}
+                          options={getFacilityOptions()}
+                          isLoading={loadingFacilities}
+                          placeholder="Search or select facility..."
+                          isSearchable={true}
+                          isClearable={true}
+                          noOptionsMessage={() => "No facilities found"}
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: '41px',
+                              borderColor: errors.nameOfFacility ? '#d32f2f' : '#ced4da',
+                              borderRadius: '0.25rem',
+                              '&:hover': {
+                                borderColor: errors.nameOfFacility ? '#d32f2f' : '#ced4da'
+                              }
+                            }),
+                            valueContainer: (base) => ({
+                              ...base,
+                              padding: '2px 8px'
+                            })
+                          }}
+                        />
+                        {errors.nameOfFacility && (
+                          <span className={classes.error}>{errors.nameOfFacility}</span>
+                        )}
+                      </Col>
+                    </FieldRow>
+                    <FieldRow>
+                      <Col>
+                        <SectionLabel>Duration of Care From <span style={{ color: "red" }}>*</span></SectionLabel>
+                        <Input
+                          type="date"
+                          name="durationOfCareFrom"
+                          value={arvHistory.durationOfCareFrom}
+                          onChange={handleArv}
+                          max={arvHistory.durationOfCareTo || undefined}
+                          style={{ borderColor: errors.durationOfCareFrom ? "#d32f2f" : "" }}
+                        />
+                        {errors.durationOfCareFrom && (
+                          <span className={classes.error}>{errors.durationOfCareFrom}</span>
+                        )}
+                      </Col>
+                      <Col>
+                        <SectionLabel>Duration of Care To <span style={{ color: "red" }}>*</span></SectionLabel>
+                        <Input
+                          type="date"
+                          name="durationOfCareTo"
+                          value={arvHistory.durationOfCareTo}
+                          onChange={handleArv}
+                          min={arvHistory.durationOfCareFrom || undefined}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          style={{ borderColor: errors.durationOfCareTo || arvHistoryErrors.durationOfCareTo ? "#d32f2f" : "" }}
+                        />
+                        {errors.durationOfCareTo && (
+                          <span className={classes.error}>{errors.durationOfCareTo}</span>
+                        )}
+                        {arvHistoryErrors.durationOfCareTo && (
+                          <span className={classes.error}>{arvHistoryErrors.durationOfCareTo}</span>
+                        )}
+                      </Col>
+                    </FieldRow>
+                  </>
+                )}
               </>
             )}
 
@@ -3519,7 +3640,7 @@ const InitialClinicalEvaluationForm = (props) => {
                   name="nextAppointment"
                   value={assessment.nextAppointment}
                   onChange={handleAssessment}
-                  min={moment(new Date()).format("YYYY-MM-DD")}
+                  min={isCreateMode ? moment(new Date()).format("YYYY-MM-DD") : undefined}
                 />
                 {errors.nextAppointment && (
                   <span className={classes.error}>{errors.nextAppointment}</span>
