@@ -737,6 +737,7 @@ const CareCardFollowUpForm = (props) => {
       if (isFemale) {
         setCervicalCancer(visit.cervicalCancerScreeningStatus || "");
         setCervicalCancerTreatment(visit.cervicalCancerTreatmentProvided || "");
+        setCervicalCancerOtherFindings(visit.cervicalCancerOtherFindings || "");
       }
 
       // Populate ARV List and fetch regimen types for each
@@ -954,16 +955,23 @@ const CareCardFollowUpForm = (props) => {
   // ── Cervical Cancer (Female patients only) ───────────────────────────────
   const [cervical_cancer_screening, setCervicalCancer] = useState("");
   const [cervical_cancer_treatment, setCervicalCancerTreatment] = useState("");
+  const [cervical_cancer_other_findings, setCervicalCancerOtherFindings] = useState("");
 
   // Handle cervical cancer screening change - clear treatment if not "Screened positive & treated"
   const handleCervicalCancerScreeningChange = (e) => {
     const value = e.target.value;
     const isTreated = value === "CERVICAL_CANCER_SCREENING_STATUS_SCREENED_POSITIVE_&_TREATED";
+    const isOtherFindings = value === "CERVICAL_CANCER_SCREENING_STATUS__OTHER_FINDINGS_(SPECIFY)";
     setCervicalCancer(value);
 
     // Clear treatment if screening status is not "Screened positive & treated"
     if (!isTreated) {
       setCervicalCancerTreatment("");
+    }
+
+    // Clear other findings if screening status is not "Other findings (specify)"
+    if (!isOtherFindings) {
+      setCervicalCancerOtherFindings("");
     }
   };
 
@@ -1350,6 +1358,13 @@ const CareCardFollowUpForm = (props) => {
     const hasAtLeastOneRegimen = arvList.some((arv) => arv.regimen);
     if (!hasAtLeastOneRegimen) temp.arv_regimen = "At least one ARV regimen is required";
 
+    // Validate "Other Findings (Specify)" field when "Other findings (specify)" is selected
+    if (isFemale && cervical_cancer_screening === "CERVICAL_CANCER_SCREENING_STATUS__OTHER_FINDINGS_(SPECIFY)") {
+      if (!cervical_cancer_other_findings || cervical_cancer_other_findings.trim() === "") {
+        temp.cervical_cancer_other_findings = "Other findings specification is required";
+      }
+    }
+
     setErrors(temp);
     return Object.keys(temp).length === 0;
   };
@@ -1469,6 +1484,7 @@ const CareCardFollowUpForm = (props) => {
         cryptococcalScreeningStatus: clinical.cryptococcal_status || "",
         cervicalCancerScreeningStatus: isFemale ? cervical_cancer_screening : "",
         cervicalCancerTreatmentProvided: isFemale ? cervical_cancer_treatment : "",
+        cervicalCancerOtherFindings: isFemale ? cervical_cancer_other_findings : "",
         hepatitisScreeningResult: clinical.hepatitis_status || "",
         familyPlaning: vitals.family_planning_status || "",
         onFamilyPlaning: vitals.on_family_planning || "",
@@ -1648,7 +1664,7 @@ const CareCardFollowUpForm = (props) => {
                 {vitals.family_planning_status === "FAMILY_PLANNING_STATUS_ON_FAMILY_PLANNING" && (
                   <FieldRow>
                     <Col size={6}>
-                      <SectionLabel>On Family Planning</SectionLabel>
+                      <SectionLabel>Family Planning Type</SectionLabel>
                       <Input type="select" name="on_family_planning" value={vitals.on_family_planning} onChange={handleVitals}>
                         <option value="">Select</option>
                         {familyPlanningMethodCodeset.map((option) => (
@@ -1859,6 +1875,20 @@ const CareCardFollowUpForm = (props) => {
                         </option>
                       ))}
                     </Input>
+                  </Col>
+                )}
+
+                {/* Other Findings (Specify) - Conditional Field (beside status) */}
+                {cervical_cancer_screening === "CERVICAL_CANCER_SCREENING_STATUS__OTHER_FINDINGS_(SPECIFY)" && (
+                  <Col size={6}>
+                    <SectionLabel>Other Findings (Specify) <span style={{ color: "red" }}>*</span></SectionLabel>
+                    <Input
+                      type="text"
+                      value={cervical_cancer_other_findings}
+                      onChange={(e) => setCervicalCancerOtherFindings(e.target.value)}
+                      placeholder="Specify other findings"
+                      required
+                    />
                   </Col>
                 )}
               </FieldRow>

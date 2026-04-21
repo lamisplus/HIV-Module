@@ -2050,11 +2050,13 @@ const EnrollmentAndCommencementForm = (props) => {
                   <Col>
                     <SectionLabel>Dose</SectionLabel>
                     <Input
-                      type="text"
+                      type="number"
                       name="dose"
                       value={commencement.tb_preventive_therapy.dose}
                       onChange={handleTpt}
-                      placeholder="e.g. 300mg"
+                      placeholder="e.g. 300"
+                      min="0"
+                      step="1"
                       disabled={isViewMode}
                       readOnly={isViewMode}
                       style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
