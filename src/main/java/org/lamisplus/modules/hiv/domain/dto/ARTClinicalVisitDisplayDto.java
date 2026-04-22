@@ -106,7 +106,9 @@ public class ARTClinicalVisitDisplayDto implements Serializable {
 	@Convert(converter = LocalDateConverter.class)
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private LocalDate dateDevolved;
-	private String cotrimoxazoleDose;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode cotrimoxazoleDose;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
 	private JsonNode tptData;

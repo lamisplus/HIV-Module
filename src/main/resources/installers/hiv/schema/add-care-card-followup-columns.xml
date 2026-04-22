@@ -48,4 +48,37 @@
         </sql>
     </changeSet>
 
+    <changeSet failOnError="false" id="20260421-001" author="care-card-followup">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="hiv_art_clinical" columnName="cotrimoxazole_dose" />
+            <sqlCheck expectedResult="character varying">
+                SELECT data_type FROM information_schema.columns
+                WHERE table_name = 'hiv_art_clinical'
+                AND column_name = 'cotrimoxazole_dose'
+            </sqlCheck>
+        </preConditions>
+        <sql dbms="postgresql">
+            -- Create a temporary JSONB column
+            ALTER TABLE hiv_art_clinical ADD COLUMN IF NOT EXISTS cotrimoxazole_dose_temp JSONB;
+
+            -- Migrate existing VARCHAR data to JSONB format
+            -- Wrap existing dose values in a JSON object with 'dose' key
+            UPDATE hiv_art_clinical
+            SET cotrimoxazole_dose_temp = jsonb_build_object('dose', cotrimoxazole_dose)
+            WHERE cotrimoxazole_dose IS NOT NULL AND cotrimoxazole_dose != '';
+
+            -- Drop the old VARCHAR column
+            ALTER TABLE hiv_art_clinical DROP COLUMN cotrimoxazole_dose;
+
+            -- Rename the temporary column to the original name
+            ALTER TABLE hiv_art_clinical RENAME COLUMN cotrimoxazole_dose_temp TO cotrimoxazole_dose;
+
+            -- Update column comment
+            COMMENT ON COLUMN hiv_art_clinical.cotrimoxazole_dose IS 'Cotrimoxazole (CTX) data stored as JSON containing medication ID and dose';
+
+            -- Create GIN index for better JSONB query performance
+            CREATE INDEX IF NOT EXISTS idx_hiv_art_clinical_cotrimoxazole_dose ON hiv_art_clinical USING GIN(cotrimoxazole_dose) WHERE cotrimoxazole_dose IS NOT NULL;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

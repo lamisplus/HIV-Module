@@ -186,8 +186,9 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	@Column(name = "date_devolved")
 	private LocalDate dateDevolved;
 
-	@Column(name = "cotrimoxazole_dose")
-	private String cotrimoxazoleDose;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "cotrimoxazole_dose")
+	private JsonNode cotrimoxazoleDose;
 
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb", name = "tpt_data")

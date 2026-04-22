@@ -558,6 +558,8 @@ const CareCardFollowUpForm = (props) => {
   const [adultRegimenLine, setAdultRegimenLine] = useState([]);
   const [childRegimenLine, setChildRegimenLine] = useState([]);
   const [regimenType, setRegimenType] = useState([]);
+  const [tptMedications, setTptMedications] = useState([]);
+  const [ctxMedications, setCtxMedications] = useState([]);
 
   const toggleAccordion = (panel) => {
     setExpanded((prev) =>
@@ -684,10 +686,60 @@ const CareCardFollowUpForm = (props) => {
       }
     };
 
+    const fetchTPTMedications = async () => {
+      try {
+        // Determine which API endpoint to use based on patient age
+        const apiEndpoint = isPediatric
+          ? `${baseUrl}hiv/regimen/arv/children`
+          : `${baseUrl}hiv/regimen/arv/adult`;
+
+        // Fetch regimen types
+        const response = await axios.get(apiEndpoint, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Check if TPT regimen type (ID 15) exists in the response
+        const tptRegimenType = response.data.find(regimen => regimen.id === 15);
+
+        if (tptRegimenType) {
+          // Fetch TPT medications for regimen type 15
+          const medicationsResponse = await axios.get(
+            `${baseUrl}hiv/regimen/types/15`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          setTptMedications(medicationsResponse.data || []);
+        } else {
+          console.warn("TPT regimen type (ID 15) not found in the API response");
+          setTptMedications([]);
+        }
+      } catch (error) {
+        console.error("Error fetching TPT medications:", error);
+        setTptMedications([]);
+      }
+    };
+
+    const fetchCTXMedications = async () => {
+      try {
+        // Fetch CTX medications for regimen type 8 (Cotrimoxazole)
+        const response = await axios.get(
+          `${baseUrl}hiv/regimen/types/8`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setCtxMedications(response.data || []);
+      } catch (error) {
+        console.error("Error fetching CTX medications:", error);
+        setCtxMedications([]);
+      }
+    };
+
     fetchCodesets();
     fetchAdultRegimenLine();
     fetchChildRegimenLine();
     fetchLabTestGroups();
+    fetchTPTMedications();
+    fetchCTXMedications();
   }, []);
 
   // Populate form when editingVisit is provided
@@ -768,7 +820,13 @@ const CareCardFollowUpForm = (props) => {
       }
 
       // Populate Medications
-      setCtx(visit.cotrimoxazoleDose || "");
+      if (visit.cotrimoxazoleDose) {
+        setCtx(visit.cotrimoxazoleDose.dose || "");
+        setCtxMedication(visit.cotrimoxazoleDose.medication || "");
+      } else {
+        setCtx("");
+        setCtxMedication("");
+      }
       if (visit.tptData) {
         setTpt({
           code: visit.tptData.code || "",
@@ -1220,8 +1278,12 @@ const CareCardFollowUpForm = (props) => {
   };
 
   const [ctx, setCtx] = useState("");
+  const [ctx_medication, setCtxMedication] = useState("");
   const handleCtx = (e) => {
     setCtx(e.target.value);
+  };
+  const handleCtxMedication = (e) => {
+    setCtxMedication(e.target.value);
   };
 
   const [tpt, setTpt] = useState({
@@ -1233,6 +1295,16 @@ const CareCardFollowUpForm = (props) => {
   const handleTpt = (e) => {
     const { name, value } = e.target;
     setTpt((prev) => ({ ...prev, [name]: value }));
+
+    // Clear related errors when dates are changed
+    if (name === "start_date" || name === "completion_date") {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.tpt_start_date;
+        delete newErrors.tpt_completion_date;
+        return newErrors;
+      });
+    }
   };
 
   const [otherDrugs, setOtherDrugs] = useState("");
@@ -1362,6 +1434,22 @@ const CareCardFollowUpForm = (props) => {
     if (isFemale && cervical_cancer_screening === "CERVICAL_CANCER_SCREENING_STATUS__OTHER_FINDINGS_(SPECIFY)") {
       if (!cervical_cancer_other_findings || cervical_cancer_other_findings.trim() === "") {
         temp.cervical_cancer_other_findings = "Other findings specification is required";
+      }
+    }
+
+    // Validate TPT dates
+    const today = moment().format("YYYY-MM-DD");
+    if (tpt.start_date) {
+      // Start Date cannot be in the future
+      if (moment(tpt.start_date).isAfter(today)) {
+        temp.tpt_start_date = "Start Date cannot be a future date";
+      }
+    }
+
+    if (tpt.start_date && tpt.completion_date) {
+      // Completion Date cannot be before Start Date
+      if (moment(tpt.completion_date).isBefore(tpt.start_date)) {
+        temp.tpt_completion_date = "Completion Date cannot be before Start Date";
       }
     }
 
@@ -1501,7 +1589,10 @@ const CareCardFollowUpForm = (props) => {
         dsdStatus: clinical.dsd_status || "",
         dsdModel: clinical.dsd_model || "",
         dateDevolved: clinical.date_devolved || "",
-        cotrimoxazoleDose: ctx || "",
+        cotrimoxazoleDose: {
+          medication: ctx_medication || "",
+          dose: ctx || ""
+        },
         tptData: tptData,
         otherDrugs: otherDrugs || "",
         cd4Data: {
@@ -2137,11 +2228,13 @@ const CareCardFollowUpForm = (props) => {
                   <Col size={6}>
                     <SectionLabel>Dose</SectionLabel>
                     <Input
-                      type="text"
+                      type="number"
                       name="dose"
                       value={newArv.dose}
                       onChange={handleAddModalChange}
                       placeholder="e.g. 1 tablet daily"
+                      min="0"
+                      step="1"
                     />
                   </Col>
                 </FieldRow>
@@ -2257,11 +2350,13 @@ const CareCardFollowUpForm = (props) => {
                   <Col size={6}>
                     <SectionLabel>Dose</SectionLabel>
                     <Input
-                      type="text"
+                      type="number"
                       name="dose"
                       value={editingArv.dose}
                       onChange={handleEditModalChange}
                       placeholder="e.g. 1 tablet daily"
+                      min="0"
+                      step="1"
                     />
                   </Col>
                 </FieldRow>
@@ -2338,9 +2433,20 @@ const CareCardFollowUpForm = (props) => {
             <SubHeading>Cotrimoxazole (CTX)</SubHeading>
             <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
               <FieldRow>
-                <Col size={12}>
+                <Col size={6}>
+                  <SectionLabel>Cotrimoxazole (CTX) Medication</SectionLabel>
+                  <Input type="select" value={ctx_medication} onChange={handleCtxMedication}>
+                    <option value="">Select</option>
+                    {ctxMedications.map((medication) => (
+                      <option key={medication.id} value={medication.id}>
+                        {medication.description}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
+                <Col size={6}>
                   <SectionLabel>Dose</SectionLabel>
-                  <Input type="text" value={ctx} onChange={handleCtx} placeholder="e.g. 1 tablet daily, 960mg" />
+                  <Input type="number" value={ctx} onChange={handleCtx} placeholder="e.g. 1 tablet daily, 960mg" min="0" step="1" />
                 </Col>
               </FieldRow>
             </Box>
@@ -2353,22 +2459,28 @@ const CareCardFollowUpForm = (props) => {
                   <SectionLabel>TPT Medication (Code)</SectionLabel>
                   <Input type="select" name="code" value={tpt.code} onChange={handleTpt}>
                     <option value="">Select</option>
-                    {TPT_CODES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    {tptMedications.map((medication) => (
+                      <option key={medication.id} value={medication.id}>
+                        {medication.description}
+                      </option>
+                    ))}
                   </Input>
                 </Col>
                 <Col size={6}>
                   <SectionLabel>Dose</SectionLabel>
-                  <Input type="text" name="dose" value={tpt.dose} onChange={handleTpt} placeholder="e.g. 300mg" />
+                  <Input type="number" name="dose" value={tpt.dose} onChange={handleTpt} placeholder="e.g. 300mg" min="0" step="1" />
                 </Col>
               </FieldRow>
               <FieldRow>
                 <Col size={6}>
                   <SectionLabel>Start Date</SectionLabel>
                   <Input type="date" name="start_date" value={tpt.start_date} onChange={handleTpt} />
+                  {errors.tpt_start_date && <span className={classes.error}>{errors.tpt_start_date}</span>}
                 </Col>
                 <Col size={6}>
                   <SectionLabel>Completion Date</SectionLabel>
                   <Input type="date" name="completion_date" value={tpt.completion_date} onChange={handleTpt} />
+                  {errors.tpt_completion_date && <span className={classes.error}>{errors.tpt_completion_date}</span>}
                 </Col>
               </FieldRow>
             </Box>
