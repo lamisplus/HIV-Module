@@ -64,7 +64,7 @@ public class HandleHIVVisitEncounter {
 			log.debug("about saving visit, person is available? {}", personOptional.isPresent());
 			try {
 				Visit currentVisit = visitRepository.save(visit);
-				createHivVisitEncounter(personOptional, visit);
+				createHivVisitEncounter(personOptional, currentVisit);
 				return currentVisit;
 			} catch (DataAccessException e) {
 				log.error("Failed to save visit and encounter", e);
@@ -87,7 +87,7 @@ public class HandleHIVVisitEncounter {
 		log.debug("Creating new visit for EAC on date: {}, person is available: {}", visitDate, personOptional.isPresent());
 		try {
 			Visit currentVisit = visitRepository.save(visit);
-			createHivVisitEncounter(personOptional, visit);
+			createHivVisitEncounter(personOptional, currentVisit);
 			return currentVisit;
 		} catch (DataAccessException e) {
 			log.error("Failed to save visit and encounter for EAC", e);
