@@ -287,6 +287,21 @@ const EnrollmentAndCommencementForm = (props) => {
   const checkForExistingRecord = async () => {
     setCheckingExisting(true);
     try {
+      // Check if this is a returning client (Part 2 Transfer IN)
+      const currentStatus = localStorage.getItem("currentStatus");
+      const isReturningClient = currentStatus?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+
+      // For returning clients, allow creating a new enrollment record
+      // and fetch the previous record data for auto-population
+      if (isReturningClient) {
+        // Fetch the first/previous enrollment record to auto-populate fields
+        await fetchPreviousEnrollmentData();
+        setHasExistingRecord(false);
+        setCheckingExisting(false);
+        return;
+      }
+
+      // For new clients, check if record already exists (only one allowed)
       const response = await axios.get(
         `${baseUrl}hiv/enrollment-commencement/check-exists/person/${props.patientObj.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -299,6 +314,42 @@ const EnrollmentAndCommencementForm = (props) => {
       console.error("Error checking for existing record:", error);
     } finally {
       setCheckingExisting(false);
+    }
+  };
+
+  // ── Fetch previous Enrollment & Commencement data for returning clients ──────────
+  const fetchPreviousEnrollmentData = async () => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}hiv/enrollment-commencement/person/${props.patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const previousData = response.data;
+
+      if (previousData) {
+        // Auto-populate registration fields from previous enrollment
+        setRegistration((prev) => ({
+          ...prev,
+          unique_id: previousData.uniqueId || prev.unique_id,
+          date_confirmed_hiv_test: previousData.dateConfirmedHivTest ? moment(previousData.dateConfirmedHivTest).format("YYYY-MM-DD") : prev.date_confirmed_hiv_test,
+          mode_of_hiv_test: previousData.modeOfHivTestId || prev.mode_of_hiv_test,
+          hiv_test_location: previousData.hivTestLocation || prev.hiv_test_location,
+        }));
+
+        // Store the previous enrollment date to use as minimum for new enrollment date
+        if (previousData.dateEnrolledInHivCare) {
+          const prevEnrollmentDate = moment(previousData.dateEnrolledInHivCare).format("YYYY-MM-DD");
+          // Store in state for validation
+          setRegistration((prev) => ({
+            ...prev,
+            previousEnrollmentDate: prevEnrollmentDate
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching previous enrollment data:", error);
+      // Don't show error to user - this is optional auto-population
     }
   };
 
@@ -651,6 +702,7 @@ const EnrollmentAndCommencementForm = (props) => {
     prior_art: "",
     is_kp: "",
     kp_typology: "",
+    previousEnrollmentDate: "", // For returning clients - stores previous enrollment date to validate new enrollment date
   });
 
   const handleReg = (e) => {
@@ -1013,6 +1065,11 @@ const EnrollmentAndCommencementForm = (props) => {
       if (registration.date_confirmed_hiv_test && registration.date_enrolled_in_hiv_care < registration.date_confirmed_hiv_test) {
         temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than date of confirmed HIV test";
       }
+
+      // For returning clients, validate that new enrollment date is not earlier than previous enrollment date
+      if (registration.previousEnrollmentDate && registration.date_enrolled_in_hiv_care < registration.previousEnrollmentDate) {
+        temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than previous enrollment date";
+      }
     }
 
     if (!registration.date_confirmed_hiv_test || String(registration.date_confirmed_hiv_test).trim() === '') {
@@ -1262,9 +1319,9 @@ const EnrollmentAndCommencementForm = (props) => {
                   onChange={handleReg}
                   onBlur={handleUniqueIdBlur}
                   placeholder="Enter unique identifier"
-                  disabled={checkingUniqueId || isViewMode || isEditMode}
-                  readOnly={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={checkingUniqueId || isViewMode || isEditMode || registration.previousEnrollmentDate}
+                  readOnly={isViewMode || registration.previousEnrollmentDate}
+                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {checkingUniqueId && (
                   <span style={{ color: "#014d88", fontSize: "12px", marginTop: "4px" }}>
@@ -1287,11 +1344,12 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="date_enrolled_in_hiv_care"
                   value={registration.date_enrolled_in_hiv_care}
                   min={
-                    // Calculate min date as the latest of patient registration date and HIV test date
+                    // Calculate min date as the latest of patient registration date, HIV test date, and previous enrollment date (for returning clients)
                     (() => {
                       const dates = [
                         props.patientObj?.dateOfRegistration,
-                        registration.date_confirmed_hiv_test
+                        registration.date_confirmed_hiv_test,
+                        registration.previousEnrollmentDate // For returning clients
                       ].filter(Boolean);
                       return dates.length > 0 ? dates.reduce((a, b) => a > b ? a : b) : undefined;
                     })()
@@ -1469,8 +1527,9 @@ const EnrollmentAndCommencementForm = (props) => {
                   value={registration.date_confirmed_hiv_test}
                   max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleReg}
-                  disabled={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={isViewMode || registration.previousEnrollmentDate}
+                  readOnly={registration.previousEnrollmentDate}
+                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {errors.date_confirmed_hiv_test && (
                   <span className={classes.error}>
@@ -1488,8 +1547,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="mode_of_hiv_test"
                   value={registration.mode_of_hiv_test}
                   onChange={handleReg}
-                  disabled={loadingCodesets || isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={loadingCodesets || isViewMode || registration.previousEnrollmentDate}
+                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.mode_of_hiv_test.map((opt) => (
@@ -1517,9 +1576,9 @@ const EnrollmentAndCommencementForm = (props) => {
                   value={registration.hiv_test_location}
                   onChange={handleReg}
                   placeholder="e.g. ANC, HTS Site"
-                  disabled={isViewMode}
-                  readOnly={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={isViewMode || registration.previousEnrollmentDate}
+                  readOnly={isViewMode || registration.previousEnrollmentDate}
+                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {errors.hiv_test_location && (
                   <span className={classes.error}>
