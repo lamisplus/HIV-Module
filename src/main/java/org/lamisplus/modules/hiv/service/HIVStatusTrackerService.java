@@ -109,7 +109,8 @@ public class HIVStatusTrackerService {
                     .orElse(statusDto);
         }
 
-        EnrollmentCommencement hivEnrollment = enrollmentCommencementRepository.findByPersonAndArchived(person, 0)
+        // Use the FIRST/EARLIEST enrollment commencement for initial status
+        EnrollmentCommencement hivEnrollment = enrollmentCommencementRepository.findFirstByPersonIdAndArchived(person.getId(), 0)
                 .orElseThrow(() -> new EntityNotFoundException(EnrollmentCommencement.class, "person id", String.valueOf(person.getId())));
         LocalDate dateOfRegistration = hivEnrollment.getDateEnrolledInHivCare();
         Long statusAtRegistrationId = hivEnrollment.getStatusAtRegistrationId();

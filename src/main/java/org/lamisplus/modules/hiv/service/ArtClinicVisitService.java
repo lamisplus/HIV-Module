@@ -61,9 +61,9 @@ public class ArtClinicVisitService {
 		Long personId = artClinicVisitDto.getPersonId();
 		Person person = getPerson(personId);
 
-		// Get EnrollmentCommencement by Person instead of by ID
+		// Get LATEST EnrollmentCommencement by Person for clinic visit
 		EnrollmentCommencement enrollmentCommencement = enrollmentCommencementRepository
-				.findByPersonAndArchived(person, 0)
+				.findLatestByPersonIdAndArchived(personId, 0)
 				.orElseThrow(() -> new EntityNotFoundException(
 						EnrollmentCommencement.class,
 						"personId",

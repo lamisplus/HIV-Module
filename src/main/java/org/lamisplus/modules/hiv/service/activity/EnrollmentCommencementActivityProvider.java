@@ -21,25 +21,35 @@ public class EnrollmentCommencementActivityProvider implements PatientActivityPr
 
     @Override
     public List<PatientActivity> getActivitiesFor(Person person) {
-        Optional<EnrollmentCommencement> enrollmentCommencement =
-                enrollmentCommencementRepository.findByPersonAndArchived(person, 0);
+        // Get ALL enrollment commencement records for this person
+        List<EnrollmentCommencement> enrollmentCommencements =
+                enrollmentCommencementRepository.findAllByPersonAndArchivedOrderByDateArtStartedDesc(person, 0);
 
-        StringBuilder name = new StringBuilder("Enrollment & Commencement");
-        PatientActivity patientActivity = enrollmentCommencement
-                .map(ec -> {
-                    LocalDate visitDate = CustomDateTimeFormat.handleNullDateActivity(
-                            name, ec.getDateArtStarted());
-                    return new PatientActivity(
-                            ec.getId(),
-                            name.toString(),
-                            visitDate,
-                            "",
-                            "enrollment-commencement"
-                    );
-                }).orElse(null);
+        List<PatientActivity> patientActivities = new ArrayList<>();
 
-        ArrayList<PatientActivity> patientActivities = new ArrayList<>();
-        patientActivities.add(patientActivity);
+        // Create a PatientActivity for each enrollment commencement
+        for (int i = 0; i < enrollmentCommencements.size(); i++) {
+            EnrollmentCommencement ec = enrollmentCommencements.get(i);
+
+            // Add numbering if multiple enrollments exist
+            StringBuilder name = new StringBuilder("Enrollment & Commencement");
+            if (enrollmentCommencements.size() > 1) {
+                name.append(" #").append(enrollmentCommencements.size() - i);
+            }
+
+            LocalDate visitDate = CustomDateTimeFormat.handleNullDateActivity(
+                    name, ec.getDateArtStarted());
+
+            PatientActivity activity = new PatientActivity(
+                    ec.getId(),
+                    name.toString(),
+                    visitDate,
+                    "",
+                    "enrollment-commencement"
+            );
+            patientActivities.add(activity);
+        }
+
         return patientActivities;
     }
 }

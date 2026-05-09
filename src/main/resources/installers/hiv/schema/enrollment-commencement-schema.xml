@@ -637,4 +637,43 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="20260506-ec-07" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <indexExists tableName="hiv_enrollment_commencement" indexName="uk_ec_person_active"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            DROP INDEX IF EXISTS uk_ec_person_active;
+            CREATE INDEX IF NOT EXISTS idx_ec_person_visit_archived
+            ON hiv_enrollment_commencement (person_uuid, visit_date DESC, archived)
+            WHERE archived = 0;
+
+            -- Create index for efficient queries to fetch all enrollments for a person
+            CREATE INDEX IF NOT EXISTS idx_ec_person_date_art_started
+            ON hiv_enrollment_commencement (person_uuid, date_art_started DESC)
+            WHERE archived = 0;
+
+            -- Add comment explaining the 1:Many relationship
+            COMMENT ON TABLE hiv_enrollment_commencement IS 'HIV Enrollment and ART Commencement records. Supports 1:Many relationship - a person can have multiple enrollment records (e.g., after transfer-out and transfer-in).';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Restore the unique constraint
+                -- WARNING: This will fail if there are multiple active enrollment records per person
+                CREATE UNIQUE INDEX uk_ec_person_active
+                ON hiv_enrollment_commencement (person_uuid)
+                WHERE archived = 0;
+
+                -- Drop the new composite indices
+                DROP INDEX IF EXISTS idx_ec_person_visit_archived;
+                DROP INDEX IF EXISTS idx_ec_person_date_art_started;
+
+                -- Restore original comment
+                COMMENT ON TABLE hiv_enrollment_commencement IS 'HIV Enrollment and ART Commencement records.';
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

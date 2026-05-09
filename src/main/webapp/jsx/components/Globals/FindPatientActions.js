@@ -8,10 +8,13 @@ import { usePermissions } from "../../../hooks/usePermissions";
 import TransferInForm from "../../revised-national-tool-forms/pages/TransferIn/Index";
 
 const FindPatientActions = memo(({ row }) => {
-  const { hasiceform, hasenrollmentform , hivTestResult, hasTransferIn} = row;
+  const { hasiceform, hasenrollmentform , hivTestResult, transferIn} = row;
   const { hasPermission } = usePermissions();
   const history = useHistory();
   const canEnroll = hasPermission("hiv_enrollment_register");
+
+  // Check if patient has transfer-in record (transferIn object is not null)
+  const hasTransferIn = transferIn !== null && transferIn !== undefined;
 
   const [showEnrollmentTypeModal, setShowEnrollmentTypeModal] = useState(false);
   const [showTransferFormModal, setShowTransferFormModal] = useState(false);
@@ -144,7 +147,7 @@ const FindPatientActions = memo(({ row }) => {
                 <FaExchangeAlt style={{ marginRight: "8px" }} /> Yes, Transfer-In
               </Button>
               <Button onClick={() => setShowEnrollmentTypeModal(false)} variant="contained" style={{ backgroundColor: "#992E62", color: "white" }}>
-                <FaUserPlus style={{ marginRight: "8px" }} /> No, New Enrollment
+                Cancel
               </Button>
             </div>
           </DialogContent>

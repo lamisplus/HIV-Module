@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -53,9 +54,16 @@ public class EnrollmentCommencementService {
                     "Please complete the ICE form first for this patient.");
         }
 
-        if (repository.existsByPersonAndArchived(person, 0)) {
+        // NEW: Check for duplicate enrollment on the SAME ART start date (instead of blocking all duplicates)
+        CommencementDto com = request.getData().getCommencement();
+        LocalDate artStartDate = parseDate(com.getDateArtStarted());
+
+        if (artStartDate != null && repository.existsByPersonAndArchivedAndDateArtStarted(person, 0, artStartDate)) {
             throw new RecordExistException(
-                    EnrollmentCommencement.class, "person", String.valueOf(person.getId()));
+                    EnrollmentCommencement.class,
+                    "dateArtStarted",
+                    "An enrollment commencement record already exists for this patient with ART start date: " + artStartDate +
+                    ". Please use a different ART start date or update the existing record.");
         }
 
         validateRequiredFields(request, person);
@@ -85,9 +93,40 @@ public class EnrollmentCommencementService {
                         EnrollmentCommencement.class, "id", String.valueOf(id)));
     }
 
+    /**
+     * Get the latest enrollment commencement for a person (by ART start date)
+     * @deprecated Use getLatestByPersonId() instead for clarity
+     */
+    @Deprecated
     public EnrollmentCommencement getByPersonId(Long personId) {
+        log.warn("getByPersonId() is deprecated - use getLatestByPersonId() for explicit intent");
+        return getLatestByPersonId(personId);
+    }
+
+    /**
+     * Get ALL enrollment commencement records for a person
+     */
+    public List<EnrollmentCommencement> getAllByPersonId(Long personId) {
         Person person = resolvePerson(personId);
-        return repository.findByPersonAndArchived(person, 0)
+        List<EnrollmentCommencement> records = repository.findAllByPersonAndArchivedOrderByDateArtStartedDesc(person, 0);
+        log.info("Found {} enrollment commencement record(s) for person {}", records.size(), personId);
+        return records;
+    }
+
+    /**
+     * Get the LATEST enrollment commencement for a person (by ART start date - most recent first)
+     */
+    public EnrollmentCommencement getLatestByPersonId(Long personId) {
+        return repository.findLatestByPersonIdAndArchived(personId, 0)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        EnrollmentCommencement.class, "personId", String.valueOf(personId)));
+    }
+
+    /**
+     * Get the FIRST/EARLIEST enrollment commencement for a person (by ART start date - oldest first)
+     */
+    public EnrollmentCommencement getFirstByPersonId(Long personId) {
+        return repository.findFirstByPersonIdAndArchived(personId, 0)
                 .orElseThrow(() -> new EntityNotFoundException(
                         EnrollmentCommencement.class, "personId", String.valueOf(personId)));
     }
@@ -235,6 +274,19 @@ public class EnrollmentCommencementService {
     }
 
     private String getStatusAtRegistration(Long id){
+        // For returning clients after Transfer IN (Part 2), check current HIV status
+        // If current status is "ART Transfer In", use that status for the new enrollment
+        try {
+            String currentStatus = hivStatusTrackerService.getPersonCurrentHIVStatusByPersonId(id).getStatus();
+            if (HIV_STATUS_ART_TRANSFER_IN.equalsIgnoreCase(currentStatus)) {
+                log.info("Person {} has current status '{}' - using Transfer In status for enrollment", id, currentStatus);
+                return HIV_STATUS_ART_TRANSFER_IN;
+            }
+        } catch (Exception e) {
+            log.debug("Could not retrieve current HIV status for person {}, falling back to ICE form", id);
+        }
+
+        // Otherwise, check ICE form's isTransferIn flag (for initial enrollment - Part 1)
         InitialClinicalEvaluationDTO ice = initialClinicalEvaluationService.getInitialClinicalEvaluationByPersonId(id);
         return ice.isTransferIn() ?
                 HIV_STATUS_ART_TRANSFER_IN : ART_START_STATUS_ART_START;

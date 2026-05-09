@@ -32,7 +32,7 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "unique_id")
     private String uniqueId;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "person_uuid", referencedColumnName = "uuid", nullable = false)
     private Person person;
 

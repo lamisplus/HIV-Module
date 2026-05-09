@@ -12,6 +12,7 @@ import { Spinner } from "reactstrap";
 import { url as baseUrl, token } from "../../../api";
 import { Icon,Button, } from 'semantic-ui-react'
 import useCodesets from '../../../hooks/useCodesets';
+import usePatientStatus from '../../../hooks/usePatientStatus';
 
 const useStyles = makeStyles(theme => ({
     card: {
@@ -196,9 +197,16 @@ const ClientStatusUpdate = (props) => {
           
           )
               .then(response => {
-                  setSaving(false);                  
+                  setSaving(false);
                   toast.success("Client Status Update Successfully!");
-                  props.setActiveContent({...props.activeContent, route:'recent-history'})
+                  // Trigger patient refresh to update menu state
+                  props.setActiveContent({
+                    ...props.activeContent,
+                    route: 'dashboard',
+                    activeTab: 'home',
+                    refreshPatient: true,
+                    refreshTimestamp: Date.now()
+                  })
 
               })
               .catch(error => {

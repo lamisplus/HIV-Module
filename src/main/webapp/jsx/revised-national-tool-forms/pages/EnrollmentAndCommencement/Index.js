@@ -276,13 +276,14 @@ const EnrollmentAndCommencementForm = (props) => {
 
   // ── Check if patient already has enrollment-commencement record ──────────
   // Only check for existing record in CREATE mode
+  // Re-run when route changes (e.g., navigating to this form after Transfer IN submission)
   useEffect(() => {
     if (isCreateMode) {
       checkForExistingRecord();
     } else {
       setCheckingExisting(false);
     }
-  }, [props.patientObj.id, isCreateMode]);
+  }, [props.patientObj.id, isCreateMode, props.activeContent?.route]);
 
   const checkForExistingRecord = async () => {
     setCheckingExisting(true);
@@ -466,6 +467,25 @@ const EnrollmentAndCommencementForm = (props) => {
         cd4_lf: response.data.VISITECT_CD4_TEST_RESULT || [],
         pregnancyStatus: response.data.PREGNANCY_STATUS || [],
       });
+
+      // Auto-select "Transfer-in" for returning clients
+      if (isCreateMode) {
+        const currentStatus = localStorage.getItem("currentStatus");
+        const isReturningClient = currentStatus?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+
+        if (isReturningClient && response.data.POINT_ENTRY) {
+          const transferInOption = response.data.POINT_ENTRY.find(opt =>
+            opt.code === "POINT_ENTRY_TRANSFER-IN" || opt.display?.toLowerCase().includes("transfer")
+          );
+
+          if (transferInOption) {
+            setRegistration((prev) => ({
+              ...prev,
+              care_entry_point: transferInOption.code
+            }));
+          }
+        }
+      }
     } catch (error) {
       console.error("Error fetching codesets:", error);
       console.error("Error details:", error.response?.data);
@@ -1186,9 +1206,13 @@ const EnrollmentAndCommencementForm = (props) => {
         toast.success("Enrollment and Commencement saved successfully");
       }
 
+      // Trigger patient refresh to update menu state
       props.setActiveContent({
         ...props.activeContent,
-        route: "recent-history",
+        route: "dashboard",
+        activeTab: "home",
+        refreshPatient: true,
+        refreshTimestamp: Date.now(),
       });
     } catch (err) {
       const msg =
@@ -1402,8 +1426,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="care_entry_point"
                   value={registration.care_entry_point}
                   onChange={handleReg}
-                  disabled={loadingCodesets || isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={loadingCodesets || isViewMode || registration.previousEnrollmentDate}
+                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.careEntryPoints.map((opt) => (

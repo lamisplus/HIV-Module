@@ -92,6 +92,7 @@ public class StatusManagementService {
         List<String> staticStatus =
                 Arrays.asList("ART_TRANSFER_OUT",
                         "ART Transfer Out",
+                        "HIV Exposed Status Unknown",
                         "KNOWN_DEATH",
                         "Died (Confirmed)",
                         "STOPPED_TREATMENT",
@@ -243,6 +244,7 @@ public class StatusManagementService {
     }
 
     public String getCurrentStatus(Long personUuid) {
+
         HIVStatusDisplay clientReportingStatus = getClientReportingStatus(personUuid);
         if (clientReportingStatus != null) {
             return clientReportingStatus.getDescription();

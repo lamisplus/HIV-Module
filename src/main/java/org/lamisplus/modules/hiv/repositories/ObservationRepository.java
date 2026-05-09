@@ -53,182 +53,195 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
 
     List<Observation> getAllByPersonAndFacilityId(Person person, Long orgId);
 
-    @Query(nativeQuery = true, value="WITH transferForm AS (\n" +
-            "    SELECT\n" +
+    @Query(nativeQuery = true, value="WITH transferOutData AS (\n" +
+            "    SELECT \n" +
             "        p.id AS patientId,\n" +
-            "        p.uuid AS personUuid,\n" +
-            "        p.facility_id AS facilityId,\n" +
-            "        COALESCE(e.date_confirmed_hiv, e.date_started) AS dateConfirmedHiv,\n" +
-            "        e.date_of_registration AS dateEnrolledInCare,\n" +
-            "        cc.body_weight AS weight,\n" +
-            "        cc.height AS height,\n" +
-            "        lastVisit.visit_date AS dateOfLastClinicalVisist,\n" +
-            "        (SELECT display from base_application_codeset WHERE code = lastVisit.pregnancy_status) AS pregnancyStatus,\n" +
-            "        bac_adl.display AS adherenceLevel,\n" +
-            "        bac.display AS currentWhoClinical,\n" +
-            "        cd4.currentCD4Count AS currentCD4Count,\n" +
-            "        bcd4.baseLineCD4Count AS baselineCD4,\n" +
-            "        ca.visit_date AS dateEnrolledInTreatment,\n" +
-            "        eac.last_viral_load AS viralLoad,\n" +
-            "        pharmacy.currentRegimenLine AS currentRegimenLine,\n" +
-            "        ca.regline AS firstLineArtRegimen,\n" +
-            "        hivstatus.id as hivStatusId,\n" +
-            "        hivstatus.hiv_status as hivStatus\n" +
-            "    FROM\n" +
-            "        patient_person p\n" +
-            "        INNER JOIN hiv_enrollment e ON p.uuid = e.person_uuid\n" +
-            "    INNER JOIN\n" +
-            "        (SELECT TRUE as commenced, hac.person_uuid, hac.visit_date, hr.description AS currentRegimenLine, hrt.description AS regline  \n" +
-            "        FROM hiv_art_clinical hac\n" +
-            "        LEFT JOIN hiv_regimen hr ON hr.id = hac.regimen_id\n" +
-            "        LEFT JOIN hiv_regimen_type hrt ON hrt.id = hac.regimen_type_id\n" +
-            "        WHERE hac.archived=0 AND hac.is_commencement is true\n" +
-            "        GROUP BY hac.person_uuid, hac.visit_date, hac.pregnancy_status, hr.description, hrt.description\n" +
-            "        )ca ON p.uuid = ca.person_uuid\n" +
-            "                    \n" +
-            "    LEFT JOIN (\n" +
-            "        SELECT DISTINCT ON (tvs.person_uuid)\n" +
-            "            tvs.person_uuid,\n" +
-            "            MAX(tvs.capture_date) AS lasVital,\n" +
-            "            tvs.body_weight,\n" +
-            "            tvs.height,\n" +
-            "            ca.commenced,\n" +
-            "            ca.visit_date\n" +
-            "        FROM\n" +
-            "            triage_vital_sign tvs\n" +
-            "        INNER JOIN (\n" +
-            "            SELECT\n" +
-            "                TRUE AS commenced,\n" +
-            "                hac.person_uuid,\n" +
-            "                hac.visit_date\n" +
-            "            FROM\n" +
-            "                hiv_art_clinical hac\n" +
-            "            WHERE\n" +
-            "                hac.archived = 0\n" +
-            "                AND hac.is_commencement IS TRUE\n" +
-            "            GROUP BY\n" +
-            "                hac.person_uuid,\n" +
-            "                hac.visit_date\n" +
-            "        ) ca ON ca.person_uuid = tvs.person_uuid\n" +
-            "        GROUP BY\n" +
-            "            tvs.body_weight,\n" +
-            "            tvs.height,\n" +
-            "            tvs.person_uuid,\n" +
-            "            ca.commenced,\n" +
-            "            ca.visit_date,\n" +
-            "            tvs.capture_date\n" +
-            "        ORDER BY\n" +
-            "            tvs.person_uuid,\n" +
-            "            tvs.capture_date DESC\n" +
-            "    ) cc ON cc.person_uuid = p.uuid\n" +
-            "    LEFT JOIN (\n" +
-            "        SELECT * FROM (\n" +
-            "            SELECT person_uuid, visit_date, level_of_adherence, next_appointment, tb_status, pregnancy_status, facility_id,clinical_stage_id, \n" +
+            "        p.uuid AS patientUuid,\n" +
+            "        p.facility_id AS facilityId\n" +
+            "    FROM patient_person p\n" +
+            "    WHERE p.archived = 0\n" +
+            "),\n" +
+            "lastEnrollment AS (\n" +
+            "    SELECT * FROM (\n" +
+            "        SELECT \n" +
+            "            person_uuid,\n" +
+            "            visit_id,\n" +
+            "            date_confirmed_hiv_test AS dateConfirmedHiv,\n" +
+            "            visit_date AS visitDate,\n" +
+            "            visit_date AS dateEnrolledInTreatment,\n" +
+            "            regimen_line_id,\n" +
+            "            date_art_started,\n" +
+            "            date_enrolled_in_hiv_care AS dateEnrolledInCare,\n" +
+            "            cd4_percentage,\n" +
+            "            cd4_at_art_start AS baselineCD4, \n" +
+            "            ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY visit_date DESC) rnk\n" +
+            "        FROM hiv_enrollment_commencement\n" +
+            "        WHERE archived = 0\n" +
+            "    ) lst WHERE rnk = 1\n" +
+            "),\n" +
+            "hivstatus AS (\n" +
+            "    SELECT id AS hivStatusId, person_id, hiv_status AS hivStatus\n" +
+            "    FROM (\n" +
+            "        SELECT \n" +
+            "            id,\n" +
+            "            person_id,\n" +
+            "            hiv_status,\n" +
+            "            status_date,\n" +
+            "            ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY status_date DESC) AS rn\n" +
+            "        FROM hiv_status_tracker\n" +
+            "        WHERE archived = 0\n" +
+            "    ) h\n" +
+            "    WHERE rn = 1\n" +
+            "),\n" +
+            "lastVisit AS (\n" +
+            "    SELECT *\n" +
+            "    FROM (\n" +
+            "        SELECT \n" +
+            "            person_uuid,\n" +
+            "            visit_date,\n" +
+            "            next_appointment,\n" +
+            "            tb_status,\n" +
+            "            pregnancy_status,\n" +
+            "            facility_id,\n" +
+            "            clinical_stage_id,\n" +
+            "            arvdrugs_regimen->0->>'regimenAdherance' AS level_of_adherence,\n" +
             "            ROW_NUMBER() OVER (PARTITION BY person_uuid ORDER BY visit_date DESC) AS row\n" +
-            "            FROM hiv_art_clinical\n" +
-            "            WHERE archived = 0\n" +
-            "        ) visit WHERE row = 1\n" +
-            "    ) lastVisit ON p.uuid = lastVisit.person_uuid\n" +
-            "    INNER JOIN base_organisation_unit facility ON facility.id = p.facility_id\n" +
-            "    INNER JOIN base_organisation_unit facility_lga ON facility_lga.id = facility.parent_organisation_unit_id\n" +
-            "    INNER JOIN base_organisation_unit facility_state ON facility_state.id = facility_lga.parent_organisation_unit_id\n" +
-            "    LEFT JOIN base_application_codeset bac ON bac.id = lastVisit.clinical_stage_id\n" +
-            "    LEFT JOIN base_application_codeset bac_adl ON \n" +
-            "        CASE \n" +
-            "            WHEN lastVisit.level_of_adherence ~ '^[0-9]+$' \n" +
-            "            THEN cast(lastVisit.level_of_adherence AS bigint) = bac_adl.id \n" +
-            "            ELSE FALSE \n" +
-            "        END\n" +
-            "    LEFT JOIN hiv_eac eac ON eac.person_uuid = p.uuid\n" +
-            "    LEFT JOIN (\n" +
-            "        SELECT DISTINCT ON (sm.patient_uuid)\n" +
+            "        FROM hiv_art_clinical\n" +
+            "        WHERE archived = 0\n" +
+            "    ) visit\n" +
+            "    WHERE row = 1\n" +
+            "),\n" +
+            "cd4 AS (\n" +
+            "    SELECT patient_uuid, currentCD4Count\n" +
+            "    FROM (\n" +
+            "        SELECT \n" +
             "            sm.patient_uuid,\n" +
             "            sm.result_reported AS currentCD4Count,\n" +
-            "            sm.date_result_reported\n" +
-            "        FROM\n" +
-            "            public.laboratory_result sm\n" +
+            "            sm.date_result_reported,\n" +
+            "            ROW_NUMBER() OVER (\n" +
+            "                PARTITION BY sm.patient_uuid \n" +
+            "                ORDER BY CAST(sm.date_result_reported AS DATE) DESC\n" +
+            "            ) AS row\n" +
+            "        FROM public.laboratory_result sm\n" +
             "        INNER JOIN public.laboratory_test lt ON sm.test_id = lt.id\n" +
-            "        WHERE\n" +
-            "            lt.lab_test_id IN (1, 50)\n" +
-            "            AND sm.date_result_reported IS NOT NULL\n" +
-            "            AND sm.archived = 0\n" +
-            "        ORDER BY\n" +
-            "            sm.patient_uuid,\n" +
-            "            sm.date_result_reported DESC\n" +
-            "    ) cd4 ON cd4.patient_uuid = p.uuid\n" +
-            "    LEFT JOIN (\n" +
-            "        SELECT\n" +
-            "            COALESCE(\n" +
-            "                CAST(cd_4 AS VARCHAR),\n" +
-            "                cd4_semi_quantitative\n" +
-            "            ) AS baseLineCD4Count,\n" +
-            "            person_uuid\n" +
-            "        FROM\n" +
-            "            public.hiv_art_clinical\n" +
-            "        WHERE\n" +
-            "            is_commencement IS TRUE\n" +
-            "            AND archived = 0\n" +
-            "            AND cd_4 != 0\n" +
-            "    ) bcd4 ON bcd4.person_uuid = p.uuid\n" +
-            "    LEFT JOIN (\n" +
-            "        SELECT * FROM (\n" +
-            "            SELECT\n" +
-            "                id,\n" +
-            "                person_id,\n" +
-            "                hiv_status, status_date,\n" +
-            "                ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY status_date DESC) AS rn\n" +
-            "            FROM hiv_status_tracker \n" +
-            "        ) h where rn = 1\n" +
-            "    ) hivstatus ON ca.person_uuid = hivstatus.person_id\n" +
-            "    LEFT JOIN (\n" +
-            "        SELECT * FROM (\n" +
-            "            SELECT \n" +
-            "                p.person_uuid as person_uuid40, \n" +
-            "                COALESCE(ds_model.display, p.dsd_model_type) as dsdModel, \n" +
-            "                p.visit_date as lastPickupDate,\n" +
-            "                r.description as currentARTRegimen, \n" +
-            "                rt.description as currentRegimenLine,\n" +
-            "                p.next_appointment as nextPickupDate,\n" +
-            "                ROW_NUMBER() OVER (PARTITION BY p.person_uuid ORDER BY p.visit_date DESC) AS rn\n" +
-            "            from public.hiv_art_pharmacy p\n" +
-            "            INNER JOIN public.hiv_art_pharmacy_regimens pr ON pr.art_pharmacy_id = p.id\n" +
-            "            INNER JOIN public.hiv_regimen r on r.id = pr.regimens_id\n" +
-            "            INNER JOIN public.hiv_regimen_type rt on rt.id = r.regimen_type_id\n" +
-            "            left JOIN base_application_codeset ds_model on ds_model.code = p.dsd_model_type \n" +
-            "            WHERE r.regimen_type_id in (1,2,3,4,14,16)\n" +
-            "            AND p.archived = 0\n" +
-            "        ) p where rn = 1\n" +
-            "    ) pharmacy ON ca.person_uuid = pharmacy.person_uuid40\n" +
-            "    WHERE p.facility_id = :facilityId AND p.archived = 0\n" +
-            "), RankedTransferForm AS (\n" +
-            "    SELECT \n" +
-            "        *,\n" +
-            "        ROW_NUMBER() OVER (PARTITION BY personUuid ORDER BY dateEnrolledInTreatment DESC) AS rn\n" +
-            "    FROM transferForm\n" +
+            "        WHERE lt.lab_test_id IN (1, 50)\n" +
+            "          AND sm.date_result_reported IS NOT NULL\n" +
+            "          AND sm.archived = 0\n" +
+            "    ) cd4C\n" +
+            "    WHERE row = 1\n" +
+            "),\n" +
+            "lastVitals AS (\n" +
+            "    SELECT person_uuid, captureDate, weight, height\n" +
+            "    FROM (\n" +
+            "        SELECT \n" +
+            "            person_uuid,\n" +
+            "            CAST(capture_date AS DATE) AS captureDate,\n" +
+            "            body_weight AS weight,\n" +
+            "            height,\n" +
+            "            ROW_NUMBER() OVER (\n" +
+            "                PARTITION BY person_uuid \n" +
+            "                ORDER BY CAST(capture_date AS DATE) DESC\n" +
+            "            ) AS rnnkk\n" +
+            "        FROM triage_vital_sign\n" +
+            "        WHERE archived = 0\n" +
+            "    ) triage\n" +
+            "    WHERE rnnkk = 1\n" +
+            "),\n" +
+            "pharmacy AS (\n" +
+            "    SELECT person_uuid4, currentRegimenLine\n" +
+            "    FROM (\n" +
+            "        SELECT \n" +
+            "            p.person_uuid AS person_uuid4,\n" +
+            "            rt.description AS currentRegimenLine,\n" +
+            "            ROW_NUMBER() OVER (\n" +
+            "                PARTITION BY p.person_uuid \n" +
+            "                ORDER BY p.visit_date DESC\n" +
+            "            ) AS rn\n" +
+            "        FROM public.hiv_art_pharmacy p\n" +
+            "        INNER JOIN public.hiv_art_pharmacy_regimens pr \n" +
+            "            ON pr.art_pharmacy_id = p.id\n" +
+            "        INNER JOIN public.hiv_regimen r \n" +
+            "            ON r.id = pr.regimens_id\n" +
+            "        INNER JOIN public.hiv_regimen_type rt \n" +
+            "            ON rt.id = r.regimen_type_id\n" +
+            "        WHERE r.regimen_type_id IN (1,2,3,4,14,16)\n" +
+            "          AND p.archived = 0\n" +
+            "    ) p\n" +
+            "    WHERE rn = 1\n" +
+            "),\n" +
+            "currentViralLoadResult AS (\n" +
+            "    SELECT person_uuid130, currentViralLoad\n" +
+            "    FROM (\n" +
+            "        SELECT \n" +
+            "            sm.patient_uuid AS person_uuid130,\n" +
+            "            sm.result_reported AS currentViralLoad,\n" +
+            "            ROW_NUMBER() OVER (\n" +
+            "                PARTITION BY sm.patient_uuid \n" +
+            "                ORDER BY ls.date_sample_collected DESC\n" +
+            "            ) AS rank2\n" +
+            "        FROM public.laboratory_result sm\n" +
+            "        INNER JOIN public.laboratory_test lt ON sm.test_id = lt.id\n" +
+            "        INNER JOIN public.laboratory_sample ls ON ls.test_id = lt.id\n" +
+            "        INNER JOIN public.base_application_codeset acode \n" +
+            "            ON acode.id = lt.viral_load_indication\n" +
+            "        WHERE lt.lab_test_id = 16\n" +
+            "          AND (sm.archived = 0 OR sm.archived IS NULL)\n" +
+            "          AND lt.viral_load_indication != 719\n" +
+            "          AND sm.date_result_reported IS NOT NULL\n" +
+            "          AND sm.result_reported IS NOT NULL\n" +
+            "    ) vl_result\n" +
+            "    WHERE rank2 = 1\n" +
             ")\n" +
             "SELECT \n" +
-            "    patientId,\n" +
-            "    personUuid,\n" +
-            "    facilityId,\n" +
-            "    dateEnrolledInTreatment,\n" +
-            "    dateOfLastClinicalVisist,\n" +
-            "    weight,\n" +
-            "    height,\n" +
-            "    pregnancyStatus,\n" +
-            "    dateEnrolledInCare,\n" +
-            "    dateConfirmedHiv,\n" +
-            "    adherenceLevel,\n" +
-            "    currentWhoClinical,\n" +
-            "    currentCD4Count,\n" +
-            "    baselineCD4,\n" +
-            "    viralLoad,\n" +
-            "    currentRegimenLine,\n" +
-            "    firstLineArtRegimen,\n" +
-            "    hivStatusId,\n" +
-            "    hivStatus\n" +
-            "FROM RankedTransferForm\n" +
-            "WHERE rn = 1 AND personUuid = :uuid")
-    Optional<TransferPatientInfo> getTransferPatientInfo( String uuid, Long facilityId);
+            "    base.patientId,\n" +
+            "    base.patientUuid AS personUuid,\n" +
+            "    base.facilityId,\n" +
+            "    le.visit_id,\n" +
+            "    le.dateConfirmedHiv,\n" +
+            "    le.dateEnrolledInTreatment,\n" +
+            "    le.dateEnrolledInCare,\n" +
+            "    le.visitDate,\n" +
+            "    le.regimen_line_id AS firstLineArtRegimen,\n" +
+            "    le.date_art_started,\n" +
+            "    le.cd4_percentage,\n" +
+            "    le.baselineCD4,\n" +
+            "    hs.hivStatusId,\n" +
+            "    hs.hivStatus,\n" +
+            "    lv.visit_date AS lastVisitDate,\n" +
+            "    levelAdh.display AS adherenceLevel,\n" +
+            "    lv.next_appointment,\n" +
+            "    lv.tb_status,\n" +
+            "    pregnantStatus.display AS pregnancyStatus,\n" +
+            "    clinicalStage.display AS currentWhoClinical,\n" +
+            "    cd.currentCD4Count,\n" +
+            "    vit.captureDate,\n" +
+            "    vit.weight,\n" +
+            "    vit.height,\n" +
+            "    ph.currentRegimenLine,\n" +
+            "    vl.currentViralLoad AS viralLoad\n" +
+            "FROM transferOutData base\n" +
+            "JOIN lastEnrollment le \n" +
+            "       ON le.person_uuid = base.patientUuid\n" +
+            "LEFT JOIN hivstatus hs \n" +
+            "       ON hs.person_id = base.patientUuid\n" +
+            "LEFT JOIN lastVisit lv \n" +
+            "       ON lv.person_uuid = base.patientUuid\n" +
+            "LEFT JOIN cd4 cd \n" +
+            "       ON cd.patient_uuid = base.patientUuid\n" +
+            "LEFT JOIN lastVitals vit \n" +
+            "       ON vit.person_uuid = base.patientUuid\n" +
+            "LEFT JOIN pharmacy ph \n" +
+            "       ON ph.person_uuid4 = base.patientUuid\n" +
+            "LEFT JOIN currentViralLoadResult vl \n" +
+            "       ON vl.person_uuid130 = base.patientUuid\n" +
+            "LEFT JOIN base_application_codeset levelAdh \n" +
+            "       ON levelAdh.code = lv.level_of_adherence\n" +
+            "LEFT JOIN base_application_codeset pregnantStatus\n" +
+            "       ON pregnantStatus.code = lv.pregnancy_status\n" +
+            "LEFT JOIN base_application_codeset clinicalStage\n" +
+            "       ON clinicalStage.id = lv.clinical_stage_id\n" +
+            "WHERE base.facilityId = :facilityId AND base.patientUuid = :uuid")
+    Optional<TransferPatientInfo> getTransferPatientInfo(@Param("uuid") String uuid, @Param("facilityId") Long facilityId);
 
     @Query(nativeQuery = true, value =
             "SELECT \n" +

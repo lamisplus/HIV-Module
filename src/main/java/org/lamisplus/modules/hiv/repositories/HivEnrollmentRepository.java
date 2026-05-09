@@ -84,7 +84,8 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "AS enrollmentDate, a.display AS hivEnrollmentStatus  " +
             "FROM hiv_enrollment_commencement e INNER JOIN base_application_codeset a " +
             "ON a.id = e.status_at_registration_id " +
-            "WHERE person_uuid = ?1 ", nativeQuery = true)
+            "WHERE person_uuid = ?1 AND e.archived = 0 " +
+            "ORDER BY e.date_art_started DESC, e.id DESC LIMIT 1", nativeQuery = true)
     Optional<EnrollmentStatus> getHivEnrollmentStatusByPersonUuid(String uuid);
 
     @Query(value = "SELECT COUNT(*)\n" +
@@ -148,7 +149,12 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "ca.commenced, b.biometric_type as biometricStatus " +
             "FROM patient_person p " +
             "LEFT JOIN biometric b ON b.person_uuid = p.uuid " +
-            "INNER JOIN hiv_enrollment_commencement e ON p.uuid = e.person_uuid " +
+            "INNER JOIN (" +
+            "    SELECT DISTINCT ON (ec.person_uuid) ec.id, ec.person_uuid, ec.unique_id, ec.status_at_registration_id " +
+            "    FROM hiv_enrollment_commencement ec " +
+            "    WHERE ec.archived = 0 " +
+            "    ORDER BY ec.person_uuid, ec.date_art_started DESC, ec.id DESC" +
+            ") e ON p.uuid = e.person_uuid " +
             "INNER JOIN " +
             "(SELECT TRUE as commenced, ice.person_uuid FROM hiv_initial_clinical_evaluation ice " +
             " WHERE ice.archived=0 " +
@@ -156,13 +162,11 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "LEFT JOIN base_application_codeset pc on pc.id = e.status_at_registration_id " +
             "WHERE p.archived=0 AND p.facility_id= ?1 " +
             "AND (p.first_name ilike ?2 OR p.surname ilike ?2 OR e.unique_id ilike ?2 OR p.other_name ilike ?2 OR p.hospital_number ilike ?2) " +
-            "GROUP BY e.id, ca.commenced, p.id, p.first_name, " +
-            "b.biometric_type, pc.display, p.surname, p.other_name, p.hospital_number, p.date_of_birth " +
             "ORDER BY p.id DESC",
-            countQuery = "SELECT count(*) FROM patient_person p " +
+            countQuery = "SELECT count(DISTINCT p.id) FROM patient_person p " +
                     "INNER JOIN hiv_enrollment_commencement e ON p.uuid = e.person_uuid " +
                     "INNER JOIN hiv_initial_clinical_evaluation ice ON p.uuid = ice.person_uuid " +
-                    "WHERE p.archived=0 AND p.facility_id= ?1 " +
+                    "WHERE p.archived=0 AND e.archived=0 AND ice.archived=0 AND p.facility_id= ?1 " +
                     "AND (p.first_name ilike ?2 OR p.surname ilike ?2 OR e.unique_id ilike ?2 OR p.hospital_number ilike ?2)",
             nativeQuery = true)
     Page<PatientProjection> getEnrolledPatientsByFacilityBySearchParam(Long facilityId, String searchParam, Pageable page);
@@ -195,21 +199,19 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "    WHERE ice.archived = 0 \n" +
             "    GROUP BY ice.person_uuid\n" +
             ") ca ON p.uuid = ca.person_uuid \n" +
-            "INNER JOIN hiv_enrollment_commencement e ON p.uuid = e.person_uuid\n" +
+            "INNER JOIN (\n" +
+            "    SELECT DISTINCT ON (ec.person_uuid) ec.id, ec.person_uuid, ec.unique_id, ec.status_at_registration_id \n" +
+            "    FROM hiv_enrollment_commencement ec \n" +
+            "    WHERE ec.archived = 0 \n" +
+            "    ORDER BY ec.person_uuid, ec.date_art_started DESC, ec.id DESC\n" +
+            ") e ON p.uuid = e.person_uuid\n" +
             "LEFT JOIN base_application_codeset pc on pc.id = e.status_at_registration_id \n" +
             "WHERE p.archived = 0 AND p.facility_id = ?1 \n" +
-            "GROUP BY \n" +
-            "    e.id, \n" +
-            "    p.id, \n" +
-            "    p.first_name, \n" +
-            "    ca.commenced,\n" +
-            "    b.biometric_type, \n" +
-            "    pc.display,\n" +
-            "    p.surname, \n" +
-            "    p.other_name, \n" +
-            "    p.hospital_number, \n" +
-            "    p.date_of_birth \n" +
             "ORDER BY p.id DESC;",
+            countQuery = "SELECT count(DISTINCT p.id) FROM patient_person p " +
+                    "INNER JOIN hiv_initial_clinical_evaluation ice ON p.uuid = ice.person_uuid " +
+                    "INNER JOIN hiv_enrollment_commencement ec ON p.uuid = ec.person_uuid " +
+                    "WHERE p.archived = 0 AND ice.archived = 0 AND ec.archived = 0 AND p.facility_id = ?1",
             nativeQuery = true)
     Page<PatientProjection> getEnrolledPatientsByFacility(Long facilityId, Pageable page);
 

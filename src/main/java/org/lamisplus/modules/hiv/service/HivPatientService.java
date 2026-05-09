@@ -14,11 +14,7 @@ import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.EnrollmentCom
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.RegistrationDto;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.TbPreventiveTherapyDto;
 import org.lamisplus.modules.hiv.domain.dto.initialclinicalevaluation.InitialClinicalEvaluationDTO;
-import org.lamisplus.modules.hiv.domain.entity.ARTClinical;
-import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
-import org.lamisplus.modules.hiv.domain.entity.InitialClinicalEvaluation;
-import org.lamisplus.modules.hiv.domain.entity.Observation;
-import org.lamisplus.modules.hiv.domain.entity.PatientTransferIn;
+import org.lamisplus.modules.hiv.domain.entity.*;
 import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
 import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
@@ -311,8 +307,9 @@ public class HivPatientService {
             Optional<InitialClinicalEvaluation> initialClinicalEvaluation =
                     initialClinicalEvaluationRepository.findByPersonAndArchived(person, 0);
             // Using new table: hiv_enrollment_commencement (replaces hiv_art_clinical)
+            // Get LATEST enrollment commencement for patient details display
             Optional<EnrollmentCommencement> enrollmentCommencement =
-                    enrollmentCommencementRepository.findByPersonAndArchived(person, 0);
+                    enrollmentCommencementRepository.findLatestByPersonIdAndArchived(personId, 0);
             // Fetch Transfer-In data
             Optional<PatientTransferIn> transferIn =
                     patientTransferInRepository.findByPersonAndArchived(person, 0);
@@ -333,14 +330,15 @@ public class HivPatientService {
             hivPatientDto.setCommenced(true);
             hivPatientDto.setHasenrollmentform(true);
             EnrollmentCommencement ec = enrollmentCommencement.get();
+
             // Enrollment Commencement represents ART Start status
-            Long statusAtRegistrationId = ec.getStatusAtRegistrationId();
-            if (statusAtRegistrationId != null) {
-                Optional<ApplicationCodeSet> status = applicationCodesetRepository.findById(statusAtRegistrationId);
-                status.ifPresent(applicationCodeSet -> hivPatientDto.setCurrentStatus(applicationCodeSet.getDisplay()));
-            } else {
+//            Long statusAtRegistrationId = ec.getStatusAtRegistrationId();
+
                 hivPatientDto.setCurrentStatus(statusManagementService.getCurrentStatus(personId));
-            }
+//            } else {
+//                Optional<ApplicationCodeSet> status = applicationCodesetRepository.findById(statusAtRegistrationId);
+//                status.ifPresent(applicationCodeSet -> hivPatientDto.setCurrentStatus(applicationCodeSet.getDisplay()));
+//            }
             // Convert entity to DTO
             try {
                 EnrollmentCommencementRequestDto ecDto = convertEnrollmentCommencementToDto(ec);

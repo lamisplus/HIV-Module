@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -36,10 +37,43 @@ public class EnrollmentCommencementController {
         return ResponseEntity.ok(service.getById(id));
     }
 
+    /**
+     * Get latest enrollment commencement for a person
+     * @deprecated Use /person/{personId}/latest for explicit intent
+     */
+    @Deprecated
     @GetMapping(value = "/person/{personId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<EnrollmentCommencement> getByPersonId(@PathVariable Long personId) {
-        log.info("GET /api/v1/hiv/enrollment-commencement/person/{} - Fetching Enrollment & Commencement by person ID", personId);
+        log.info("GET /api/v1/hiv/enrollment-commencement/person/{} - Fetching latest Enrollment & Commencement by person ID (deprecated endpoint)", personId);
         return ResponseEntity.ok(service.getByPersonId(personId));
+    }
+
+    /**
+     * Get ALL enrollment commencement records for a person
+     */
+    @GetMapping(value = "/person/{personId}/all", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<EnrollmentCommencement>> getAllByPersonId(@PathVariable Long personId) {
+        log.info("GET /api/v1/hiv/enrollment-commencement/person/{}/all - Fetching all Enrollment & Commencement records by person ID", personId);
+        List<EnrollmentCommencement> records = service.getAllByPersonId(personId);
+        return ResponseEntity.ok(records);
+    }
+
+    /**
+     * Get LATEST enrollment commencement for a person (by ART start date)
+     */
+    @GetMapping(value = "/person/{personId}/latest", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<EnrollmentCommencement> getLatestByPersonId(@PathVariable Long personId) {
+        log.info("GET /api/v1/hiv/enrollment-commencement/person/{}/latest - Fetching latest Enrollment & Commencement by person ID", personId);
+        return ResponseEntity.ok(service.getLatestByPersonId(personId));
+    }
+
+    /**
+     * Get FIRST/EARLIEST enrollment commencement for a person (by ART start date)
+     */
+    @GetMapping(value = "/person/{personId}/first", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<EnrollmentCommencement> getFirstByPersonId(@PathVariable Long personId) {
+        log.info("GET /api/v1/hiv/enrollment-commencement/person/{}/first - Fetching first Enrollment & Commencement by person ID", personId);
+        return ResponseEntity.ok(service.getFirstByPersonId(personId));
     }
 
 

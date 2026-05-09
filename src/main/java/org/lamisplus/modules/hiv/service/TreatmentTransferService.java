@@ -69,7 +69,7 @@ public class TreatmentTransferService {
         if (dto == null) {
             throw new IllegalArgumentException("TransferPatientInfo is null");
         }
-        String status = dto.getCurrentStatus().equalsIgnoreCase("ART TRANSFER OUT") ? "ART Transfer In" : "ART Transfer Out";
+        String status = dto.getCurrentStatus().equalsIgnoreCase("ART TRANSFER OUT") ? "HIV Exposed Status Unknown" : "ART Transfer Out";
         ApplicationCodeSet codeSet = applicationCodesetRepository.findByDisplayAndCodesetGroup(status, Constants.CODE_SET_GROUP)
                 .orElseThrow(() -> new EntityNotFoundException(ApplicationCodeSet.class, "display", status));
         Boolean existsRecordWithDiedStatus = hivStatusTrackerRepository.existsRecordWithDiedStatus(dto.getPersonUuid());
@@ -79,7 +79,7 @@ public class TreatmentTransferService {
         // Create observation
         ObservationDto createdObservation = createObservation(dto, codeSet);
         //update hiv_enrollment status
-        updateHivEnrollStatus(dto, codeSet);
+//        updateHivEnrollStatus(dto, codeSet);
         //create hiv_status_tracker record
         createNewHivStatus(dto, status);
         return createdObservation;

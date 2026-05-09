@@ -74,12 +74,12 @@ const SubMenu = (props) => {
   }, [props.activeContent?.route]);
   const patientCurrentStatus = patientObj?.currentStatus === "Died (Confirmed)";
   const [currentStatus, setCurrentStatus] = useState(() => {
-    const savedStatus = localStorage.getItem(`status_${patientObj?.id}`) || "";
+    const savedStatus = localStorage.getItem("currentStatus") || "";
     return savedStatus;
   });
   const [statusLoading, setStatusLoading] = useState(false);
   const [isPatientActive, setIsPatientActive] = useState(() => {
-    const savedStatus = localStorage.getItem(`status_${patientObj?.id}`);
+    const savedStatus = localStorage.getItem("currentStatus");
     return !savedStatus?.toLowerCase()?.includes("stopped");
   });
 
@@ -139,6 +139,22 @@ const SubMenu = (props) => {
       getCurrentStatus();
     }
   }, []);
+
+  // Effect to refresh status when navigating to enrollment-and-commencement route
+  // This ensures the menu updates after Transfer IN submission (Part 2 flow)
+  useEffect(() => {
+    if (props.activeContent?.route === "enrollment-and-commencement") {
+      getCurrentStatus();
+    }
+  }, [props.activeContent?.route]);
+
+  // Effect to refresh status when patient is refreshed (after form submissions)
+  // This ensures the menu updates immediately after Enrollment form submission
+  useEffect(() => {
+    if (props.activeContent?.refreshPatient === true) {
+      getCurrentStatus();
+    }
+  }, [props.activeContent?.refreshPatient, props.activeContent?.refreshTimestamp]);
 
 
 
@@ -215,12 +231,17 @@ const SubMenu = (props) => {
       // Post-ICE Pre-Enrollment: ICE done but Enrollment not done - show limited menu
       const isPostICEPreEnrollment = isICEDone === true && isEnrollmentCommencementDone === false;
 
-      // Show full menu only when BOTH are confirmed done
-      const showFullMenu = isICEDone === true && isEnrollmentCommencementDone === true;
+      // Transfer IN Pending Enrollment: Returning client has completed Transfer IN, needs new Enrollment & Commencement
+      // Using temporary status "HIV Exposed Status Unknown" for Part 2 Transfer IN
+      const isTransferInPendingEnrollment = currentStatus?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+
+      // Show full menu only when BOTH are confirmed done AND not in Transfer IN state
+      const showFullMenu = isICEDone === true && isEnrollmentCommencementDone === true && !isTransferInPendingEnrollment;
 
       const conditions = {
         isPreICE,
         isPostICEPreEnrollment,
+        isTransferInPendingEnrollment,
         showFullMenu,
 
         isDeadOrTransferred:
@@ -684,9 +705,9 @@ const SubMenu = (props) => {
                 </MenuItem>
               </Menu>
             </>
-          ) : menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment ? (
+          ) : menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment || menuConditions.isTransferInPendingEnrollment ? (
             <>
-              {/*{console.log("RENDERING LIMITED MENU (Pre-ICE or Post-ICE Pre-Enrollment)")}*/}
+              {/*{console.log("RENDERING LIMITED MENU (Pre-ICE, Post-ICE Pre-Enrollment, or Transfer IN Pending Enrollment)")}*/}
               <Menu size="tiny" color="blue" inverted pointing>
               <MenuItem
                 onClick={menuHandlers.onClickHome}
@@ -709,8 +730,8 @@ const SubMenu = (props) => {
                 </MenuItem>
               )}
 
-              {/* Show Enrollment form link when in Post-ICE Pre-Enrollment state */}
-              {menuConditions.isPostICEPreEnrollment && (
+              {/* Show Enrollment form link when in Post-ICE Pre-Enrollment state OR Transfer IN Pending Enrollment state */}
+              {(menuConditions.isPostICEPreEnrollment || menuConditions.isTransferInPendingEnrollment) && (
                 <MenuItem
                   onClick={menuHandlers.loadEnrollmentAndCommencement}
                   name="enrollment-and-commencement"
@@ -783,8 +804,8 @@ const SubMenu = (props) => {
                   </MenuItem>
 
                   {currentStatus === "ART TRANSFER OUT" &&
-                    permissions.canSeeTracking && (
-                      <MenuItem
+                      permissions.canSeeTracking && (
+                          <MenuItem
                         onClick={menuHandlers.loadTransferForm}
                         name="transfer"
                         active={activeItem === "transfer"}

@@ -313,10 +313,30 @@ const Tracking = (props) => {
             .then((response) => {
                 setSaving(false);
                 toast.success("Transfer Form Submitted Successfully");
-                props.setActiveContent({
-                    ...props.activeContent,
-                    route: "recent-history",
-                });
+
+                // If this was a Transfer IN (returning client), route to Enrollment & Commencement
+                if (patientCurrentStatus === "ART TRANSFER OUT") {
+                    props.setActiveContent({
+                        ...props.activeContent,
+                        route: "enrollment-and-commencement",
+                        activeTab: "home",
+                        actionType: "create",
+                        refreshTimestamp: Date.now(), // Force refresh of patient data
+                    });
+                } else {
+                    // Transfer OUT - update status and route to Home tab
+                    // Update localStorage to trigger menu refresh
+                    localStorage.setItem("currentStatus", "HIV EXPOSED STATUS UNKNOWN");
+
+                    // Route to Home with refresh to show updated menu
+                    props.setActiveContent({
+                        ...props.activeContent,
+                        route: "dashboard",
+                        activeTab: "home",
+                        refreshPatient: true,
+                        refreshTimestamp: Date.now(), // Force refresh of patient data
+                    });
+                }
             })
             .catch((error) => {
                 setSaving(false);
