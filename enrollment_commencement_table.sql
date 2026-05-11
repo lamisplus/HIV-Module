@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS enrollment_commencement (
     muac                                DOUBLE PRECISION,
     muac_indication                     VARCHAR(50),
     is_pregnant                         BOOLEAN,
-    pregnancy_status                    VARCHAR(50),
+    is_breast_feeding                   BOOLEAN,
 
     --  Commencement — TB Preventive Therapy
     tpt_medication                      VARCHAR(255),

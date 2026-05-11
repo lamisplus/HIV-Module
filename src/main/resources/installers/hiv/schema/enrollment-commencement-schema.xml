@@ -104,7 +104,7 @@
             <column name="muac" type="DOUBLE"/>
             <column name="muac_indication" type="VARCHAR(50)"/>
             <column name="is_pregnant" type="BOOLEAN"/>
-            <column name="pregnancy_status" type="VARCHAR(50)"/>
+            <column name="is_breast_feeding" type="BOOLEAN"/>
 
             <!-- ── Commencement — TB Preventive Therapy ───────────────────── -->
             <column name="tpt_medication" type="BIGINT"/>

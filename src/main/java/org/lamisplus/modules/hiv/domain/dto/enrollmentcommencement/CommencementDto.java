@@ -51,8 +51,11 @@ public class CommencementDto {
     @JsonProperty("is_pregnant")
     private String isPregnant;
 
-    @JsonProperty("pregnancy_status")
-    private String pregnancyStatus;
+    @JsonProperty("is_breast_feeding")
+    private Boolean isBreastFeeding;;
+
+//    @JsonProperty("pregnancy_status")
+//    private String pregnancyStatus;
 
     @JsonProperty("tb_preventive_therapy")
     private TbPreventiveTherapyDto tbPreventiveTherapy;
