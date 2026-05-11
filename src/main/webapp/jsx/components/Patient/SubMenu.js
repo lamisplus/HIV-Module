@@ -42,6 +42,7 @@ const SubMenu = (props) => {
   // Use expandedPatientObj values if available, otherwise fall back to state
   const [isEnrollmentCommencementDone, setIsEnrollmentCommencementDone] = useState(false);
   const [isICEDone, setIsICEDone] = useState(false);
+  const [isAdherencePreparationDone, setIsAdherencePreparationDone] = useState(false);
   const [labResult, setLabResult] = useState(null);
   const [hasPharmacyRecords, setHasPharmacyRecords] = useState(false);
 
@@ -65,9 +66,14 @@ const SubMenu = (props) => {
     patientObj?.commenced
   ]);
 
-  // Immediately update isICEDone when navigating to enrollment form from ICE form
+  // Immediately update form completion status when navigating between forms
   // This ensures the menu updates instantly without waiting for API refresh
   useEffect(() => {
+    // When navigating to ICE form, mark Adherence as done
+    if (props.activeContent?.route === 'initial-clinical-evaluation' && !isICEDone) {
+      setIsAdherencePreparationDone(true);
+    }
+    // When navigating to Enrollment form, mark ICE as done
     if (props.activeContent?.route === 'enrollment-and-commencement' && !isEnrollmentCommencementDone) {
       setIsICEDone(true);
     }
@@ -225,21 +231,26 @@ const SubMenu = (props) => {
 
   const menuConditions = useMemo(
     () => {
-      // Pre-ICE: Neither ICE nor Enrollment done - show limited menu (Home only, ICE will auto-open)
-      const isPreICE = isICEDone === false && isEnrollmentCommencementDone === false;
+      // NEW: Pre-AdherencePreparation - Neither Adherence, ICE, nor Enrollment done
+      const isPreAdherencePreparation = !isAdherencePreparationDone && !isICEDone && !isEnrollmentCommencementDone;
+
+      // NEW: Post-AdherencePreparation Pre-ICE - Adherence done, but ICE not done
+      const isPostAdherencePreICE = isAdherencePreparationDone && !isICEDone && !isEnrollmentCommencementDone;
 
       // Post-ICE Pre-Enrollment: ICE done but Enrollment not done - show limited menu
       const isPostICEPreEnrollment = isICEDone === true && isEnrollmentCommencementDone === false;
 
       // Transfer IN Pending Enrollment: Returning client has completed Transfer IN, needs new Enrollment & Commencement
       // Using temporary status "HIV Exposed Status Unknown" for Part 2 Transfer IN
+      // NOTE: Returning clients skip Adherence and ICE forms - they already exist from Part 1
       const isTransferInPendingEnrollment = currentStatus?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
 
-      // Show full menu only when BOTH are confirmed done AND not in Transfer IN state
-      const showFullMenu = isICEDone === true && isEnrollmentCommencementDone === true && !isTransferInPendingEnrollment;
+      // Show full menu only when ALL are confirmed done AND not in Transfer IN state
+      const showFullMenu = isAdherencePreparationDone && isICEDone && isEnrollmentCommencementDone && !isTransferInPendingEnrollment;
 
       const conditions = {
-        isPreICE,
+        isPreAdherencePreparation,
+        isPostAdherencePreICE,
         isPostICEPreEnrollment,
         isTransferInPendingEnrollment,
         showFullMenu,
@@ -259,7 +270,7 @@ const SubMenu = (props) => {
 
       return conditions;
     },
-    [patientObj?.age, currentStatus, isICEDone, isEnrollmentCommencementDone]
+    [patientObj?.age, currentStatus, isAdherencePreparationDone, isICEDone, isEnrollmentCommencementDone]
   );
 
   // Check if PEP client has positive result
@@ -299,6 +310,7 @@ const SubMenu = (props) => {
           getCurrentLabResult(patientObj.id),
           Observation(),
           checkPharmacyRecords(),
+          checkAdherencePreparation(),
         ]);
       }
     };
@@ -352,6 +364,20 @@ const SubMenu = (props) => {
     } catch (error) {
       console.error("Error checking pharmacy records:", error);
       setHasPharmacyRecords(false);
+    }
+  };
+
+  const checkAdherencePreparation = async () => {
+    if (!patientObj?.id) return;
+    try {
+      const response = await axios.get(
+        `${baseUrl}hiv/adherence-preparation/person/${patientObj.id}?pageNo=0&pageSize=1`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setIsAdherencePreparationDone(response.data && response.data.content && response.data.content.length > 0);
+    } catch (error) {
+      console.error("Error checking adherence preparation:", error);
+      setIsAdherencePreparationDone(false);
     }
   };
 
@@ -415,6 +441,14 @@ const SubMenu = (props) => {
         props.setActiveContent({
           ...props.activeContent,
           route: "adult-evaluation",
+        });
+      },
+
+      loadAdherencePreparation: () => {
+        setActiveItem("adherence-preparation");
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "adherence-preparation",
         });
       },
 
@@ -705,9 +739,9 @@ const SubMenu = (props) => {
                 </MenuItem>
               </Menu>
             </>
-          ) : menuConditions.isPreICE || menuConditions.isPostICEPreEnrollment || menuConditions.isTransferInPendingEnrollment ? (
+          ) : menuConditions.isPreAdherencePreparation || menuConditions.isPostAdherencePreICE || menuConditions.isPostICEPreEnrollment || menuConditions.isTransferInPendingEnrollment ? (
             <>
-              {/*{console.log("RENDERING LIMITED MENU (Pre-ICE, Post-ICE Pre-Enrollment, or Transfer IN Pending Enrollment)")}*/}
+              {/*{console.log("RENDERING LIMITED MENU - Sequential enrollment flow")}*/}
               <Menu size="tiny" color="blue" inverted pointing>
               <MenuItem
                 onClick={menuHandlers.onClickHome}
@@ -718,8 +752,20 @@ const SubMenu = (props) => {
                 Home
               </MenuItem>
 
-              {/* Show ICE form link when in Pre-ICE state */}
-              {menuConditions.isPreICE && (
+              {/* Show AdherencePreparation form link when in Pre-Adherence state (NEW PATIENTS ONLY - Part 1) */}
+              {menuConditions.isPreAdherencePreparation && (
+                <MenuItem
+                  onClick={menuHandlers.loadAdherencePreparation}
+                  name="adherence-preparation"
+                  active={activeItem === "adherence-preparation"}
+                  title="Adherence Preparation"
+                >
+                  Adherence Preparation
+                </MenuItem>
+              )}
+
+              {/* Show ICE form link when AdherencePreparation is done but ICE is not */}
+              {menuConditions.isPostAdherencePreICE && (
                 <MenuItem
                   onClick={menuHandlers.loadInitializationEvaluation}
                   name="initial-clinical-evaluation"

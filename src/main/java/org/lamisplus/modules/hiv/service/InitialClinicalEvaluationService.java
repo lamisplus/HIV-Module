@@ -8,6 +8,7 @@ import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.lamisplus.modules.hiv.domain.dto.initialclinicalevaluation.*;
 import org.lamisplus.modules.hiv.domain.entity.InitialClinicalEvaluation;
+import org.lamisplus.modules.hiv.repositories.AdherencePreparationRepository;
 import org.lamisplus.modules.hiv.repositories.InitialClinicalEvaluationRepository;
 import org.lamisplus.modules.hiv.utility.Constants;
 import org.lamisplus.modules.patient.domain.entity.Person;
@@ -29,6 +30,7 @@ public class InitialClinicalEvaluationService {
     private final HandleHIVVisitEncounter handleHIVVisitEncounter;
     private final ObjectMapper objectMapper;
     private final HIVStatusTrackerService hivStatusTrackerService;
+    private final AdherencePreparationRepository adherencePreparationRepository;
 
 //    private static final String PRE_ART_STATUS = "HIV+ NON ART";
     private static final String HIV_STATUS_ENROL_HIV_NON_ART = "HIV+ NON ART";
@@ -44,6 +46,14 @@ public class InitialClinicalEvaluationService {
             Long personId = evaluationDTO.getPersonId();
             Person person = getPerson(personId);
             Long orgId = currentUserOrganizationService.getCurrentUserOrganization();
+
+            // NEW: Validate that AdherencePreparation exists before ICE
+            if (!adherencePreparationRepository.existsByPersonAndArchived(person, 0)) {
+                log.error("Attempted ICE creation for person {} without Adherence Preparation", personId);
+                throw new IllegalStateException(
+                        "Adherence Preparation must be completed before Initial Clinical Evaluation. " +
+                        "Please complete the Adherence Preparation form first for this patient.");
+            }
 
             checkForExistingClinicalEvaluation(person, orgId);
             checkForSameEncounterEvaluation(person, evaluationDTO);

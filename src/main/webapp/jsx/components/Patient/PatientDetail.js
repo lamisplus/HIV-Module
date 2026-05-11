@@ -27,6 +27,7 @@ import CervicalCancerUpdate from "./../CervicalCancer/ViewPage";
 import ClientStatusUpdate from "./../ClientStatusUpdate/ClientStatusUpdate";
 import AdultClinicEvaluationForm from "../InitailClinicEvaluation/Adult/Index";
 import ViewAdultClinicEvaluationForm from "../InitailClinicEvaluation/ViewAdultHistory/Index";
+import AdherencePreparationForm from "../../revised-national-tool-forms/pages/AdherencePreparation/Index";
 import InitialClinicalEvaluationForm from "../../revised-national-tool-forms/pages/InitialClinicalEvaluation/Index";
 import InitialClinicalEvaluationView from "../../revised-national-tool-forms/pages/InitialClinicalEvaluation/View";
 import InitialClinicalEvaluationUpdate from "../../revised-national-tool-forms/pages/InitialClinicalEvaluation/Update";
@@ -313,6 +314,7 @@ function PatientCard(props) {
   }, [patientObj.personUuid]);
 
   // Auto-open appropriate form when enrollmentFlow is true
+  // NEW FLOW: AdherencePreparation → ICE → Enrollment & Commencement
   useEffect(() => {
     const checkEnrollmentStatusAndRoute = async () => {
       if (!enrollmentFlow || !patientObj?.id) {
@@ -334,7 +336,32 @@ function PatientCard(props) {
       }
 
       try {
-        // Check if ICE form is already completed
+        // STEP 1: Check if Adherence Preparation is completed (NEW - FIRST CHECK)
+        let isAdherenceCompleted = false;
+        try {
+          const adherenceResponse = await axios.get(
+            `${baseUrl}hiv/adherence-preparation/person/${patientObj.id}?pageNo=0&pageSize=1`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          isAdherenceCompleted = adherenceResponse.data && adherenceResponse.data.content && adherenceResponse.data.content.length > 0;
+        } catch (adherenceError) {
+          isAdherenceCompleted = false;
+        }
+
+        // If Adherence Preparation is NOT done, open Adherence Preparation form
+        if (!isAdherenceCompleted) {
+          setActiveContent({
+            route: "adherence-preparation",
+            id: "",
+            activeTab: "home",
+            actionType: "create",
+            obj: {},
+          });
+          setCheckingEnrollmentStatus(false);
+          return;
+        }
+
+        // STEP 2: Check if ICE form is already completed
         const iceResponse = await axios.get(
           `${baseUrl}hiv/observation/initial-clinical-evaluation/exists/person/${patientObj.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -343,7 +370,7 @@ function PatientCard(props) {
         const isICECompleted = typeof iceResponse.data === 'boolean' ? iceResponse.data : false;
 
         if (isICECompleted) {
-          // ICE is done, now check if Enrollment & Commencement is also done
+          // STEP 3: ICE is done, now check if Enrollment & Commencement is also done
           try {
             const enrollmentResponse = await axios.get(
               `${baseUrl}hiv/enrollment-commencement/person/${patientObj.id}`,
@@ -353,7 +380,7 @@ function PatientCard(props) {
             // If we get a response with data, enrollment exists
             const isEnrollmentCompleted = enrollmentResponse.data && enrollmentResponse.data.id;
             if (isEnrollmentCompleted) {
-              // Both ICE and Enrollment are done, route to recent history
+              // All forms done (Adherence + ICE + Enrollment), route to recent history
               setActiveContent({
                 route: "recent-history",
                 id: "",
@@ -362,7 +389,7 @@ function PatientCard(props) {
                 obj: {},
               });
             } else {
-              // ICE is done but Enrollment is not, route to Enrollment & Commencement form
+              // Adherence and ICE done but Enrollment is not, route to Enrollment & Commencement form
               setActiveContent({
                 route: "enrollment-and-commencement",
                 id: "",
@@ -382,7 +409,7 @@ function PatientCard(props) {
             });
           }
         } else {
-          // ICE not done yet, open ICE form
+          // Adherence is done but ICE not done yet, open ICE form
           setActiveContent({
             route: "initial-clinical-evaluation",
             id: "",
@@ -392,9 +419,9 @@ function PatientCard(props) {
           });
         }
       } catch (error) {
-        // Default to ICE form if check fails
+        // Default to Adherence Preparation form if check fails
         setActiveContent({
-          route: "initial-clinical-evaluation",
+          route: "adherence-preparation",
           id: "",
           activeTab: "home",
           actionType: "create",
@@ -574,6 +601,13 @@ function PatientCard(props) {
             />
           )}
           {/* {activeContent.route==='child-evaluation' &&( <ChildClinicEvaluationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)} */}
+          {activeContent.route === "adherence-preparation" && (
+            <AdherencePreparationForm
+              patientObj={patientObj}
+              setActiveContent={setActiveContent}
+              activeContent={activeContent}
+            />
+          )}
           {activeContent.route === "initial-clinical-evaluation" && (
             <InitialClinicalEvaluationForm
               patientObj={patientObj}

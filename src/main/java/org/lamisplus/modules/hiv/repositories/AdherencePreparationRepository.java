@@ -15,4 +15,6 @@ public interface AdherencePreparationRepository extends JpaRepository<AdherenceP
     Page<AdherencePreparation> findAllByPersonAndArchived(Person person, Integer archived, Pageable pageable);
 
     List<AdherencePreparation> findByArchived(Integer archived);
+
+    boolean existsByPersonAndArchived(Person person, Integer archived);
 }
