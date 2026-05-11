@@ -52,7 +52,7 @@ public class CommencementDto {
     private String isPregnant;
 
     @JsonProperty("is_breast_feeding")
-    private Boolean isBreastFeeding;;
+    private String isBreastFeeding;;
 
 //    @JsonProperty("pregnancy_status")
 //    private String pregnancyStatus;
