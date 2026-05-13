@@ -11,11 +11,14 @@ import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.TbPreventiveT
 import org.lamisplus.modules.hiv.domain.dto.initialclinicalevaluation.InitialClinicalEvaluationDTO;
 import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
 import org.lamisplus.modules.hiv.domain.entity.InitialClinicalEvaluation;
+import org.lamisplus.modules.hiv.repositories.AdherencePreparationRepository;
 import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.utility.Constants;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.PersonRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -37,6 +40,7 @@ public class EnrollmentCommencementService {
     private final CurrentUserOrganizationService currentUserOrganizationService;
     private final HIVStatusTrackerService hivStatusTrackerService;
     private final InitialClinicalEvaluationService initialClinicalEvaluationService;
+    private final AdherencePreparationRepository adherencePreparationRepository;
 
     private static final String ART_START_STATUS_ART_START = "ART Start";
     private static final String HIV_STATUS_ART_TRANSFER_IN = "ART Transfer In";
@@ -69,8 +73,24 @@ public class EnrollmentCommencementService {
         validateRequiredFields(request, person);
         EnrollmentCommencement entity = buildEntity(request, person);
         EnrollmentCommencement saved = repository.save(entity);
+
         // Update HIV Status to ART Start after enrollment commencement
-        hivStatusTrackerService.autoUpdateHIVStatus(person, entity.getVisit(), getStatusAtRegistration(person.getId()), entity.getDateArtStarted());
+        // IMPORTANT: For Part 2 returning clients with "HIV Exposed Status Unknown",
+        // we should NOT update the status - it should remain as is throughout the enrollment cycle
+        try {
+            String currentStatus = hivStatusTrackerService.getPersonCurrentHIVStatusByPersonId(person.getId()).getStatus();
+            if (!"HIV Exposed Status Unknown".equalsIgnoreCase(currentStatus)) {
+                // Only update status for Part 1A and Part 1B (not Part 2 returning clients)
+                hivStatusTrackerService.autoUpdateHIVStatus(person, entity.getVisit(), getStatusAtRegistration(person.getId()), entity.getDateArtStarted());
+                log.info("Updated HIV status for person {} after enrollment", person.getId());
+            } else {
+                log.info("Skipping status update for Part 2 returning client (person {}) - maintaining 'HIV Exposed Status Unknown'", person.getId());
+            }
+        } catch (Exception e) {
+            log.warn("Could not check current HIV status for person {}, defaulting to status update", person.getId());
+            hivStatusTrackerService.autoUpdateHIVStatus(person, entity.getVisit(), getStatusAtRegistration(person.getId()), entity.getDateArtStarted());
+        }
+
         return saved;
     }
 
@@ -84,6 +104,9 @@ public class EnrollmentCommencementService {
         updated.setPerson(person);
         updated.setVisit(existing.getVisit());
         updated.setArchived(0);
+        // NOTE: enrollmentSessionUuid is NEVER updated - it's immutable once set
+        // This ensures the Enrollment remains linked to the same enrollment cycle
+        updated.setEnrollmentSessionUuid(existing.getEnrollmentSessionUuid());
         return repository.save(updated);
     }
 
@@ -283,7 +306,7 @@ public class EnrollmentCommencementService {
                 return HIV_STATUS_ART_TRANSFER_IN;
             }
         } catch (Exception e) {
-            log.debug("Could not retrieve current HIV status for person {}, falling back to ICE form", id);
+            // Silently fall back to ICE form
         }
 
         // Otherwise, check ICE form's isTransferIn flag (for initial enrollment - Part 1)
@@ -298,6 +321,17 @@ public class EnrollmentCommencementService {
         LocalDate artStartDate = parseDate(com.getDateArtStarted());
         LocalDate visitDate = parseDate(request.getDateOfObservation());
         Visit visit = hivVisitEncounter.processAndCreateVisit(person.getId(), artStartDate);
+
+        // CRITICAL: Get enrollment session UUID from the latest AdherencePreparation record
+        String enrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
+        if (enrollmentSessionUuid == null) {
+            log.error("Cannot create Enrollment & Commencement for person ID: {} - No enrollment session UUID found.", person.getId());
+            throw new IllegalStateException(
+                "Cannot create Enrollment & Commencement without an active enrollment session. " +
+                "Please ensure Adherence Preparation has been completed first for this patient."
+            );
+        }
+
         EnrollmentCommencement entity = new EnrollmentCommencement();
         entity.setUuid(UUID.randomUUID().toString());
         entity.setPerson(person);
@@ -307,6 +341,7 @@ public class EnrollmentCommencementService {
         entity.setArchived(0);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setSource(Constants.WEB_SOURCE);
+        entity.setEnrollmentSessionUuid(enrollmentSessionUuid);
         // ── Registration fields ───────────────────────────────────────────────
         entity.setUniqueId(reg.getUniqueId());
         entity.setStatusAtRegistrationId(getStatusAtRegistrationId(person.getId()));
@@ -385,5 +420,19 @@ public class EnrollmentCommencementService {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    /**
+     * Get the latest enrollment session UUID for a person from their most recent AdherencePreparation record
+     * This links the Enrollment & Commencement form to the same enrollment cycle
+     */
+    private String getLatestEnrollmentSessionUuid(Person person) {
+        log.info("Fetching latest enrollment session UUID for person ID: {}", person.getId());
+        return adherencePreparationRepository.findAllByPersonAndArchived(person, 0,
+                PageRequest.of(0, 1, Sort.by("serviceDate").descending()))
+                .stream()
+                .findFirst()
+                .map(adherencePrep -> adherencePrep.getEnrollmentSessionUuid())
+                .orElse(null);
     }
 }

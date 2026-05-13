@@ -102,14 +102,23 @@ public class HIVStatusTrackerService {
         Optional<HIVStatusTracker> currentStatus = hivStatusTrackerRepository.findAllByPersonAndArchived(person, 0)
                 .stream()
                 .max(personStatusDateComparator);
-        List<ArtPharmacy> pharmacyRefills = artPharmacyRepository.getArtPharmaciesByPersonAndArchived(person, 0);
-        StatusDto statusDto = new StatusDto(HIV_PLUS_NON_ART, null);
-        if (!pharmacyRefills.isEmpty()) {
-            return currentStatus.map(this::calculatePatientCurrentStatus)
-                    .orElse(statusDto);
+
+        // ALWAYS use the latest HIVStatusTracker if it exists (regardless of pharmacy refills)
+        // This ensures Part 2 returning clients maintain their "HIV Exposed Status Unknown" status
+        if (currentStatus.isPresent()) {
+            log.info("Using latest HIVStatusTracker status for person {}: {}", personId, currentStatus.get().getHivStatus());
+            return calculatePatientCurrentStatus(currentStatus.get());
         }
 
-        // Use the FIRST/EARLIEST enrollment commencement for initial status
+        // Fallback: If no status tracker exists, check pharmacy refills
+        List<ArtPharmacy> pharmacyRefills = artPharmacyRepository.getArtPharmaciesByPersonAndArchived(person, 0);
+        if (!pharmacyRefills.isEmpty()) {
+            log.info("No status tracker found, but patient has pharmacy refills. Using default status.");
+            return new StatusDto(HIV_PLUS_NON_ART, null);
+        }
+
+        // Final fallback: Use the FIRST/EARLIEST enrollment commencement for initial status
+        log.info("No status tracker or pharmacy refills found. Using enrollment status for person {}", personId);
         EnrollmentCommencement hivEnrollment = enrollmentCommencementRepository.findFirstByPersonIdAndArchived(person.getId(), 0)
                 .orElseThrow(() -> new EntityNotFoundException(EnrollmentCommencement.class, "person id", String.valueOf(person.getId())));
         LocalDate dateOfRegistration = hivEnrollment.getDateEnrolledInHivCare();
@@ -127,11 +136,12 @@ public class HIVStatusTrackerService {
                 .getOneArtPharmaciesByPersonAndArchived(statusTracker.getPerson().getUuid(), 0);
 
         artPharmacy.ifPresent(p -> statusDate.set(p.getNextAppointment()));
-        List<String> staticStatus = Arrays.asList("Stopped Treatment", "Died (Confirmed)", "ART Transfer Out", "HIV_NEGATIVE", "ART Transfer In" );
+        List<String> staticStatus = Arrays.asList("Stopped Treatment", "Died (Confirmed)", "ART Transfer Out", "HIV_NEGATIVE", "ART Transfer In", "HIV Exposed Status Unknown" );
         if (staticStatus.contains(statusTracker.getHivStatus())) {
             if (statusTracker.getHivStatus().equalsIgnoreCase(Constants.HIV_NEGATIVE)) {
                 return new StatusDto(NOT_ENROLLED, statusTracker.getStatusDate());
             }
+            // Return the status as-is for all static statuses including "HIV Exposed Status Unknown"
             return new StatusDto(statusTracker.getHivStatus(), statusTracker.getStatusDate());
         } else {
             LocalDate dateStatus;

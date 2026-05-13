@@ -45,4 +45,5 @@ public class InitialClinicalEvaluationDTO implements Serializable {
     private String source;
     private String longitude;
     private String latitude;
+    private String enrollmentSessionUuid;
 }

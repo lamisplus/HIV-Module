@@ -66,6 +66,15 @@ function AdherencePreparationIndex(props) {
     setEditRecord(null);
     // Trigger history refresh
     setRefreshHistory(!refreshHistory);
+
+    // IMPORTANT: Trigger parent menu refresh by updating activeContent
+    if (setActiveContent && activeContent) {
+      setActiveContent({
+        ...activeContent,
+        refreshPatient: true,
+        refreshTimestamp: Date.now()
+      });
+    }
   };
 
   const handleAddNew = () => {

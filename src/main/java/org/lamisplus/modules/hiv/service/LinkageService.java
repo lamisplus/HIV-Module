@@ -140,7 +140,7 @@ public class LinkageService {
             try (InputStream is = Files.newInputStream(Paths.get(s))) {
                 IOUtils.copy(is, byteArrayOutputStream);
             } catch (IOException exception) {
-                log.debug("An error occurred while downloading file: {}", exception.getMessage());
+                log.warn("An error occurred while downloading file: {}", exception.getMessage());
             }
         });
         
@@ -151,7 +151,7 @@ public class LinkageService {
         try(FileWriter writer = new FileWriter(jsonFilePath)){
             writer.write(jsonObject);
         } catch (IOException exception) {
-            log.debug("Exception: {}", exception.getMessage());
+            log.warn("Failed to write object to file: {}", exception.getMessage());
         }
         
     }

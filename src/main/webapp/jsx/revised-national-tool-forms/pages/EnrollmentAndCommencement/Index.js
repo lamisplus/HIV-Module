@@ -290,7 +290,11 @@ const EnrollmentAndCommencementForm = (props) => {
     try {
       // Check if this is a returning client (Part 2 Transfer IN)
       const currentStatus = localStorage.getItem("currentStatus");
-      const isReturningClient = currentStatus?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+
+      // Check for Part 2 returning client status
+      // The backend should return "HIV Exposed Status Unknown" after Transfer IN
+      const statusUpper = currentStatus?.toUpperCase();
+      const isReturningClient = statusUpper === "HIV EXPOSED STATUS UNKNOWN";
 
       // For returning clients, allow creating a new enrollment record
       // and fetch the previous record data for auto-population
@@ -304,12 +308,13 @@ const EnrollmentAndCommencementForm = (props) => {
 
       // For new clients, check if record already exists (only one allowed)
       const response = await axios.get(
-        `${baseUrl}hiv/enrollment-commencement/check-exists/person/${props.patientObj.id}`,
+        `${baseUrl}hiv/enrollment-commencement/exists/person/${props.patientObj.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.data === true) {
         setHasExistingRecord(true);
-        toast.warning("This patient already has an Enrollment & Commencement record. Only one record is allowed per patient.");
+      } else {
+        setHasExistingRecord(false);
       }
     } catch (error) {
       console.error("Error checking for existing record:", error);
@@ -321,8 +326,9 @@ const EnrollmentAndCommencementForm = (props) => {
   // ── Fetch previous Enrollment & Commencement data for returning clients ──────────
   const fetchPreviousEnrollmentData = async () => {
     try {
+      // Fetch the FIRST/EARLIEST enrollment record (not the latest) for auto-population
       const response = await axios.get(
-        `${baseUrl}hiv/enrollment-commencement/person/${props.patientObj.id}`,
+        `${baseUrl}hiv/enrollment-commencement/person/${props.patientObj.id}/first`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -336,21 +342,19 @@ const EnrollmentAndCommencementForm = (props) => {
           date_confirmed_hiv_test: previousData.dateConfirmedHivTest ? moment(previousData.dateConfirmedHivTest).format("YYYY-MM-DD") : prev.date_confirmed_hiv_test,
           mode_of_hiv_test: previousData.modeOfHivTestId || prev.mode_of_hiv_test,
           hiv_test_location: previousData.hivTestLocation || prev.hiv_test_location,
+          previousEnrollmentDate: previousData.dateEnrolledInHivCare ? moment(previousData.dateEnrolledInHivCare).format("YYYY-MM-DD") : undefined
         }));
 
-        // Store the previous enrollment date to use as minimum for new enrollment date
-        if (previousData.dateEnrolledInHivCare) {
-          const prevEnrollmentDate = moment(previousData.dateEnrolledInHivCare).format("YYYY-MM-DD");
-          // Store in state for validation
-          setRegistration((prev) => ({
-            ...prev,
-            previousEnrollmentDate: prevEnrollmentDate
-          }));
-        }
+        toast.info("Previous enrollment data loaded successfully", { autoClose: 2000 });
       }
     } catch (error) {
       console.error("Error fetching previous enrollment data:", error);
-      // Don't show error to user - this is optional auto-population
+
+      // If error is 404 (no previous enrollment found), that's okay
+      // For other errors, show a warning but don't block the form
+      if (error?.response?.status !== 404) {
+        console.error("Could not load previous enrollment data:", error?.response?.data);
+      }
     }
   };
 
@@ -623,7 +627,6 @@ const EnrollmentAndCommencementForm = (props) => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      console.log("Facilities fetched:", response.data);
       setFacilities(response.data || []);
     } catch (error) {
       console.error("Error fetching facilities:", error);
@@ -1206,10 +1209,15 @@ const EnrollmentAndCommencementForm = (props) => {
         toast.success("Enrollment and Commencement saved successfully");
       }
 
+      // Small delay to ensure backend has updated the enrollment cycle
+      // This is especially important for Part 2 returning clients to ensure
+      // the menu shows the full menu instead of limited menu
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Trigger patient refresh to update menu state
       props.setActiveContent({
         ...props.activeContent,
-        route: "dashboard",
+        route: "recent-history",
         activeTab: "home",
         refreshPatient: true,
         refreshTimestamp: Date.now(),
@@ -1235,49 +1243,6 @@ const EnrollmentAndCommencementForm = (props) => {
         <CardContent>
           <Box sx={{ textAlign: "center", padding: "40px" }}>
             <Typography>{loading ? "Loading..." : "Checking existing records..."}</Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Show message if record already exists
-  if (hasExistingRecord) {
-    return (
-      <Card className={classes.root} style={{ borderRadius: "12px" }}>
-        <CardContent>
-          <Box
-            sx={{
-              backgroundColor: "#ff9800",
-              padding: "14px 20px",
-              marginBottom: "20px",
-              borderRadius: "8px",
-            }}
-          >
-            <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
-              Record Already Exists
-            </Typography>
-          </Box>
-          <Box sx={{ padding: "20px", textAlign: "center" }}>
-            <Typography sx={{ fontSize: "14px", marginBottom: "20px" }}>
-              This patient already has an Enrollment & Commencement record.
-              This is a one-off form and only one record is allowed per patient.
-            </Typography>
-            <Typography sx={{ fontSize: "14px", marginBottom: "20px" }}>
-              You can view or update the existing record from the Recent Activities history tab.
-            </Typography>
-            <MatButton
-              variant="contained"
-              style={{ backgroundColor: "#014d88", marginTop: "10px" }}
-              onClick={() =>
-                props.setActiveContent({
-                  ...props.activeContent,
-                  route: "recent-history",
-                })
-              }
-            >
-              Go to Recent Activities
-            </MatButton>
           </Box>
         </CardContent>
       </Card>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <!-- Drop old ICE unique constraint to allow multiple ICE records per enrollment cycle -->
+    <changeSet id="20260512-ice-05" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            <indexExists tableName="hiv_initial_clinical_evaluation" indexName="uk_ice_person_facility_active"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Drop the old unique constraint that prevents multiple ICE records per person
+            DROP INDEX IF EXISTS uk_ice_person_facility_active;
+
+            -- Create index for efficient queries to fetch all ICE records for a person
+            CREATE INDEX IF NOT EXISTS idx_ice_person_visit_archived
+            ON hiv_initial_clinical_evaluation (person_id, visit_date DESC, archived)
+            WHERE archived = 0;
+
+            -- Add comment explaining the 1:Many relationship
+            COMMENT ON TABLE hiv_initial_clinical_evaluation IS 'HIV Initial Clinical Evaluation records. Supports 1:Many relationship - a person can have multiple ICE records for different enrollment cycles (e.g., after transfer-out and transfer-in).';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Restore the unique constraint
+                -- WARNING: This will fail if there are multiple active ICE records per person
+                CREATE UNIQUE INDEX uk_ice_person_facility_active
+                ON hiv_initial_clinical_evaluation (person_id, facility_id)
+                WHERE archived = 0;
+
+                -- Drop the new composite index
+                DROP INDEX IF EXISTS idx_ice_person_visit_archived;
+
+                -- Restore original comment
+                COMMENT ON TABLE hiv_initial_clinical_evaluation IS 'HIV Initial Clinical Evaluation records.';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

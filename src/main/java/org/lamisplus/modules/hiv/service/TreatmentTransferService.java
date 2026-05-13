@@ -69,19 +69,48 @@ public class TreatmentTransferService {
         if (dto == null) {
             throw new IllegalArgumentException("TransferPatientInfo is null");
         }
-        String status = dto.getCurrentStatus().equalsIgnoreCase("ART TRANSFER OUT") ? "HIV Exposed Status Unknown" : "ART Transfer Out";
-        ApplicationCodeSet codeSet = applicationCodesetRepository.findByDisplayAndCodesetGroup(status, Constants.CODE_SET_GROUP)
-                .orElseThrow(() -> new EntityNotFoundException(ApplicationCodeSet.class, "display", status));
+
+        // Determine if this is Transfer OUT or Transfer IN based on current status
+        boolean isTransferIn = dto.getCurrentStatus().equalsIgnoreCase("ART TRANSFER OUT");
+
+        // Set the new patient status and observation type
+        String newPatientStatus;
+        String observationType;
+
+        if (isTransferIn) {
+            // Patient is currently Transfer OUT, so they're coming back (Transfer IN)
+            newPatientStatus = "HIV Exposed Status Unknown";  // Status after Transfer IN
+            observationType = "ART Transfer In";  // Observation type for Transfer IN action
+            log.info("Processing Transfer IN for person UUID: {}. New status: {}", dto.getPersonUuid(), newPatientStatus);
+        } else {
+            // Patient is active/completed, so they're transferring out
+            newPatientStatus = "ART Transfer Out";  // Status after Transfer OUT
+            observationType = "ART Transfer Out";  // Observation type for Transfer OUT action
+            log.info("Processing Transfer OUT for person UUID: {}. New status: {}", dto.getPersonUuid(), newPatientStatus);
+        }
+
+        // Get the codeset for the NEW patient status (used for status tracker)
+        ApplicationCodeSet statusCodeSet = applicationCodesetRepository.findByDisplayAndCodesetGroup(newPatientStatus, Constants.CODE_SET_GROUP)
+                .orElseThrow(() -> new EntityNotFoundException(ApplicationCodeSet.class, "display", newPatientStatus));
+
+        // Get the codeset for the observation type
+        ApplicationCodeSet observationCodeSet = applicationCodesetRepository.findByDisplayAndCodesetGroup(observationType, Constants.CODE_SET_GROUP)
+                .orElseThrow(() -> new EntityNotFoundException(ApplicationCodeSet.class, "display", observationType));
+
         Boolean existsRecordWithDiedStatus = hivStatusTrackerRepository.existsRecordWithDiedStatus(dto.getPersonUuid());
         if (existsRecordWithDiedStatus) {
             throw new Exception("Patient is confirmed dead");
         }
-        // Create observation
-        ObservationDto createdObservation = createObservation(dto, codeSet);
+
+        // Create observation with the correct observation type
+        ObservationDto createdObservation = createObservation(dto, observationCodeSet);
+
         //update hiv_enrollment status
-//        updateHivEnrollStatus(dto, codeSet);
-        //create hiv_status_tracker record
-        createNewHivStatus(dto, status);
+//        updateHivEnrollStatus(dto, statusCodeSet);
+
+        //create hiv_status_tracker record with the new patient status
+        createNewHivStatus(dto, newPatientStatus);
+
         return createdObservation;
     }
 

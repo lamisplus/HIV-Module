@@ -39,45 +39,48 @@ const SubMenu = (props) => {
   const [pepHasPositiveResult, setPepHasPositiveResult] = useState(false);
 
   const [isOtzEnrollementDone, setIsOtzEnrollementDone] = useState(null);
-  // Use expandedPatientObj values if available, otherwise fall back to state
-  const [isEnrollmentCommencementDone, setIsEnrollmentCommencementDone] = useState(false);
-  const [isICEDone, setIsICEDone] = useState(false);
-  const [isAdherencePreparationDone, setIsAdherencePreparationDone] = useState(false);
+  // NEW: Enrollment cycle status from backend API
+  const [enrollmentCycleStatus, setEnrollmentCycleStatus] = useState(null);
   const [labResult, setLabResult] = useState(null);
   const [hasPharmacyRecords, setHasPharmacyRecords] = useState(false);
 
-  // Sync state with expandedPatientObj or patientObj when they update
-  useEffect(() => {
-    // Primary source: expandedPatientObj (has hasiceform and hasenrollmentform from backend query)
-    if (props.expandedPatientObj &&
-        (props.expandedPatientObj.hasiceform !== undefined || props.expandedPatientObj.hasenrollmentform !== undefined)) {
-      setIsICEDone(!!props.expandedPatientObj.hasiceform);
-      setIsEnrollmentCommencementDone(!!props.expandedPatientObj.hasenrollmentform);
+  // Fetch enrollment cycle status from backend
+  const fetchEnrollmentCycleStatus = async () => {
+    if (!patientObj?.id) return;
+    try {
+      const response = await axios.get(
+        `${baseUrl}adherence-preparation/enrollment-cycle-status/${patientObj.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEnrollmentCycleStatus(response.data);
+    } catch (error) {
+      console.error("Error fetching enrollment cycle status:", error);
+      // Set default empty status on error
+      // Note: Use enrollmentCycleComplete (not isEnrollmentCycleComplete) to match JSON serialization
+      setEnrollmentCycleStatus({
+        currentEnrollmentSessionUuid: null,
+        hasAdherencePreparation: false,
+        hasInitialClinicalEvaluation: false,
+        hasEnrollmentCommencement: false,
+        enrollmentCycleComplete: false,
+        nextRequiredForm: "AdherencePreparation",
+        entryPoint: "Unknown"
+      });
     }
-    // Fallback: Use patientObj (has isEnrolled and commenced)
-    else if (patientObj) {
-      setIsICEDone(!!patientObj.isEnrolled);
-      setIsEnrollmentCommencementDone(!!patientObj.commenced);
-    }
-  }, [
-    props.expandedPatientObj?.hasiceform,
-    props.expandedPatientObj?.hasenrollmentform,
-    patientObj?.isEnrolled,
-    patientObj?.commenced
-  ]);
+  };
 
-  // Immediately update form completion status when navigating between forms
-  // This ensures the menu updates instantly without waiting for API refresh
+  // Fetch enrollment status on mount and when patient changes
   useEffect(() => {
-    // When navigating to ICE form, mark Adherence as done
-    if (props.activeContent?.route === 'initial-clinical-evaluation' && !isICEDone) {
-      setIsAdherencePreparationDone(true);
+    fetchEnrollmentCycleStatus();
+  }, [patientObj?.id]);
+
+  // Refresh enrollment status when forms are submitted or routes change
+  useEffect(() => {
+    if (props.activeContent?.route === 'recent-history' ||
+        props.activeContent?.refreshPatient === true) {
+      fetchEnrollmentCycleStatus();
     }
-    // When navigating to Enrollment form, mark ICE as done
-    if (props.activeContent?.route === 'enrollment-and-commencement' && !isEnrollmentCommencementDone) {
-      setIsICEDone(true);
-    }
-  }, [props.activeContent?.route]);
+  }, [props.activeContent?.route, props.activeContent?.refreshPatient, props.activeContent?.refreshTimestamp]);
   const patientCurrentStatus = patientObj?.currentStatus === "Died (Confirmed)";
   const [currentStatus, setCurrentStatus] = useState(() => {
     const savedStatus = localStorage.getItem("currentStatus") || "";
@@ -148,17 +151,43 @@ const SubMenu = (props) => {
 
   // Effect to refresh status when navigating to enrollment-and-commencement route
   // This ensures the menu updates after Transfer IN submission (Part 2 flow)
+  // IMPORTANT: Do NOT call getCurrentStatus() for Part 2 returning clients,
+  // as it will overwrite the correct "HIV Exposed Status Unknown" status from Transfer IN
   useEffect(() => {
     if (props.activeContent?.route === "enrollment-and-commencement") {
-      getCurrentStatus();
+      const currentStatusFromLocalStorage = localStorage.getItem("currentStatus");
+      const isReturningClient = currentStatusFromLocalStorage?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+
+      // For Part 2 returning clients: skip getCurrentStatus but refresh enrollmentCycleStatus
+      // This ensures the menu shows "Enrollment & Commencement" instead of "Adherence Preparation"
+      if (isReturningClient) {
+        fetchEnrollmentCycleStatus();
+      } else {
+        // For other clients, fetch status from backend
+        getCurrentStatus();
+      }
     }
   }, [props.activeContent?.route]);
 
   // Effect to refresh status when patient is refreshed (after form submissions)
   // This ensures the menu updates immediately after Enrollment form submission
+  // IMPORTANT: Skip getCurrentStatus for Part 2 returning clients before Enrollment is submitted
   useEffect(() => {
     if (props.activeContent?.refreshPatient === true) {
-      getCurrentStatus();
+      const currentStatusFromLocalStorage = localStorage.getItem("currentStatus");
+      const isReturningClient = currentStatusFromLocalStorage?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+
+      // Only skip getCurrentStatus if coming from Transfer IN (before Enrollment submission)
+      // After Enrollment submission, we SHOULD fetch the updated status
+      const comingFromEnrollment = props.activeContent?.route === "recent-history";
+
+      if (isReturningClient && !comingFromEnrollment) {
+        fetchEnrollmentCycleStatus(); // Always refresh enrollment cycle status to update menu
+      } else {
+        getCurrentStatus();
+        // Also fetch enrollment cycle status when patient is refreshed
+        fetchEnrollmentCycleStatus();
+      }
     }
   }, [props.activeContent?.refreshPatient, props.activeContent?.refreshTimestamp]);
 
@@ -231,22 +260,43 @@ const SubMenu = (props) => {
 
   const menuConditions = useMemo(
     () => {
-      // NEW: Pre-AdherencePreparation - Neither Adherence, ICE, nor Enrollment done
-      const isPreAdherencePreparation = !isAdherencePreparationDone && !isICEDone && !isEnrollmentCommencementDone;
+      // NEW SIMPLIFIED LOGIC: Use enrollmentCycleStatus from backend API
+      // If enrollmentCycleStatus is still loading (null), show full menu as fallback (backwards compatible)
+      if (!enrollmentCycleStatus) {
+        return {
+          isPreAdherencePreparation: false,
+          isPostAdherencePreICE: false,
+          isPostICEPreEnrollment: false,
+          isTransferInPendingEnrollment: false,
+          showFullMenu: true, // Show full menu while loading
+          isDeadOrTransferred:
+            currentStatus?.toUpperCase() === "DIED (CONFIRMED)" ||
+            currentStatus?.toUpperCase() === "ART TRANSFER OUT",
+          canShowOTZ:
+            (patientObj?.age >= 10 && patientObj?.age <= 23) ||
+            patientObj?.age <= 19,
+          canShowOTZEnrollment: patientObj?.age >= 10 && patientObj?.age <= 23,
+          showPediatricChecklist: patientObj?.age <= 19,
+        };
+      }
 
-      // NEW: Post-AdherencePreparation Pre-ICE - Adherence done, but ICE not done
-      const isPostAdherencePreICE = isAdherencePreparationDone && !isICEDone && !isEnrollmentCommencementDone;
+      const nextForm = enrollmentCycleStatus.nextRequiredForm || "AdherencePreparation";
+      // Note: Jackson serializes boolean fields with "is" prefix by stripping the "is"
+      // So isEnrollmentCycleComplete becomes enrollmentCycleComplete in JSON
+      const isComplete = enrollmentCycleStatus.enrollmentCycleComplete || false;
 
-      // Post-ICE Pre-Enrollment: ICE done but Enrollment not done - show limited menu
-      const isPostICEPreEnrollment = isICEDone === true && isEnrollmentCommencementDone === false;
+      // Determine menu states based on nextRequiredForm
+      const isPreAdherencePreparation = nextForm === "AdherencePreparation";
+      const isPostAdherencePreICE = nextForm === "ICE";
+      const isPostICEPreEnrollment = nextForm === "Enrollment";
 
-      // Transfer IN Pending Enrollment: Returning client has completed Transfer IN, needs new Enrollment & Commencement
-      // Using temporary status "HIV Exposed Status Unknown" for Part 2 Transfer IN
-      // NOTE: Returning clients skip Adherence and ICE forms - they already exist from Part 1
-      const isTransferInPendingEnrollment = currentStatus?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+      // Transfer IN Pending Enrollment: Returning client (Part 2) needs to complete enrollment cycle
+      // Only true if status is "HIV Exposed Status Unknown" AND enrollment cycle is NOT complete
+      const isTransferInPendingEnrollment =
+        currentStatus?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN" && !isComplete;
 
-      // Show full menu only when ALL are confirmed done AND not in Transfer IN state
-      const showFullMenu = isAdherencePreparationDone && isICEDone && isEnrollmentCommencementDone && !isTransferInPendingEnrollment;
+      // Show full menu when enrollment cycle is complete
+      const showFullMenu = isComplete;
 
       const conditions = {
         isPreAdherencePreparation,
@@ -256,8 +306,8 @@ const SubMenu = (props) => {
         showFullMenu,
 
         isDeadOrTransferred:
-          currentStatus === "DIED (CONFIRMED)" ||
-          currentStatus === "ART TRANSFER OUT",
+          currentStatus?.toUpperCase() === "DIED (CONFIRMED)" ||
+          currentStatus?.toUpperCase() === "ART TRANSFER OUT",
 
         canShowOTZ:
           (patientObj?.age >= 10 && patientObj?.age <= 23) ||
@@ -270,7 +320,7 @@ const SubMenu = (props) => {
 
       return conditions;
     },
-    [patientObj?.age, currentStatus, isAdherencePreparationDone, isICEDone, isEnrollmentCommencementDone]
+    [patientObj?.age, currentStatus, enrollmentCycleStatus]
   );
 
   // Check if PEP client has positive result
@@ -310,7 +360,6 @@ const SubMenu = (props) => {
           getCurrentLabResult(patientObj.id),
           Observation(),
           checkPharmacyRecords(),
-          checkAdherencePreparation(),
         ]);
       }
     };
@@ -367,19 +416,7 @@ const SubMenu = (props) => {
     }
   };
 
-  const checkAdherencePreparation = async () => {
-    if (!patientObj?.id) return;
-    try {
-      const response = await axios.get(
-        `${baseUrl}hiv/adherence-preparation/person/${patientObj.id}?pageNo=0&pageSize=1`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setIsAdherencePreparationDone(response.data && response.data.content && response.data.content.length > 0);
-    } catch (error) {
-      console.error("Error checking adherence preparation:", error);
-      setIsAdherencePreparationDone(false);
-    }
-  };
+  // checkAdherencePreparation removed - now using enrollmentCycleStatus from API
 
   const getOldRecordIfExists = async () => {
     try {
@@ -741,7 +778,7 @@ const SubMenu = (props) => {
             </>
           ) : menuConditions.isPreAdherencePreparation || menuConditions.isPostAdherencePreICE || menuConditions.isPostICEPreEnrollment || menuConditions.isTransferInPendingEnrollment ? (
             <>
-              {/*{console.log("RENDERING LIMITED MENU - Sequential enrollment flow")}*/}
+              {/* LIMITED MENU - Sequential enrollment flow using enrollmentCycleStatus from backend */}
               <Menu size="tiny" color="blue" inverted pointing>
               <MenuItem
                 onClick={menuHandlers.onClickHome}
@@ -776,8 +813,9 @@ const SubMenu = (props) => {
                 </MenuItem>
               )}
 
-              {/* Show Enrollment form link when in Post-ICE Pre-Enrollment state OR Transfer IN Pending Enrollment state */}
-              {(menuConditions.isPostICEPreEnrollment || menuConditions.isTransferInPendingEnrollment) && (
+              {/* Show Enrollment form link when in Post-ICE Pre-Enrollment state */}
+              {/* The sequential logic for Part 2 (Transfer IN) is handled by enrollment cycle status */}
+              {menuConditions.isPostICEPreEnrollment && (
                 <MenuItem
                   onClick={menuHandlers.loadEnrollmentAndCommencement}
                   name="enrollment-and-commencement"
@@ -830,7 +868,7 @@ const SubMenu = (props) => {
                     Home
                   </MenuItem>
 
-                  {currentStatus === "DIED (CONFIRMED)" &&
+                  {currentStatus?.toUpperCase() === "DIED (CONFIRMED)" &&
                     permissions.canSeeTracking && (
                       <MenuItem
                         onClick={menuHandlers.loadTrackingForm}
@@ -849,7 +887,7 @@ const SubMenu = (props) => {
                     History
                   </MenuItem>
 
-                  {currentStatus === "ART TRANSFER OUT" &&
+                  {currentStatus?.toUpperCase() === "ART TRANSFER OUT" &&
                       permissions.canSeeTracking && (
                           <MenuItem
                         onClick={menuHandlers.loadTransferForm}
@@ -994,7 +1032,7 @@ const SubMenu = (props) => {
                           <Dropdown item text="Other Forms">
                             <Dropdown.Menu>
                               {/* Initial Clinical Evaluation removed from full menu - only available during enrollment flow */}
-                              {!isEnrollmentCommencementDone && (
+                              {!enrollmentCycleStatus?.hasEnrollmentCommencement && (
                                 <Dropdown.Item
                                   onClick={menuHandlers.loadEnrollmentAndCommencement}
                                   name="enrollment-and-commencement"

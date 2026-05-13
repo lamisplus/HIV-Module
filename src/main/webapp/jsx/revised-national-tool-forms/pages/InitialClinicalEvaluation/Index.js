@@ -1547,7 +1547,12 @@ const InitialClinicalEvaluationForm = (props) => {
         error?.response?.data?.apierror?.message ||
         "Failed to load record for editing";
       toast.error(msg);
-      props.setActiveContent({ ...props.activeContent, route: "recent-history" });
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "recent-history",
+        refreshPatient: true,
+        refreshTimestamp: Date.now()
+      });
     } finally {
       setLoadingRecord(false);
     }
@@ -1837,8 +1842,6 @@ const InitialClinicalEvaluationForm = (props) => {
       // Add ID to payload if updating
       if (recordId) {
         payload.id = recordId;
-      } else {
-        console.log("✨ Creating new record");
       }
 
       const response = recordId
@@ -1873,8 +1876,9 @@ const InitialClinicalEvaluationForm = (props) => {
       props.setActiveContent({
         ...props.activeContent,
         route: recordId ? "recent-history" : "enrollment-and-commencement",
-        // Add a timestamp to force re-render and data refresh
-        refreshTimestamp: new Date().getTime()
+        // Add refresh flags to force menu update
+        refreshPatient: true,
+        refreshTimestamp: Date.now()
       });
     } catch (err) {
       const msg =

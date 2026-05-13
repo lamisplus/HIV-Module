@@ -35,6 +35,7 @@ public class ObservationDto implements Serializable {
     private String longitude;
     @Basic
     private  String latitude;
+    private String enrollmentSessionUuid;
 
 
 }

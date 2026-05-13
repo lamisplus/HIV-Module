@@ -24,6 +24,9 @@ public class EnrollmentCommencementRequestDto {
     @JsonProperty("data")
     private EnrollmentCommencementData data;
 
+    @JsonProperty("enrollmentSessionUuid")
+    private String enrollmentSessionUuid;
+
     @Data
     public static class EnrollmentCommencementData {
 

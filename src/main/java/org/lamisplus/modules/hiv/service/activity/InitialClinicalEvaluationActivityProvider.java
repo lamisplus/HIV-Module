@@ -25,13 +25,14 @@ public class InitialClinicalEvaluationActivityProvider implements PatientActivit
     public List<PatientActivity> getActivitiesFor(Person person) {
         Long orgId = currentUserOrganizationService.getCurrentUserOrganization();
 
-        Optional<InitialClinicalEvaluation> evaluationOpt = initialClinicalEvaluationRepository
-                .findByPersonAndFacilityIdAndArchived(person, orgId, 0);
+        // Get all ICE records for this person and facility (supports multiple enrollment cycles)
+        List<InitialClinicalEvaluation> evaluations = initialClinicalEvaluationRepository
+                .findAllByPersonAndFacilityIdAndArchivedOrderByVisitDateDesc(person, orgId, 0);
 
         ArrayList<PatientActivity> patientActivities = new ArrayList<>();
 
-        if (evaluationOpt.isPresent()) {
-            InitialClinicalEvaluation evaluation = evaluationOpt.get();
+        // Add each ICE record as a separate activity in the timeline
+        for (InitialClinicalEvaluation evaluation : evaluations) {
             StringBuilder name = new StringBuilder("Initial Clinical Evaluation");
             LocalDate visitDate = CustomDateTimeFormat.handleNullDateActivity(
                     name, evaluation.getVisitDate());

@@ -42,10 +42,6 @@ public class AdherencePreparation extends HivAuditEntity implements Serializable
     @JoinColumn(name = "visit_id", referencedColumnName = "uuid", nullable = false)
     private Visit visit;
 
-    @ManyToOne
-    @JoinColumn(name = "art_clinical_uuid", referencedColumnName = "uuid", nullable = true)
-    private ARTClinical artClinical;
-
     @NotNull
     @Column(name = "service_date", nullable = false)
     @Convert(converter = LocalDateConverter.class)
@@ -62,6 +58,9 @@ public class AdherencePreparation extends HivAuditEntity implements Serializable
 
     @Column(name = "archived")
     private Integer archived = 0;
+
+    @Column(name = "enrollment_session_uuid")
+    private String enrollmentSessionUuid;
 
     @Override
     public boolean isNew() {

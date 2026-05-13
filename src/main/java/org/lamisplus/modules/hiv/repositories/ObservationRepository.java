@@ -644,4 +644,21 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "ORDER BY patientId",
             nativeQuery = true)
     List<ViralLoadEligibilityProjection> findAllEligiblePatientsByFacilityLegacy(@Param("facilityId") Long facilityId);
+
+    /**
+     * Session-based queries for enrollment cycle tracking
+     * Find observation by enrollment session UUID, type, and archived status
+     * For Transfer OUT/IN within facility (Part 2), there may be multiple observations per session
+     */
+    Optional<Observation> findByEnrollmentSessionUuidAndTypeAndArchived(String enrollmentSessionUuid, String type, Integer archived);
+
+    /**
+     * Check if observation exists for a specific enrollment session and type
+     */
+    boolean existsByEnrollmentSessionUuidAndTypeAndArchived(String enrollmentSessionUuid, String type, Integer archived);
+
+    /**
+     * Find all observations by enrollment session UUID
+     */
+    List<Observation> findAllByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 }

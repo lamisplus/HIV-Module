@@ -202,7 +202,7 @@ const ClientStatusUpdate = (props) => {
                   // Trigger patient refresh to update menu state
                   props.setActiveContent({
                     ...props.activeContent,
-                    route: 'dashboard',
+                    route: 'recent-history',
                     activeTab: 'home',
                     refreshPatient: true,
                     refreshTimestamp: Date.now()

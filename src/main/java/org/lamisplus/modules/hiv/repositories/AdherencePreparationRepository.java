@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AdherencePreparationRepository extends JpaRepository<AdherencePreparation, Long> {
@@ -17,4 +18,9 @@ public interface AdherencePreparationRepository extends JpaRepository<AdherenceP
     List<AdherencePreparation> findByArchived(Integer archived);
 
     boolean existsByPersonAndArchived(Person person, Integer archived);
+
+    // Session-based queries for enrollment cycle tracking
+    Optional<AdherencePreparation> findByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
+
+    boolean existsByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 }

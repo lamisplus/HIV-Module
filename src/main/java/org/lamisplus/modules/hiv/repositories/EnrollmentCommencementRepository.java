@@ -54,4 +54,15 @@ public interface EnrollmentCommencementRepository extends JpaRepository<Enrollme
             "AND hc.archived = 0 " +
             "ORDER BY hc.date_created DESC LIMIT 1", nativeQuery = true)
     String getLatestHivTestResultByPersonUuid(@Param("personUuid") String personUuid);
+
+    /**
+     * Session-based queries for enrollment cycle tracking
+     * Find EnrollmentCommencement by enrollment session UUID and archived status
+     */
+    Optional<EnrollmentCommencement> findByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
+
+    /**
+     * Check if EnrollmentCommencement exists for a specific enrollment session
+     */
+    boolean existsByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 }

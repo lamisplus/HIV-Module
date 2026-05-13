@@ -19,8 +19,24 @@ public interface InitialClinicalEvaluationRepository extends JpaRepository<Initi
 
     /**
      * Find ICE by person entity and archived status
+     * @deprecated Use findLatestByPersonAndArchived instead to support multiple enrollment cycles
      */
+    @Deprecated
     Optional<InitialClinicalEvaluation> findByPersonAndArchived(Person person, Integer archived);
+
+    /**
+     * Find the most recent ICE by person and archived status
+     * Supports multiple enrollment cycles - returns the latest ICE record
+     */
+    @Query(value = "SELECT * FROM hiv_initial_clinical_evaluation " +
+           "WHERE person_id = :#{#person.id} " +
+           "AND archived = :archived " +
+           "ORDER BY visit_date DESC " +
+           "LIMIT 1", nativeQuery = true)
+    Optional<InitialClinicalEvaluation> findLatestByPersonAndArchived(
+            @Param("person") Person person,
+            @Param("archived") Integer archived
+    );
 
     /**
      * Find ICE by ID and archived status
@@ -82,4 +98,30 @@ public interface InitialClinicalEvaluationRepository extends JpaRepository<Initi
      * Count total ICE records by facility
      */
     long countByFacilityIdAndArchived(Long facilityId, Integer archived);
+
+    /**
+     * Get all ICE records for a person and facility
+     * Supports multiple enrollment cycles - returns all ICE records ordered by most recent first
+     */
+    @Query("SELECT ice FROM InitialClinicalEvaluation ice " +
+           "WHERE ice.person = :person " +
+           "AND ice.facilityId = :facilityId " +
+           "AND ice.archived = :archived " +
+           "ORDER BY ice.visitDate DESC")
+    List<InitialClinicalEvaluation> findAllByPersonAndFacilityIdAndArchivedOrderByVisitDateDesc(
+            @Param("person") Person person,
+            @Param("facilityId") Long facilityId,
+            @Param("archived") Integer archived
+    );
+
+    /**
+     * Session-based queries for enrollment cycle tracking
+     * Find ICE by enrollment session UUID and archived status
+     */
+    Optional<InitialClinicalEvaluation> findByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
+
+    /**
+     * Check if ICE exists for a specific enrollment session
+     */
+    boolean existsByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 }

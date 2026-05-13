@@ -30,8 +30,6 @@ public class AdherencePreparationDto implements Serializable {
 
     private String visitId;
 
-    private Long artClinicalId;
-
     @NotNull(message = "Service date is required")
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -48,4 +46,6 @@ public class AdherencePreparationDto implements Serializable {
     private JsonNode treatmentSupporterData;
 
     private Integer archived;
+
+    private String enrollmentSessionUuid;
 }

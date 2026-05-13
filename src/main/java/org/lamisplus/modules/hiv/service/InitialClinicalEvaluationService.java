@@ -87,11 +87,30 @@ public class InitialClinicalEvaluationService {
 
             // Save the evaluation
             saveInitialClinicalEvaluation(evaluationDTO, person, visit);
-             //
+
             // Update HIV Status to Pre-ART after initial clinical evaluation
-            String hivStatus = evaluationDTO.isTransferIn() ?
-                    HIV_STATUS_ENROL_PRE_ART_TRANSFER_IN : HIV_STATUS_ENROL_HIV_NON_ART;
-            hivStatusTrackerService.autoUpdateHIVStatus(person, visit, hivStatus, evaluationDTO.getDateOfObservation());
+            // IMPORTANT: For Part 2 returning clients with "HIV Exposed Status Unknown",
+            // we should NOT update the status - it should remain as is throughout the enrollment cycle
+            try {
+                String currentStatus = hivStatusTrackerService.getPersonCurrentHIVStatusByPersonId(personId).getStatus();
+                log.info("Current HIV status for person {} before ICE: {}", personId, currentStatus);
+
+                if (!"HIV Exposed Status Unknown".equalsIgnoreCase(currentStatus)) {
+                    // Only update status for Part 1A and Part 1B (not Part 2 returning clients)
+                    String hivStatus = evaluationDTO.isTransferIn() ?
+                            HIV_STATUS_ENROL_PRE_ART_TRANSFER_IN : HIV_STATUS_ENROL_HIV_NON_ART;
+                    hivStatusTrackerService.autoUpdateHIVStatus(person, visit, hivStatus, evaluationDTO.getDateOfObservation());
+                    log.info("✓ Updated HIV status to '{}' for person {} after ICE", hivStatus, personId);
+                } else {
+                    log.info("✓ PRESERVED status 'HIV Exposed Status Unknown' for Part 2 returning client (person {}) - NO status update", personId);
+                }
+            } catch (Exception e) {
+                log.error("ERROR: Could not check current HIV status for person {}: {}", personId, e.getMessage());
+                log.error("SAFETY: Skipping status update to avoid overwriting Part 2 returning client status");
+                // DO NOT update status if we can't check current status - this is safer for Part 2 clients
+                // The old logic of "defaulting to status update" was dangerous and could overwrite
+                // "HIV Exposed Status Unknown" status for Part 2 returning clients
+            }
 
             log.info("Initial Clinical Evaluation saved successfully for person ID: {}", personId);
             return evaluationDTO;
@@ -122,6 +141,9 @@ public class InitialClinicalEvaluationService {
         existingEvaluation.setClinicianName(evaluationDTO.getData().getClinicianName());
         existingEvaluation.setComment(evaluationDTO.getComment());
         existingEvaluation.setTransferIn(existingEvaluation.isTransferIn());
+
+        // NOTE: enrollmentSessionUuid is NEVER updated - it's immutable once set
+        // This ensures the ICE remains linked to the same enrollment cycle
 
         // Extract and update regimen and WHO Stage fields from DTO
         if (evaluationDTO.getData() != null && evaluationDTO.getData().getAssessment() != null) {
@@ -175,13 +197,22 @@ public class InitialClinicalEvaluationService {
         Person person = getPerson(personId);
         Long orgId = currentUserOrganizationService.getCurrentUserOrganization();
 
-        InitialClinicalEvaluation evaluation = initialClinicalEvaluationRepository
-                .findByPersonAndFacilityIdAndArchived(person, orgId, 0)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        InitialClinicalEvaluation.class,
-                        "personId",
-                        String.valueOf(personId)
-                ));
+        // Get all ICE records for this person and return the most recent one
+        // Supports multiple enrollment cycles - returns the latest ICE
+        List<InitialClinicalEvaluation> evaluations = initialClinicalEvaluationRepository
+                .findAllByPersonAndFacilityIdAndArchivedOrderByVisitDateDesc(person, orgId, 0);
+
+        if (evaluations.isEmpty()) {
+            throw new EntityNotFoundException(
+                    InitialClinicalEvaluation.class,
+                    "personId",
+                    String.valueOf(personId)
+            );
+        }
+
+        // Return the most recent ICE record (first in the list since ordered by visitDate DESC)
+        InitialClinicalEvaluation evaluation = evaluations.get(0);
+        log.info("Returning most recent ICE (ID: {}) for person ID: {}", evaluation.getId(), personId);
 
         return convertEntityToDTO(evaluation);
     }
@@ -213,17 +244,29 @@ public class InitialClinicalEvaluationService {
 
 
     private void checkForExistingClinicalEvaluation(Person person, Long orgId) throws RecordExistException {
-        boolean exists = initialClinicalEvaluationRepository
-                .findByPersonAndFacilityIdAndArchived(person, orgId, 0)
-                .isPresent();
+        // Get the current enrollment session UUID from the latest AdherencePreparation
+        String currentEnrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
 
-        if (exists) {
+        if (currentEnrollmentSessionUuid == null) {
+            // No enrollment session found - this shouldn't happen as Adherence Prep is validated first
+            log.warn("No enrollment session UUID found for person {} during ICE creation check", person.getId());
+            return;
+        }
+
+        // Check if an ICE already exists for THIS enrollment session (not just any ICE)
+        // This allows Part 2 returning clients to have multiple ICE records for different enrollment cycles
+        boolean existsForCurrentSession = initialClinicalEvaluationRepository
+                .existsByEnrollmentSessionUuidAndArchived(currentEnrollmentSessionUuid, 0);
+
+        if (existsForCurrentSession) {
             throw new RecordExistException(
                     InitialClinicalEvaluation.class,
                     "Initial Clinical Evaluation",
-                    "This patient already has an Initial Clinical Evaluation record. Only one evaluation is allowed per patient."
+                    "An Initial Clinical Evaluation already exists for this enrollment cycle. Only one evaluation is allowed per enrollment cycle."
             );
         }
+
+        log.info("No existing ICE found for enrollment session {} - allowing creation", currentEnrollmentSessionUuid);
     }
 
 
@@ -263,6 +306,19 @@ public class InitialClinicalEvaluationService {
         evaluation.setSource(evaluationDTO.getSource());
         evaluation.setLongitude(evaluationDTO.getLongitude());
         evaluation.setLatitude(evaluationDTO.getLatitude());
+
+        // CRITICAL: Get enrollment session UUID from the latest AdherencePreparation record
+        // This links ICE to the same enrollment cycle - REQUIRED for proper enrollment flow
+        String enrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
+        if (enrollmentSessionUuid == null) {
+            log.error("Cannot create ICE for person ID: {} - No enrollment session UUID found. Adherence Preparation must be completed first.", person.getId());
+            throw new IllegalStateException(
+                "Cannot create Initial Clinical Evaluation without an active enrollment session. " +
+                "Please ensure Adherence Preparation has been completed first for this patient."
+            );
+        }
+        evaluation.setEnrollmentSessionUuid(enrollmentSessionUuid);
+        log.info("ICE linked to enrollment session UUID: {}", enrollmentSessionUuid);
 
         // Extract regimen and WHO Stage fields from assessment data
         if (evaluationDTO.getData() != null && evaluationDTO.getData().getAssessment() != null) {
@@ -313,6 +369,7 @@ public class InitialClinicalEvaluationService {
         dto.setLongitude(evaluation.getLongitude());
         dto.setLatitude(evaluation.getLatitude());
         dto.setTransferIn(evaluation.isTransferIn()); // Set transferIn field from entity
+        dto.setEnrollmentSessionUuid(evaluation.getEnrollmentSessionUuid());
 
         // Reconstruct the data DTO from JSONB fields and structured columns
         InitialClinicalEvaluationDataDTO dataDTO = new InitialClinicalEvaluationDataDTO();
@@ -397,5 +454,19 @@ public class InitialClinicalEvaluationService {
     private Person getPerson(Long personId) {
         return personRepository.findById(personId)
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
+    }
+
+    /**
+     * Get the latest enrollment session UUID from AdherencePreparation for this person
+     * This ensures ICE is linked to the same enrollment cycle as AdherencePrep
+     */
+    private String getLatestEnrollmentSessionUuid(Person person) {
+        return adherencePreparationRepository.findAllByPersonAndArchived(person, 0,
+                org.springframework.data.domain.PageRequest.of(0, 1,
+                    org.springframework.data.domain.Sort.by("serviceDate").descending()))
+                .stream()
+                .findFirst()
+                .map(adherencePrep -> adherencePrep.getEnrollmentSessionUuid())
+                .orElse(null);
     }
 }

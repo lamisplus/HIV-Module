@@ -44,7 +44,6 @@ public class HandleHIVVisitEncounter {
 		if (personDto.getVisitId() != null) {
 			Optional<Visit> visitOptional = visitRepository.findById(personDto.getVisitId());
 			if (visitOptional.isPresent()) {
-				log.debug("visit already exist, updating encounter only!!");
 				List<Encounter> visitEncounters = encounterRepository.getEncounterByVisit(visitOptional.get());
 				List<String> serviceCodes = visitEncounters.stream()
 						.map(Encounter::getServiceCode)
@@ -61,7 +60,6 @@ public class HandleHIVVisitEncounter {
 			visit.setVisitStartDate(visitDate.atTime(0,0));
 			visit.setArchived(0);
 			visit.setUuid(UUID.randomUUID().toString());
-			log.debug("about saving visit, person is available? {}", personOptional.isPresent());
 			try {
 				Visit currentVisit = visitRepository.save(visit);
 				createHivVisitEncounter(personOptional, currentVisit);
@@ -84,7 +82,6 @@ public class HandleHIVVisitEncounter {
 		visit.setVisitStartDate(visitDate.atTime(0, 0));
 		visit.setArchived(0);
 		visit.setUuid(UUID.randomUUID().toString());
-		log.debug("Creating new visit for EAC on date: {}, person is available: {}", visitDate, personOptional.isPresent());
 		try {
 			Visit currentVisit = visitRepository.save(visit);
 			createHivVisitEncounter(personOptional, currentVisit);

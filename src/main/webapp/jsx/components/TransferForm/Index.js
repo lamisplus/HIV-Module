@@ -314,24 +314,28 @@ const Tracking = (props) => {
                 setSaving(false);
                 toast.success("Transfer Form Submitted Successfully");
 
-                // If this was a Transfer IN (returning client), route to Enrollment & Commencement
+                // If this was a Transfer IN (returning client), route to Adherence Preparation (Part 2 flow)
                 if (patientCurrentStatus === "ART TRANSFER OUT") {
+                    // Transfer IN - Set status to "HIV EXPOSED STATUS UNKNOWN" for Part 2 flow
+                    localStorage.setItem("currentStatus", "HIV EXPOSED STATUS UNKNOWN");
+
+                    // Route to Adherence Preparation (first step in Part 2 enrollment cycle)
                     props.setActiveContent({
                         ...props.activeContent,
-                        route: "enrollment-and-commencement",
+                        route: "adherence-preparation",
                         activeTab: "home",
                         actionType: "create",
+                        refreshPatient: true,
                         refreshTimestamp: Date.now(), // Force refresh of patient data
                     });
                 } else {
-                    // Transfer OUT - update status and route to Home tab
-                    // Update localStorage to trigger menu refresh
-                    localStorage.setItem("currentStatus", "HIV EXPOSED STATUS UNKNOWN");
+                    // Transfer OUT - Set status to "ART TRANSFER OUT"
+                    localStorage.setItem("currentStatus", "ART TRANSFER OUT");
 
-                    // Route to Home with refresh to show updated menu
+                    // Route to Home (recent-history) with refresh to show updated menu
                     props.setActiveContent({
                         ...props.activeContent,
-                        route: "dashboard",
+                        route: "recent-history",
                         activeTab: "home",
                         refreshPatient: true,
                         refreshTimestamp: Date.now(), // Force refresh of patient data

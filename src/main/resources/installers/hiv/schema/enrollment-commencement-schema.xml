@@ -607,6 +607,7 @@
 
     <!-- Fix noted_side_effect data migration - convert remaining text to JSONB arrays -->
     <changeSet id="20260417-art-clinical-03" author="taiwo-dev" failOnError="false">
+        <validCheckSum>8:8b259cb77672326c6467e406d513fb80</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="hiv_art_clinical"/>
             <columnExists tableName="hiv_art_clinical" columnName="noted_side_effect"/>
@@ -638,6 +639,7 @@
     </changeSet>
 
     <changeSet id="20260506-ec-07" author="taiwo-dev" failOnError="false">
+        <validCheckSum>8:d90bd760ec15c2d38c0c3ad206e7ed26</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="hiv_enrollment_commencement"/>
             <indexExists tableName="hiv_enrollment_commencement" indexName="uk_ec_person_active"/>

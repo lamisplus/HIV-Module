@@ -3,6 +3,7 @@ package org.lamisplus.modules.hiv.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.hiv.domain.dto.AdherencePreparationDto;
+import org.lamisplus.modules.hiv.domain.dto.EnrollmentCycleStatusDto;
 import org.lamisplus.modules.hiv.service.AdherencePreparationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,5 +63,22 @@ public class AdherencePreparationController {
         log.info("Request to archive Adherence Preparation with ID: {}", id);
         adherencePreparationService.archiveAdherencePreparation(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/enrollment-session/{personId}")
+    public ResponseEntity<String> getLatestEnrollmentSessionUuid(@PathVariable Long personId) {
+        log.info("Request to get latest enrollment session UUID for person ID: {}", personId);
+        String sessionUuid = adherencePreparationService.getLatestEnrollmentSessionUuidByPersonId(personId);
+        if (sessionUuid != null) {
+            return ResponseEntity.ok(sessionUuid);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/enrollment-cycle-status/{personId}")
+    public ResponseEntity<EnrollmentCycleStatusDto> getEnrollmentCycleStatus(@PathVariable Long personId) {
+        log.info("Request to get enrollment cycle status for person ID: {}", personId);
+        EnrollmentCycleStatusDto status = adherencePreparationService.getEnrollmentCycleStatus(personId);
+        return ResponseEntity.ok(status);
     }
 }

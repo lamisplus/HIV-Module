@@ -71,6 +71,7 @@ const CareCardVisitDetails = ({
   onEdit,
   onCancelEdit,
   onSave,
+  onBack,
   patientObj,
   showBackButton = false
 }) => {
@@ -112,12 +113,21 @@ const CareCardVisitDetails = ({
     }
   };
 
-  const renderField = (label, value, defaultValue = "Not recorded") => (
-    <Box marginBottom={2}>
-      <Typography className={classes.fieldLabel}>{label}</Typography>
-      <Box className={classes.fieldValue}>{value || defaultValue}</Box>
-    </Box>
-  );
+  const renderField = (label, value, defaultValue = "Not recorded") => {
+    // Safety check: if value is an object, convert it to JSON string or extract display property
+    let displayValue = value;
+    if (value && typeof value === 'object' && !React.isValidElement(value)) {
+      // If it's an object, try to get a display property or convert to JSON
+      displayValue = value.display || value.name || value.label || JSON.stringify(value);
+    }
+
+    return (
+      <Box marginBottom={2}>
+        <Typography className={classes.fieldLabel}>{label}</Typography>
+        <Box className={classes.fieldValue}>{displayValue || defaultValue}</Box>
+      </Box>
+    );
+  };
 
   // Helper function to format code values to display text
   const formatCodeToDisplay = (code) => {
@@ -145,7 +155,7 @@ const CareCardVisitDetails = ({
               </Button>
             )}
             <Typography variant="h6">
-              Visit Details — {moment(visit.visitDate).format("DD MMMM YYYY")}
+              Visit Details — {visit?.visitDate ? moment(visit.visitDate).format("DD MMMM YYYY") : "No Date"}
             </Typography>
           </Box>
           <Box>
@@ -194,7 +204,7 @@ const CareCardVisitDetails = ({
         <Typography className={classes.sectionTitle}>Visit Information</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
-            {renderField("Visit Date", moment(visit.visitDate).format("DD MMMM YYYY"))}
+            {renderField("Visit Date", visit?.visitDate ? moment(visit.visitDate).format("DD MMMM YYYY") : "Not recorded")}
           </Grid>
           <Grid item xs={12} md={4}>
             {renderField("Duration on ART (Months)", visit.durationOnArtMonths)}

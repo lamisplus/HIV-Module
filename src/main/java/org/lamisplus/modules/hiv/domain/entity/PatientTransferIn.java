@@ -74,6 +74,9 @@ public class PatientTransferIn extends HivAuditEntity implements Persistable<Lon
     @Column(name = "telephone_number", nullable = false, length = 20)
     private String telephoneNumber;
 
+    @Column(name = "enrollment_session_uuid")
+    private String enrollmentSessionUuid;
+
     @Override
     public boolean isNew() {
         return id == null;

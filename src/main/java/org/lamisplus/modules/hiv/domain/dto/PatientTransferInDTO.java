@@ -58,4 +58,6 @@ public class PatientTransferInDTO implements Serializable {
     private LocalDateTime lastModifiedDate;
 
     private String lastModifiedBy;
+
+    private String enrollmentSessionUuid;
 }

@@ -176,6 +176,9 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate tptCompletionDate;
 
+    @Column(name = "enrollment_session_uuid")
+    private String enrollmentSessionUuid;
+
     @Override
     public boolean isNew() {
         return id == null;

@@ -144,6 +144,9 @@ public class InitialClinicalEvaluation extends HivAuditEntity implements Persist
     @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "enrollment_session_uuid")
+    private String enrollmentSessionUuid;
+
     @Override
     public boolean isNew() {
         return id == null;

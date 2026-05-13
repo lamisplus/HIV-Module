@@ -63,6 +63,9 @@ public class Observation extends HivAuditEntity  implements Persistable<Long> {
     @Column(name = "comment")
     private String comment;
 
+    @Column(name = "enrollment_session_uuid")
+    private String enrollmentSessionUuid;
+
     @Override
     public boolean isNew() {
         return id == null;

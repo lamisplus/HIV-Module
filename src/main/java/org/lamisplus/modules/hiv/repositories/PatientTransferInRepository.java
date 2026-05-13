@@ -49,4 +49,15 @@ public interface PatientTransferInRepository extends JpaRepository<PatientTransf
             @Param("personId") Long personId,
             @Param("archived") Integer archived
     );
+
+    /**
+     * Session-based queries for enrollment cycle tracking
+     * Find PatientTransferIn by enrollment session UUID and archived status
+     */
+    Optional<PatientTransferIn> findByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
+
+    /**
+     * Check if PatientTransferIn exists for a specific enrollment session
+     */
+    boolean existsByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 }

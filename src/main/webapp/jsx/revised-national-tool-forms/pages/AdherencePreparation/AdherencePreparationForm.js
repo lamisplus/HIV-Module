@@ -194,7 +194,12 @@ const AdherencePreparationForm = (props) => {
       if (props.onSave) {
         props.onSave();
       } else if (props.setActiveContent && props.activeContent) {
-        props.setActiveContent({ ...props.activeContent, route: "recent-history" });
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "recent-history",
+          refreshPatient: true,
+          refreshTimestamp: Date.now()
+        });
       }
 
       setServiceDate(today);

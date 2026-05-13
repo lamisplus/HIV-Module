@@ -133,8 +133,18 @@ public class ObservationService {
         observation.setUuid(UUID.randomUUID().toString());
         observation.setVisit(visit);
         observation.setArchived(0);
+
+        // PART 2 (Returning Client - Transfer IN): Generate NEW enrollment session UUID
+        if ("ART Transfer In".equalsIgnoreCase(observationDto.getType())) {
+            String enrollmentSessionUuid = UUID.randomUUID().toString();
+            observation.setEnrollmentSessionUuid(enrollmentSessionUuid);
+            log.info("Part 2 (Returning Client - Transfer IN): Created NEW enrollment session UUID: {} for person ID: {}",
+                     enrollmentSessionUuid, person.getId());
+        }
+
         Observation saveObservation = observationRepository.save(observation);
         observationDto.setId(saveObservation.getId());
+        observationDto.setEnrollmentSessionUuid(saveObservation.getEnrollmentSessionUuid());
     }
 
 
@@ -197,10 +207,13 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
         existingObservation.setDateOfObservation(observationDto.getDateOfObservation());
         existingObservation.setData(observationDto.getData());
         existingObservation.setComment(observationDto.getComment());
+        // NOTE: enrollmentSessionUuid is NEVER updated - it's immutable once set
+        // This ensures the observation remains linked to the same enrollment cycle
         processAndUpdateIptFromPharmacy(observationDto, existingObservation.getPerson());
         Observation saveObservation = observationRepository.save(existingObservation);
         observationDto.setId(saveObservation.getId());
         observationDto.setFacilityId(saveObservation.getFacilityId());
+        observationDto.setEnrollmentSessionUuid(saveObservation.getEnrollmentSessionUuid());
         return observationDto;
     }
 
@@ -241,6 +254,7 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
                 .visitId(observation.getVisit().getId())
                 .id(observation.getId())
                 .comment(observation.getComment())
+                .enrollmentSessionUuid(observation.getEnrollmentSessionUuid())
                 .build();
     }
 

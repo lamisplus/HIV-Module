@@ -304,8 +304,9 @@ public class HivPatientService {
             Person person = getPerson(personId);
             PersonResponseDto bioData = personService.getPersonById(personId);
             // Using new table: hiv_initial_clinical_evaluation (replaces hiv_enrollment)
+            // Get LATEST ICE for patient details display (supports multiple enrollment cycles)
             Optional<InitialClinicalEvaluation> initialClinicalEvaluation =
-                    initialClinicalEvaluationRepository.findByPersonAndArchived(person, 0);
+                    initialClinicalEvaluationRepository.findLatestByPersonAndArchived(person, 0);
             // Using new table: hiv_enrollment_commencement (replaces hiv_art_clinical)
             // Get LATEST enrollment commencement for patient details display
             Optional<EnrollmentCommencement> enrollmentCommencement =

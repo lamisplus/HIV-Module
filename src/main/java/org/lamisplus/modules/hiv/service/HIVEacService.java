@@ -43,7 +43,6 @@ public class HIVEacService {
 				.orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(patientId)));
 
 		if (moduleService.exist("Lab")) {
-			System.out.println("tetsing");
 			List<LabEacInfo> patientAllEacs = hivEacRepository.getPatientAllEacs(patientId);
 			List<LocalDate> existingDates = hivEacRepository
 					.getAllByPersonAndArchived(person, 0)

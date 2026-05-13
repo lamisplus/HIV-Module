@@ -42,9 +42,16 @@ public class PatientTransferInService {
             transferIn.setPersonUuid(person.getUuid());
             transferIn.setFacilityId(orgId);  // Set facilityId from parent class
 
+            // PART 1B (Transfer-IN New Patient): Generate NEW enrollment session UUID
+            String enrollmentSessionUuid = UUID.randomUUID().toString();
+            transferIn.setEnrollmentSessionUuid(enrollmentSessionUuid);
+            log.info("Part 1B (Transfer-IN New Patient): Created NEW enrollment session UUID: {} for person ID: {}",
+                     enrollmentSessionUuid, personId);
+
             PatientTransferIn savedTransferIn = patientTransferInRepository.save(transferIn);
             transferInDTO.setId(savedTransferIn.getId());
             transferInDTO.setUuid(savedTransferIn.getUuid());
+            transferInDTO.setEnrollmentSessionUuid(savedTransferIn.getEnrollmentSessionUuid());
 
             log.info("Patient Transfer-In record saved successfully for person ID: {}", personId);
             return transferInDTO;
@@ -71,6 +78,9 @@ public class PatientTransferInService {
         existingTransferIn.setDateOfVisit(transferInDTO.getDateOfVisit());
         existingTransferIn.setClinicianName(transferInDTO.getClinicianName());
         existingTransferIn.setTelephoneNumber(transferInDTO.getTelephoneNumber());
+
+        // NOTE: enrollmentSessionUuid is NEVER updated - it's immutable once set
+        // This ensures the Transfer-IN record remains linked to the same enrollment cycle
 
         // Ensure person_uuid is populated
         if (existingTransferIn.getPersonUuid() == null && existingTransferIn.getPerson() != null) {
@@ -180,8 +190,9 @@ public class PatientTransferInService {
                 .dateOfVisit(dto.getDateOfVisit())
                 .clinicianName(dto.getClinicianName())
                 .telephoneNumber(dto.getTelephoneNumber())
+                .enrollmentSessionUuid(dto.getEnrollmentSessionUuid())
                 .build();
-        // Note: facilityId is set in createPatientTransferIn method since it's inherited from HivAuditEntity
+        // Note: facilityId and enrollmentSessionUuid are set in createPatientTransferIn method
     }
 
     private PatientTransferInDTO convertEntityToDTO(PatientTransferIn entity) {
@@ -198,6 +209,7 @@ public class PatientTransferInService {
                 .clinicianName(entity.getClinicianName())
                 .telephoneNumber(entity.getTelephoneNumber())
                 .facilityId(entity.getFacilityId())
+                .enrollmentSessionUuid(entity.getEnrollmentSessionUuid())
                 .createdDate(entity.getCreatedDate())
                 .createdBy(entity.getCreatedBy())
                 .lastModifiedDate(entity.getLastModifiedDate())
