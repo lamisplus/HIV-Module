@@ -678,4 +678,34 @@
         </rollback>
     </changeSet>
 
+    <!-- Remove pregnancy_status and add is_breast_feeding column                -->
+    <changeSet id="20260513-ec-08" author="System" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <!-- Drop pregnancy_status column if it exists -->
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS pregnancy_status;
+        </sql>
+
+        <!-- Add is_breast_feeding column if it doesn't exist -->
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS is_breast_feeding BOOLEAN;
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_enrollment_commencement.is_breast_feeding IS 'Indicates if the patient is breastfeeding';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Restore pregnancy_status column
+                ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS pregnancy_status VARCHAR(50);
+
+                -- Drop is_breast_feeding column
+                ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS is_breast_feeding;
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

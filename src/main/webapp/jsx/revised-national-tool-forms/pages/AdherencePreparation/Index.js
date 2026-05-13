@@ -1,159 +1,114 @@
-import React, { useState } from "react";
-import { Tabs, Tab, Box, Badge } from "@mui/material";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import HistoryIcon from "@mui/icons-material/History";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
 import AdherencePreparationForm from "./AdherencePreparationForm";
-import AdherencePreparationHistory from "./AdherencePreparationHistory";
 import AdherencePreparationViewDetails from "./AdherencePreparationViewDetails";
+import axios from "axios";
+import { token, url as baseUrl } from "../../../../api";
+import { toast } from "react-toastify";
+import { CircularProgress, Box } from "@mui/material";
 
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.paper,
   },
-  tabsContainer: {
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    backgroundColor: "#fff",
-  },
-  tab: {
-    textTransform: "none",
-    fontWeight: 600,
-    fontSize: "14px",
-    minWidth: 160,
-  },
 }));
-
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`adherence-prep-tabpanel-${index}`}
-      aria-labelledby={`adherence-prep-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
 
 function AdherencePreparationIndex(props) {
   const { patientObj, setActiveContent, activeContent } = props;
   const classes = useStyles();
-  const [activeTab, setActiveTab] = useState(0);
-  const [recordCount, setRecordCount] = useState(0);
-  const [refreshHistory, setRefreshHistory] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [editRecord, setEditRecord] = useState(null);
   const [viewRecord, setViewRecord] = useState(null);
+  const [mode, setMode] = useState("create"); // 'create', 'edit', 'view'
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-    // Clear edit/view records when switching tabs
-    if (newValue === 1) {
-      setEditRecord(null);
-      setViewRecord(null);
+  // Check if we're coming from Recent History with a record ID to view/edit
+  useEffect(() => {
+    const recordId = activeContent?.id;
+    const action = activeContent?.actionType;
+
+    if (recordId && (action === "view" || action === "update")) {
+      fetchRecordById(recordId, action);
+    }
+  }, [activeContent?.id, activeContent?.actionType]);
+
+  const fetchRecordById = async (recordId, action) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${baseUrl}adherence-preparation/${recordId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const record = response.data;
+
+      if (action === "view") {
+        setViewRecord(record);
+        setEditRecord(null);
+        setMode("view");
+      } else if (action === "update") {
+        setEditRecord(record);
+        setViewRecord(null);
+        setMode("edit");
+      }
+    } catch (error) {
+      console.error("Error fetching adherence preparation record:", error);
+      toast.error("Failed to load record");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleRecordSaved = () => {
-    // Switch to history tab after saving
-    setActiveTab(1);
-    // Clear edit record
+    // Clear edit record and go back to recent history
     setEditRecord(null);
-    // Trigger history refresh
-    setRefreshHistory(!refreshHistory);
+    setMode("create");
 
-    // IMPORTANT: Trigger parent menu refresh by updating activeContent
+    // Navigate back to recent history
     if (setActiveContent && activeContent) {
       setActiveContent({
         ...activeContent,
+        route: "recent-history",
         refreshPatient: true,
-        refreshTimestamp: Date.now()
+        refreshTimestamp: Date.now(),
       });
     }
-  };
-
-  const handleAddNew = () => {
-    setEditRecord(null);
-    setActiveTab(0);
   };
 
   const handleEdit = (record) => {
     setEditRecord(record);
     setViewRecord(null);
-    setActiveTab(0);
-  };
-
-  const handleView = (record) => {
-    setViewRecord(record);
-    setEditRecord(null);
-    setActiveTab(2);
+    setMode("edit");
   };
 
   const handleBackToHistory = () => {
-    setEditRecord(null);
-    setViewRecord(null);
-    setActiveTab(1);
+    // Navigate back to recent history
+    if (setActiveContent && activeContent) {
+      setActiveContent({
+        ...activeContent,
+        route: "recent-history",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <div className={classes.root}>
-      <Box className={classes.tabsContainer}>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          indicatorColor="primary"
-          textColor="primary"
-        >
-          <Tab
-            className={classes.tab}
-            label={
-              <Box display="flex" alignItems="center" gap={1}>
-                {editRecord ? (
-                  <>
-                    <EditIcon fontSize="small" />
-                    Edit Record
-                  </>
-                ) : (
-                  <>
-                    <AddCircleIcon fontSize="small" />
-                    Create New
-                  </>
-                )}
-              </Box>
-            }
-          />
-          <Tab
-            className={classes.tab}
-            label={
-              <Box display="flex" alignItems="center" gap={1}>
-                <HistoryIcon fontSize="small" />
-                History
-                {recordCount > 0 && (
-                  <Badge badgeContent={recordCount} color="primary" />
-                )}
-              </Box>
-            }
-          />
-          {viewRecord && (
-            <Tab
-              className={classes.tab}
-              label={
-                <Box display="flex" alignItems="center" gap={1}>
-                  <VisibilityIcon fontSize="small" />
-                  View Details
-                </Box>
-              }
-            />
-          )}
-        </Tabs>
-      </Box>
-
-      <TabPanel value={activeTab} index={0}>
+      {mode === "view" && viewRecord ? (
+        <AdherencePreparationViewDetails
+          viewData={viewRecord}
+          setEditRecord={handleEdit}
+          onBack={handleBackToHistory}
+        />
+      ) : (
         <AdherencePreparationForm
           patientObj={patientObj}
           editData={editRecord}
@@ -161,27 +116,6 @@ function AdherencePreparationIndex(props) {
           setActiveContent={setActiveContent}
           activeContent={activeContent}
         />
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={1}>
-        <AdherencePreparationHistory
-          patientObj={patientObj}
-          refreshTrigger={refreshHistory}
-          onCountUpdate={setRecordCount}
-          setEditRecord={handleEdit}
-          setViewRecord={handleView}
-          onAddNew={handleAddNew}
-        />
-      </TabPanel>
-
-      {viewRecord && (
-        <TabPanel value={activeTab} index={2}>
-          <AdherencePreparationViewDetails
-            viewData={viewRecord}
-            setEditRecord={handleEdit}
-            onBack={handleBackToHistory}
-          />
-        </TabPanel>
       )}
     </div>
   );

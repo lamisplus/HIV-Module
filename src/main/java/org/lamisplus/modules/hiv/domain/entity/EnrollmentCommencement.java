@@ -154,8 +154,8 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "is_pregnant")
     private Boolean isPregnant;
 
-    @Column(name = "pregnancy_status")
-    private String pregnancyStatus;
+    @Column(name = "is_breast_feeding")
+    private Boolean isBreastFeeding;
 
     @Column(name = "tpt_medication")
     private Long tptMedication;

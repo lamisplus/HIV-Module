@@ -373,7 +373,7 @@ public class EnrollmentCommencementService {
         entity.setMuac(parseDouble(com.getMuac()));
         entity.setMuacIndication(com.getMuacIndication());
         entity.setIsPregnant("Yes".equalsIgnoreCase(com.getIsPregnant()));
-        entity.setPregnancyStatus(com.getPregnancyStatus());
+        entity.setIsBreastFeeding("Yes".equalsIgnoreCase(com.getIsBreastFeeding()));
 
         // ── TPT ───────────────────────────────────────────────────────────────
         TbPreventiveTherapyDto tpt = com.getTbPreventiveTherapy();

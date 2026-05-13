@@ -418,7 +418,7 @@ const EnrollmentAndCommencementForm = (props) => {
         muac: data.muac || "",
         muac_indication: data.muacIndication || "",
         is_pregnant: data.isPregnant ? "Yes" : "No",
-        pregnancy_status: data.pregnancyStatus || "",
+        is_breast_feeding: data.isBreastFeeding ? "Yes" : "No",
         tpt_started: hasTpt,
         tb_preventive_therapy: {
           medication: data.tptMedication || "",
@@ -861,7 +861,7 @@ const EnrollmentAndCommencementForm = (props) => {
     muac: "",
     muac_indication: "",
     is_pregnant: "",
-    pregnancy_status: "",
+    is_breast_feeding: "",
     tpt_started: false,
     tb_preventive_therapy: {
       medication: "",
@@ -904,9 +904,9 @@ const EnrollmentAndCommencementForm = (props) => {
     }
 
     // Handle dependent field clearing for pregnancy
-    if (name === "is_pregnant" && value !== "Yes") {
+    if (name === "is_pregnant" && value !== "No") {
       setCommencement((prev) => {
-        const updated = { ...prev, [name]: value, pregnancy_status: "" };
+        const updated = { ...prev, [name]: value, is_breast_feeding: "" };
         const w = prev.weight_kg;
         const h = prev.height_cm;
         updated.bmi = calcBmi(w, h);
@@ -1981,7 +1981,7 @@ const EnrollmentAndCommencementForm = (props) => {
               {/* ── Pregnancy Status — adult females only ──────────── */}
               {showPregnancyStatus && (
                 <>
-                  {/* Row 8: Is Pregnant?, Pregnancy Status */}
+                  {/* Row 8: Is Pregnant?, Is Breastfeeding? (conditional) */}
                   <FieldRow>
                     <Col>
                       <SectionLabel>Is Pregnant?</SectionLabel>
@@ -1998,23 +1998,20 @@ const EnrollmentAndCommencementForm = (props) => {
                         <option value="No">No</option>
                       </Input>
                     </Col>
-                    {commencement.is_pregnant === "Yes" && (
+                    {commencement.is_pregnant === "No" && (
                       <Col>
-                        <SectionLabel>Pregnancy Status</SectionLabel>
+                        <SectionLabel>Is Breastfeeding?</SectionLabel>
                         <Input
                           type="select"
-                          name="pregnancy_status"
-                          value={commencement.pregnancy_status}
+                          name="is_breast_feeding"
+                          value={commencement.is_breast_feeding}
                           onChange={handleCommencement}
-                          disabled={loadingCodesets || isViewMode}
+                          disabled={isViewMode}
                           style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                         >
-                          <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                          {codesets.pregnancyStatus.map((opt) => (
-                            <option key={opt.id} value={opt.code}>
-                              {opt.display}
-                            </option>
-                          ))}
+                          <option value="">Select</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
                         </Input>
                       </Col>
                     )}

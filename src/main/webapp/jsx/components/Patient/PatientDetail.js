@@ -27,7 +27,7 @@ import CervicalCancerUpdate from "./../CervicalCancer/ViewPage";
 import ClientStatusUpdate from "./../ClientStatusUpdate/ClientStatusUpdate";
 import AdultClinicEvaluationForm from "../InitailClinicEvaluation/Adult/Index";
 import ViewAdultClinicEvaluationForm from "../InitailClinicEvaluation/ViewAdultHistory/Index";
-import AdherencePreparationForm from "../../revised-national-tool-forms/pages/AdherencePreparation/Index";
+import AdherencePreparationIndex from "../../revised-national-tool-forms/pages/AdherencePreparation/Index";
 import InitialClinicalEvaluationForm from "../../revised-national-tool-forms/pages/InitialClinicalEvaluation/Index";
 import InitialClinicalEvaluationView from "../../revised-national-tool-forms/pages/InitialClinicalEvaluation/View";
 import InitialClinicalEvaluationUpdate from "../../revised-national-tool-forms/pages/InitialClinicalEvaluation/Update";
@@ -602,7 +602,7 @@ function PatientCard(props) {
           )}
           {/* {activeContent.route==='child-evaluation' &&( <ChildClinicEvaluationForm patientObj={patientObj} setActiveContent={setActiveContent} activeContent={activeContent}/>)} */}
           {activeContent.route === "adherence-preparation" && (
-            <AdherencePreparationForm
+            <AdherencePreparationIndex
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}

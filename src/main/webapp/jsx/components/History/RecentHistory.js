@@ -290,7 +290,7 @@ const RecentHistory = (props) => {
     } else if (row.path === "clinic-visit") {
       props.setActiveContent({
         ...props.activeContent,
-        route: "consultation",
+        route: "care-card-follow-up",
         id: row.id,
         activeTab: "history",
         actionType: action,
@@ -399,6 +399,15 @@ const RecentHistory = (props) => {
       props.setActiveContent({
         ...props.activeContent,
         route: action === "view" ? "substitution-switch-view" : "substitution-switch-update",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
+    }
+    else if (row.path === "adherence-preparation") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "adherence-preparation",
         id: row.id,
         activeTab: "home",
         actionType: action,
@@ -905,6 +914,31 @@ const RecentHistory = (props) => {
         })
         .then((response) => {
           toast.success("Substitution / Switch record deleted successfully");
+          RecentActivities();
+          toggle();
+          setSaving(false);
+        })
+        .catch((error) => {
+          setSaving(false);
+          if (error.response && error.response.data) {
+            let errorMessage =
+              error.response.data.apierror &&
+                error.response.data.apierror.message !== ""
+                ? error.response.data.apierror.message
+                : "Something went wrong, please try again";
+            toast.error(errorMessage);
+          } else {
+            toast.error("Something went wrong. Please try again...");
+          }
+        });
+    } else if (row.path === "adherence-preparation") {
+      setSaving(true);
+      axios
+        .delete(`${baseUrl}adherence-preparation/${row.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          toast.success("ART Adherence Preparation record deleted successfully");
           RecentActivities();
           toggle();
           setSaving(false);

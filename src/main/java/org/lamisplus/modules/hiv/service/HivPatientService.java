@@ -471,7 +471,7 @@ public class HivPatientService {
         commencement.setMuac(ec.getMuac() != null ? ec.getMuac().toString() : null);
         commencement.setMuacIndication(ec.getMuacIndication());
         commencement.setIsPregnant(ec.getIsPregnant() != null && ec.getIsPregnant() ? "Yes" : "No");
-        commencement.setPregnancyStatus(ec.getPregnancyStatus());
+        commencement.setIsBreastFeeding(ec.getIsBreastFeeding() != null && ec.getIsBreastFeeding() ? "Yes" : "No");
 
         // Set TPT data if available
         if (ec.getTptMedication() != null || ec.getTptStartDate() != null) {
