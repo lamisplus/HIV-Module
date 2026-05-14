@@ -983,7 +983,12 @@ const InitialClinicalEvaluationForm = (props) => {
 
         // Physical Exam
         if (formData.physicalExam) {
-          setSystems(formData.physicalExam);
+          const physicalExamData = { ...formData.physicalExam };
+          // Ensure breastGlands is not null before setting
+          if (physicalExamData.breastGlands === null) {
+            physicalExamData.breastGlands = makeSystem();
+          }
+          setSystems(physicalExamData);
           setAdditionalFindings(formData.physicalExam.additionalFindings || "");
         }
 
@@ -1620,6 +1625,10 @@ const InitialClinicalEvaluationForm = (props) => {
     // Physical Exam / Systems
     if (data.physicalExam) {
       const { additionalFindings: addFindings, ...systemsData } = data.physicalExam;
+      // Ensure breastGlands is not null before setting
+      if (systemsData.breastGlands === null) {
+        systemsData.breastGlands = makeSystem();
+      }
       setSystems(systemsData);
       if (addFindings) setAdditionalFindings(addFindings);
     }
