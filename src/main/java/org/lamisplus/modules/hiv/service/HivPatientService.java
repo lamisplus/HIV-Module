@@ -118,7 +118,7 @@ public class HivPatientService {
         Page<PatientProjection> persons;
 
         if (searchValue != null && !StringUtils.isBlank(searchValue) && !searchValue.equalsIgnoreCase("null")) {
-            String queryParam = "%" + searchValue.replaceAll("\\s", "").replace(",", "") + "%";
+            String queryParam = "%" + searchValue.trim() + "%";
             persons = getPatientsByFacilityBySearchParam(facilityId, queryParam, pageable);
         } else {
             List<PatientProjection> content = enrollmentRepository.findPatientsByFacilityId(
@@ -208,7 +208,8 @@ public class HivPatientService {
                 .dateOfRegistration(p.getDateOfRegistration())
                 .hasiceform(p.getHasiceform())
                 .hasenrollmentform(p.getHasenrollmentform())
-                .hivTestResult(enrollmentCommencementRepository.getLatestHivTestResultByPersonUuid(p.getPersonUuid()))
+                .hivTestResult(p.getHivTestResult())
+//                .hivTestResult(enrollmentCommencementRepository.getLatestHivTestResultByPersonUuid(p.getPersonUuid()))
                 .hasTransferIn(patientTransferInService.hasExistingTransferInByPersonUuid(p.getPersonUuid()))
 //                .currentStatus(p.getStatus())
                 .build();

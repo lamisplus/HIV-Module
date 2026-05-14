@@ -28,4 +28,5 @@ public interface PatientProjection {
 	String getStatus();
 	Boolean getHasiceform();
 	Boolean getHasenrollmentform();
+	String getHivTestResult();
 }

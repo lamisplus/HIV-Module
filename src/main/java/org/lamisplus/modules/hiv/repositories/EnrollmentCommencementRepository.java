@@ -49,11 +49,11 @@ public interface EnrollmentCommencementRepository extends JpaRepository<Enrollme
 
     Optional<EnrollmentCommencement> findByUniqueIdAndArchivedAndPersonNot(String uniqueId, Integer archived, Person person);
 
-    @Query(value = "SELECT hc.hiv_test_result FROM hts_client hc " +
-            "WHERE hc.person_uuid = :personUuid " +
-            "AND hc.archived = 0 " +
-            "ORDER BY hc.date_created DESC LIMIT 1", nativeQuery = true)
-    String getLatestHivTestResultByPersonUuid(@Param("personUuid") String personUuid);
+//    @Query(value = "SELECT hc.hiv_test_result FROM hts_client hc " +
+//            "WHERE hc.person_uuid = :personUuid " +
+//            "AND hc.archived = 0 " +
+//            "ORDER BY hc.date_created DESC LIMIT 1", nativeQuery = true)
+//    String getLatestHivTestResultByPersonUuid(@Param("personUuid") String personUuid);
 
     /**
      * Session-based queries for enrollment cycle tracking

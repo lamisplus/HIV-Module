@@ -18,53 +18,68 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
 
     List<HivEnrollment> getHivEnrollmentByFacilityIdAndArchived(Long facilityId, Integer archived);
 
-    @Query(value = "SELECT " +
-            "    p.id AS id, " +
-            "    p.created_by AS createBy, " +
-            "    p.date_of_registration AS dateOfRegistration, " +
-            "    p.first_name AS firstName, " +
-            "    p.surname AS surname, " +
-            "    p.other_name AS otherName, " +
-            "    p.hospital_number AS hospitalNumber, " +
-            "    CAST(EXTRACT(YEAR FROM AGE(NOW(), p.date_of_birth)) AS INTEGER) AS age, " +
-            "    INITCAP(p.sex) AS gender, " +
-            "    p.date_of_birth AS dateOfBirth, " +
-            "    p.is_date_of_birth_estimated AS isDobEstimated, " +
-            "    p.facility_id AS facilityId, " +
-            "    p.uuid AS personUuid, " +
-            "    (SELECT EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = p.uuid AND ice.archived = 0)) AS isEnrolled, " +
-            "    (SELECT EXISTS (SELECT 1 FROM hiv_enrollment_commencement ec WHERE ec.person_uuid = p.uuid AND ec.archived = 0)) AS commenced, " +
-            "    (SELECT EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = p.uuid AND ice.archived = 0)) AS hasiceform, " +
-            "    (SELECT EXISTS (SELECT 1 FROM hiv_enrollment_commencement ec WHERE ec.person_uuid = p.uuid AND ec.archived = 0)) AS hasenrollmentform, " +
+    @Query(value = "WITH filtered_patients AS ( " +
+            "    SELECT p.uuid, p.id, p.created_by, p.date_of_registration, p.first_name, p.surname, p.other_name, p.hospital_number, " +
+            "    p.date_of_birth, p.sex, p.is_date_of_birth_estimated, p.facility_id FROM patient_person p " +
+            "    WHERE p.archived = 0 " +
+            "    AND p.facility_id = ?1 " +
+            "    AND NOT ( " +
+            "        EXISTS (SELECT 1 FROM hiv_enrollment_commencement e WHERE e.person_uuid = p.uuid AND e.archived = 0) " +
+            "        AND EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = p.uuid AND ice.archived = 0) " +
+            "    ) " +
+            "    AND NOT EXISTS ( " +
+            "        SELECT 1 FROM hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
+            "        AND hc.archived IS FALSE AND patient_uuid = CAST(p.uuid AS UUID) " +
+            "    ) " +
+            "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
+            "), " +
+            "htsResult AS ( " +
+            "    SELECT patient_uuid, hivTestResult FROM ( " +
+            "        SELECT patient_uuid, hc.observation->>'confirmatoryHivTest' AS hivTestResult, " +
+            "        ROW_NUMBER() OVER (PARTITION BY patient_uuid ORDER BY date_of_visit DESC) rnkk " +
+            "        FROM hts_encounter hc " +
+            "        WHERE hc.archived IS FALSE " +
+            "    ) hts WHERE rnkk = 1 " +
+            ") " +
+            "SELECT " +
+            "    fp.id AS id, " +
+            "    fp.created_by AS createBy, " +
+            "    fp.date_of_registration AS dateOfRegistration, " +
+            "    fp.first_name AS firstName, " +
+            "    fp.surname AS surname, " +
+            "    fp.other_name AS otherName, " +
+            "    fp.hospital_number AS hospitalNumber, " +
+            "    CAST(EXTRACT(YEAR FROM AGE(NOW(), fp.date_of_birth)) AS INTEGER) AS age, " +
+            "    INITCAP(fp.sex) AS gender, " +
+            "    fp.date_of_birth AS dateOfBirth, " +
+            "    fp.is_date_of_birth_estimated AS isDobEstimated, " +
+            "    fp.facility_id AS facilityId, " +
+            "    fp.uuid AS personUuid, " +
+            "    bac.display AS hivTestResult, " +
+            "    (SELECT EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = fp.uuid AND ice.archived = 0)) AS isEnrolled, " +
+            "    (SELECT EXISTS (SELECT 1 FROM hiv_enrollment_commencement ec WHERE ec.person_uuid = fp.uuid AND ec.archived = 0)) AS commenced, " +
+            "    (SELECT EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = fp.uuid AND ice.archived = 0)) AS hasiceform, " +
+            "    (SELECT EXISTS (SELECT 1 FROM hiv_enrollment_commencement ec WHERE ec.person_uuid = fp.uuid AND ec.archived = 0)) AS hasenrollmentform, " +
             "    NULL AS targetGroupId, " +
             "    e.id AS enrollmentId, " +
             "    e.unique_id AS uniqueId, " +
             "    pc.display AS enrollmentStatus, " +
             "    b.biometric_type AS biometricStatus " +
-            "FROM patient_person p " +
+            "FROM filtered_patients fp " +
             "LEFT JOIN ( " +
             "    SELECT DISTINCT person_uuid, biometric_type FROM biometric WHERE archived = 0 " +
-            ") b ON b.person_uuid = p.uuid " +
-            "LEFT JOIN hiv_enrollment_commencement e ON p.uuid = e.person_uuid " +
+            ") b ON b.person_uuid = fp.uuid " +
+            "LEFT JOIN hiv_enrollment_commencement e ON fp.uuid = e.person_uuid " +
             "LEFT JOIN base_application_codeset pc ON pc.id = e.status_at_registration_id " +
-            "WHERE p.archived = 0 " +
-            "    AND p.facility_id = ?1 " +
-            "    AND NOT ( " +
-            "        EXISTS (SELECT 1 FROM hiv_enrollment_commencement e2 WHERE e2.person_uuid = p.uuid AND e2.archived = 0) " +
-            "        AND EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice2 WHERE ice2.person_uuid = p.uuid AND ice2.archived = 0) " +
-            "    ) " +
-            "    AND NOT EXISTS ( " +
-            "        SELECT 1 FROM hts_client hc2 " +
-            "        WHERE hc2.person_uuid = p.uuid AND hc2.hiv_test_result = 'Negative' AND hc2.archived = 0 " +
-            "    ) " +
-            "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
-            "    AND ( " +
-            "        p.hospital_number ILIKE ?2 " +
-            "        OR p.first_name ILIKE ?2 " +
-            "        OR p.surname ILIKE ?2 " +
-            "        OR p.other_name ILIKE ?2 " +
-            "    ) " +
-            "ORDER BY p.id DESC",
+            "LEFT JOIN htsResult hr ON hr.patient_uuid = CAST(fp.uuid AS UUID) " +
+            "LEFT JOIN base_application_codeset bac ON bac.code = hr.hivTestResult " +
+            "WHERE (\n" +
+            "fp.hospital_number ILIKE ?2\n" +
+            "OR fp.first_name ILIKE ?2\n" +
+            "OR fp.surname ILIKE ?2\n" +
+            "OR fp.other_name ILIKE ?2\n" +
+            ") " +
+            "ORDER BY fp.id DESC",
             countQuery = "SELECT count(*) FROM patient_person p " +
                     "WHERE p.archived = 0 " +
                     "AND p.facility_id = ?1 " +
@@ -73,8 +88,8 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
                     "    AND EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice2 WHERE ice2.person_uuid = p.uuid AND ice2.archived = 0) " +
                     ") " +
                     "AND NOT EXISTS ( " +
-                    "    SELECT 1 FROM hts_client hc2 " +
-                    "    WHERE hc2.person_uuid = p.uuid AND hc2.hiv_test_result = 'Negative' AND hc2.archived = 0 " +
+                    "    SELECT 1 FROM hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
+                    "    AND hc.archived IS FALSE AND patient_uuid = CAST(p.uuid AS UUID) " +
                     ") " +
                     "AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
                     "AND (p.hospital_number ILIKE ?2 OR p.first_name ILIKE ?2 OR p.surname ILIKE ?2 OR p.other_name ILIKE ?2)",
@@ -101,45 +116,54 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
 
 
 
-    @Query(value = "WITH filtered_patients AS ( " +
-            "    SELECT p.uuid, p.id, p.created_by, p.date_of_registration, p.first_name, p.surname, p.other_name, p.hospital_number, " +
-            "    p.date_of_birth, p.sex, p.is_date_of_birth_estimated, p.facility_id FROM patient_person p " +
-            "    WHERE p.archived = 0 " +
-            "    AND p.facility_id = ?1 " +
-            "    AND NOT ( " +
-            "        EXISTS (SELECT 1 FROM hiv_enrollment_commencement e WHERE e.person_uuid = p.uuid AND e.archived = 0) " +
-            "        AND EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = p.uuid AND ice.archived = 0) " +
-            "    ) " +
-            "    AND NOT EXISTS ( " +
-            "        SELECT 1 FROM hts_client hc " +
-            "        WHERE hc.person_uuid = p.uuid AND hc.hiv_test_result = 'Negative' AND hc.archived = 0 " +
-            "    ) " +
-            "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
-            ") " +
-            "SELECT " +
-            "    fp.id AS id, " +
-            "    fp.created_by AS createby, " +
-            "    fp.date_of_registration AS dateofregistration, " +
-            "    fp.first_name AS firstname, " +
-            "    fp.surname AS surname, " +
-            "    fp.other_name AS othername, " +
-            "    fp.hospital_number AS hospitalnumber, " +
-            "    CAST(EXTRACT(YEAR FROM AGE(NOW(), fp.date_of_birth)) AS INTEGER) AS age, " +
-            "    INITCAP(fp.sex) AS gender, " +
-            "    fp.date_of_birth AS dateofbirth, " +
-            "    fp.is_date_of_birth_estimated AS isdobestimated, " +
-            "    fp.facility_id AS facilityid, " +
-            "    fp.uuid AS personuuid, " +
-            "    (SELECT EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = fp.uuid AND ice.archived = 0)) AS isEnrolled, " +
-            "    (SELECT EXISTS (SELECT 1 FROM hiv_enrollment_commencement ec WHERE ec.person_uuid = fp.uuid AND ec.archived = 0)) AS commenced, " +
-            "    b.biometric_type AS biometricstatus, " +
-            "    (SELECT EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = fp.uuid AND ice.archived = 0)) AS hasiceform, " +
-            "    (SELECT EXISTS (SELECT 1 FROM hiv_enrollment_commencement ec WHERE ec.person_uuid = fp.uuid AND ec.archived = 0)) AS hasenrollmentform " +
-            "FROM filtered_patients fp " +
-            "LEFT JOIN ( " +
-            "    SELECT DISTINCT person_uuid, biometric_type FROM biometric WHERE archived = 0 " +
-            ") b ON b.person_uuid = fp.uuid " +
-            "ORDER BY fp.id DESC " +
+    @Query(value = "WITH filtered_patients AS (\n" +
+            "    SELECT p.uuid, p.id, p.created_by, p.date_of_registration, p.first_name, p.surname, p.other_name, p.hospital_number,\n" +
+            "    p.date_of_birth, p.sex, p.is_date_of_birth_estimated, p.facility_id FROM patient_person p\n" +
+            "    WHERE p.archived = 0\n" +
+            "    AND p.facility_id = ?1\n" +
+            "    AND NOT (\n" +
+            "        EXISTS (SELECT 1 FROM hiv_enrollment_commencement e WHERE e.person_uuid = p.uuid AND e.archived = 0)\n" +
+            "        AND EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = p.uuid AND ice.archived = 0)\n" +
+            "    )\n" +
+            "    AND NOT EXISTS (\n" +
+            "        SELECT 1 from hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest'  = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' AND hc.archived IS FALSE AND patient_uuid = CAST(p.uuid AS UUID)\n" +
+            "    )\n" +
+            "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0)\n" +
+            "),\n" +
+            "htsResult AS (\n" +
+            "SELECT patient_uuid, hivTestResult FROM(\n" +
+            "SELECT patient_uuid, hc.observation->>'confirmatoryHivTest' as hivTestResult,\n" +
+            "ROW_NUMBER() OVER (PARTITION BY patient_uuid ORDER BY date_of_visit DESC) rnkk\n" +
+            "FROM hts_encounter hc \n" +
+            "WHERE hc.archived IS FALSE) hts WHERE rnkk = 1\n" +
+            ")\n" +
+            "SELECT\n" +
+            "    fp.id AS id,\n" +
+            "    fp.created_by AS createby,\n" +
+            "    fp.date_of_registration AS dateofregistration,\n" +
+            "    fp.first_name AS firstname,\n" +
+            "    fp.surname AS surname,\n" +
+            "    fp.other_name AS othername,\n" +
+            "    fp.hospital_number AS hospitalnumber,\n" +
+            "    CAST(EXTRACT(YEAR FROM AGE(NOW(), fp.date_of_birth)) AS INTEGER) AS age,\n" +
+            "    INITCAP(fp.sex) AS gender,\n" +
+            "    fp.date_of_birth AS dateofbirth,\n" +
+            "    fp.is_date_of_birth_estimated AS isdobestimated,\n" +
+            "    fp.facility_id AS facilityid,\n" +
+            "    fp.uuid AS personuuid,\n" +
+            "\tbac.display hivTestResult,\n" +
+            "    (SELECT EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = fp.uuid AND ice.archived = 0)) AS isEnrolled,\n" +
+            "    (SELECT EXISTS (SELECT 1 FROM hiv_enrollment_commencement ec WHERE ec.person_uuid = fp.uuid AND ec.archived = 0)) AS commenced,\n" +
+            "    b.biometric_type AS biometricstatus,\n" +
+            "    (SELECT EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = fp.uuid AND ice.archived = 0)) AS hasiceform,\n" +
+            "    (SELECT EXISTS (SELECT 1 FROM hiv_enrollment_commencement ec WHERE ec.person_uuid = fp.uuid AND ec.archived = 0)) AS hasenrollmentform\n" +
+            "FROM filtered_patients fp\n" +
+            "LEFT JOIN (\n" +
+            "    SELECT DISTINCT person_uuid, biometric_type FROM biometric WHERE archived = 0\n" +
+            ") b ON b.person_uuid = fp.uuid\n" +
+            "LEFT JOIN htsResult hr ON hr.patient_uuid = CAST(fp.uuid AS UUID)\n" +
+            "LEFT JOIN base_application_codeset bac ON bac.code = hr.hivTestResult\n" +
+            "ORDER BY fp.id DESC\n"+
             "LIMIT ?2 OFFSET ?3",
             nativeQuery = true)
     List<PatientProjection> findPatientsByFacilityId(Long facilityId, int limit, int offset);
