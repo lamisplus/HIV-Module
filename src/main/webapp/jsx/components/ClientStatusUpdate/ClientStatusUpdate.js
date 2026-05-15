@@ -131,7 +131,7 @@ const ClientStatusUpdate = (props) => {
     //                  x.display !== "ART Restart" &&
     //                  x.display !== "Pre-ART Transfer In" &&
     //                  x.display !== currentStatus &&
-    //                  x.display !== "HIV Exposed Status Unknown" &&
+    //                  x.display !== "Transfer-in not active" &&
     //                  x.display !== "HIV Negative" &&
     //                  x.display !== "HIV+ non ART"
     //              )

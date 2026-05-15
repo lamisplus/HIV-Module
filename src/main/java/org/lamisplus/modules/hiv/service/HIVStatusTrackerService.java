@@ -104,7 +104,7 @@ public class HIVStatusTrackerService {
                 .max(personStatusDateComparator);
 
         // ALWAYS use the latest HIVStatusTracker if it exists (regardless of pharmacy refills)
-        // This ensures Part 2 returning clients maintain their "HIV Exposed Status Unknown" status
+        // This ensures Part 2 returning clients maintain their "Transfer-in not active" status
         if (currentStatus.isPresent()) {
             log.info("Using latest HIVStatusTracker status for person {}: {}", personId, currentStatus.get().getHivStatus());
             return calculatePatientCurrentStatus(currentStatus.get());
@@ -136,12 +136,12 @@ public class HIVStatusTrackerService {
                 .getOneArtPharmaciesByPersonAndArchived(statusTracker.getPerson().getUuid(), 0);
 
         artPharmacy.ifPresent(p -> statusDate.set(p.getNextAppointment()));
-        List<String> staticStatus = Arrays.asList("Stopped Treatment", "Died (Confirmed)", "ART Transfer Out", "HIV_NEGATIVE", "ART Transfer In", "HIV Exposed Status Unknown" );
+        List<String> staticStatus = Arrays.asList("Stopped Treatment", "Died (Confirmed)", "ART Transfer Out", "HIV_NEGATIVE", "ART Transfer In", "Transfer-in not active" );
         if (staticStatus.contains(statusTracker.getHivStatus())) {
             if (statusTracker.getHivStatus().equalsIgnoreCase(Constants.HIV_NEGATIVE)) {
                 return new StatusDto(NOT_ENROLLED, statusTracker.getStatusDate());
             }
-            // Return the status as-is for all static statuses including "HIV Exposed Status Unknown"
+            // Return the status as-is for all static statuses including "Transfer-in not active"
             return new StatusDto(statusTracker.getHivStatus(), statusTracker.getStatusDate());
         } else {
             LocalDate dateStatus;

@@ -292,9 +292,9 @@ const EnrollmentAndCommencementForm = (props) => {
       const currentStatus = localStorage.getItem("currentStatus");
 
       // Check for Part 2 returning client status
-      // The backend should return "HIV Exposed Status Unknown" after Transfer IN
+      // The backend should return "Transfer-in not active" after Transfer IN
       const statusUpper = currentStatus?.toUpperCase();
-      const isReturningClient = statusUpper === "HIV EXPOSED STATUS UNKNOWN";
+      const isReturningClient = statusUpper === "TRANSFER-IN NOT ACTIVE";
 
       // For returning clients, allow creating a new enrollment record
       // and fetch the previous record data for auto-population
@@ -475,7 +475,7 @@ const EnrollmentAndCommencementForm = (props) => {
       // Auto-select "Transfer-in" for returning clients
       if (isCreateMode) {
         const currentStatus = localStorage.getItem("currentStatus");
-        const isReturningClient = currentStatus?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+        const isReturningClient = currentStatus?.toUpperCase() === "TRANSFER-IN NOT ACTIVE";
 
         if (isReturningClient && response.data.POINT_ENTRY) {
           const transferInOption = response.data.POINT_ENTRY.find(opt =>

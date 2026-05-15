@@ -152,11 +152,11 @@ const SubMenu = (props) => {
   // Effect to refresh status when navigating to enrollment-and-commencement route
   // This ensures the menu updates after Transfer IN submission (Part 2 flow)
   // IMPORTANT: Do NOT call getCurrentStatus() for Part 2 returning clients,
-  // as it will overwrite the correct "HIV Exposed Status Unknown" status from Transfer IN
+  // as it will overwrite the correct "Transfer-in not active" status from Transfer IN
   useEffect(() => {
     if (props.activeContent?.route === "enrollment-and-commencement") {
       const currentStatusFromLocalStorage = localStorage.getItem("currentStatus");
-      const isReturningClient = currentStatusFromLocalStorage?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+      const isReturningClient = currentStatusFromLocalStorage?.toUpperCase() === "TRANSFER-IN NOT ACTIVE";
 
       // For Part 2 returning clients: skip getCurrentStatus but refresh enrollmentCycleStatus
       // This ensures the menu shows "Enrollment & Commencement" instead of "Adherence Preparation"
@@ -175,7 +175,7 @@ const SubMenu = (props) => {
   useEffect(() => {
     if (props.activeContent?.refreshPatient === true) {
       const currentStatusFromLocalStorage = localStorage.getItem("currentStatus");
-      const isReturningClient = currentStatusFromLocalStorage?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN";
+      const isReturningClient = currentStatusFromLocalStorage?.toUpperCase() === "TRANSFER-IN NOT ACTIVE";
 
       // Only skip getCurrentStatus if coming from Transfer IN (before Enrollment submission)
       // After Enrollment submission, we SHOULD fetch the updated status
@@ -291,9 +291,9 @@ const SubMenu = (props) => {
       const isPostICEPreEnrollment = nextForm === "Enrollment";
 
       // Transfer IN Pending Enrollment: Returning client (Part 2) needs to complete enrollment cycle
-      // Only true if status is "HIV Exposed Status Unknown" AND enrollment cycle is NOT complete
+      // Only true if status is "Transfer-in not active" AND enrollment cycle is NOT complete
       const isTransferInPendingEnrollment =
-        currentStatus?.toUpperCase() === "HIV EXPOSED STATUS UNKNOWN" && !isComplete;
+        currentStatus?.toUpperCase() === "TRANSFER-IN NOT ACTIVE" && !isComplete;
 
       // Show full menu when enrollment cycle is complete
       const showFullMenu = isComplete;

@@ -79,7 +79,7 @@ public class TreatmentTransferService {
 
         if (isTransferIn) {
             // Patient is currently Transfer OUT, so they're coming back (Transfer IN)
-            newPatientStatus = "HIV Exposed Status Unknown";  // Status after Transfer IN
+            newPatientStatus = "Transfer-in not active";  // Status after Transfer IN
             observationType = "ART Transfer In";  // Observation type for Transfer IN action
             log.info("Processing Transfer IN for person UUID: {}. New status: {}", dto.getPersonUuid(), newPatientStatus);
         } else {

@@ -75,16 +75,16 @@ public class EnrollmentCommencementService {
         EnrollmentCommencement saved = repository.save(entity);
 
         // Update HIV Status to ART Start after enrollment commencement
-        // IMPORTANT: For Part 2 returning clients with "HIV Exposed Status Unknown",
+        // IMPORTANT: For Part 2 returning clients with "Transfer-in not active",
         // we should NOT update the status - it should remain as is throughout the enrollment cycle
         try {
             String currentStatus = hivStatusTrackerService.getPersonCurrentHIVStatusByPersonId(person.getId()).getStatus();
-            if (!"HIV Exposed Status Unknown".equalsIgnoreCase(currentStatus)) {
+            if (!"Transfer-in not active".equalsIgnoreCase(currentStatus)) {
                 // Only update status for Part 1A and Part 1B (not Part 2 returning clients)
                 hivStatusTrackerService.autoUpdateHIVStatus(person, entity.getVisit(), getStatusAtRegistration(person.getId()), entity.getDateArtStarted());
                 log.info("Updated HIV status for person {} after enrollment", person.getId());
             } else {
-                log.info("Skipping status update for Part 2 returning client (person {}) - maintaining 'HIV Exposed Status Unknown'", person.getId());
+                log.info("Skipping status update for Part 2 returning client (person {}) - maintaining 'Transfer-in not active'", person.getId());
             }
         } catch (Exception e) {
             log.warn("Could not check current HIV status for person {}, defaulting to status update", person.getId());

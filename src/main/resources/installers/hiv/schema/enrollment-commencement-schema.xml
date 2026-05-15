@@ -708,4 +708,67 @@
         </rollback>
     </changeSet>
 
+    <!-- Update status name from 'HIV Exposed Status Unknown' to 'Transfer-in not active' -->
+    <changeSet id="20260515-status-update-01" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_status_tracker"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Update status name in hiv_status_tracker table
+            UPDATE hiv_status_tracker
+            SET hiv_status = 'Transfer-in not active'
+            WHERE hiv_status = 'HIV Exposed Status Unknown'
+            AND archived = 0;
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Restore old status name
+                UPDATE hiv_status_tracker
+                SET hiv_status = 'HIV Exposed Status Unknown'
+                WHERE hiv_status = 'Transfer-in not active'
+                AND archived = 0;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Remove NOT NULL constraints from enrollment fields -->
+    <changeSet id="20260515-ec-09" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="date_confirmed_hiv_test"
+                               columnDataType="DATE"/>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="hiv_test_location"
+                               columnDataType="VARCHAR(255)"/>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="mode_of_hiv_test_id"
+                               columnDataType="VARCHAR(255)"/>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="care_entry_point_id"
+                               columnDataType="VARCHAR(255)"/>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="prior_art_id"
+                               columnDataType="VARCHAR(255)"/>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Restore NOT NULL constraints (will fail if there are NULL values)
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN date_confirmed_hiv_test SET NOT NULL;
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN hiv_test_location SET NOT NULL;
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN mode_of_hiv_test_id SET NOT NULL;
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN care_entry_point_id SET NOT NULL;
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN prior_art_id SET NOT NULL;
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

@@ -92,7 +92,7 @@ public class StatusManagementService {
         List<String> staticStatus =
                 Arrays.asList("ART_TRANSFER_OUT",
                         "ART Transfer Out",
-                        "HIV Exposed Status Unknown",
+                        "Transfer-in not active",
                         "KNOWN_DEATH",
                         "Died (Confirmed)",
                         "STOPPED_TREATMENT",

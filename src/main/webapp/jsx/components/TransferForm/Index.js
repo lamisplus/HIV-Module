@@ -316,8 +316,8 @@ const Tracking = (props) => {
 
                 // If this was a Transfer IN (returning client), route to Adherence Preparation (Part 2 flow)
                 if (patientCurrentStatus === "ART TRANSFER OUT") {
-                    // Transfer IN - Set status to "HIV EXPOSED STATUS UNKNOWN" for Part 2 flow
-                    localStorage.setItem("currentStatus", "HIV EXPOSED STATUS UNKNOWN");
+                    // Transfer IN - Set status to "TRANSFER-IN NOT ACTIVE" for Part 2 flow
+                    localStorage.setItem("currentStatus", "TRANSFER-IN NOT ACTIVE");
 
                     // Route to Adherence Preparation (first step in Part 2 enrollment cycle)
                     props.setActiveContent({

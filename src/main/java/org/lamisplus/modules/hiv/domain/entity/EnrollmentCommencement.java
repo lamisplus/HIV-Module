@@ -71,18 +71,18 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateEnrolledInHivCare;
 
-    @Column(name = "date_confirmed_hiv_test", nullable = false)
+    @Column(name = "date_confirmed_hiv_test")
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateConfirmedHivTest;
 
-    @Column(name = "hiv_test_location", nullable = false)
+    @Column(name = "hiv_test_location")
     private String hivTestLocation;
 
-    @Column(name = "mode_of_hiv_test_id", nullable = false)
+    @Column(name = "mode_of_hiv_test_id")
     private String modeOfHivTestId;
 
-    @Column(name = "care_entry_point_id", nullable = false)
+    @Column(name = "care_entry_point_id")
     private String careEntryPointId;
 
     @Column(name = "care_entry_point_other")
@@ -91,7 +91,7 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "mother_unique_id")
     private String motherUniqueId;
 
-    @Column(name = "prior_art_id", nullable = false)
+    @Column(name = "prior_art_id")
     private String priorArtId;
 
     @Column(name = "is_kp")

@@ -89,27 +89,27 @@ public class InitialClinicalEvaluationService {
             saveInitialClinicalEvaluation(evaluationDTO, person, visit);
 
             // Update HIV Status to Pre-ART after initial clinical evaluation
-            // IMPORTANT: For Part 2 returning clients with "HIV Exposed Status Unknown",
+            // IMPORTANT: For Part 2 returning clients with "Transfer-in not active",
             // we should NOT update the status - it should remain as is throughout the enrollment cycle
             try {
                 String currentStatus = hivStatusTrackerService.getPersonCurrentHIVStatusByPersonId(personId).getStatus();
                 log.info("Current HIV status for person {} before ICE: {}", personId, currentStatus);
 
-                if (!"HIV Exposed Status Unknown".equalsIgnoreCase(currentStatus)) {
+                if (!"Transfer-in not active".equalsIgnoreCase(currentStatus)) {
                     // Only update status for Part 1A and Part 1B (not Part 2 returning clients)
                     String hivStatus = evaluationDTO.isTransferIn() ?
                             HIV_STATUS_ENROL_PRE_ART_TRANSFER_IN : HIV_STATUS_ENROL_HIV_NON_ART;
                     hivStatusTrackerService.autoUpdateHIVStatus(person, visit, hivStatus, evaluationDTO.getDateOfObservation());
                     log.info("✓ Updated HIV status to '{}' for person {} after ICE", hivStatus, personId);
                 } else {
-                    log.info("✓ PRESERVED status 'HIV Exposed Status Unknown' for Part 2 returning client (person {}) - NO status update", personId);
+                    log.info("✓ PRESERVED status 'Transfer-in not active' for Part 2 returning client (person {}) - NO status update", personId);
                 }
             } catch (Exception e) {
                 log.error("ERROR: Could not check current HIV status for person {}: {}", personId, e.getMessage());
                 log.error("SAFETY: Skipping status update to avoid overwriting Part 2 returning client status");
                 // DO NOT update status if we can't check current status - this is safer for Part 2 clients
                 // The old logic of "defaulting to status update" was dangerous and could overwrite
-                // "HIV Exposed Status Unknown" status for Part 2 returning clients
+                // "Transfer-in not active" status for Part 2 returning clients
             }
 
             log.info("Initial Clinical Evaluation saved successfully for person ID: {}", personId);
