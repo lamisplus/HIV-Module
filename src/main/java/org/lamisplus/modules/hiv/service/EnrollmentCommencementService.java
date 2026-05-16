@@ -218,9 +218,8 @@ public class EnrollmentCommencementService {
             throw new IllegalArgumentException("care_entry_point is required");
         }
 
-        if (reg.getPriorArt() == null) {
-            throw new IllegalArgumentException("prior_art is required");
-        }
+        // Prior ART is optional - it's hidden when ICE form's "Previous ARV Exposure" = "Yes"
+        // No validation needed for prior_art
 
         if (isNullOrEmpty(com.getDateArtStarted())) {
             throw new IllegalArgumentException("date_art_started is required");

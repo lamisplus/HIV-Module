@@ -247,7 +247,57 @@ const EnrollmentAndCommencementForm = (props) => {
   // Pregnancy / breastfeeding only relevant for adult females
   const showPregnancyStatus = isFemale && !isPediatric;
 
+  // Check if "Previous ARV Exposure" = "Yes" in ICE form
+  // If Yes, show and auto-populate "Prior ART" field in Enrollment & Commencement
+  const arvHistory = props.patientObj1?.initialClinicalEvaluation?.data?.arvHistory;
+  const previousArvExposure = arvHistory?.previousArvExposure;
+
+  // Determine which Prior ART option to auto-populate based on ICE form
+  const getPriorArtFromICE = () => {
+    if (!arvHistory || previousArvExposure !== "Yes") return "";
+
+    // Check each ARV history field (prep, pep, tran, earlierArvNotTransfer)
+    if (arvHistory.prep === true) {
+      return "PRIOR_ART_PREP"; // PrEP
+    }
+    if (arvHistory.pep === true) {
+      return "PRIOR_ART_PEP"; // PEP
+    }
+    if (arvHistory.tran === true) {
+      return "PRIOR_ART_TRANSFER_IN_WITHOUT_RECORDS"; // Transfer in without records
+    }
+    if (arvHistory.earlierArvNotTransfer === true) {
+      return "PRIOR_ART_EARLIER_ARV_BUT_NOT_A_TRANSFER_IN"; // Earlier ARV but not a transfer in
+    }
+
+    return "";
+  };
+
+  const priorArtFromICE = getPriorArtFromICE();
+
   const [saving, setSaving] = useState(false);
+  const [registration, setRegistration] = useState({
+    unique_id: "",
+    date_enrolled_in_hiv_care: "",
+    mother_unique_id: "",
+    care_entry_point: "",
+    care_entry_point_other: "",
+    date_transferred_in: "",
+    facility_transferred_from: "",
+    date_confirmed_hiv_test: "",
+    mode_of_hiv_test: "",
+    hiv_test_location: "",
+    prior_art: "",
+    is_kp: "",
+    kp_typology: "",
+    previousEnrollmentDate: "",
+  });
+
+  // Show Prior ART field if:
+  // 1. Previous ARV Exposure = "Yes" in ICE (create mode), OR
+  // 2. Prior ART field has a value (edit/view mode)
+  const showPriorArtField = previousArvExposure === "Yes" || (registration.prior_art && String(registration.prior_art).trim() !== "");
+
   const [loading, setLoading] = useState(isEditMode || isViewMode);
   const [errors, setErrors] = useState({});
   const [expanded, setExpanded] = useState(["registration", "commencement"]);
@@ -368,6 +418,20 @@ const EnrollmentAndCommencementForm = (props) => {
       fetchExistingData();
     }
   }, []);
+
+  // ── Auto-populate Prior ART from ICE when codesets are loaded ────────────
+  useEffect(() => {
+    if (isCreateMode && !loadingCodesets && codesets.priorArt.length > 0 && priorArtFromICE) {
+      const priorArtOption = codesets.priorArt.find(opt => opt.code === priorArtFromICE);
+
+      if (priorArtOption && !registration.prior_art) {
+        setRegistration((prev) => ({
+          ...prev,
+          prior_art: priorArtOption.code
+        }));
+      }
+    }
+  }, [isCreateMode, loadingCodesets, codesets.priorArt, priorArtFromICE]);
 
   // ── Fetch Existing Data for Edit/View Mode ──────────────────────────────
   const fetchExistingData = async () => {
@@ -711,23 +775,6 @@ const EnrollmentAndCommencementForm = (props) => {
   };
 
   // ── Section 1: Patient Registration Details ─────────────────────────────
-  const [registration, setRegistration] = useState({
-    unique_id: "",
-    date_enrolled_in_hiv_care: "",
-    mother_unique_id: "",
-    care_entry_point: "",
-    care_entry_point_other: "",
-    date_transferred_in: "",
-    facility_transferred_from: "",
-    date_confirmed_hiv_test: "",
-    mode_of_hiv_test: "",          // renamed from mode_of_hiv_confirmation
-    hiv_test_location: "",
-    prior_art: "",
-    is_kp: "",
-    kp_typology: "",
-    previousEnrollmentDate: "", // For returning clients - stores previous enrollment date to validate new enrollment date
-  });
-
   const handleReg = (e) => {
     const { name, value } = e.target;
 
@@ -777,7 +824,7 @@ const EnrollmentAndCommencementForm = (props) => {
 
       // Always-required fields (excluding date_enrolled_in_hiv_care which has special validation above)
       if (['unique_id', 'date_confirmed_hiv_test', 'hiv_test_location',
-           'mode_of_hiv_test', 'care_entry_point', 'prior_art'].includes(name)) {
+           'mode_of_hiv_test', 'care_entry_point'].includes(name)) {
         if (value && String(value).trim() !== '') {
           delete newErrors[name];
         }
@@ -1111,9 +1158,7 @@ const EnrollmentAndCommencementForm = (props) => {
       temp.care_entry_point = "Care entry point is required";
     }
 
-    if (!registration.prior_art || String(registration.prior_art).trim() === '') {
-      temp.prior_art = "Prior ART status is required";
-    }
+    // Prior ART is optional - no validation required
 
     if (!commencement.visit_date || String(commencement.visit_date).trim() === '') {
       temp.visit_date = "Visit date is required";
@@ -1552,7 +1597,7 @@ const EnrollmentAndCommencementForm = (props) => {
               </Col>
             </FieldRow>
 
-            {/* Row 6: HIV Test Location, Prior ART */}
+            {/* Row 6: HIV Test Location, Prior ART (conditional) */}
             <FieldRow>
               <Col>
                 <SectionLabel>
@@ -1575,32 +1620,39 @@ const EnrollmentAndCommencementForm = (props) => {
                   </span>
                 )}
               </Col>
-              <Col>
-                <SectionLabel>
-                  Prior ART{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="select"
-                  name="prior_art"
-                  value={registration.prior_art}
-                  onChange={handleReg}
-                  disabled={loadingCodesets || isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                >
-                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                  {getFilteredPriorArt(codesets.priorArt).map((opt) => (
-                    <option key={opt.id} value={opt.code}>
-                      {opt.display}
-                    </option>
-                  ))}
-                </Input>
-                {errors.prior_art && (
-                  <span className={classes.error}>
-                    {errors.prior_art}
-                  </span>
-                )}
-              </Col>
+              {showPriorArtField && (
+                <Col>
+                  <SectionLabel>
+                    Prior ART
+                    {isCreateMode && priorArtFromICE && (
+                      <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0, fontSize: "11px", marginLeft: "6px" }}>
+                        (auto-populated from ICE)
+                      </span>
+                    )}
+                  </SectionLabel>
+                  <Input
+                    type="select"
+                    name="prior_art"
+                    value={registration.prior_art}
+                    onChange={handleReg}
+                    disabled={loadingCodesets || isViewMode || (isCreateMode && priorArtFromICE)}
+                    readOnly={isViewMode || (isCreateMode && priorArtFromICE)}
+                    style={(isViewMode || (isCreateMode && priorArtFromICE)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  >
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {getFilteredPriorArt(codesets.priorArt).map((opt) => (
+                      <option key={opt.id} value={opt.code}>
+                        {opt.display}
+                      </option>
+                    ))}
+                  </Input>
+                  {errors.prior_art && (
+                    <span className={classes.error}>
+                      {errors.prior_art}
+                    </span>
+                  )}
+                </Col>
+              )}
             </FieldRow>
 
             {/* Row 7: Is Patient KP, KP Typology */}

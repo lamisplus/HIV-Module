@@ -1254,6 +1254,26 @@ const InitialClinicalEvaluationForm = (props) => {
     setArvHistory((prev) => {
       const updated = { ...prev, [name]: type === "checkbox" ? checked : value };
 
+      // Clear all ARV exposure fields when "Previous ARV Exposure" changes to "No"
+      if (name === "previousArvExposure" && value === "No") {
+        updated.earlierArvNotTransfer = false;
+        updated.prep = false;
+        updated.pep = false;
+        updated.tran = false;
+        updated.nameOfFacility = "";
+        updated.durationOfCareFrom = "";
+        updated.durationOfCareTo = "";
+        // Clear validation errors for ARV History fields
+        setErrors((prevErrors) => {
+          const newErrors = { ...prevErrors };
+          delete newErrors.nameOfFacility;
+          delete newErrors.durationOfCareFrom;
+          delete newErrors.durationOfCareTo;
+          return newErrors;
+        });
+        setArvHistoryErrors({});
+      }
+
       // Clear facility and duration fields if no ARV Exposure Type is selected
       if (type === "checkbox" && ["earlierArvNotTransfer", "prep", "pep", "tran"].includes(name)) {
         const hasAnySelected = updated.earlierArvNotTransfer || updated.prep || updated.pep || updated.tran;
@@ -1267,6 +1287,13 @@ const InitialClinicalEvaluationForm = (props) => {
             delete newErrors.nameOfFacility;
             delete newErrors.durationOfCareFrom;
             delete newErrors.durationOfCareTo;
+            return newErrors;
+          });
+        } else {
+          // Clear ARV Exposure Type error if at least one is selected
+          setErrors((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors.arvExposureType;
             return newErrors;
           });
         }
@@ -1768,17 +1795,26 @@ const InitialClinicalEvaluationForm = (props) => {
       temp.disclosureOtherText = "Please specify other disclosure details";
     }
 
-    // Validate ARV History fields if any ARV Exposure Type is selected
-    const hasArvExposureTypeSelected = arvHistory.earlierArvNotTransfer || arvHistory.prep || arvHistory.pep || arvHistory.tran;
-    if (hasArvExposureTypeSelected) {
-      if (!arvHistory.nameOfFacility || arvHistory.nameOfFacility.trim() === "") {
-        temp.nameOfFacility = "Name of Facility is required when ARV Exposure Type is selected";
+    // Validate ARV History fields when "Previous ARV Exposure" is "Yes"
+    if (arvHistory.previousArvExposure === "Yes") {
+      const hasArvExposureTypeSelected = arvHistory.earlierArvNotTransfer || arvHistory.prep || arvHistory.pep || arvHistory.tran;
+
+      // Require at least one ARV Exposure Type to be selected
+      if (!hasArvExposureTypeSelected) {
+        temp.arvExposureType = "At least one ARV Exposure Type must be selected when Previous ARV Exposure is Yes";
       }
-      if (!arvHistory.durationOfCareFrom) {
-        temp.durationOfCareFrom = "Duration of Care From is required when ARV Exposure Type is selected";
-      }
-      if (!arvHistory.durationOfCareTo) {
-        temp.durationOfCareTo = "Duration of Care To is required when ARV Exposure Type is selected";
+
+      // Require facility and duration fields only if at least one ARV Exposure Type is selected
+      if (hasArvExposureTypeSelected) {
+        if (!arvHistory.nameOfFacility || arvHistory.nameOfFacility.trim() === "") {
+          temp.nameOfFacility = "Name of Facility is required when ARV Exposure Type is selected";
+        }
+        if (!arvHistory.durationOfCareFrom) {
+          temp.durationOfCareFrom = "Duration of Care From is required when ARV Exposure Type is selected";
+        }
+        if (!arvHistory.durationOfCareTo) {
+          temp.durationOfCareTo = "Duration of Care To is required when ARV Exposure Type is selected";
+        }
       }
     }
 
@@ -3184,8 +3220,8 @@ const InitialClinicalEvaluationForm = (props) => {
 
             {arvHistory.previousArvExposure === "Yes" && (
               <>
-                <SubHeading>ARV Exposure Type</SubHeading>
-                <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
+                <SubHeading>ARV Exposure Type <span style={{ color: "red" }}>*</span></SubHeading>
+                <Box sx={{ background: "#fff", border: `1px solid ${errors.arvExposureType ? '#d32f2f' : '#014d88'}`, borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
                     <CheckGroup name="earlierArvNotTransfer" id="arv_earlier" label="Earlier ARV (not a Transfer-in)" checked={arvHistory.earlierArvNotTransfer} onChange={handleArv} />
                     <CheckGroup name="prep" id="arv_prep" label="PrEP" checked={arvHistory.prep} onChange={handleArv} />
@@ -3193,6 +3229,9 @@ const InitialClinicalEvaluationForm = (props) => {
                     <CheckGroup name="tran" id="arv_tran" label="Transfer-in" checked={arvHistory.tran} onChange={handleArv} />
                   </Box>
                 </Box>
+                {errors.arvExposureType && (
+                  <span className={classes.error} style={{ display: "block", marginTop: "-12px", marginBottom: "16px" }}>{errors.arvExposureType}</span>
+                )}
 
                 {(arvHistory.earlierArvNotTransfer || arvHistory.prep || arvHistory.pep || arvHistory.tran) && (
                   <>

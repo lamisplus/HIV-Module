@@ -771,4 +771,33 @@
         </rollback>
     </changeSet>
 
+    <!-- Fix sequence synchronization issue for hiv_enrollment_commencement table -->
+    <changeSet id="20260516-ec-10" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Reset the sequence to the correct value based on the maximum ID in the table
+            -- This fixes the "duplicate key value violates unique constraint" error
+            -- that occurs when the sequence gets out of sync with the actual data
+
+            SELECT setval(
+                pg_get_serial_sequence('hiv_enrollment_commencement', 'id'),
+                COALESCE((SELECT MAX(id) FROM hiv_enrollment_commencement), 1),
+                true
+            );
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_enrollment_commencement.id IS 'Primary key - auto-incremented sequence';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- No rollback needed - this is a sequence synchronization operation
+                -- The sequence will remain at the corrected value
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

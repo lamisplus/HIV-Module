@@ -635,6 +635,7 @@ function PatientCard(props) {
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
+              patientObj1 = {patientObj1}
             />
           )}
           {activeContent.route === "enrollment-and-commencement-view" && (
@@ -642,6 +643,7 @@ function PatientCard(props) {
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
+              patientObj1 = {patientObj1}
             />
           )}
           {activeContent.route === "enrollment-and-commencement-update" && (
@@ -656,6 +658,7 @@ function PatientCard(props) {
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
+              patientObj1 = {patientObj1}
             />
           )}
           {activeContent.route === "health-services" && (
@@ -663,6 +666,7 @@ function PatientCard(props) {
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
+              patientObj1 = {patientObj1}
             />
           )}
           {activeContent.route === "substitution-switch" && (

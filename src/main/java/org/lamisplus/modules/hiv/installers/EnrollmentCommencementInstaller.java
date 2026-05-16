@@ -8,7 +8,7 @@ import org.springframework.core.annotation.Order;
 @Installer(
         name = "enrollment-commencement-installer",
         description = "Creates the enrollment_commencement and ICE tables, removes pregnancy_status and adds is_breast_feeding column",
-        version = 17
+        version = 18
 )
 public class EnrollmentCommencementInstaller extends AcrossLiquibaseInstaller {
 

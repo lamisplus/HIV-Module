@@ -56,7 +56,7 @@ const useStyles = makeStyles((theme) => ({
 const PHDPForm = (props) => {
   const classes = useStyles();
   const today = moment(new Date()).format("YYYY-MM-DD");
-  const isEditMode = !!props.editData;
+  const isEditMode = !!props.editData && !!props.editData.id;
 
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -70,12 +70,21 @@ const PHDPForm = (props) => {
     fetchServiceProvidedOptions();
   }, []);
 
-  // Populate form when in edit mode
+  // Populate form when in edit mode or reset when not
   useEffect(() => {
     if (isEditMode && props.editData && serviceOptions.length > 0) {
       populateEditData();
+    } else if (!isEditMode && serviceOptions.length > 0) {
+      // Reset form when not in edit mode
+      setServiceDate(today);
+      const resetSelected = {};
+      serviceOptions.forEach((service) => {
+        resetSelected[service.id] = false;
+      });
+      setSelectedServices(resetSelected);
+      setGlobalComment("");
     }
-  }, [props.editData, serviceOptions]);
+  }, [props.editData, serviceOptions, isEditMode]);
 
   const fetchServiceProvidedOptions = async () => {
     setLoading(true);
