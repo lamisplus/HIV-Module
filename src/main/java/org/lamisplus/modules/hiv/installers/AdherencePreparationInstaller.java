@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 @Order(28)
 @Installer(name = "adherence-preparation-installer",
         description = "Create Adherence Preparation table for HIV patients",
-        version = 1)
+        version = 4)
 public class AdherencePreparationInstaller extends AcrossLiquibaseInstaller {
     public AdherencePreparationInstaller() {
         super("classpath:installers/hiv/schema/create-adherence-preparation-table.xml");

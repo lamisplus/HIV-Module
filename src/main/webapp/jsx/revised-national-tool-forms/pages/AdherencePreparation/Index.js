@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import AdherencePreparationForm from "./AdherencePreparationForm";
-import AdherencePreparationViewDetails from "./AdherencePreparationViewDetails";
 import axios from "axios";
 import { token, url as baseUrl } from "../../../../api";
 import { toast } from "react-toastify";
@@ -15,12 +14,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function AdherencePreparationIndex(props) {
-  const { patientObj, setActiveContent, activeContent } = props;
+  const { patientObj, setActiveContent, activeContent, mode } = props;
   const classes = useStyles();
   const [loading, setLoading] = useState(false);
   const [editRecord, setEditRecord] = useState(null);
-  const [viewRecord, setViewRecord] = useState(null);
-  const [mode, setMode] = useState("create"); // 'create', 'edit', 'view'
 
   // Check if we're coming from Recent History with a record ID to view/edit
   useEffect(() => {
@@ -28,11 +25,11 @@ function AdherencePreparationIndex(props) {
     const action = activeContent?.actionType;
 
     if (recordId && (action === "view" || action === "update")) {
-      fetchRecordById(recordId, action);
+      fetchRecordById(recordId);
     }
   }, [activeContent?.id, activeContent?.actionType]);
 
-  const fetchRecordById = async (recordId, action) => {
+  const fetchRecordById = async (recordId) => {
     setLoading(true);
     try {
       const response = await axios.get(
@@ -41,17 +38,7 @@ function AdherencePreparationIndex(props) {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      const record = response.data;
-
-      if (action === "view") {
-        setViewRecord(record);
-        setEditRecord(null);
-        setMode("view");
-      } else if (action === "update") {
-        setEditRecord(record);
-        setViewRecord(null);
-        setMode("edit");
-      }
+      setEditRecord(response.data);
     } catch (error) {
       console.error("Error fetching adherence preparation record:", error);
       toast.error("Failed to load record");
@@ -63,7 +50,6 @@ function AdherencePreparationIndex(props) {
   const handleRecordSaved = () => {
     // Clear edit record and go back to recent history
     setEditRecord(null);
-    setMode("create");
 
     // Navigate back to recent history
     if (setActiveContent && activeContent) {
@@ -72,22 +58,6 @@ function AdherencePreparationIndex(props) {
         route: "recent-history",
         refreshPatient: true,
         refreshTimestamp: Date.now(),
-      });
-    }
-  };
-
-  const handleEdit = (record) => {
-    setEditRecord(record);
-    setViewRecord(null);
-    setMode("edit");
-  };
-
-  const handleBackToHistory = () => {
-    // Navigate back to recent history
-    if (setActiveContent && activeContent) {
-      setActiveContent({
-        ...activeContent,
-        route: "recent-history",
       });
     }
   };
@@ -102,21 +72,14 @@ function AdherencePreparationIndex(props) {
 
   return (
     <div className={classes.root}>
-      {mode === "view" && viewRecord ? (
-        <AdherencePreparationViewDetails
-          viewData={viewRecord}
-          setEditRecord={handleEdit}
-          onBack={handleBackToHistory}
-        />
-      ) : (
-        <AdherencePreparationForm
-          patientObj={patientObj}
-          editData={editRecord}
-          onSave={handleRecordSaved}
-          setActiveContent={setActiveContent}
-          activeContent={activeContent}
-        />
-      )}
+      <AdherencePreparationForm
+        patientObj={patientObj}
+        editData={editRecord}
+        onSave={handleRecordSaved}
+        setActiveContent={setActiveContent}
+        activeContent={activeContent}
+        mode={mode}
+      />
     </div>
   );
 }

@@ -56,6 +56,9 @@ public class AdherencePreparation extends HivAuditEntity implements Serializable
     @Column(columnDefinition = "jsonb", name = "treatment_supporter_data")
     private JsonNode treatmentSupporterData;
 
+    @Column(name = "ready_for_art")
+    private String readyForArt;
+
     @Column(name = "archived")
     private Integer archived = 0;
 

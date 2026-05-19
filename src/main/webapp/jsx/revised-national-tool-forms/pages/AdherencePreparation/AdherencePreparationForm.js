@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Input } from "reactstrap";
 import * as moment from "moment";
-import { Typography, Box, Checkbox, CircularProgress } from "@mui/material";
+import { Typography, Box, CircularProgress } from "@mui/material";
 import { makeStyles } from "@material-ui/core/styles";
 import { Card, CardContent } from "@material-ui/core";
 import { toast } from "react-toastify";
@@ -20,16 +20,51 @@ const useStyles = makeStyles((theme) => ({
   button: { margin: theme.spacing(1) },
 }));
 
+// Define the adherence preparation questions
+const ADHERENCE_QUESTIONS = [
+  {
+    key: "educateOnEssentials",
+    label: "ART - educate on essentials",
+  },
+  {
+    key: "explainCompleteAdherence",
+    label: "Why complete adherence needed",
+  },
+  {
+    key: "explainDoseAndSchedule",
+    label: "Explain dose, when to take, what to do when one forgets dose",
+  },
+  {
+    key: "explainSideEffects",
+    label: "What can occur; how to manage side effects",
+  },
+  {
+    key: "discussAdherencePlan",
+    label: "Adherence plan (schedule, aides, explain diary, preparation for travel)",
+  },
+  {
+    key: "prepareTreatmentSupporter",
+    label: "Treatment supporter preparation",
+  },
+];
+
 const AdherencePreparationForm = (props) => {
   const classes = useStyles();
   const today = moment(new Date()).format("YYYY-MM-DD");
-  const isEditMode = !!props.editData;
+  const isEditMode = !!props.editData && !!props.editData.id;
 
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [serviceDate, setServiceDate] = useState(today);
-  const [serviceOptions, setServiceOptions] = useState([]);
-  const [selectedServices, setSelectedServices] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [visitDate, setVisitDate] = useState(today);
+  const [readyForArt, setReadyForArt] = useState("");
+  const [answers, setAnswers] = useState({
+    educateOnEssentials: "",
+    explainCompleteAdherence: "",
+    explainDoseAndSchedule: "",
+    explainSideEffects: "",
+    discussAdherencePlan: "",
+    prepareTreatmentSupporter: "",
+  });
   const [treatmentSupporter, setTreatmentSupporter] = useState({
     name: "",
     address: "",
@@ -37,63 +72,69 @@ const AdherencePreparationForm = (props) => {
   });
   const [errors, setErrors] = useState({});
 
+  // Populate form when in edit mode or reset when not
   useEffect(() => {
-    fetchServiceProvidedOptions();
-  }, []);
-
-  useEffect(() => {
-    if (isEditMode && props.editData && serviceOptions.length > 0) {
+    if (isEditMode && props.editData) {
       populateEditData();
-    }
-  }, [props.editData, serviceOptions]);
-
-  const fetchServiceProvidedOptions = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `${baseUrl}application-codesets/v2/SERVICE_PROVIDED`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const services = response.data || [];
-      setServiceOptions(services);
-
-      const initialSelected = {};
-      services.forEach((service) => {
-        initialSelected[service.id] = false;
+    } else if (!isEditMode) {
+      // Reset form when not in edit mode
+      setVisitDate(today);
+      setReadyForArt("");
+      setAnswers({
+        educateOnEssentials: "",
+        explainCompleteAdherence: "",
+        explainDoseAndSchedule: "",
+        explainSideEffects: "",
+        discussAdherencePlan: "",
+        prepareTreatmentSupporter: "",
       });
-      setSelectedServices(initialSelected);
-    } catch (error) {
-      console.error("Error fetching SERVICE_PROVIDED options:", error);
-      toast.error("Failed to load service options");
-      setServiceOptions([]);
-      setSelectedServices({});
-    } finally {
-      setLoading(false);
+      setTreatmentSupporter({ name: "", address: "", telephone: "" });
+      setErrors({});
     }
-  };
+  }, [props.editData, isEditMode]);
 
   const populateEditData = () => {
     const editData = props.editData;
 
+    // Set visit date
     if (editData.serviceDate) {
-      setServiceDate(moment(editData.serviceDate).format("YYYY-MM-DD"));
+      setVisitDate(moment(editData.serviceDate).format("YYYY-MM-DD"));
     }
 
-    const providedServices = editData.adherenceServices?.services || [];
-    const newSelectedServices = {};
+    // Set ready for ART
+    if (editData.readyForArt) {
+      setReadyForArt(editData.readyForArt);
+    }
 
-    serviceOptions.forEach((service) => {
-      const wasProvided = providedServices.find(
-        (ps) => ps.serviceId === service.id && ps.dates && ps.dates.length > 0
-      );
-      newSelectedServices[service.id] = !!wasProvided;
-    });
+    // Set answers from adherenceServices
+    if (editData.adherenceServices) {
+      const services = editData.adherenceServices;
 
-    setSelectedServices(newSelectedServices);
+      // Handle both old format (with services array) and new format (with question keys)
+      if (services.services && Array.isArray(services.services)) {
+        // Old format - set default values
+        setAnswers({
+          educateOnEssentials: "No",
+          explainCompleteAdherence: "No",
+          explainDoseAndSchedule: "No",
+          explainSideEffects: "No",
+          discussAdherencePlan: "No",
+          prepareTreatmentSupporter: "No",
+        });
+      } else {
+        // New format - use actual values
+        setAnswers({
+          educateOnEssentials: services.educateOnEssentials || "",
+          explainCompleteAdherence: services.explainCompleteAdherence || "",
+          explainDoseAndSchedule: services.explainDoseAndSchedule || "",
+          explainSideEffects: services.explainSideEffects || "",
+          discussAdherencePlan: services.discussAdherencePlan || "",
+          prepareTreatmentSupporter: services.prepareTreatmentSupporter || "",
+        });
+      }
+    }
 
-    // Populate treatment supporter data if available
+    // Set treatment supporter data
     if (editData.treatmentSupporterData) {
       setTreatmentSupporter({
         name: editData.treatmentSupporterData.name || "",
@@ -103,10 +144,10 @@ const AdherencePreparationForm = (props) => {
     }
   };
 
-  const toggleService = (serviceId) => {
-    setSelectedServices((prev) => ({
+  const handleAnswerChange = (questionKey, value) => {
+    setAnswers((prev) => ({
       ...prev,
-      [serviceId]: !prev[serviceId],
+      [questionKey]: value,
     }));
   };
 
@@ -131,13 +172,20 @@ const AdherencePreparationForm = (props) => {
   const validate = () => {
     const newErrors = {};
 
-    const anyChecked = Object.values(selectedServices).some((v) => v);
-    if (!anyChecked) {
-      toast.error("Please select at least one service provided on this date.");
+    // Check if at least one question is answered with "Yes"
+    const anyYes = Object.values(answers).some((v) => v === "Yes");
+    if (!anyYes) {
+      toast.error("Please answer Yes to at least one adherence preparation question.");
       return false;
     }
-    if (!serviceDate) {
-      toast.error("Please select a valid service date.");
+
+    if (!visitDate) {
+      toast.error("Please select a valid visit date.");
+      return false;
+    }
+
+    if (!readyForArt) {
+      toast.error("Please indicate if the patient is ready for ART.");
       return false;
     }
 
@@ -156,25 +204,18 @@ const AdherencePreparationForm = (props) => {
     if (!validate()) return;
     setSaving(true);
     try {
-      const providedServices = serviceOptions
-        .filter((svc) => selectedServices[svc.id])
-        .map((svc) => ({
-          service: svc.code,
-          label: svc.display,
-          serviceId: svc.id,
-          dates: [serviceDate],
-          comment: "",
-        }));
-
       const payload = {
         personId: props.patientObj.id,
-        serviceDate: serviceDate,
+        serviceDate: visitDate,
+        readyForArt: readyForArt,
         adherenceServices: {
-          services: providedServices,
+          visitDate: visitDate,
+          ...answers,
         },
-        treatmentSupporterData: treatmentSupporter.name || treatmentSupporter.address || treatmentSupporter.telephone
-          ? treatmentSupporter
-          : null,
+        treatmentSupporterData:
+          treatmentSupporter.name || treatmentSupporter.address || treatmentSupporter.telephone
+            ? treatmentSupporter
+            : null,
       };
 
       if (isEditMode) {
@@ -198,22 +239,26 @@ const AdherencePreparationForm = (props) => {
           ...props.activeContent,
           route: "recent-history",
           refreshPatient: true,
-          refreshTimestamp: Date.now()
+          refreshTimestamp: Date.now(),
         });
       }
 
-      setServiceDate(today);
-      const resetSelected = {};
-      serviceOptions.forEach((service) => {
-        resetSelected[service.id] = false;
+      // Reset form
+      setVisitDate(today);
+      setReadyForArt("");
+      setAnswers({
+        educateOnEssentials: "",
+        explainCompleteAdherence: "",
+        explainDoseAndSchedule: "",
+        explainSideEffects: "",
+        discussAdherencePlan: "",
+        prepareTreatmentSupporter: "",
       });
-      setSelectedServices(resetSelected);
       setTreatmentSupporter({ name: "", address: "", telephone: "" });
       setErrors({});
     } catch (err) {
       const msg =
-        err?.response?.data?.apierror?.message ||
-        "An error occurred. Please try again.";
+        err?.response?.data?.apierror?.message || "An error occurred. Please try again.";
       toast.error(msg);
     } finally {
       setSaving(false);
@@ -237,136 +282,85 @@ const AdherencePreparationForm = (props) => {
   }
 
   return (
-    <Card
-      className={classes.root}
-      style={{ borderRadius: "12px", overflow: "visible" }}
-    >
+    <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible" }}>
       <CardContent>
-        <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "24px", borderRadius: "8px 8px 0 0" }}>
+        <Box
+          sx={{
+            backgroundColor: "#014d88",
+            padding: "14px 20px",
+            marginBottom: "24px",
+            borderRadius: "8px 8px 0 0",
+          }}
+        >
           <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
             {isEditMode ? "Edit" : "Create"} - ART Adherence Preparation Services
           </Typography>
         </Box>
 
         <form onSubmit={handleSubmit}>
+          {/* Visit Date and Ready for ART - Two columns */}
           <Box sx={{ marginBottom: "24px", paddingX: "16px" }}>
-            <Typography
-              variant="subtitle1"
-              sx={{
-                color: "#014d88",
-                fontWeight: 600,
-                marginBottom: "8px",
-                display: "block"
-              }}
-            >
-              Service Date *
-            </Typography>
-            <Input
-              type="date"
-              value={serviceDate}
-              max={today}
-              onChange={(e) => setServiceDate(e.target.value)}
-              style={{
-                width: "100%",
-                maxWidth: "220px",
-                fontSize: "14px",
-                height: "40px",
-                padding: "0 8px"
-              }}
-            />
-            <Typography
-              variant="caption"
-              sx={{
-                color: "#666",
-                display: "block",
-                marginTop: "4px",
-                fontStyle: "italic"
-              }}
-            >
-              Select the date when services were provided
-            </Typography>
+            <div className="row">
+              <div className="form-group mb-3 col-md-6">
+                <label htmlFor="visit-date">Visit Date *</label>
+                <Input
+                  type="date"
+                  id="visit-date"
+                  value={visitDate}
+                  max={today}
+                  onChange={(e) => setVisitDate(e.target.value)}
+                  style={{ fontSize: "14px" }}
+                />
+              </div>
+              <div className="form-group mb-3 col-md-6">
+                <label htmlFor="ready-for-art">Is Patient Ready for ART? *</label>
+                <Input
+                  type="select"
+                  id="ready-for-art"
+                  value={readyForArt}
+                  onChange={(e) => setReadyForArt(e.target.value)}
+                  style={{ fontSize: "14px" }}
+                >
+                  <option value="">Select</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </Input>
+              </div>
+            </div>
           </Box>
 
+          {/* Adherence Preparation Questions - Two columns */}
           <Box sx={{ marginBottom: "24px", paddingX: "16px" }}>
             <Typography
               variant="subtitle1"
               sx={{
                 color: "#014d88",
                 fontWeight: 600,
-                marginBottom: "12px",
-                fontSize: "14px"
+                marginBottom: "16px",
+                fontSize: "14px",
               }}
             >
-              Services Provided (Check all that apply)
+              Adherence Preparation Checklist *
             </Typography>
 
-            <Box
-              sx={{
-                border: "1px solid #e0e0e0",
-                borderRadius: "8px",
-                overflow: "auto",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                maxHeight: "400px",
-                padding: "16px",
-              }}
-            >
-              {serviceOptions.length === 0 ? (
-                <Box sx={{ padding: "24px", textAlign: "center", color: "#666" }}>
-                  <Typography variant="body2">
-                    No services available. Please configure SERVICE_PROVIDED in application codesets.
-                  </Typography>
-                </Box>
-              ) : (
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: {
-                      xs: "1fr",
-                      sm: "repeat(2, 1fr)",
-                      md: "repeat(3, 1fr)",
-                      lg: "repeat(4, 1fr)",
-                    },
-                    gap: "12px",
-                  }}
-                >
-                  {serviceOptions.map((service) => (
-                    <Box
-                      key={service.id}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        padding: "10px 12px",
-                        backgroundColor: "#f9f9f9",
-                        borderRadius: "6px",
-                        border: "1px solid #e0e0e0",
-                        "&:hover": {
-                          backgroundColor: "#f5f9ff",
-                          borderColor: "#014d88",
-                        },
-                      }}
-                    >
-                      <Checkbox
-                        checked={!!selectedServices[service.id]}
-                        onChange={() => toggleService(service.id)}
-                        color="primary"
-                        sx={{ padding: "4px", marginRight: "8px" }}
-                      />
-                      <Typography
-                        sx={{
-                          flex: 1,
-                          fontSize: "13px",
-                          color: "#333",
-                          fontWeight: 500,
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {service.display}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
+            <div className="row">
+              {ADHERENCE_QUESTIONS.map((question) => (
+                <div key={question.key} className="form-group mb-3 col-md-6">
+                  <label htmlFor={question.key}>{question.label}</label>
+                  <Input
+                    type="select"
+                    id={question.key}
+                    value={answers[question.key]}
+                    onChange={(e) => handleAnswerChange(question.key, e.target.value)}
+                    style={{ fontSize: "14px" }}
+                  >
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </Input>
+                </div>
+              ))}
+            </div>
           </Box>
 
           {/* Treatment Supporter Section */}
@@ -416,7 +410,7 @@ const AdherencePreparationForm = (props) => {
                   />
                 </div>
                 <div className="form-group mb-3 col-md-4">
-                  <label htmlFor="supporter-telephone">Telephone *</label>
+                  <label htmlFor="supporter-telephone">Telephone</label>
                   <Input
                     type="tel"
                     id="supporter-telephone"
@@ -443,7 +437,17 @@ const AdherencePreparationForm = (props) => {
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", gap: "8px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid #e0e0e0", paddingX: "16px" }}>
+          {/* Action Buttons */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: "8px",
+              justifyContent: "flex-end",
+              paddingTop: "16px",
+              borderTop: "1px solid #e0e0e0",
+              paddingX: "16px",
+            }}
+          >
             <MatButton
               variant="contained"
               className={classes.button}
@@ -461,7 +465,9 @@ const AdherencePreparationForm = (props) => {
               style={{ backgroundColor: "#014d88", color: "#fff" }}
               disabled={saving}
             >
-              <span style={{ textTransform: "capitalize", color: "#fff" }}>{saving ? "Saving..." : "Save"}</span>
+              <span style={{ textTransform: "capitalize", color: "#fff" }}>
+                {saving ? "Saving..." : "Save"}
+              </span>
             </MatButton>
           </Box>
         </form>

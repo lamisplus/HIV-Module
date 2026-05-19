@@ -45,6 +45,8 @@ public class AdherencePreparationDto implements Serializable {
     @Column(columnDefinition = "jsonb")
     private JsonNode treatmentSupporterData;
 
+    private String readyForArt;
+
     private Integer archived;
 
     private String enrollmentSessionUuid;

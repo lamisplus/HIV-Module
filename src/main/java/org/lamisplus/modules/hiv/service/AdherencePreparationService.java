@@ -72,6 +72,7 @@ public class AdherencePreparationService {
 
         adherencePreparation.setAdherenceServices(dto.getAdherenceServices());
         adherencePreparation.setTreatmentSupporterData(dto.getTreatmentSupporterData());
+        adherencePreparation.setReadyForArt(dto.getReadyForArt());
 
         AdherencePreparation saved = adherencePreparationRepository.save(adherencePreparation);
         log.info("Created Adherence Preparation with enrollment session UUID: {}", saved.getEnrollmentSessionUuid());
@@ -88,6 +89,7 @@ public class AdherencePreparationService {
         existing.setServiceDate(dto.getServiceDate());
         existing.setAdherenceServices(dto.getAdherenceServices());
         existing.setTreatmentSupporterData(dto.getTreatmentSupporterData());
+        existing.setReadyForArt(dto.getReadyForArt());
 
         AdherencePreparation updated = adherencePreparationRepository.save(existing);
         log.info("Adherence Preparation record updated successfully with ID: {}", updated.getId());
