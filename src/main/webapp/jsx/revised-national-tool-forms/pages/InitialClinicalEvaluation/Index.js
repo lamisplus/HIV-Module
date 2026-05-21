@@ -814,7 +814,16 @@ const InitialClinicalEvaluationForm = (props) => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setRegimenLines(response.data || []);
+      // Filter to only show 1st, 2nd, and 3rd Line regimens for ART
+      // These are identified by descriptions containing "1st Line", "2nd Line", or "3rd Line"
+      const allLines = response.data || [];
+      const artLines = allLines.filter(line =>
+        line.description.includes('1st Line') ||
+        line.description.includes('2nd Line') ||
+        line.description.includes('3rd Line')
+      );
+
+      setRegimenLines(artLines);
     } catch (error) {
       console.error("Error fetching regimen lines:", error);
       toast.error("Failed to load regimen lines");
@@ -1196,12 +1205,27 @@ const InitialClinicalEvaluationForm = (props) => {
 
   const handleMedsCheckbox = (code, checked) => {
     setCurrentMeds((prev) => {
-      const updatedCodes = checked
-        ? [...prev.codes, code]  // Add code if checked
-        : prev.codes.filter((item) => item !== code);  // Remove code if unchecked
+      let updatedCodes;
 
-      // Clear "Other (specify)" text if "Other" option is unchecked
-      const otherText = (!checked && code === 'CURRENT_MEDICATIONS_OTHER_(SPECIFY)')
+      // Check if the code is "None" option - exact code from backend: CURRENT_MEDICATIONS_NONE
+      const isNoneOption = code === 'CURRENT_MEDICATIONS_NONE';
+
+      if (checked) {
+        // If checking "None", clear all other selections
+        if (isNoneOption) {
+          updatedCodes = [code];
+        }
+        // If checking any other option, remove "None" if it exists
+        else {
+          updatedCodes = [...prev.codes.filter(item => item !== 'CURRENT_MEDICATIONS_NONE'), code];
+        }
+      } else {
+        // Unchecking - just remove this code
+        updatedCodes = prev.codes.filter((item) => item !== code);
+      }
+
+      // Clear "Other (specify)" text if "Other" option is unchecked or if "None" is selected
+      const otherText = (!checked && code === 'CURRENT_MEDICATIONS_OTHER_(SPECIFY)') || (checked && isNoneOption)
         ? ""
         : prev.otherText;
 
@@ -1214,13 +1238,33 @@ const InitialClinicalEvaluationForm = (props) => {
 
   const handleDisclosureCheckbox = (code, checked) => {
     setDisclosure((prev) => {
-      const updated = checked
-        ? [...prev, code]  // Add code if checked
-        : prev.filter((item) => item !== code);  // Remove code if unchecked
+      let updated;
 
-      // Clear "Other (specify)" text if "Other" option is unchecked
-      if (!checked && (code.toLowerCase().includes('other') || code === 'OTHER')) {
-        setDisclosureOtherText("");
+      // Check if the code is "No one" option - exact code from backend: PATIENT_STATUS_DISCLOSURE_NO_ONE
+      const isNoOneOption = code === 'PATIENT_STATUS_DISCLOSURE_NO_ONE';
+
+      if (checked) {
+        // If checking "No one", clear all other selections
+        if (isNoOneOption) {
+          updated = [code];
+          // Clear "Other (specify)" text when "No one" is selected
+          setDisclosureOtherText("");
+        }
+        // If checking any other option, remove "No one" if it exists
+        else {
+          updated = [
+            ...prev.filter(item => item !== 'PATIENT_STATUS_DISCLOSURE_NO_ONE'),
+            code
+          ];
+        }
+      } else {
+        // Unchecking - just remove this code
+        updated = prev.filter((item) => item !== code);
+
+        // Clear "Other (specify)" text if "Other" option is unchecked
+        if (code === 'PATIENT_HIV_STATUS_DISCLOSURE_OTHERS') {
+          setDisclosureOtherText("");
+        }
       }
 
       return updated;
@@ -1252,7 +1296,63 @@ const InitialClinicalEvaluationForm = (props) => {
   const handleArv = (e) => {
     const { name, type, value, checked } = e.target;
     setArvHistory((prev) => {
-      const updated = { ...prev, [name]: type === "checkbox" ? checked : value };
+      const updated = { ...prev };
+
+      // Handle checkbox - ensure only one ARV Exposure Type can be selected
+      if (type === "checkbox" && ["earlierArvNotTransfer", "prep", "pep", "tran"].includes(name)) {
+        // If checking a box, uncheck all others (single-select behavior)
+        if (checked) {
+          updated.earlierArvNotTransfer = false;
+          updated.prep = false;
+          updated.pep = false;
+          updated.tran = false;
+          updated[name] = true;
+
+          // Clear ARV Exposure Type error
+          setErrors((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors.arvExposureType;
+            return newErrors;
+          });
+
+          // If PrEP or PEP is selected, clear and hide facility/duration fields
+          if (name === "prep" || name === "pep") {
+            updated.nameOfFacility = "";
+            updated.durationOfCareFrom = "";
+            updated.durationOfCareTo = "";
+            setErrors((prevErrors) => {
+              const newErrors = { ...prevErrors };
+              delete newErrors.nameOfFacility;
+              delete newErrors.durationOfCareFrom;
+              delete newErrors.durationOfCareTo;
+              return newErrors;
+            });
+            setArvHistoryErrors({});
+          }
+        } else {
+          // Unchecking - just uncheck this one
+          updated[name] = false;
+
+          // Clear facility and duration fields if no ARV Exposure Type is selected
+          const hasAnySelected = updated.earlierArvNotTransfer || updated.prep || updated.pep || updated.tran;
+          if (!hasAnySelected) {
+            updated.nameOfFacility = "";
+            updated.durationOfCareFrom = "";
+            updated.durationOfCareTo = "";
+            setErrors((prevErrors) => {
+              const newErrors = { ...prevErrors };
+              delete newErrors.nameOfFacility;
+              delete newErrors.durationOfCareFrom;
+              delete newErrors.durationOfCareTo;
+              return newErrors;
+            });
+            setArvHistoryErrors({});
+          }
+        }
+      } else {
+        // Handle other inputs normally
+        updated[name] = type === "checkbox" ? checked : value;
+      }
 
       // Clear all ARV exposure fields when "Previous ARV Exposure" changes to "No"
       if (name === "previousArvExposure" && value === "No") {
@@ -1269,43 +1369,41 @@ const InitialClinicalEvaluationForm = (props) => {
           delete newErrors.nameOfFacility;
           delete newErrors.durationOfCareFrom;
           delete newErrors.durationOfCareTo;
+          delete newErrors.arvExposureType;
           return newErrors;
         });
         setArvHistoryErrors({});
-      }
-
-      // Clear facility and duration fields if no ARV Exposure Type is selected
-      if (type === "checkbox" && ["earlierArvNotTransfer", "prep", "pep", "tran"].includes(name)) {
-        const hasAnySelected = updated.earlierArvNotTransfer || updated.prep || updated.pep || updated.tran;
-        if (!hasAnySelected) {
-          updated.nameOfFacility = "";
-          updated.durationOfCareFrom = "";
-          updated.durationOfCareTo = "";
-          // Clear validation errors for these fields
-          setErrors((prevErrors) => {
-            const newErrors = { ...prevErrors };
-            delete newErrors.nameOfFacility;
-            delete newErrors.durationOfCareFrom;
-            delete newErrors.durationOfCareTo;
-            return newErrors;
-          });
-        } else {
-          // Clear ARV Exposure Type error if at least one is selected
-          setErrors((prevErrors) => {
-            const newErrors = { ...prevErrors };
-            delete newErrors.arvExposureType;
-            return newErrors;
-          });
-        }
       }
 
       return updated;
     });
 
     // Validate duration dates for date inputs
-    if (type === "date" && (name === "durationOfCareFrom" || name === "durationOfCareTo")) {
-      const careFrom = name === "durationOfCareFrom" ? value : arvHistory.durationOfCareFrom;
-      const careTo = name === "durationOfCareTo" ? value : arvHistory.durationOfCareTo;
+    // Note: Date validation against patient's DOB is handled by HTML5 min attribute on the input field
+    if (type === "date" && name === "durationOfCareFrom") {
+      // Validate against Duration of Care To
+      const careTo = arvHistory.durationOfCareTo;
+      if (value && careTo) {
+        const fromDate = new Date(value);
+        const toDate = new Date(careTo);
+
+        if (toDate < fromDate) {
+          setArvHistoryErrors((prev) => ({
+            ...prev,
+            durationOfCareTo: "Duration of Care To cannot be earlier than Duration of Care From"
+          }));
+        } else {
+          setArvHistoryErrors((prev) => {
+            const updated = { ...prev };
+            delete updated.durationOfCareTo;
+            return updated;
+          });
+        }
+      }
+    }
+
+    if (type === "date" && name === "durationOfCareTo") {
+      const careFrom = arvHistory.durationOfCareFrom;
 
       // Clear previous errors
       setArvHistoryErrors((prev) => {
@@ -1315,9 +1413,9 @@ const InitialClinicalEvaluationForm = (props) => {
       });
 
       // Validate if both dates are present
-      if (careFrom && careTo) {
+      if (careFrom && value) {
         const fromDate = new Date(careFrom);
-        const toDate = new Date(careTo);
+        const toDate = new Date(value);
 
         if (toDate < fromDate) {
           setArvHistoryErrors((prev) => ({
@@ -1510,9 +1608,24 @@ const InitialClinicalEvaluationForm = (props) => {
   const handleCheckboxArray = (arrayName, code, checked) => {
     setAssessment((prev) => {
       const currentArray = prev[arrayName] || [];
-      const newArray = checked
-        ? [...currentArray, code]  // Add code if checked
-        : currentArray.filter((item) => item !== code);  // Remove code if unchecked
+      let newArray;
+
+      // Special handling for single-select fields
+      if (arrayName === 'planForArtItems' || arrayName === 'assessmentItems') {
+        if (checked) {
+          // Replace all selections with just this one (single-select behavior)
+          newArray = [code];
+        } else {
+          // Unchecking - just remove this code
+          newArray = currentArray.filter((item) => item !== code);
+        }
+      } else {
+        // Multi-select behavior for other arrays
+        newArray = checked
+          ? [...currentArray, code]  // Add code if checked
+          : currentArray.filter((item) => item !== code);  // Remove code if unchecked
+      }
+
       return { ...prev, [arrayName]: newArray };
     });
   };
@@ -1682,10 +1795,14 @@ const InitialClinicalEvaluationForm = (props) => {
     }
   };
 
-  // Clear immunisationComplete if patient is not between 0-2 years
+  // Clear immunisationComplete and modeOfInfantFeeding if patient is not between 0-2 years
   useEffect(() => {
     if (patientAge < 0 || patientAge > 2) {
-      setTbAssessment((prev) => ({ ...prev, immunisationComplete: "" }));
+      setTbAssessment((prev) => ({
+        ...prev,
+        immunisationComplete: "",
+        modeOfInfantFeeding: ""
+      }));
     }
   }, [patientAge]);
 
@@ -1765,8 +1882,10 @@ const InitialClinicalEvaluationForm = (props) => {
     const temp = {};
     if (!visitDate) temp.visitDate = "Visit date is required";
     if (!tbAssessment.assessedForTb) temp.assessedForTb = "Patient Assessed for TB is required";
-    if (tbAssessment.assessedForTb === "No") {
-      if (!tbAssessment.developmentalAssessment) temp.developmentalAssessment = "Developmental Assessment is required";
+
+    // Developmental Assessment is required for patients 18 years and below
+    if (patientAge <= 18) {
+      if (!tbAssessment.developmentalAssessment) temp.developmentalAssessment = "Developmental Assessment is required for patients 18 years and below";
     }
     // Validate symptom durations
     const durationErrors = {};
@@ -1804,8 +1923,9 @@ const InitialClinicalEvaluationForm = (props) => {
         temp.arvExposureType = "At least one ARV Exposure Type must be selected when Previous ARV Exposure is Yes";
       }
 
-      // Require facility and duration fields only if at least one ARV Exposure Type is selected
-      if (hasArvExposureTypeSelected) {
+      // Require facility and duration fields only if ARV Exposure Type is selected
+      // and it's NOT PrEP or PEP (these don't require facility/duration fields)
+      if (hasArvExposureTypeSelected && !arvHistory.prep && !arvHistory.pep) {
         if (!arvHistory.nameOfFacility || arvHistory.nameOfFacility.trim() === "") {
           temp.nameOfFacility = "Name of Facility is required when ARV Exposure Type is selected";
         }
@@ -2745,7 +2865,11 @@ const InitialClinicalEvaluationForm = (props) => {
                 <Input
                   type="date"
                   value={visitDate}
-                  min={enrollDate || props.patientObj?.dateOfBirth}
+                  min={
+                    props.patientObj1?.adherencePreparation?.serviceDate
+                      ? moment(props.patientObj1.adherencePreparation.serviceDate).format("YYYY-MM-DD")
+                      : (enrollDate || props.patientObj?.dateOfBirth)
+                  }
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={(e) => setVisitDate(e.target.value)}
                   disabled={isReadOnly}
@@ -3012,7 +3136,7 @@ const InitialClinicalEvaluationForm = (props) => {
               </Col>
             </FieldRow>
 
-            {/* Row 2: TB Status (if assessed Yes) OR Developmental Assessment (if assessed No) */}
+            {/* Row 2: TB Status (if assessed Yes) and Developmental Assessment (if age > 2) */}
             <FieldRow>
               {tbAssessment.assessedForTb === "Yes" && (
                 <Col>
@@ -3026,7 +3150,7 @@ const InitialClinicalEvaluationForm = (props) => {
                 </Col>
               )}
 
-              {tbAssessment.assessedForTb === "No" && (
+              {patientAge > 2 && (
                 <Col>
                   <SectionLabel>Developmental Assessment <span style={{ color: "red" }}>*</span></SectionLabel>
                   <Input type="select" name="developmentalAssessment" value={tbAssessment.developmentalAssessment} onChange={handleTb} disabled={loadingCodesets}>
@@ -3054,7 +3178,7 @@ const InitialClinicalEvaluationForm = (props) => {
               )}
             </FieldRow>
             <FieldRow>
-              {patientAge <= 14 && (
+              {patientAge >= 0 && patientAge <= 2 && (
                 <Col size={3}>
                   <SectionLabel>Mode of Infant Feeding (≤6 months)</SectionLabel>
                   <Input type="select" name="modeOfInfantFeeding" value={tbAssessment.modeOfInfantFeeding} onChange={handleTb}>
@@ -3233,7 +3357,7 @@ const InitialClinicalEvaluationForm = (props) => {
                   <span className={classes.error} style={{ display: "block", marginTop: "-12px", marginBottom: "16px" }}>{errors.arvExposureType}</span>
                 )}
 
-                {(arvHistory.earlierArvNotTransfer || arvHistory.prep || arvHistory.pep || arvHistory.tran) && (
+                {(arvHistory.earlierArvNotTransfer || arvHistory.tran) && (
                   <>
                     <SubHeading>Facility &amp; Duration</SubHeading>
                     <FieldRow>
@@ -3278,7 +3402,8 @@ const InitialClinicalEvaluationForm = (props) => {
                           name="durationOfCareFrom"
                           value={arvHistory.durationOfCareFrom}
                           onChange={handleArv}
-                          max={arvHistory.durationOfCareTo || undefined}
+                          min={props.patientObj?.dateOfBirth || undefined}
+                          max={arvHistory.durationOfCareTo || moment(new Date()).format("YYYY-MM-DD")}
                           style={{ borderColor: errors.durationOfCareFrom ? "#d32f2f" : "" }}
                         />
                         {errors.durationOfCareFrom && (
@@ -3631,7 +3756,7 @@ const InitialClinicalEvaluationForm = (props) => {
             {/* Regimen Selection and Comments */}
             <FieldRow>
               <Col>
-                <SectionLabel>First ART Regimen Line</SectionLabel>
+                <SectionLabel>ART Regimen Line</SectionLabel>
                 <Input
                   type="select"
                   name="regimenLineId"
@@ -3647,7 +3772,7 @@ const InitialClinicalEvaluationForm = (props) => {
                 </Input>
               </Col>
               <Col>
-                <SectionLabel>First ART Regimen</SectionLabel>
+                <SectionLabel>ART Regimen</SectionLabel>
                 <Input
                   type="select"
                   name="regimenId"

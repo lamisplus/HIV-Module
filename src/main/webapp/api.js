@@ -21,4 +21,4 @@ export const audioTranscriptionUrl = process.env.NODE_ENV === "development"
 
 export const token =
     process.env.NODE_ENV === "development"
-        ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJlY2V3c0FDRTUiLCJhdXRoIjoiU3VwZXIgQWRtaW4sUkRFIiwiZXhwIjoxNzcxNDkxMjUwLCJuYW1lIjoiRUNFV1MgQUNFNSJ9.tHe5Y3DqTbyJlOY2TxOOuuk2UyrgJNPsZ3o5DRzYs1EMECUpMiWGdmELqaRzhuhUHfgMk9De4jbjD8ioAgScjA" : new URLSearchParams(window.location.search).get("jwt");
+        ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJlY2V3c0FDRTUiLCJhdXRoIjoiU3VwZXIgQWRtaW4sUkRFIiwiZXhwIjoxNzc5MzY0OTExLCJuYW1lIjoiRUNFV1MgQUNFNSJ9.uQ-TqbV88OKQFH72HmNhM-BxIcjRazHcgbznG2ZWuuF_ChP2asuvBkglwRWmpz010wqSGnME_sFcHk8xkejG9A" : new URLSearchParams(window.location.search).get("jwt");

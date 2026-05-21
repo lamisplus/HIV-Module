@@ -189,8 +189,18 @@ const AdherencePreparationForm = (props) => {
       return false;
     }
 
-    // Validate telephone number if provided
-    if (treatmentSupporter.telephone && !validatePhoneNumber(treatmentSupporter.telephone)) {
+    // Validate treatment supporter fields
+    // If name is provided, telephone is mandatory
+    if (treatmentSupporter.name && treatmentSupporter.name.trim() !== "") {
+      if (!treatmentSupporter.telephone || treatmentSupporter.telephone.trim() === "") {
+        newErrors.telephone = "Telephone number is required when name is provided";
+        toast.error("Telephone number is required when name is provided");
+      } else if (!validatePhoneNumber(treatmentSupporter.telephone)) {
+        newErrors.telephone = "Please enter a valid telephone number (10-15 digits)";
+        toast.error("Please enter a valid telephone number (10-15 digits)");
+      }
+    } else if (treatmentSupporter.telephone && !validatePhoneNumber(treatmentSupporter.telephone)) {
+      // Validate telephone format if provided (even without name)
       newErrors.telephone = "Please enter a valid telephone number (10-15 digits)";
       toast.error("Please enter a valid telephone number (10-15 digits)");
     }
@@ -410,7 +420,12 @@ const AdherencePreparationForm = (props) => {
                   />
                 </div>
                 <div className="form-group mb-3 col-md-4">
-                  <label htmlFor="supporter-telephone">Telephone</label>
+                  <label htmlFor="supporter-telephone">
+                    Telephone
+                    {treatmentSupporter.name && treatmentSupporter.name.trim() !== "" && (
+                      <span style={{ color: "red" }}> *</span>
+                    )}
+                  </label>
                   <Input
                     type="tel"
                     id="supporter-telephone"
