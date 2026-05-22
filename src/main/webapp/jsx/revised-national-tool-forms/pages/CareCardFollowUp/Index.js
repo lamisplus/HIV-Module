@@ -1334,10 +1334,10 @@ const CareCardFollowUpForm = (props) => {
     const { name, value } = e.target;
     const updatedLab = { ...lab, [name]: value };
 
-    // Clear EAC if viral load result is <= 1000
+    // Clear EAC if viral load result is < 1000
     if (name === "viral_load_result") {
       const vlValue = parseFloat(value);
-      if (isNaN(vlValue) || vlValue <= 1000) {
+      if (isNaN(vlValue) || vlValue < 1000) {
         updatedLab.eac = "";
       }
     }
@@ -2608,8 +2608,8 @@ const CareCardFollowUpForm = (props) => {
                     </Col>
                   </FieldRow>
 
-                  {/* EAC - Only show if viral load > 1000 */}
-                  {parseFloat(lab.viral_load_result) > 1000 && (
+                  {/* EAC - Only show if viral load >= 1000 */}
+                  {parseFloat(lab.viral_load_result) >= 1000 && (
                     <>
                       <Divider sx={{ my: 1 }} />
                       <Typography sx={{ fontSize: "12px", color: "#546e7a", marginBottom: "10px" }}>

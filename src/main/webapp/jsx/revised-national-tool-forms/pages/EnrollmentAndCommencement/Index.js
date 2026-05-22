@@ -1674,7 +1674,15 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="date_confirmed_hiv_test"
                   value={registration.date_confirmed_hiv_test}
                   min={props.patientObj1?.dateOfBirth || undefined}
-                  max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
+                  max={
+                    (() => {
+                      const dates = [
+                        registration.date_enrolled_in_hiv_care,
+                        props.patientObj1?.initialClinicalEvaluation?.data?.arvHistory?.durationOfCareFrom
+                      ].filter(Boolean);
+                      return dates.length > 0 ? dates.reduce((a, b) => a < b ? a : b) : moment(new Date()).format("YYYY-MM-DD");
+                    })()
+                  }
                   onChange={handleReg}
                   disabled={isViewMode || registration.previousEnrollmentDate}
                   readOnly={registration.previousEnrollmentDate}
@@ -2266,7 +2274,7 @@ const EnrollmentAndCommencementForm = (props) => {
                       type="date"
                       name="start_date"
                       value={commencement.tb_preventive_therapy.start_date}
-                      min={registration.date_enrolled_in_hiv_care}
+                      min={props.patientObj1?.dateOfBirth || undefined}
                       max={moment(new Date()).format("YYYY-MM-DD")}
                       onChange={handleTpt}
                       disabled={isViewMode}
