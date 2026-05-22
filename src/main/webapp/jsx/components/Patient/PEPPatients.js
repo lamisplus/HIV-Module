@@ -118,7 +118,7 @@ const PEPPatients = (props) => {
       <MaterialTable
         key={`pep-patients-${facilityId}`}
         icons={tableIcons}
-        title="PEP Patients (28+ Days Post-Enrollment)"
+        title="PEP Patients"
         columns={[
           {
             title: "Patient Name",
