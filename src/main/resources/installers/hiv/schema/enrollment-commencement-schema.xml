@@ -800,4 +800,107 @@
         </rollback>
     </changeSet>
 
+    <!-- Add enrollment_setting and OVC fields to hiv_enrollment_commencement table -->
+    <changeSet id="20260520-ec-11" author="System" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <!-- Add enrollment_setting column -->
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS enrollment_setting VARCHAR(50);
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_enrollment_commencement.enrollment_setting IS 'Enrollment setting: Facility or Community';
+        </sql>
+
+        <!-- Add OVC-related columns -->
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS has_ovc_information BOOLEAN DEFAULT FALSE;
+
+            ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS ovc_data JSONB;
+
+            -- Add comments
+            COMMENT ON COLUMN hiv_enrollment_commencement.has_ovc_information IS 'Indicates if patient has OVC (Orphans and Vulnerable Children) information - only applicable for patients 18 years and below';
+            COMMENT ON COLUMN hiv_enrollment_commencement.ovc_data IS 'JSONB data containing OVC information: household_unique_number, ovc_unique_id, referred_to_ovc_partner, date_referred_to_ovc_partner, referred_from_ovc_partner, date_referred_from_ovc_partner';
+        </sql>
+
+        <!-- Create index for OVC data queries -->
+        <sql dbms="postgresql">
+            CREATE INDEX IF NOT EXISTS idx_ec_has_ovc_information
+            ON hiv_enrollment_commencement(has_ovc_information)
+            WHERE has_ovc_information = TRUE;
+
+            CREATE INDEX IF NOT EXISTS idx_ec_ovc_data
+            ON hiv_enrollment_commencement USING GIN(ovc_data)
+            WHERE ovc_data IS NOT NULL;
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Drop indices
+                DROP INDEX IF EXISTS idx_ec_has_ovc_information;
+                DROP INDEX IF EXISTS idx_ec_ovc_data;
+
+                -- Drop columns
+                ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS enrollment_setting;
+                ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS has_ovc_information;
+                ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS ovc_data;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Update regimen_id and regimen_line_id data types from VARCHAR to BIGINT -->
+    <changeSet id="20260521-ec-12" author="System" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <columnExists tableName="hiv_enrollment_commencement" columnName="regimen_id"/>
+            <columnExists tableName="hiv_enrollment_commencement" columnName="regimen_line_id"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Update regimen_line_id from VARCHAR to BIGINT
+            -- First, clear any non-numeric values
+            UPDATE hiv_enrollment_commencement
+            SET regimen_line_id = NULL
+            WHERE regimen_line_id IS NOT NULL
+            AND regimen_line_id !~ '^[0-9]+$';
+
+            -- Change column type
+            ALTER TABLE hiv_enrollment_commencement
+            ALTER COLUMN regimen_line_id TYPE BIGINT USING regimen_line_id::BIGINT;
+
+            -- Update regimen_id from VARCHAR to BIGINT
+            -- First, clear any non-numeric values
+            UPDATE hiv_enrollment_commencement
+            SET regimen_id = NULL
+            WHERE regimen_id IS NOT NULL
+            AND regimen_id !~ '^[0-9]+$';
+
+            -- Change column type
+            ALTER TABLE hiv_enrollment_commencement
+            ALTER COLUMN regimen_id TYPE BIGINT USING regimen_id::BIGINT;
+
+            -- Add comments
+            COMMENT ON COLUMN hiv_enrollment_commencement.regimen_line_id IS 'Regimen line ID reference (BIGINT) - updated from VARCHAR';
+            COMMENT ON COLUMN hiv_enrollment_commencement.regimen_id IS 'Regimen ID reference (BIGINT) - updated from VARCHAR';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Revert regimen_line_id back to VARCHAR
+                ALTER TABLE hiv_enrollment_commencement
+                ALTER COLUMN regimen_line_id TYPE VARCHAR(255) USING regimen_line_id::VARCHAR;
+
+                -- Revert regimen_id back to VARCHAR
+                ALTER TABLE hiv_enrollment_commencement
+                ALTER COLUMN regimen_id TYPE VARCHAR(255) USING regimen_id::VARCHAR;
+
+                -- Restore original comments
+                COMMENT ON COLUMN hiv_enrollment_commencement.regimen_line_id IS 'Regimen line ID reference';
+                COMMENT ON COLUMN hiv_enrollment_commencement.regimen_id IS 'Regimen ID reference';
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

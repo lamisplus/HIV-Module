@@ -42,112 +42,46 @@ import EditIcon from "@material-ui/icons/Edit";
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const OI_CONDITIONS = [
-  { value: "bacterial_pneumonia",    label: "Bacterial Pneumonia" },
-  { value: "candidiasis",            label: "Candidiasis" },
-  { value: "cryptococcal_meningitis",label: "Cryptococcal Meningitis" },
-  { value: "cryptosporidiosis",      label: "Cryptosporidiosis" },
-  { value: "cytomegalovirus",        label: "Cytomegalovirus" },
-  { value: "herpes_simplex",         label: "Herpes Simplex" },
-  { value: "herpes_zoster",          label: "Herpes Zoster" },
-  { value: "hiv_wasting_syndrome",   label: "HIV Wasting Syndrome" },
-  { value: "isosporiasis",           label: "Isosporiasis" },
-  { value: "kaposi_sarcoma",         label: "Kaposi's Sarcoma" },
-  { value: "mac",                    label: "MAC (Mycobacterium Avium Complex)" },
-  { value: "molluscum_contagiosum",  label: "Molluscum Contagiosum" },
-  { value: "pcp",                    label: "PCP (Pneumocystis Pneumonia)" },
-  { value: "peripheral_neuropathy",  label: "Peripheral Neuropathy" },
-  { value: "pml",                    label: "Progressive Multifocal Leukoencephalopathy" },
-  { value: "pulmonary_tb",           label: "Pulmonary TB" },
-  { value: "toxoplasmosis",          label: "Toxoplasmosis" },
-  { value: "other",                  label: "Other" },
-];
+// const OI_CONDITIONS = [
+//   { value: "bacterial_pneumonia",    label: "Bacterial Pneumonia" },
+//   { value: "candidiasis",            label: "Candidiasis" },
+//   { value: "cryptococcal_meningitis",label: "Cryptococcal Meningitis" },
+//   { value: "cryptosporidiosis",      label: "Cryptosporidiosis" },
+//   { value: "cytomegalovirus",        label: "Cytomegalovirus" },
+//   { value: "herpes_simplex",         label: "Herpes Simplex" },
+//   { value: "herpes_zoster",          label: "Herpes Zoster" },
+//   { value: "hiv_wasting_syndrome",   label: "HIV Wasting Syndrome" },
+//   { value: "isosporiasis",           label: "Isosporiasis" },
+//   { value: "kaposi_sarcoma",         label: "Kaposi's Sarcoma" },
+//   { value: "mac",                    label: "MAC (Mycobacterium Avium Complex)" },
+//   { value: "molluscum_contagiosum",  label: "Molluscum Contagiosum" },
+//   { value: "pcp",                    label: "PCP (Pneumocystis Pneumonia)" },
+//   { value: "peripheral_neuropathy",  label: "Peripheral Neuropathy" },
+//   { value: "pml",                    label: "Progressive Multifocal Leukoencephalopathy" },
+//   { value: "pulmonary_tb",           label: "Pulmonary TB" },
+//   { value: "toxoplasmosis",          label: "Toxoplasmosis" },
+//   { value: "other",                  label: "Other" },
+// ];
 
-const SIDE_EFFECTS = [
-  { value: "anaemia",               label: "Anaemia" },
-  { value: "dizziness_confusion",   label: "Dizziness / Confusion" },
-  { value: "diarrhoea",             label: "Diarrhoea" },
-  { value: "fatigue",               label: "Fatigue" },
-  { value: "hepatotoxicity",        label: "Hepatotoxicity" },
-  { value: "hypersensitivity",      label: "Hypersensitivity" },
-  { value: "jaundice",              label: "Jaundice" },
-  { value: "lactic_acidosis",       label: "Lactic Acidosis" },
-  { value: "lipoatrophy",           label: "Lipoatrophy" },
-  { value: "lipodystrophy",         label: "Lipodystrophy" },
-  { value: "nausea_vomiting",       label: "Nausea / Vomiting" },
-  { value: "pancreatitis",          label: "Pancreatitis" },
-  { value: "peripheral_neuropathy", label: "Peripheral Neuropathy" },
-  { value: "rash",                  label: "Rash" },
-  { value: "renal_toxicity",        label: "Renal Toxicity" },
-  { value: "other",                 label: "Other" },
-];
+// const SIDE_EFFECTS = [
+//   { value: "anaemia",               label: "Anaemia" },
+//   { value: "dizziness_confusion",   label: "Dizziness / Confusion" },
+//   { value: "diarrhoea",             label: "Diarrhoea" },
+//   { value: "fatigue",               label: "Fatigue" },
+//   { value: "hepatotoxicity",        label: "Hepatotoxicity" },
+//   { value: "hypersensitivity",      label: "Hypersensitivity" },
+//   { value: "jaundice",              label: "Jaundice" },
+//   { value: "lactic_acidosis",       label: "Lactic Acidosis" },
+//   { value: "lipoatrophy",           label: "Lipoatrophy" },
+//   { value: "lipodystrophy",         label: "Lipodystrophy" },
+//   { value: "nausea_vomiting",       label: "Nausea / Vomiting" },
+//   { value: "pancreatitis",          label: "Pancreatitis" },
+//   { value: "peripheral_neuropathy", label: "Peripheral Neuropathy" },
+//   { value: "rash",                  label: "Rash" },
+//   { value: "renal_toxicity",        label: "Renal Toxicity" },
+//   { value: "other",                 label: "Other" },
+// ];
 
-const ADHERENCE_OPTIONS = [
-  { value: "G", label: "G — Good (≥ 95%)" },
-  { value: "F", label: "F — Fair (85 – 94%)" },
-  { value: "P", label: "P — Poor (< 85%)" },
-];
-
-const PAEDIATRIC_DISCLOSURE_OPTIONS = [
-  { id: 2000, code: "PAEDIATRIC_DISCLOSURE_OFFERED", display: "Offered Disclosure" },
-  { id: 2001, code: "PAEDIATRIC_DISCLOSURE_ACCEPTED", display: "Accepted Disclosure" },
-  { id: 2002, code: "PAEDIATRIC_DISCLOSURE_COMMENCED_PARTIAL", display: "Commenced (Partial disclosure)" },
-  { id: 2003, code: "PAEDIATRIC_DISCLOSURE_COMPLETED_FULL", display: "Completed (Full disclosure)" },
-];
-
-// WHO Stage Clinical Criteria Options - these are hardcoded on the frontend
-// Each WHO stage code maps to an array of available clinical criteria
-// const WHO_STAGE_CRITERIA_OPTIONS = {
-//   "WHO_STAGING_CRITERIA_STAGE_1": [
-//     "Asymptomatic",
-//     "Persistent Generalized Lymphadenopathy",
-//   ],
-//   "WHO_STAGING_CRITERIA_STAGE_2": [
-//     "Moderate Unexplained Weight Loss (<10% of presumed or measured body weight)",
-//     "Recurrent Respiratory Tract Infections (sinusitis, tonsillitis, otitis media, pharyngitis)",
-//     "Herpes Zoster",
-//     "Angular Cheilitis",
-//     "Recurrent Oral Ulceration",
-//     "Papular Pruritic Eruptions",
-//     "Seborrheic Dermatitis",
-//     "Fungal Nail Infections",
-//   ],
-//   "WHO_STAGING_CRITERIA_STAGE_3": [
-//     "Weight loss greater than 10% of body weight",
-//     "Unexplained Chronic Diarrhea less than 1 month",
-//     "Oral Candidiasis",
-//     "TB, Pulmonary (within previous year)",
-//     "Severe Bacterial Infections",
-//     "Unexplained Prolonged Fever",
-//     "Oral Hairy Leukoplakia",
-//     "Acute Necrotizing Ulcerative Stomatitis, Gingivitis or Periodontitis",
-//     "Unexplained Anemia (<8 g/dl), neutropenia, and/or chronic thrombocytopenia",
-//   ],
-//   "WHO_STAGING_CRITERIA_STAGE_4": [
-//     "HIV Wasting Syndrome",
-//     "Pneumocystis Pneumonia",
-//     "Recurrent Severe Bacterial Pneumonia",
-//     "Chronic Herpes Simplex Infection (orolabial, genital or anorectal >1 month)",
-//     "Esophageal Candidiasis (or candidiasis of trachea, bronchi or lungs)",
-//     "Extrapulmonary Tuberculosis",
-//     "Kaposi Sarcoma",
-//     "Cytomegalovirus Disease (retinitis or infection of organs other than liver, spleen or lymph nodes)",
-//     "Central Nervous System Toxoplasmosis",
-//     "HIV Encephalopathy",
-//     "Cryptococcosis, Extrapulmonary (including meningitis)",
-//     "Disseminated Non-tuberculous Mycobacteria Infection",
-//     "Progressive Multifocal Leukoencephalopathy (PML)",
-//     "Chronic Cryptosporidiosis (with diarrhea)",
-//     "Chronic Isosporiasis",
-//     "Disseminated Mycosis (coccidiomycosis, histoplasmosis)",
-//     "Recurrent Non-typhoidal Salmonella Bacteremia",
-//     "Lymphoma (cerebral or B-cell non-Hodgkin)",
-//     "Invasive Cervical Carcinoma",
-//     "Atypical Disseminated Leishmaniasis",
-//     "Symptomatic HIV-associated Nephropathy",
-//     "Symptomatic HIV-associated Cardiomyopathy",
-//   ],
-// };
 
 const WHO_STAGE_CRITERIA_OPTIONS = {
   "WHO_STAGING_CRITERIA_STAGE_1": [
@@ -194,23 +128,23 @@ const WHO_STAGE_CRITERIA_OPTIONS = {
 };
 
 
-const TPT_CODES = [
-  { value: "6H",   label: "6H — Isoniazid (6 months)" },
-  { value: "3HP",  label: "3HP — Isoniazid and Rifapentine" },
-  { value: "3HR",  label: "3HR — Isoniazid and Rifampicin" },
-  { value: "QTIP", label: "QTIP — CTX/INH/B6 FDC Fixed Dose" },
-];
+// const TPT_CODES = [
+//   { value: "6H",   label: "6H — Isoniazid (6 months)" },
+//   { value: "3HP",  label: "3HP — Isoniazid and Rifapentine" },
+//   { value: "3HR",  label: "3HR — Isoniazid and Rifampicin" },
+//   { value: "QTIP", label: "QTIP — CTX/INH/B6 FDC Fixed Dose" },
+// ];
 
-const VL_INDICATION_OPTIONS = [
-  { value: "1", label: "1 — Routine (Baseline)" },
-  { value: "2", label: "2 — Routine (6 months)" },
-  { value: "3", label: "3 — Routine (12 months)" },
-  { value: "4", label: "4 — Routine (24 months / annual)" },
-  { value: "5", label: "5 — High Viral Load follow-up" },
-  { value: "6", label: "6 — Clinical / Immunological failure" },
-  { value: "7", label: "7 — PMTCT" },
-  { value: "8", label: "8 — Other" },
-];
+// const VL_INDICATION_OPTIONS = [
+//   { value: "1", label: "1 — Routine (Baseline)" },
+//   { value: "2", label: "2 — Routine (6 months)" },
+//   { value: "3", label: "3 — Routine (12 months)" },
+//   { value: "4", label: "4 — Routine (24 months / annual)" },
+//   { value: "5", label: "5 — High Viral Load follow-up" },
+//   { value: "6", label: "6 — Clinical / Immunological failure" },
+//   { value: "7", label: "7 — PMTCT" },
+//   { value: "8", label: "8 — Other" },
+// ];
 
 const EAC_OPTIONS = [
   "None",
@@ -522,6 +456,37 @@ const CareCardFollowUpForm = (props) => {
   const patientAge = props.patientObj?.age || 0;
   const isPediatric = patientAge < 15;
 
+  // Calculate minimum visit date (should not be earlier than DOB, HIV enrollment, or ART start)
+  const getMinVisitDate = () => {
+    const dates = [];
+
+    // Date of Birth
+    if (props.patientObj1?.dateOfBirth) {
+      dates.push(moment(props.patientObj1.dateOfBirth));
+    }
+
+    // Date of HIV Enrollment
+    if (props.patientObj1?.enrollmentCommencement?.data?.registration?.date_enrolled_in_hiv_care) {
+      dates.push(moment(props.patientObj1.enrollmentCommencement.data.registration.date_enrolled_in_hiv_care));
+    }
+
+    // Date of ART Start
+    if (props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started) {
+      dates.push(moment(props.patientObj1.enrollmentCommencement.data.commencement.date_art_started));
+    }
+
+    // Return the latest of these dates as the minimum allowed visit date
+    if (dates.length > 0) {
+      const maxDate = moment.max(dates);
+      return maxDate.format("YYYY-MM-DD");
+    }
+
+    return null;
+  };
+
+  const minVisitDate = getMinVisitDate();
+
+
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [expanded, setExpanded] = useState(["visit", "vitals", "medications", "lab"]);
@@ -593,7 +558,7 @@ const CareCardFollowUpForm = (props) => {
         params.append('codes', 'DSD_MODEL_FACILITY');
         params.append('codes', 'DSD_MODEL_COMMUNITY');
         params.append('codes', 'PREP_SIDE_EFFECTS');
-        params.append('codes', 'LAB_ORDER_INDICATION');
+        params.append('codes', 'VIRAL_LOAD_INDICATION');
         params.append('codes', 'Consult Hospitalise Refer');
         params.append('codes', 'HEALTH_INSURANCE_COVERAGE');
 
@@ -626,7 +591,7 @@ const CareCardFollowUpForm = (props) => {
         setDsdModelFacilityCodeset(data.DSD_MODEL_FACILITY || []);
         setDsdModelCommunityCodeset(data.DSD_MODEL_COMMUNITY || []);
         setSideEffectsCodeset(data.PREP_SIDE_EFFECTS || []);
-        setLabOrderIndicationCodeset(data.LAB_ORDER_INDICATION || []);
+        setLabOrderIndicationCodeset(data.VIRAL_LOAD_INDICATION || []);
         setTypeOfAppointmentCodeset(data['Consult Hospitalise Refer'] || []);
         setHealthInsuranceCoverageCodeset(data.HEALTH_INSURANCE_COVERAGE || []);
       } catch (error) {
@@ -869,6 +834,37 @@ const CareCardFollowUpForm = (props) => {
     }
   }, [props.editingVisit, whoStagingCodeset, functionalStatusCodeset, isFemale]);
 
+  // Clear paediatric_disclosure if patient is not < 15 years
+  useEffect(() => {
+    if (patientAge >= 15) {
+      setClinical((prev) => ({ ...prev, paediatric_disclosure: "" }));
+    }
+  }, [patientAge]);
+
+  // Calculate duration on ART in months
+  const calculateDurationOnArt = (artStartDate, currentDate) => {
+    if (!artStartDate || !currentDate) return "";
+
+    const start = moment(artStartDate);
+    const end = moment(currentDate);
+
+    if (!start.isValid() || !end.isValid()) return "";
+
+    // Calculate the difference in months
+    const months = end.diff(start, 'months');
+
+    return months >= 0 ? months : 0;
+  };
+
+  // Auto-populate Duration on ART when component mounts
+  useEffect(() => {
+    const artStartDate = props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started;
+    if (artStartDate && !isEditMode) {
+      const duration = calculateDurationOnArt(artStartDate, moment(new Date()).format("YYYY-MM-DD"));
+      setVisitInfo((prev) => ({ ...prev, duration_on_art_months: duration }));
+    }
+  }, []); // Only run on mount
+
   // ── Section 1: Visit Information ────────────────────────────────────────
   const [visitInfo, setVisitInfo] = useState({
     visit_date: "",
@@ -877,6 +873,17 @@ const CareCardFollowUpForm = (props) => {
   });
   const handleVisit = (e) => {
     const { name, value } = e.target;
+
+    // If visit date changes, also update duration on ART
+    if (name === "visit_date") {
+      const artStartDate = props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started;
+      if (artStartDate) {
+        const duration = calculateDurationOnArt(artStartDate, value || moment(new Date()).format("YYYY-MM-DD"));
+        setVisitInfo((prev) => ({ ...prev, [name]: value, duration_on_art_months: duration }));
+        return;
+      }
+    }
+
     setVisitInfo((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -1370,6 +1377,24 @@ const CareCardFollowUpForm = (props) => {
       return false;
     }
 
+    // Check if visit date is not earlier than DOB, HIV enrollment, or ART start
+    if (minVisitDate && visitInfo.visit_date < minVisitDate) {
+      const dobFormatted = props.patientObj1?.dateOfBirth ? moment(props.patientObj1.dateOfBirth).format("DD MMM YYYY") : "";
+      const enrollmentFormatted = props.patientObj1?.enrollmentCommencement?.data?.registration?.date_enrolled_in_hiv_care
+        ? moment(props.patientObj1.enrollmentCommencement.data.registration.date_enrolled_in_hiv_care).format("DD MMM YYYY")
+        : "";
+      const artStartFormatted = props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started
+        ? moment(props.patientObj1.enrollmentCommencement.data.commencement.date_art_started).format("DD MMM YYYY")
+        : "";
+
+      temp.visit_date = `Visit date cannot be earlier than Date of Birth (${dobFormatted}), HIV Enrollment Date (${enrollmentFormatted}), or ART Start Date (${artStartFormatted})`;
+      setErrors(temp);
+      toast.error(temp.visit_date, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      return false;
+    }
+
     // Check for duplicate visit date (only for new visits, not edits)
     if (!isEditMode) {
       try {
@@ -1697,6 +1722,7 @@ const CareCardFollowUpForm = (props) => {
                   type="date"
                   name="visit_date"
                   value={visitInfo.visit_date}
+                  min={minVisitDate}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleVisit}
                 />
@@ -1708,9 +1734,11 @@ const CareCardFollowUpForm = (props) => {
                   type="number"
                   name="duration_on_art_months"
                   value={visitInfo.duration_on_art_months}
-                  onChange={handleVisit}
-                  placeholder="e.g. 6"
+                  readOnly
+                  disabled
+                  placeholder="Auto-calculated"
                   min="0"
+                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
                 />
               </Col>
             </FieldRow>
@@ -1833,17 +1861,19 @@ const CareCardFollowUpForm = (props) => {
 
             <SubHeading>Clinical Status</SubHeading>
             <FieldRow>
-              <Col size={6}>
-                <SectionLabel>Paediatric and Adolescent Disclosure</SectionLabel>
-                <Input type="select" name="paediatric_disclosure" value={clinical.paediatric_disclosure} onChange={handleClinical}>
-                  <option value="">Select</option>
-                  {paediatricAdolescentDisclosureCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
+              {patientAge < 15 && (
+                <Col size={6}>
+                  <SectionLabel>Paediatric and Adolescent Disclosure</SectionLabel>
+                  <Input type="select" name="paediatric_disclosure" value={clinical.paediatric_disclosure} onChange={handleClinical}>
+                    <option value="">Select</option>
+                    {paediatricAdolescentDisclosureCodeset.map((option) => (
+                      <option key={option.id} value={option.code}>
+                        {option.display}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
+              )}
               <Col size={6}>
                 <SectionLabel>Functional Status</SectionLabel>
                 <Input type="select" name="functional_status" value={clinical.functional_status} onChange={handleClinical}>
@@ -1932,7 +1962,7 @@ const CareCardFollowUpForm = (props) => {
                 </Input>
               </Col>
             </FieldRow>
-            {isFemale && (
+            {isFemale && patientAge >= 15 && (
               <FieldRow>
                 <Col size={6}>
                   <SectionLabel>Cervical Cancer Status</SectionLabel>
@@ -2067,6 +2097,7 @@ const CareCardFollowUpForm = (props) => {
                     name="date_devolved"
                     value={clinical.date_devolved}
                     onChange={handleClinical}
+                    min={props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started || ""}
                     max={moment(new Date()).format("YYYY-MM-DD")}
                   />
                 </Col>

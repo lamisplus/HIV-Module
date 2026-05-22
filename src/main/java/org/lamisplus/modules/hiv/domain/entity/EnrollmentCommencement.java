@@ -1,7 +1,9 @@
 package org.lamisplus.modules.hiv.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
+import org.hibernate.annotations.Type;
 import org.lamisplus.modules.hiv.utility.LocalDateConverter;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
@@ -82,6 +84,9 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @Column(name = "mode_of_hiv_test_id")
     private String modeOfHivTestId;
 
+    @Column(name = "enrollment_setting")
+    private String enrollmentSetting;
+
     @Column(name = "care_entry_point_id")
     private String careEntryPointId;
 
@@ -131,10 +136,10 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     private LocalDate dateArtStarted;
 
     @Column(name = "regimen_id")
-    private String regimenId;
+    private Long regimenId;
 
     @Column(name = "regimen_line_id")
-    private String regimenLineId;
+    private Long regimenLineId;
 
     @Column(name = "weight_kg")
     private Double weightKg;
@@ -178,6 +183,13 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
 
     @Column(name = "enrollment_session_uuid")
     private String enrollmentSessionUuid;
+
+    @Column(name = "has_ovc_information")
+    private Boolean hasOvcInformation;
+
+    @Type(type = "jsonb")
+    @Column(columnDefinition = "jsonb", name = "ovc_data")
+    private JsonNode ovcData;
 
     @Override
     public boolean isNew() {

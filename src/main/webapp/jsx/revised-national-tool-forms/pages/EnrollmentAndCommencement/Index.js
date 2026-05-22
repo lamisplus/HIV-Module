@@ -280,6 +280,7 @@ const EnrollmentAndCommencementForm = (props) => {
     unique_id: "",
     date_enrolled_in_hiv_care: "",
     mother_unique_id: "",
+    enrollment_setting: "",
     care_entry_point: "",
     care_entry_point_other: "",
     date_transferred_in: "",
@@ -433,6 +434,41 @@ const EnrollmentAndCommencementForm = (props) => {
     }
   }, [isCreateMode, loadingCodesets, codesets.priorArt, priorArtFromICE]);
 
+  // ── Auto-populate Date Initial Adherence Counseling Completed from Adherence Preparation ────
+  useEffect(() => {
+    if (isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate && !commencement.date_adherence_counseling_completed) {
+      const adherenceServiceDate = moment(props.patientObj1.adherencePreparation.serviceDate).format("YYYY-MM-DD");
+      setCommencement((prev) => ({
+        ...prev,
+        date_adherence_counseling_completed: adherenceServiceDate
+      }));
+    }
+  }, [isCreateMode, props.patientObj1?.adherencePreparation?.serviceDate]);
+
+  // ── Auto-populate Clinical Stage at Start of ART from ICE WHO Stage ────
+  useEffect(() => {
+    if (isCreateMode && props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage && !commencement.clinical_stage_at_art_start) {
+      const whoStage = props.patientObj1.initialClinicalEvaluation.data.assessment.whoStage;
+
+      // Map WHO Stage codes to Clinical Stage codes
+      const whoToClinicalStageMap = {
+        'WHO_STAGING_CRITERIA_STAGE_1': 'CLINICAL_STAGE_STAGE_I',
+        'WHO_STAGING_CRITERIA_STAGE_2': 'CLINICAL_STAGE_STAGE_II',
+        'WHO_STAGING_CRITERIA_STAGE_3': 'CLINICAL_STAGE_STAGE_III',
+        'WHO_STAGING_CRITERIA_STAGE_4': 'CLINICAL_STAGE_STAGE_IV'
+      };
+
+      const clinicalStage = whoToClinicalStageMap[whoStage];
+
+      if (clinicalStage) {
+        setCommencement((prev) => ({
+          ...prev,
+          clinical_stage_at_art_start: clinicalStage
+        }));
+      }
+    }
+  }, [isCreateMode, props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage]);
+
   // ── Fetch Existing Data for Edit/View Mode ──────────────────────────────
   const fetchExistingData = async () => {
     setLoading(true);
@@ -452,6 +488,7 @@ const EnrollmentAndCommencementForm = (props) => {
         unique_id: data.uniqueId || "",
         date_enrolled_in_hiv_care: data.dateEnrolledInHivCare ? moment(data.dateEnrolledInHivCare).format("YYYY-MM-DD") : "",
         mother_unique_id: data.motherUniqueId || "",
+        enrollment_setting: data.enrollmentSetting || "",
         care_entry_point: data.careEntryPointId || "",
         care_entry_point_other: data.careEntryPointOther || "",
         date_transferred_in: data.dateTransferredIn ? moment(data.dateTransferredIn).format("YYYY-MM-DD") : "",
@@ -466,16 +503,42 @@ const EnrollmentAndCommencementForm = (props) => {
 
       // Populate commencement fields
       const hasTpt = data.tptMedication || data.tptDose || data.tptStartDate || data.tptCompleted || data.tptCompletionDate;
+
+      // Parse OVC data from JSON if it exists
+      let ovcData = {
+        household_unique_number: "",
+        ovc_unique_id: "",
+        referred_to_ovc_partner: "",
+        date_referred_to_ovc_partner: "",
+        referred_from_ovc_partner: "",
+        date_referred_from_ovc_partner: "",
+      };
+
+      if (data.ovcData) {
+        try {
+          const parsedOvcData = typeof data.ovcData === 'string' ? JSON.parse(data.ovcData) : data.ovcData;
+          ovcData = {
+            household_unique_number: parsedOvcData.household_unique_number || "",
+            ovc_unique_id: parsedOvcData.ovc_unique_id || "",
+            referred_to_ovc_partner: parsedOvcData.referred_to_ovc_partner || "",
+            date_referred_to_ovc_partner: parsedOvcData.date_referred_to_ovc_partner ? moment(parsedOvcData.date_referred_to_ovc_partner).format("YYYY-MM-DD") : "",
+            referred_from_ovc_partner: parsedOvcData.referred_from_ovc_partner || "",
+            date_referred_from_ovc_partner: parsedOvcData.date_referred_from_ovc_partner ? moment(parsedOvcData.date_referred_from_ovc_partner).format("YYYY-MM-DD") : "",
+          };
+        } catch (e) {
+          console.error("Error parsing OVC data:", e);
+        }
+      }
+
       setCommencement({
         visit_date: data.visitDate ? moment(data.visitDate).format("YYYY-MM-DD") : "",
         clinical_stage_at_art_start: data.clinicalStageId || "",
         cd4_at_art_start: data.cd4AtArtStart || "",
-        cd4_percentage: data.cd4Percentage || "",
         cd4_lf: data.cd4LfId || "",
         date_adherence_counseling_completed: data.dateAdherenceCounselingCompleted ? moment(data.dateAdherenceCounselingCompleted).format("YYYY-MM-DD") : "",
         date_art_started: data.dateArtStarted ? moment(data.dateArtStarted).format("YYYY-MM-DD") : "",
-        regimen_line_id: data.regimenLineId || "",
-        first_art_regimen: data.regimenId || "",
+        regimen_line_id: data.regimenLineId || null,
+        first_art_regimen: data.regimenId || null,
         weight_kg: data.weightKg || "",
         height_cm: data.heightCm || "",
         bmi: data.bmi || "",
@@ -491,6 +554,8 @@ const EnrollmentAndCommencementForm = (props) => {
           tpt_completed: data.tptCompleted || "",
           completion_date: data.tptCompletionDate ? moment(data.tptCompletionDate).format("YYYY-MM-DD") : "",
         },
+        has_ovc_information: data.hasOvcInformation || false,
+        ovc_data: ovcData,
       });
 
       // Fetch regimens for the selected regimen line (for edit/view mode)
@@ -519,6 +584,7 @@ const EnrollmentAndCommencementForm = (props) => {
       params.append('codes', 'PRIOR_ART');
       params.append('codes', 'VISITECT_CD4_TEST_RESULT');
       params.append('codes', 'PREGNANCY_STATUS');
+      params.append('codes', 'ENROLLMENT_SETTING');
 
       const response = await axios.get(
         `${baseUrl}application-codesets/v2/codeSets?${params}`,
@@ -534,6 +600,7 @@ const EnrollmentAndCommencementForm = (props) => {
         mode_of_hiv_test: response.data.MODE_HIV_TEST || [],
         cd4_lf: response.data.VISITECT_CD4_TEST_RESULT || [],
         pregnancyStatus: response.data.PREGNANCY_STATUS || [],
+        enrollmentSetting: response.data.ENROLLMENT_SETTING || [],
       });
 
       // Auto-select "Transfer-in" for returning clients
@@ -896,12 +963,11 @@ const EnrollmentAndCommencementForm = (props) => {
     visit_date: "",
     clinical_stage_at_art_start: "",
     cd4_at_art_start: "",
-    cd4_percentage: "",
     cd4_lf: "",
     date_adherence_counseling_completed: "",
     date_art_started: "",
-    regimen_line_id: "",
-    first_art_regimen: "",
+    regimen_line_id: null,
+    first_art_regimen: null,
     weight_kg: "",
     height_cm: "",
     bmi: "",
@@ -917,19 +983,33 @@ const EnrollmentAndCommencementForm = (props) => {
       tpt_completed: "",
       completion_date: "",
     },
+    has_ovc_information: false,
+    ovc_data: {
+      household_unique_number: "",
+      ovc_unique_id: "",
+      referred_to_ovc_partner: "",
+      date_referred_to_ovc_partner: "",
+      referred_from_ovc_partner: "",
+      date_referred_from_ovc_partner: "",
+    },
   });
 
   const handleCommencement = (e) => {
     const { name, value, type, checked } = e.target;
-    const inputValue = type === 'checkbox' ? checked : value;
+
+    // Convert regimen IDs to numbers
+    let inputValue = type === 'checkbox' ? checked : value;
+    if (name === "regimen_line_id" || name === "first_art_regimen") {
+      inputValue = value ? Number(value) : null;
+    }
 
     // If regimen line changes, fetch regimens for that line
     if (name === "regimen_line_id") {
       fetchRegimens(value);
       setCommencement((prev) => ({
         ...prev,
-        regimen_line_id: value,
-        first_art_regimen: "" // Clear selected regimen when line changes
+        regimen_line_id: inputValue,
+        first_art_regimen: null // Clear selected regimen when line changes
       }));
       return;
     }
@@ -1152,6 +1232,10 @@ const EnrollmentAndCommencementForm = (props) => {
 
     if (!registration.mode_of_hiv_test || String(registration.mode_of_hiv_test).trim() === '') {
       temp.mode_of_hiv_test = "Mode of HIV test is required";
+    }
+
+    if (!registration.enrollment_setting || String(registration.enrollment_setting).trim() === '') {
+      temp.enrollment_setting = "Enrollment setting is required";
     }
 
     if (!registration.care_entry_point || String(registration.care_entry_point).trim() === '') {
@@ -1401,9 +1485,9 @@ const EnrollmentAndCommencementForm = (props) => {
               </Col>
             </FieldRow>
 
-            {/* Row 2: Mother's Unique ID (if infant), Care Entry Point */}
-            <FieldRow>
-              {isInfant && (
+            {/* Row 2: Mother's Unique ID (if infant) */}
+            {isInfant && (
+              <FieldRow>
                 <Col>
                   <SectionLabel>
                     Mother's Unique ID
@@ -1425,7 +1509,37 @@ const EnrollmentAndCommencementForm = (props) => {
                     </span>
                   )}
                 </Col>
-              )}
+              </FieldRow>
+            )}
+
+            {/* Row 3: Enrollment Setting, Care Entry Point */}
+            <FieldRow>
+              <Col>
+                <SectionLabel>
+                  Enrollment Setting{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
+                <Input
+                  type="select"
+                  name="enrollment_setting"
+                  value={registration.enrollment_setting}
+                  onChange={handleReg}
+                  disabled={isViewMode || loadingCodesets}
+                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                >
+                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                  {codesets.enrollmentSetting.map((option) => (
+                    <option key={option.id} value={option.code}>
+                      {option.display}
+                    </option>
+                  ))}
+                </Input>
+                {errors.enrollment_setting && (
+                  <span className={classes.error}>
+                    {errors.enrollment_setting}
+                  </span>
+                )}
+              </Col>
               <Col>
                 <SectionLabel>
                   Care Entry Point{" "}
@@ -1454,7 +1568,7 @@ const EnrollmentAndCommencementForm = (props) => {
               </Col>
             </FieldRow>
 
-            {/* Row 3: Specify Entry Point (if Others selected) */}
+            {/* Row 4: Specify Entry Point (if Others selected) */}
             {registration.care_entry_point == getCodesetCodeByPattern(codesets.careEntryPoints, "OTHERS") && (
               <FieldRow>
                 <Col>
@@ -1473,7 +1587,7 @@ const EnrollmentAndCommencementForm = (props) => {
               </FieldRow>
             )}
 
-            {/* Row 4: Date Transferred In, Facility Transferred From (if Transfer-in selected) */}
+            {/* Row 5: Date Transferred In, Facility Transferred From (if Transfer-in selected) */}
             {registration.care_entry_point == getCodesetCodeByPattern(codesets.careEntryPoints, "TRANSFER") && (
               <FieldRow>
                 <Col>
@@ -1559,6 +1673,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   type="date"
                   name="date_confirmed_hiv_test"
                   value={registration.date_confirmed_hiv_test}
+                  min={props.patientObj1?.dateOfBirth || undefined}
                   max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleReg}
                   disabled={isViewMode || registration.previousEnrollmentDate}
@@ -1748,8 +1863,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="clinical_stage_at_art_start"
                   value={commencement.clinical_stage_at_art_start}
                   onChange={handleCommencement}
-                  disabled={loadingCodesets || isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={loadingCodesets || isViewMode || (isCreateMode && props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage)}
+                  style={(isViewMode || (isCreateMode && props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.clinicalStages.map((opt) => (
@@ -1779,24 +1894,8 @@ const EnrollmentAndCommencementForm = (props) => {
               </Col>
             </FieldRow>
 
-            {/* Row 2: CD4 %, CD4 LF */}
+            {/* Row 2: CD4 LF */}
             <FieldRow>
-              <Col>
-                <SectionLabel>CD4 %</SectionLabel>
-                <Input
-                  type="number"
-                  name="cd4_percentage"
-                  value={commencement.cd4_percentage}
-                  onChange={handleCommencement}
-                  placeholder="%"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  disabled={isViewMode}
-                  readOnly={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                />
-              </Col>
               <Col>
                 <SectionLabel>CD4 LF</SectionLabel>
                 <Input
@@ -1831,10 +1930,12 @@ const EnrollmentAndCommencementForm = (props) => {
                   type="date"
                   name="date_adherence_counseling_completed"
                   value={commencement.date_adherence_counseling_completed}
+                  min={props.patientObj1?.dateOfBirth || undefined}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleCommencement}
-                  disabled={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={isViewMode || (isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate)}
+                  readOnly={isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate}
+                  style={(isViewMode || (isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
               </Col>
               <Col>
@@ -2216,6 +2317,222 @@ const EnrollmentAndCommencementForm = (props) => {
                   )}
                 </FieldRow>
               </Box>
+            )}
+
+            {/* OVC Section - Only show for patients 18 years and below */}
+            {patientAge <= 18 && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <SubHeading>Orphans and Vulnerable Children (OVC) Information</SubHeading>
+
+                {/* Has OVC Information Checkbox */}
+                <FieldRow>
+                  <Col size={12}>
+                    <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
+                      <input
+                        type="checkbox"
+                        id="has_ovc_information"
+                        name="has_ovc_information"
+                        checked={commencement.has_ovc_information}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setCommencement((prev) => ({
+                            ...prev,
+                            has_ovc_information: checked,
+                            ovc_data: checked ? prev.ovc_data : {
+                              household_unique_number: "",
+                              ovc_unique_id: "",
+                              referred_to_ovc_partner: "",
+                              date_referred_to_ovc_partner: "",
+                              referred_from_ovc_partner: "",
+                              date_referred_from_ovc_partner: "",
+                            }
+                          }));
+                        }}
+                        disabled={isViewMode}
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          marginRight: "8px",
+                          cursor: isViewMode ? "not-allowed" : "pointer"
+                        }}
+                      />
+                      <label
+                        htmlFor="has_ovc_information"
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#014d88",
+                          cursor: isViewMode ? "not-allowed" : "pointer",
+                          margin: 0
+                        }}
+                      >
+                        Client has OVC Information
+                      </label>
+                    </div>
+                  </Col>
+                </FieldRow>
+
+                {/* OVC Details - Only show if checkbox is checked */}
+                {commencement.has_ovc_information && (
+                  <Box
+                    sx={{
+                      background: "#fff",
+                      border: "1px solid #014d88",
+                      borderRadius: "4px",
+                      padding: "16px",
+                    }}
+                  >
+                    {/* Row 1: Household Unique Number, OVC Unique ID */}
+                    <FieldRow>
+                      <Col>
+                        <SectionLabel>Household Unique Number</SectionLabel>
+                        <Input
+                          type="text"
+                          name="household_unique_number"
+                          value={commencement.ovc_data.household_unique_number}
+                          onChange={(e) => {
+                            setCommencement((prev) => ({
+                              ...prev,
+                              ovc_data: {
+                                ...prev.ovc_data,
+                                household_unique_number: e.target.value
+                              }
+                            }));
+                          }}
+                          placeholder="Enter household unique number"
+                          disabled={isViewMode}
+                          readOnly={isViewMode}
+                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                        />
+                      </Col>
+                      <Col>
+                        <SectionLabel>OVC Unique ID</SectionLabel>
+                        <Input
+                          type="text"
+                          name="ovc_unique_id"
+                          value={commencement.ovc_data.ovc_unique_id}
+                          onChange={(e) => {
+                            setCommencement((prev) => ({
+                              ...prev,
+                              ovc_data: {
+                                ...prev.ovc_data,
+                                ovc_unique_id: e.target.value
+                              }
+                            }));
+                          }}
+                          placeholder="Enter OVC unique ID"
+                          disabled={isViewMode}
+                          readOnly={isViewMode}
+                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                        />
+                      </Col>
+                    </FieldRow>
+
+                    {/* Row 2: Referred to OVC Partner, Date Referred to OVC Partner */}
+                    <FieldRow>
+                      <Col>
+                        <SectionLabel>Referred to OVC Partner</SectionLabel>
+                        <Input
+                          type="select"
+                          name="referred_to_ovc_partner"
+                          value={commencement.ovc_data.referred_to_ovc_partner}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setCommencement((prev) => ({
+                              ...prev,
+                              ovc_data: {
+                                ...prev.ovc_data,
+                                referred_to_ovc_partner: value,
+                                date_referred_to_ovc_partner: value !== "Yes" ? "" : prev.ovc_data.date_referred_to_ovc_partner
+                              }
+                            }));
+                          }}
+                          disabled={isViewMode}
+                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                        >
+                          <option value="">Select</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </Input>
+                      </Col>
+                      {commencement.ovc_data.referred_to_ovc_partner === "Yes" && (
+                        <Col>
+                          <SectionLabel>Date Referred to OVC Partner</SectionLabel>
+                          <Input
+                            type="date"
+                            name="date_referred_to_ovc_partner"
+                            value={commencement.ovc_data.date_referred_to_ovc_partner}
+                            onChange={(e) => {
+                              setCommencement((prev) => ({
+                                ...prev,
+                                ovc_data: {
+                                  ...prev.ovc_data,
+                                  date_referred_to_ovc_partner: e.target.value
+                                }
+                              }));
+                            }}
+                            max={moment(new Date()).format("YYYY-MM-DD")}
+                            disabled={isViewMode}
+                            style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                          />
+                        </Col>
+                      )}
+                    </FieldRow>
+
+                    {/* Row 3: Referred from OVC Partner, Date Referred from OVC Partner */}
+                    <FieldRow>
+                      <Col>
+                        <SectionLabel>Referred from OVC Partner</SectionLabel>
+                        <Input
+                          type="select"
+                          name="referred_from_ovc_partner"
+                          value={commencement.ovc_data.referred_from_ovc_partner}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setCommencement((prev) => ({
+                              ...prev,
+                              ovc_data: {
+                                ...prev.ovc_data,
+                                referred_from_ovc_partner: value,
+                                date_referred_from_ovc_partner: value !== "Yes" ? "" : prev.ovc_data.date_referred_from_ovc_partner
+                              }
+                            }));
+                          }}
+                          disabled={isViewMode}
+                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                        >
+                          <option value="">Select</option>
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </Input>
+                      </Col>
+                      {commencement.ovc_data.referred_from_ovc_partner === "Yes" && (
+                        <Col>
+                          <SectionLabel>Date Referred from OVC Partner</SectionLabel>
+                          <Input
+                            type="date"
+                            name="date_referred_from_ovc_partner"
+                            value={commencement.ovc_data.date_referred_from_ovc_partner}
+                            onChange={(e) => {
+                              setCommencement((prev) => ({
+                                ...prev,
+                                ovc_data: {
+                                  ...prev.ovc_data,
+                                  date_referred_from_ovc_partner: e.target.value
+                                }
+                              }));
+                            }}
+                            max={moment(new Date()).format("YYYY-MM-DD")}
+                            disabled={isViewMode}
+                            style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                          />
+                        </Col>
+                      )}
+                    </FieldRow>
+                  </Box>
+                )}
+              </>
             )}
           </FormAccordion>
 

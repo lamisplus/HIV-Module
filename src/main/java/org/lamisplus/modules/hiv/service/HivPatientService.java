@@ -16,6 +16,7 @@ import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.TbPreventiveT
 import org.lamisplus.modules.hiv.domain.dto.initialclinicalevaluation.InitialClinicalEvaluationDTO;
 import org.lamisplus.modules.hiv.domain.entity.*;
 import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
+import org.lamisplus.modules.hiv.repositories.AdherencePreparationRepository;
 import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
 import org.lamisplus.modules.hiv.repositories.InitialClinicalEvaluationRepository;
@@ -74,6 +75,10 @@ public class HivPatientService {
     private final PatientTransferInRepository patientTransferInRepository;
 
     private final PatientTransferInService patientTransferInService;
+
+    private final AdherencePreparationRepository adherencePreparationRepository;
+
+    private final AdherencePreparationService adherencePreparationService;
 
 
     public HivEnrollmentDTO registerAndEnrollHivPatient(HivPatientEnrollmentDto hivPatientEnrollmentDto) {
@@ -315,12 +320,16 @@ public class HivPatientService {
             // Fetch Transfer-In data
             Optional<PatientTransferIn> transferIn =
                     patientTransferInRepository.findByPersonAndArchived(person, 0);
+            // Fetch Adherence Preparation data
+            Optional<AdherencePreparation> adherencePreparation =
+                    adherencePreparationRepository.findTopByPersonAndArchivedOrderByIdDesc(person, 0);
             HivPatientDto hivPatientDto = new HivPatientDto();
             BeanUtils.copyProperties(bioData, hivPatientDto);
             hivPatientDto.setCreateBy(person.getCreatedBy());
             addInitialClinicalEvaluationInfo(initialClinicalEvaluation, hivPatientDto);
             addEnrollmentCommencementInfo(person.getId(), enrollmentCommencement, hivPatientDto);
             addTransferInInfo(transferIn, hivPatientDto);
+            addAdherencePreparationInfo(adherencePreparation, hivPatientDto);
             processAndSetObservationStatus(person, hivPatientDto);
             return hivPatientDto;
         }
@@ -384,6 +393,19 @@ public class HivPatientService {
                 hivPatientDto.setTransferIn(tiDto);
             } catch (Exception e) {
                 log.warn("Could not convert Transfer-In to DTO for person ID: {}", ti.getPersonId(), e);
+            }
+        }
+    }
+
+    private void addAdherencePreparationInfo(Optional<AdherencePreparation> adherencePreparation, HivPatientDto hivPatientDto) {
+        if (adherencePreparation.isPresent()) {
+            AdherencePreparation ap = adherencePreparation.get();
+            // Convert entity to DTO using the service's converter method
+            try {
+                AdherencePreparationDto apDto = adherencePreparationService.getAdherencePreparationById(ap.getId());
+                hivPatientDto.setAdherencePreparation(apDto);
+            } catch (Exception e) {
+                log.warn("Could not convert Adherence Preparation to DTO for person ID: {}", ap.getId(), e);
             }
         }
     }

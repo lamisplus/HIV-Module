@@ -1,11 +1,13 @@
 package org.lamisplus.modules.hiv.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.CommencementDto;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.EnrollmentCommencementRequestDto;
+import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.OvcDataDto;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.RegistrationDto;
 import org.lamisplus.modules.hiv.domain.dto.enrollmentcommencement.TbPreventiveTherapyDto;
 import org.lamisplus.modules.hiv.domain.dto.initialclinicalevaluation.InitialClinicalEvaluationDTO;
@@ -41,6 +43,7 @@ public class EnrollmentCommencementService {
     private final HIVStatusTrackerService hivStatusTrackerService;
     private final InitialClinicalEvaluationService initialClinicalEvaluationService;
     private final AdherencePreparationRepository adherencePreparationRepository;
+    private final ObjectMapper objectMapper;
 
     private static final String ART_START_STATUS_ART_START = "ART Start";
     private static final String HIV_STATUS_ART_TRANSFER_IN = "ART Transfer In";
@@ -348,6 +351,7 @@ public class EnrollmentCommencementService {
         entity.setDateConfirmedHivTest(parseDate(reg.getDateConfirmedHivTest()));
         entity.setHivTestLocation(reg.getHivTestLocation());
         entity.setModeOfHivTestId(reg.getModeOfHivTest());
+        entity.setEnrollmentSetting(reg.getEnrollmentSetting());
         entity.setCareEntryPointId(reg.getCareEntryPoint());
         entity.setCareEntryPointOther(reg.getCareEntryPointOther());
         entity.setMotherUniqueId(reg.getMotherUniqueId());
@@ -382,6 +386,16 @@ public class EnrollmentCommencementService {
             entity.setTptStartDate(parseDate(tpt.getStartDate()));
             entity.setTptCompleted(tpt.getTptCompleted());
             entity.setTptCompletionDate(parseDate(tpt.getCompletionDate()));
+        }
+
+        // ── OVC Data ──────────────────────────────────────────────────────────
+        entity.setHasOvcInformation(com.getHasOvcInformation());
+        if (com.getHasOvcInformation() != null && com.getHasOvcInformation() && com.getOvcData() != null) {
+            try {
+                entity.setOvcData(objectMapper.valueToTree(com.getOvcData()));
+            } catch (Exception e) {
+                log.error("Failed to convert OVC data to JsonNode", e);
+            }
         }
 
         return entity;

@@ -140,6 +140,7 @@ const useStyles = makeStyles((theme) => ({
 
 const ChronicCare = (props) => {
   const patientObj = props.patientObj;
+  const patientObj1 = props.patientObj;
   const [saving, setSaving] = useState(false);
   const classes = useStyles();
   const [errors, setErrors] = useState({});
@@ -658,6 +659,34 @@ const ChronicCare = (props) => {
     setShowTpt(!showTpt);
   };
 
+  // Helper function to calculate minimum visit date
+  const getMinVisitDate = () => {
+    const dates = [];
+
+    // Add date of birth
+    if (patientObj1?.dateOfBirth) {
+      dates.push(patientObj1.dateOfBirth);
+    }
+
+    // Add date enrolled in HIV care
+    if (patientObj1?.enrollmentCommencement?.data?.registration?.date_enrolled_in_hiv_care) {
+      dates.push(patientObj1.enrollmentCommencement.data.registration.date_enrolled_in_hiv_care);
+    }
+
+    // Add date of ART start
+    if (patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started) {
+      dates.push(patientObj1.enrollmentCommencement.data.commencement.date_art_started);
+    }
+
+    // Return the latest date among all available dates
+    if (dates.length > 0) {
+      return dates.sort((a, b) => new Date(b) - new Date(a))[0];
+    }
+
+    // Fallback to enrollDate if no dates are available
+    return enrollDate;
+  };
+
   return (
     <>
       <ToastContainer autoClose={3000} hideProgressBar />
@@ -691,7 +720,7 @@ const ChronicCare = (props) => {
                         border: "1px solid #014D88",
                         borderRadius: "0.25rem",
                       }}
-                      min={enrollDate}
+                      min={getMinVisitDate()}
                       max={moment(new Date()).format("YYYY-MM-DD")}
                       onKeyPress={(e) => e.preventDefault()}
                     ></Input>

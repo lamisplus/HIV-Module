@@ -853,6 +853,7 @@ function PatientCard(props) {
               patientObj={patientObj}
               setActiveContent={setActiveContent}
               activeContent={activeContent}
+              patientObj ={patientObj1}
             />
           )}
           {activeContent.route === "patient-visit" && (

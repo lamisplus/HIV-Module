@@ -28,10 +28,10 @@ public class CommencementDto {
     private String dateArtStarted;
 
     @JsonProperty("regimen_line_id")
-    private String regimenLineId;
+    private Long regimenLineId;
 
     @JsonProperty("first_art_regimen")
-    private String firstArtRegimen;
+    private Long firstArtRegimen;
 
     @JsonProperty("weight_kg")
     private String weightKg;
@@ -56,4 +56,10 @@ public class CommencementDto {
 
     @JsonProperty("tb_preventive_therapy")
     private TbPreventiveTherapyDto tbPreventiveTherapy;
+
+    @JsonProperty("has_ovc_information")
+    private Boolean hasOvcInformation;
+
+    @JsonProperty("ovc_data")
+    private OvcDataDto ovcData;
 }

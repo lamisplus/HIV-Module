@@ -21,6 +21,7 @@ public class HivPatientDto extends PersonResponseDto  implements Serializable {
     private InitialClinicalEvaluationDTO initialClinicalEvaluation;
     private EnrollmentCommencementRequestDto enrollmentCommencement;
     private PatientTransferInDTO transferIn;
+    private AdherencePreparationDto adherencePreparation;
     // Keep old fields for backward compatibility (deprecated)
     @Deprecated
     private HivEnrollmentDTO enrollment;

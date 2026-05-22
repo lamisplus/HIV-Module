@@ -32,7 +32,6 @@ const CareCardFollowUpTabs = (props) => {
   const [activeTab, setActiveTab] = useState(0);
   const [editingVisit, setEditingVisit] = useState(null);
   const [visitFromHistory, setVisitFromHistory] = useState(null);
-
   // Handle incoming visit from Patient History
   useEffect(() => {
     const fetchVisitFromHistory = async () => {

@@ -23,4 +23,7 @@ public interface AdherencePreparationRepository extends JpaRepository<AdherenceP
     Optional<AdherencePreparation> findByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 
     boolean existsByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
+
+    // Get latest adherence preparation for a person
+    Optional<AdherencePreparation> findTopByPersonAndArchivedOrderByIdDesc(Person person, Integer archived);
 }

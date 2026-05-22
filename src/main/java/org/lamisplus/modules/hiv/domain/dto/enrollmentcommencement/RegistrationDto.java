@@ -26,6 +26,9 @@ public class RegistrationDto {
     @JsonProperty("mode_of_hiv_test")
     private String modeOfHivTest;
 
+    @JsonProperty("enrollment_setting")
+    private String enrollmentSetting;
+
     @JsonProperty("care_entry_point")
     private String careEntryPoint;
 

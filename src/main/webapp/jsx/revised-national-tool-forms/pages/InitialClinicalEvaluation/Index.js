@@ -3121,7 +3121,7 @@ const InitialClinicalEvaluationForm = (props) => {
             {/* TB & Assessments */}
             <SubHeading>TB &amp; Other Assessments</SubHeading>
 
-            {/* Row 1: Patient Assessed for TB? */}
+            {/* Row 1: Patient Assessed for TB?, TB Status (if assessed Yes) */}
             <FieldRow>
               <Col>
                 <SectionLabel>Patient Assessed for TB? <span style={{ color: "red" }}>*</span></SectionLabel>
@@ -3134,10 +3134,6 @@ const InitialClinicalEvaluationForm = (props) => {
                   <span className={classes.error}>{errors.assessedForTb}</span>
                 )}
               </Col>
-            </FieldRow>
-
-            {/* Row 2: TB Status (if assessed Yes) and Developmental Assessment (if age > 2) */}
-            <FieldRow>
               {tbAssessment.assessedForTb === "Yes" && (
                 <Col>
                   <SectionLabel>TB Status</SectionLabel>
@@ -3149,8 +3145,11 @@ const InitialClinicalEvaluationForm = (props) => {
                   </Input>
                 </Col>
               )}
+            </FieldRow>
 
-              {patientAge > 2 && (
+            {/* Row 2: Developmental Assessment (if age 0-2), Immunisation Complete (if age 0-2), Mode of Infant Feeding (if age 0-2) */}
+            <FieldRow>
+              {patientAge >= 0 && patientAge <= 2 && (
                 <Col>
                   <SectionLabel>Developmental Assessment <span style={{ color: "red" }}>*</span></SectionLabel>
                   <Input type="select" name="developmentalAssessment" value={tbAssessment.developmentalAssessment} onChange={handleTb} disabled={loadingCodesets}>
@@ -3176,10 +3175,9 @@ const InitialClinicalEvaluationForm = (props) => {
                   </Input>
                 </Col>
               )}
-            </FieldRow>
-            <FieldRow>
+
               {patientAge >= 0 && patientAge <= 2 && (
-                <Col size={3}>
+                <Col>
                   <SectionLabel>Mode of Infant Feeding (≤6 months)</SectionLabel>
                   <Input type="select" name="modeOfInfantFeeding" value={tbAssessment.modeOfInfantFeeding} onChange={handleTb}>
                     <option value="">Select</option>
