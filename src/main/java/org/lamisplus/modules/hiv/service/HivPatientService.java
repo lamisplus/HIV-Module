@@ -454,6 +454,7 @@ public class HivPatientService {
         dto.setPersonId(ec.getPerson() != null ? ec.getPerson().getId() : null);
         dto.setDateOfObservation(ec.getVisitDate() != null ? ec.getVisitDate().toString() : null);
         dto.setType("enrollment_commencement");
+        dto.setEnrollmentSessionUuid(ec.getEnrollmentSessionUuid());
 
         // Create data object
         EnrollmentCommencementRequestDto.EnrollmentCommencementData data =

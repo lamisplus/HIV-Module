@@ -210,6 +210,14 @@ public class AdherencePreparationService {
             return;
         }
 
+        // IMPORTANT: Skip validation for MIGRATED records
+        // Migrated patients have complete old enrollment cycles with MIGRATED- prefix
+        // They should be allowed to start new enrollment cycles after Transfer OUT/IN
+        if (sessionUuid.startsWith("MIGRATED-")) {
+            log.info("Found MIGRATED AdherencePrep for person ID: {}. Skipping validation to allow new enrollment cycle after transfer.", person.getId());
+            return;
+        }
+
         // Check if ICE exists for this session
         boolean hasICE = initialClinicalEvaluationRepository
                 .existsByEnrollmentSessionUuidAndArchived(sessionUuid, 0);
@@ -341,6 +349,67 @@ public class AdherencePreparationService {
     }
 
     /**
+     * Check if this is a migrated record (legacy data before new enrollment flow)
+     * Migrated records have enrollment_session_uuid starting with "MIGRATED-"
+     * These patients should see full menu immediately without requiring AdherencePreparation
+     *
+     * IMPORTANT: If there's an active Transfer IN, the patient needs to complete a NEW enrollment cycle
+     * even if they have MIGRATED records. Only show full menu if NO active Transfer IN exists.
+     *
+     * @param person The person to check
+     * @return EnrollmentCycleStatusDto if this is a migrated record, null otherwise
+     */
+    private EnrollmentCycleStatusDto checkForMigratedRecord(Person person) {
+        // CRITICAL: Check if there's an active Transfer IN first
+        // If there is, patient must complete new enrollment cycle (return null to skip MIGRATED logic)
+        String activeTransferInUuid = getSessionFromRecentTransferInObservation(person);
+        if (activeTransferInUuid != null) {
+            log.info("Patient has active Transfer IN with UUID: {}. Skipping MIGRATED check - patient must complete new enrollment cycle.", activeTransferInUuid);
+            return null;  // Don't treat as MIGRATED - they need to complete new enrollment
+        }
+
+        // Check if patient has EnrollmentCommencement with MIGRATED- prefix
+        List<org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement> enrollments =
+            enrollmentCommencementRepository.findAllByPersonAndArchivedOrderByDateArtStartedDesc(person, 0);
+
+        for (org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement enrollment : enrollments) {
+            String sessionUuid = enrollment.getEnrollmentSessionUuid();
+
+            if (sessionUuid != null && sessionUuid.startsWith("MIGRATED-")) {
+                log.info("Found MIGRATED record for person ID: {} with session UUID: {}", person.getId(), sessionUuid);
+
+                // Check if there's a more recent enrollment with a regular (non-MIGRATED) UUID
+                // This would indicate the patient has completed a new enrollment cycle after migration
+                boolean hasNewerRegularEnrollment = enrollments.stream()
+                    .anyMatch(e -> e.getEnrollmentSessionUuid() != null
+                        && !e.getEnrollmentSessionUuid().startsWith("MIGRATED-")
+                        && e.getDateArtStarted().isAfter(enrollment.getDateArtStarted()));
+
+                if (hasNewerRegularEnrollment) {
+                    log.info("Patient has newer non-MIGRATED enrollment. Skipping MIGRATED record.");
+                    continue; // Skip this migrated record, check next enrollment
+                }
+
+                // This is the most recent enrollment and it's migrated
+                // AND there's no active Transfer IN
+                // Return complete status to show full menu
+                return EnrollmentCycleStatusDto.builder()
+                    .currentEnrollmentSessionUuid(sessionUuid)
+                    .hasAdherencePreparation(false)  // Not applicable for migrated records
+                    .hasInitialClinicalEvaluation(true)  // Has ICE from migration
+                    .hasEnrollmentCommencement(true)  // Has E&C from migration
+                    .isEnrollmentCycleComplete(true)  // ✅ SHOW FULL MENU
+                    .nextRequiredForm("Complete")
+                    .entryPoint("MIGRATED")
+                    .build();
+            }
+        }
+
+        // Not a migrated record
+        return null;
+    }
+
+    /**
      * Get enrollment cycle status for a person
      * This is used by the frontend to determine which menu items to show
      *
@@ -350,6 +419,14 @@ public class AdherencePreparationService {
     public EnrollmentCycleStatusDto getEnrollmentCycleStatus(Long personId) {
         log.info("Checking enrollment cycle status for person ID: {}", personId);
         Person person = getPerson(personId);
+
+        // STEP -1: Check for MIGRATED records (legacy data before new enrollment flow)
+        // These patients have enrollment_session_uuid starting with "MIGRATED-"
+        // They should see full menu immediately without requiring AdherencePreparation
+        EnrollmentCycleStatusDto migratedStatus = checkForMigratedRecord(person);
+        if (migratedStatus != null) {
+            return migratedStatus;
+        }
 
         // STEP 0: Check if patient is in Transfer OUT status
         // If there's a Transfer OUT observation newer than the last enrollment,

@@ -309,7 +309,8 @@ const EnrollmentAndCommencementForm = (props) => {
     clinicalStages: [],
     mode_of_hiv_test: [],
     cd4_lf: [],
-    pregnancyStatus: []
+    pregnancyStatus: [],
+    enrollmentSetting: []
   });
   const [loadingCodesets, setLoadingCodesets] = useState(true);
   const [regimenLines, setRegimenLines] = useState([]);
@@ -324,6 +325,42 @@ const EnrollmentAndCommencementForm = (props) => {
   // ── Facility State ──────────────────────────────────────────────────────
   const [facilities, setFacilities] = useState([]);
   const [loadingFacilities, setLoadingFacilities] = useState(false);
+
+  // ── Commencement State ──────────────────────────────────────────────────
+  const [commencement, setCommencement] = useState({
+    visit_date: "",
+    clinical_stage_at_art_start: "",
+    cd4_at_art_start: "",
+    cd4_lf: "",
+    date_adherence_counseling_completed: "",
+    date_art_started: "",
+    regimen_line_id: null,
+    first_art_regimen: null,
+    weight_kg: "",
+    height_cm: "",
+    bmi: "",
+    muac: "",
+    muac_indication: "",
+    is_pregnant: "",
+    is_breast_feeding: "",
+    tpt_started: false,
+    tb_preventive_therapy: {
+      medication: "",
+      dose: "",
+      start_date: "",
+      tpt_completed: "",
+      completion_date: "",
+    },
+    has_ovc_information: false,
+    ovc_data: {
+      household_unique_number: "",
+      ovc_unique_id: "",
+      referred_to_ovc_partner: "",
+      date_referred_to_ovc_partner: "",
+      referred_from_ovc_partner: "",
+      date_referred_from_ovc_partner: "",
+    },
+  });
 
   // ── Check if patient already has enrollment-commencement record ──────────
   // Only check for existing record in CREATE mode
@@ -422,7 +459,7 @@ const EnrollmentAndCommencementForm = (props) => {
 
   // ── Auto-populate Prior ART from ICE when codesets are loaded ────────────
   useEffect(() => {
-    if (isCreateMode && !loadingCodesets && codesets.priorArt.length > 0 && priorArtFromICE) {
+    if (isCreateMode && !loadingCodesets && codesets?.priorArt?.length > 0 && priorArtFromICE) {
       const priorArtOption = codesets.priorArt.find(opt => opt.code === priorArtFromICE);
 
       if (priorArtOption && !registration.prior_art) {
@@ -432,7 +469,7 @@ const EnrollmentAndCommencementForm = (props) => {
         }));
       }
     }
-  }, [isCreateMode, loadingCodesets, codesets.priorArt, priorArtFromICE]);
+  }, [isCreateMode, loadingCodesets, codesets?.priorArt, priorArtFromICE, registration.prior_art]);
 
   // ── Auto-populate Date Initial Adherence Counseling Completed from Adherence Preparation ────
   useEffect(() => {
@@ -443,7 +480,7 @@ const EnrollmentAndCommencementForm = (props) => {
         date_adherence_counseling_completed: adherenceServiceDate
       }));
     }
-  }, [isCreateMode, props.patientObj1?.adherencePreparation?.serviceDate]);
+  }, [isCreateMode, props.patientObj1?.adherencePreparation?.serviceDate, commencement.date_adherence_counseling_completed]);
 
   // ── Auto-populate Clinical Stage at Start of ART from ICE WHO Stage ────
   useEffect(() => {
@@ -467,7 +504,7 @@ const EnrollmentAndCommencementForm = (props) => {
         }));
       }
     }
-  }, [isCreateMode, props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage]);
+  }, [isCreateMode, props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage, commencement.clinical_stage_at_art_start]);
 
   // ── Fetch Existing Data for Edit/View Mode ──────────────────────────────
   const fetchExistingData = async () => {
@@ -958,41 +995,6 @@ const EnrollmentAndCommencementForm = (props) => {
       }
     }
   };
-
-  const [commencement, setCommencement] = useState({
-    visit_date: "",
-    clinical_stage_at_art_start: "",
-    cd4_at_art_start: "",
-    cd4_lf: "",
-    date_adherence_counseling_completed: "",
-    date_art_started: "",
-    regimen_line_id: null,
-    first_art_regimen: null,
-    weight_kg: "",
-    height_cm: "",
-    bmi: "",
-    muac: "",
-    muac_indication: "",
-    is_pregnant: "",
-    is_breast_feeding: "",
-    tpt_started: false,
-    tb_preventive_therapy: {
-      medication: "",
-      dose: "",
-      start_date: "",
-      tpt_completed: "",
-      completion_date: "",
-    },
-    has_ovc_information: false,
-    ovc_data: {
-      household_unique_number: "",
-      ovc_unique_id: "",
-      referred_to_ovc_partner: "",
-      date_referred_to_ovc_partner: "",
-      referred_from_ovc_partner: "",
-      date_referred_from_ovc_partner: "",
-    },
-  });
 
   const handleCommencement = (e) => {
     const { name, value, type, checked } = e.target;
