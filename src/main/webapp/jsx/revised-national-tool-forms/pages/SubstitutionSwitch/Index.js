@@ -642,6 +642,7 @@ const SubstitutionSwitchForm = (props) => {
                     id="visitDate"
                     value={objValues.visitDate}
                     onChange={handleInputChange}
+                    max={today}
                     style={{border: "1px solid #014D88", borderRadius: "0.25rem"}}
                     required
                     disabled={isViewMode}

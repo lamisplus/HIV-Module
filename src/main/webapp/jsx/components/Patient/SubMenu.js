@@ -577,6 +577,9 @@ const SubMenu = (props) => {
           ...props.activeContent,
           route: "chronic-care",
           activeTab: "home",
+          actionType: null,  // Reset to null when creating new record
+          id: null,
+          obj: null,
         });
       },
 
@@ -604,6 +607,9 @@ const SubMenu = (props) => {
           ...props.activeContent,
           route: "pharmacy",
           activeTab: "drug-refill",
+          actionType: null,  // Reset to null when creating new record
+          id: null,
+          obj: null,
         });
       },
 

@@ -68,7 +68,7 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate visitDate;
 
-    @Column(name = "date_enrolled_in_hiv_care", nullable = false)
+    @Column(name = "date_enrolled_in_hiv_care")
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateEnrolledInHivCare;
@@ -130,7 +130,7 @@ public class EnrollmentCommencement extends HivAuditEntity implements Persistabl
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateAdherenceCounselingCompleted;
 
-    @Column(name = "date_art_started", nullable = false)
+    @Column(name = "date_art_started")
     @Convert(converter = LocalDateConverter.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateArtStarted;

@@ -903,4 +903,57 @@
         </rollback>
     </changeSet>
 
+    <!-- Remove NOT NULL constraint from date_enrolled_in_hiv_care for migration compatibility -->
+    <changeSet id="20260525-ec-13" author="System" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <columnExists tableName="hiv_enrollment_commencement" columnName="date_enrolled_in_hiv_care"/>
+        </preConditions>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="date_enrolled_in_hiv_care"
+                               columnDataType="DATE"/>
+
+        <sql dbms="postgresql">
+            -- Add comment explaining why this field is now nullable
+            COMMENT ON COLUMN hiv_enrollment_commencement.date_enrolled_in_hiv_care IS 'Date patient was enrolled in HIV care. Nullable to support legacy data migration where enrollment date may not be recorded.';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- WARNING: Restore NOT NULL constraint (will fail if there are NULL values)
+                ALTER TABLE hiv_enrollment_commencement
+                ALTER COLUMN date_enrolled_in_hiv_care SET NOT NULL;
+
+                -- Restore original comment
+                COMMENT ON COLUMN hiv_enrollment_commencement.date_enrolled_in_hiv_care IS 'Date patient was enrolled in HIV care';
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Remove NOT NULL constraint from date_art_started for migration compatibility -->
+    <changeSet id="20260525-ec-14" author="gboyegun taiwo" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <columnExists tableName="hiv_enrollment_commencement" columnName="date_art_started"/>
+        </preConditions>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="date_art_started"
+                               columnDataType="DATE"/>
+
+        <sql dbms="postgresql">
+            COMMENT ON COLUMN hiv_enrollment_commencement.date_art_started IS 'Date ART started. Nullable to support legacy data migration where ART start date may not be recorded.';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                ALTER TABLE hiv_enrollment_commencement
+                ALTER COLUMN date_art_started SET NOT NULL;
+
+                COMMENT ON COLUMN hiv_enrollment_commencement.date_art_started IS 'Date ART started';
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
