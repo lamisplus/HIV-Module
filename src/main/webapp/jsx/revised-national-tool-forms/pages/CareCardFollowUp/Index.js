@@ -559,7 +559,7 @@ const CareCardFollowUpForm = (props) => {
         params.append('codes', 'DSD_MODEL_COMMUNITY');
         params.append('codes', 'PREP_SIDE_EFFECTS');
         params.append('codes', 'VIRAL_LOAD_INDICATION');
-        params.append('codes', 'Consult Hospitalise Refer');
+        params.append('codes', 'CONSULT_HOSPITALIZE_REFER');
         params.append('codes', 'HEALTH_INSURANCE_COVERAGE');
 
         const response = await axios.get(
@@ -592,7 +592,7 @@ const CareCardFollowUpForm = (props) => {
         setDsdModelCommunityCodeset(data.DSD_MODEL_COMMUNITY || []);
         setSideEffectsCodeset(data.PREP_SIDE_EFFECTS || []);
         setLabOrderIndicationCodeset(data.VIRAL_LOAD_INDICATION || []);
-        setTypeOfAppointmentCodeset(data['Consult Hospitalise Refer'] || []);
+        setTypeOfAppointmentCodeset(data.CONSULT_HOSPITALIZE_REFER || []);
         setHealthInsuranceCoverageCodeset(data.HEALTH_INSURANCE_COVERAGE || []);
       } catch (error) {
         console.error("Error fetching codesets:", error);
