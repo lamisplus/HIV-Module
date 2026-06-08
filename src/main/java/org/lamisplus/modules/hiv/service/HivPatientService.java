@@ -331,6 +331,9 @@ public class HivPatientService {
             addTransferInInfo(transferIn, hivPatientDto);
             addAdherencePreparationInfo(adherencePreparation, hivPatientDto);
             processAndSetObservationStatus(person, hivPatientDto);
+            // Fetch and set date confirmed HIV from HTS encounter
+            enrollmentRepository.getDateConfirmedHivByPersonUuid(person.getUuid())
+                    .ifPresent(hivPatientDto::setDateConfirmedHiv);
             return hivPatientDto;
         }
         return null;

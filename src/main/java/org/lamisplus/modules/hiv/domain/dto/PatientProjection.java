@@ -29,4 +29,5 @@ public interface PatientProjection {
 	Boolean getHasiceform();
 	Boolean getHasenrollmentform();
 	String getHivTestResult();
+	LocalDate getDateConfirmedHiv();
 }

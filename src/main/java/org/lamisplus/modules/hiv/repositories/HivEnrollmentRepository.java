@@ -29,7 +29,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "    ) " +
             "    AND NOT EXISTS ( " +
             "        SELECT 1 FROM hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
-            "        AND hc.archived IS FALSE AND patient_uuid = CAST(p.uuid AS UUID) " +
+            "        AND hc.archived IS FALSE AND patient_uuid = p.uuid " +
             "    ) " +
             "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
             "), " +
@@ -71,7 +71,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             ") b ON b.person_uuid = fp.uuid " +
             "LEFT JOIN hiv_enrollment_commencement e ON fp.uuid = e.person_uuid " +
             "LEFT JOIN base_application_codeset pc ON pc.id = e.status_at_registration_id " +
-            "LEFT JOIN htsResult hr ON hr.patient_uuid = CAST(fp.uuid AS UUID) " +
+            "LEFT JOIN htsResult hr ON hr.patient_uuid = fp.uuid " +
             "LEFT JOIN base_application_codeset bac ON bac.code = hr.hivTestResult " +
             "WHERE (\n" +
             "fp.hospital_number ILIKE ?2\n" +
@@ -89,7 +89,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
                     ") " +
                     "AND NOT EXISTS ( " +
                     "    SELECT 1 FROM hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
-                    "    AND hc.archived IS FALSE AND patient_uuid = CAST(p.uuid AS UUID) " +
+                    "    AND hc.archived IS FALSE AND patient_uuid = p.uuid " +
                     ") " +
                     "AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
                     "AND (p.hospital_number ILIKE ?2 OR p.first_name ILIKE ?2 OR p.surname ILIKE ?2 OR p.other_name ILIKE ?2)",
@@ -126,7 +126,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "        AND EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = p.uuid AND ice.archived = 0)\n" +
             "    )\n" +
             "    AND NOT EXISTS (\n" +
-            "        SELECT 1 from hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest'  = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' AND hc.archived IS FALSE AND patient_uuid = CAST(p.uuid AS UUID)\n" +
+            "        SELECT 1 from hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest'  = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' AND hc.archived IS FALSE AND patient_uuid = p.uuid\n" +
             "    )\n" +
             "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0)\n" +
             "),\n" +
@@ -161,7 +161,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "LEFT JOIN (\n" +
             "    SELECT DISTINCT person_uuid, biometric_type FROM biometric WHERE archived = 0\n" +
             ") b ON b.person_uuid = fp.uuid\n" +
-            "LEFT JOIN htsResult hr ON hr.patient_uuid = CAST(fp.uuid AS UUID)\n" +
+            "LEFT JOIN htsResult hr ON hr.patient_uuid = fp.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = hr.hivTestResult\n" +
             "ORDER BY fp.id DESC\n"+
             "LIMIT ?2 OFFSET ?3",
@@ -325,4 +325,13 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
     Optional<HivEnrollment> findByUniqueIdAndArchivedAndPersonUuidNot(String uniqueId, Integer archived, String personUuid);
 
     Optional<HivEnrollment> findByUniqueIdAndArchived(String uniqueId, Integer archived);
+
+    @Query(value = "SELECT hc.date_of_visit " +
+            "FROM hts_encounter hc " +
+            "WHERE hc.patient_uuid = ?1 " +
+            "AND hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_POSITIVE' " +
+            "AND hc.archived IS FALSE " +
+            "ORDER BY hc.date_of_visit DESC " +
+            "LIMIT 1", nativeQuery = true)
+    Optional<java.time.LocalDate> getDateConfirmedHivByPersonUuid(String personUuid);
 }

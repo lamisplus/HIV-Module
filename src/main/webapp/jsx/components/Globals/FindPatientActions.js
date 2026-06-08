@@ -5,13 +5,15 @@ import { MdDashboard } from "react-icons/md";
 import { TiArrowForward } from "react-icons/ti";
 import { FaUserPlus, FaExchangeAlt } from "react-icons/fa";
 import { usePermissions } from "../../../hooks/usePermissions";
+import { useRoles } from "../../../hooks/useRoles";
 import TransferInForm from "../../revised-national-tool-forms/pages/TransferIn/Index";
 
 const FindPatientActions = memo(({ row }) => {
   const { hasiceform, hasenrollmentform , hivTestResult, transferIn} = row;
   const { hasPermission } = usePermissions();
+  const { hasRole } = useRoles();
   const history = useHistory();
-  const canEnroll = hasPermission("hiv_enrollment_register");
+  const isRDE = hasRole("RDE");
 
   // Check if patient has transfer-in record (transferIn object is not null)
   const hasTransferIn = transferIn !== null && transferIn !== undefined;
@@ -19,7 +21,7 @@ const FindPatientActions = memo(({ row }) => {
   const [showEnrollmentTypeModal, setShowEnrollmentTypeModal] = useState(false);
   const [showTransferFormModal, setShowTransferFormModal] = useState(false);
 
-  if (!canEnroll) return null;
+  if (!isRDE) return null;
 
   // 2. Logic: Determine patient enrollment status
   const isFullyEnrolled = hasiceform && hasenrollmentform; // Both ICE and Enrollment done

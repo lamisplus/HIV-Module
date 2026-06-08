@@ -506,6 +506,17 @@ const EnrollmentAndCommencementForm = (props) => {
     }
   }, [isCreateMode, props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage, commencement.clinical_stage_at_art_start]);
 
+  // ── Auto-populate Date Confirmed HIV Test from HTS Encounter ────────────
+  useEffect(() => {
+    if (isCreateMode && props.patientObj1?.dateConfirmedHiv && !registration.date_confirmed_hiv_test) {
+      const dateConfirmedHiv = moment(props.patientObj1.dateConfirmedHiv).format("YYYY-MM-DD");
+      setRegistration((prev) => ({
+        ...prev,
+        date_confirmed_hiv_test: dateConfirmedHiv
+      }));
+    }
+  }, [isCreateMode, props.patientObj1?.dateConfirmedHiv, registration.date_confirmed_hiv_test]);
+
   // ── Fetch Existing Data for Edit/View Mode ──────────────────────────────
   const fetchExistingData = async () => {
     setLoading(true);
@@ -1686,9 +1697,9 @@ const EnrollmentAndCommencementForm = (props) => {
                     })()
                   }
                   onChange={handleReg}
-                  disabled={isViewMode || registration.previousEnrollmentDate}
-                  readOnly={registration.previousEnrollmentDate}
-                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={isViewMode || registration.previousEnrollmentDate || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
+                  readOnly={registration.previousEnrollmentDate || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
+                  style={(isViewMode || registration.previousEnrollmentDate || (isCreateMode && props.patientObj1?.dateConfirmedHiv)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {errors.date_confirmed_hiv_test && (
                   <span className={classes.error}>
