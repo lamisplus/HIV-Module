@@ -332,8 +332,20 @@ public class HivPatientService {
             addAdherencePreparationInfo(adherencePreparation, hivPatientDto);
             processAndSetObservationStatus(person, hivPatientDto);
             // Fetch and set date confirmed HIV from HTS encounter
-            enrollmentRepository.getDateConfirmedHivByPersonUuid(person.getUuid())
-                    .ifPresent(hivPatientDto::setDateConfirmedHiv);
+            try {
+                enrollmentRepository.getDateConfirmedHivByPersonUuid(person.getUuid())
+                        .ifPresent(date -> {
+                            if (date instanceof java.time.LocalDate) {
+                                hivPatientDto.setDateConfirmedHiv((java.time.LocalDate) date);
+                            } else if (date instanceof java.sql.Date) {
+                                hivPatientDto.setDateConfirmedHiv(((java.sql.Date) date).toLocalDate());
+                            } else if (date != null) {
+                                log.warn("Unexpected date type for dateConfirmedHiv: {}", date.getClass().getName());
+                            }
+                        });
+            } catch (Exception e) {
+                log.warn("Could not set date confirmed HIV for person UUID: {}", person.getUuid(), e);
+            }
             return hivPatientDto;
         }
         return null;

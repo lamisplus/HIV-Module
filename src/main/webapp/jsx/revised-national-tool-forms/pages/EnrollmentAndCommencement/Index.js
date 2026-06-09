@@ -1043,6 +1043,46 @@ const EnrollmentAndCommencementForm = (props) => {
       return;
     }
 
+    // Auto-populate weight, height, and BMI from ICE form when visit_date matches
+    if (name === "visit_date" && value) {
+      const iceVisitDate = props.patientObj1?.initialClinicalEvaluation?.dateOfObservation;
+      const iceVitals = props.patientObj1?.initialClinicalEvaluation?.data?.vitals;
+
+      if (iceVisitDate && iceVitals && value === iceVisitDate) {
+        setCommencement((prev) => {
+          const updates = { ...prev, [name]: inputValue };
+
+          // Auto-populate weight if available and not already filled
+          if (iceVitals.weight && !prev.weight_kg) {
+            updates.weight_kg = String(iceVitals.weight);
+          }
+
+          // Auto-populate height if available and not already filled
+          if (iceVitals.height && !prev.height_cm) {
+            updates.height_cm = String(iceVitals.height);
+          }
+
+          // Calculate BMI using the auto-populated or existing values
+          const w = updates.weight_kg || prev.weight_kg;
+          const h = updates.height_cm || prev.height_cm;
+          updates.bmi = calcBmi(w, h);
+
+          // MUAC indication
+          const muacVal = prev.muac;
+          updates.muac_indication = calcMuacIndication(muacVal);
+
+          return updates;
+        });
+
+        if (errors[name]) {
+          const newErrors = { ...errors };
+          delete newErrors[name];
+          setErrors(newErrors);
+        }
+        return;
+      }
+    }
+
     // Handle dependent field clearing for pregnancy
     if (name === "is_pregnant" && value !== "No") {
       setCommencement((prev) => {

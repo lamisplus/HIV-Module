@@ -333,5 +333,5 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "AND hc.archived IS FALSE " +
             "ORDER BY hc.date_of_visit DESC " +
             "LIMIT 1", nativeQuery = true)
-    Optional<java.time.LocalDate> getDateConfirmedHivByPersonUuid(String personUuid);
+    Optional<Object> getDateConfirmedHivByPersonUuid(String personUuid);
 }

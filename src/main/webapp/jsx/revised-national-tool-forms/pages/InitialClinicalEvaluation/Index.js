@@ -1883,9 +1883,9 @@ const InitialClinicalEvaluationForm = (props) => {
     if (!visitDate) temp.visitDate = "Visit date is required";
     if (!tbAssessment.assessedForTb) temp.assessedForTb = "Patient Assessed for TB is required";
 
-    // Developmental Assessment is required for patients 18 years and below
-    if (patientAge <= 18) {
-      if (!tbAssessment.developmentalAssessment) temp.developmentalAssessment = "Developmental Assessment is required for patients 18 years and below";
+    // Developmental Assessment is required for patients 0-2 years (infants/toddlers)
+    if (patientAge >= 0 && patientAge <= 2) {
+      if (!tbAssessment.developmentalAssessment) temp.developmentalAssessment = "Developmental Assessment is required for patients 0-2 years";
     }
     // Validate symptom durations
     const durationErrors = {};
@@ -3815,7 +3815,7 @@ const InitialClinicalEvaluationForm = (props) => {
                   name="nextAppointment"
                   value={assessment.nextAppointment}
                   onChange={handleAssessment}
-                  min={isCreateMode ? moment(new Date()).format("YYYY-MM-DD") : undefined}
+                  min={visitDate || (isCreateMode ? moment(new Date()).format("YYYY-MM-DD") : undefined)}
                 />
                 {errors.nextAppointment && (
                   <span className={classes.error}>{errors.nextAppointment}</span>

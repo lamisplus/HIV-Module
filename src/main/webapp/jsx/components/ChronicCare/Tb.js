@@ -112,7 +112,7 @@ const TbScreening = (props) => {
     // BLOCK 1: If any visit has completion date is not null, do NOT auto-fill
     const hasCompletedTreatment = sorted.some(obs => {
       const screening = obs.data?.tbIptScreening;
-      return screening?.completionDate.trim() !== "";
+      return screening?.completionDate && screening.completionDate.trim() !== "";
     });
 
     if (hasCompletedTreatment) {
