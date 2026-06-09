@@ -11,6 +11,7 @@ import axios from "axios";
 import { toast} from "react-toastify";
 import { url as baseUrl } from "./../../../api";
 import { token as token } from "./../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-widgets/dist/css/react-widgets.css";
 import moment from "moment";
 import { Spinner } from "reactstrap";
@@ -80,16 +81,21 @@ const useStyles = makeStyles(theme => ({
       },
 }))
 
+const CODESET_KEYS = [
+  "GENERAL_FEELING",
+  "CALL_OUTCOME", 
+  "DO_YOU_HAVE_THE_FOLLOWING",
+];
+
 const Tracking = (props) => {
     const patientObj = props.patientObj;
+    const { getOptions } = useCodesets(CODESET_KEYS);
     const [errors, setErrors] = useState({});
     let temp = { ...errors }
     const [enrollDate, setEnrollDate] = useState("");
     const classes = useStyles()
     const [saving, setSaving] = useState(false);
     const [selected, setSelected] = useState([]);
-    const [optionsForSelection, setOptionsForSelection] = useState([]);
-    const [optionsForCallOutCome, setOptionsForCallOutCome] = useState([]);
     const [observation, setObservation]=useState({
         data: {},
         dateOfObservation: "",
@@ -111,9 +117,6 @@ const Tracking = (props) => {
     const [attemptList, setAttemptList] = useState([])  
     const [prepSideEffect, setPrepSideEffect] = useState([]);
     useEffect(() => {
-        GENERAL_FEELING();
-        CALL_OUTCOME();
-        PrepSideEffect();
         GetPatientDTOObj();
     }, []); 
     const GetPatientDTOObj =()=>{
@@ -132,48 +135,13 @@ const Tracking = (props) => {
            });
           
     } 
-    const GENERAL_FEELING =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/GENERAL_FEELING`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setOptionsForSelection(response.data);
-            })
-            .catch((error) => {
-            
-            });        
-    }
-    const CALL_OUTCOME =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/CALL_OUTCOME`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setOptionsForCallOutCome(response.data);
-            })
-            .catch((error) => {
-            
-            });        
-    }  
-    //Get list of PrepSideEffect
-    const PrepSideEffect =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/DO_YOU_HAVE_THE_FOLLOWING`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-
-                setPrepSideEffect(Object.entries(response.data).map(([key, value]) => ({
-                    label: value.display,
-                    value: value.display,
-                })));
-            })
-            .catch((error) => {
-            
-            });
-        
-    }     
+  
+    const getFormattedOptions = (codesetKey) => {
+        return getOptions(codesetKey).map(item => ({
+            label: item.display,
+            value: item.display,
+        }));
+    };     
     const handleInputChangeAttempt = e => {
         
         setErrors({...temp, [e.target.name]:""})
@@ -331,7 +299,7 @@ const Tracking = (props) => {
                                     
                                 >
                                     <option value="">Select</option> 
-                                    {optionsForSelection.map((value) => (
+                                    {getOptions("GENERAL_FEELING").map((value) => (
                                         <option key={value.code} value={value.display}>
                                             {value.display}
                                         </option>
@@ -348,7 +316,7 @@ const Tracking = (props) => {
                                 <Label >Do you have any of the following <span style={{ color:"red"}}> *</span></Label>
                                 <DualListBox
                                 //canFilter
-                                    options={prepSideEffect}
+                                    options={getFormattedOptions("DO_YOU_HAVE_THE_FOLLOWING")}
                                     onChange={onSelect}
                                     selected={selected}
                                 /> 
@@ -409,7 +377,7 @@ const Tracking = (props) => {
                                         value={attempt.callOutcome}  
                                     >
                                         <option value="">Select</option>
-                                        {optionsForCallOutCome.map((value) => (
+                                        {getOptions("CALL_OUTCOME").map((value) => (
                                         <option key={value.code} value={value.display}>
                                             {value.display}
                                         </option>

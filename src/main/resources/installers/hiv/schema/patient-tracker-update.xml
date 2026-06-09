@@ -18,6 +18,24 @@
         </sql>
     </changeSet>
 
+    <!-- Add new tracking fields -->
+    <changeSet failOnError="false" author="gboyeguntaiwo" id="20260301-add-tracking-fields">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_patient_tracker"/>
+        </preConditions>
+        <sql>
+            ALTER TABLE hiv_patient_tracker
+                ADD COLUMN IF NOT EXISTS art_start_date DATE,
+                ADD COLUMN IF NOT EXISTS current_arv_regimen VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS regimen_at_start_of_art VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS next_agreed_clinic_appointment_date DATE,
+                ADD COLUMN IF NOT EXISTS date_patient_returned DATE,
+                ADD COLUMN IF NOT EXISTS referred_for_specify VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS completed_by VARCHAR(255),
+                ADD COLUMN IF NOT EXISTS date DATE;
+        </sql>
+    </changeSet>
+
 
 </databaseChangeLog>
 

@@ -93,14 +93,12 @@ public class ArtPharmacyService {
 					Long count = artPharmacyRepository.getCountForAnAlreadyDispenseRegimen(person.getUuid(),
 							regimen.getRegimenId(),
 							visitDate);
-//					log.info("already exist: " + count);
 					if(count != null)
 						throw new RecordExistException(Regimen.class, "name", regimen.getRegimenName() + " is already dispensed on this " +
 							"date "+ visitDate);
 				}
 			});
 		}
-//		log.info("Checking completed");
 	}
 	
 	
@@ -214,7 +212,17 @@ public class ArtPharmacyService {
 		artPharmacy.setFacilityId(organizationUtil.getCurrentUserOrganization());
 		artPharmacy.setLatitude(dto.getLatitude());
 		artPharmacy.setLongitude(dto.getLongitude());
-		String sourceSupport = dto.getSource() == null || dto.getSource().isEmpty() ? Constants.WEB_SOURCE : Constants.MOBILE_SOURCE;
+		String sourceSupport;
+		String rawSource = dto.getSource();
+		if (rawSource == null || rawSource.isEmpty()) {
+			sourceSupport = Constants.WEB_SOURCE;
+		} else if (Constants.POC_SOURCE.equalsIgnoreCase(rawSource)) {
+			sourceSupport = Constants.POC_SOURCE;
+		} else if (rawSource.toLowerCase().contains("mobile")) {
+			sourceSupport = Constants.MOBILE_SOURCE;
+		} else {
+			sourceSupport = Constants.WEB_SOURCE;
+		}
 		artPharmacy.setSource(sourceSupport);
 		return artPharmacy;
 	}
@@ -247,8 +255,6 @@ public class ArtPharmacyService {
 					((ObjectNode) ipt).put("dateCompleted", dateCompleted);
 					artPharmacy1.setIpt(ipt);
 					artPharmacyRepository.save(artPharmacy1);
-					
-					
 				}
 				
 			}

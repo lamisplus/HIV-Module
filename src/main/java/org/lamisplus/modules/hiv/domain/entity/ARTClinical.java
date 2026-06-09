@@ -29,28 +29,32 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 
 	@Column(name = "visit_date")
 	private LocalDate visitDate;
-	
+
 	@Column(name = "cd_4")
 	private Long cd4;
-	
+
 	@Column(name = "cd_4_percentage")
 	private Long cd4Percentage;
-	
+
 	@Column(name = "is_commencement")
 	private Boolean isCommencement;
-	
+
 	@Column(name = "functional_status_id")
 	private Long functionalStatusId;
-	
+
 	private Long clinicalStageId;
-	
+
 	@Column(name = "clinical_note")
 	private String clinicalNote;
 	@Column(name = "uuid", nullable = false, unique = true, updatable = false)
 	private String uuid;
 	@ManyToOne
-	@JoinColumn(name = "hiv_enrollment_uuid", referencedColumnName = "uuid", nullable = false)
+	@JoinColumn(name = "hiv_enrollment_uuid", referencedColumnName = "uuid", nullable = true)
 	private HivEnrollment hivEnrollment;
+
+	@ManyToOne
+	@JoinColumn(name = "enrollment_commencement_uuid", referencedColumnName = "uuid", nullable = false)
+	private EnrollmentCommencement enrollmentCommencement;
 	private long regimenId;
 	private long regimenTypeId;
 	@Column(name = "art_status_id", nullable = false, updatable = false)
@@ -69,7 +73,7 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	@JoinColumn(name = "person_uuid", referencedColumnName = "uuid", nullable = false)
 	private Person person;
 	@ManyToOne
-	@JoinColumn(name = "visit_id", referencedColumnName = "uuid", nullable = false)
+	@JoinColumn(name = "visit_id", referencedColumnName = "uuid", nullable = true)
 	private Visit visit;
 	@Size(max = 5)
 	@Column(name = "oi_screened")
@@ -77,47 +81,47 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	@Size(max = 50)
 	@Column(name = "sti_ids")
 	private String stiIds;
-	
+
 	@Size(max = 5)
 	@Column(name = "sti_treated")
 	private String stiTreated;
-	
+
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "opportunistic_infections")
 	JsonNode opportunisticInfections;
-	
+
 	@Size(max = 5)
 	@Column(name = "adr_screened")
 	private String adrScreened;
-	
+
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "adverse_drug_reactions")
 	JsonNode adverseDrugReactions;
-	
+
 	@Size(max = 15)
 	@Column(name = "adherence_level")
 	private String adherenceLevel;
-	
+
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "adheres")
 	JsonNode adheres;
-	
+
 	@Column(name = "next_appointment")
 	private LocalDate nextAppointment;
-	
+
 	@Column(name = "lmp_date")
 	private LocalDate lmpDate;
-	
+
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb", name = "tb_screen")
 	private JsonNode tbScreen;
-	
+
 	@Column(name = "is_viral_load_at_start_of_art")
 	private Boolean isViralLoadAtStartOfArt;
-	
+
 	@Column(name = "viral_load_at_start_of_art")
 	private Double viralLoadAtStartOfArt;
-	
+
 	@Column(name = "date_of_viral_load_at_start_of_art")
 	private LocalDate dateOfViralLoadAtStartOfArt;
 	private String cryptococcalScreeningStatus;
@@ -128,12 +132,13 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	private String onFamilyPlaning;
 	private String levelOfAdherence;
 	private String tbStatus;
+	private String tbStatusConfirmed;
 	private String tbPrevention;
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "arvdrugs_regimen")
 	private JsonNode aRVDrugsRegimen;
 	@Type(type = "jsonb")
-	@Column(columnDefinition = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "viral_load_order")
 	private JsonNode viralLoadOrder;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
@@ -150,10 +155,78 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	private String  cd4Type;
 	@Column(name = "reason")
 	private String reason;
+
+	// Care Card Follow-Up specific fields
+	@Column(name = "duration_on_art_months")
+	private Integer durationOnArtMonths;
+
+	@Column(name = "clinician_name")
+	private String clinicianName;
+
+	@Column(name = "bmi_muac")
+	private Double bmiMuac;
+
+	@Column(name = "paediatric_disclosure")
+	private String paediatricDisclosure;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "who_stage_criteria")
+	private JsonNode whoStageCriteria;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "noted_side_effect")
+	private JsonNode notedSideEffect;
+
+	@Column(name = "dsd_status")
+	private String dsdStatus;
+
+	@Column(name = "dsd_model")
+	private String dsdModel;
+
+	@Column(name = "date_devolved")
+	private LocalDate dateDevolved;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "cotrimoxazole_dose")
+	private JsonNode cotrimoxazoleDose;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "tpt_data")
+	private JsonNode tptData;
+
+	@Column(name = "other_drugs")
+	private String otherDrugs;
+
+	@Column(name = "cd4_ordered")
+	private Boolean cd4Ordered;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "cd4_data")
+	private JsonNode cd4Data;
+
+	@Column(name = "viral_load_ordered")
+	private Boolean viralLoadOrdered;
+
+	@Column(name = "eac")
+	private String eac;
+
+	@Column(name = "rbs")
+	private Double rbs;
+
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb", name = "other_tests_done")
+	private JsonNode otherTestsDone;
+
+	@Column(name = "type_of_appointment")
+	private String typeOfAppointment;
+
+	@Column(name = "health_insurance_coverage")
+	private String healthInsuranceCoverage;
+
 	@Override
 	public boolean isNew() {
 		return id == null;
 	}
-	
-	
+
+
 }

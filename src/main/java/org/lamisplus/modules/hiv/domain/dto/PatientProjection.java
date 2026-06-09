@@ -26,6 +26,8 @@ public interface PatientProjection {
 	LocalDate getDateOfBirth();
 	LocalDate getDateOfRegistration();
 	String getStatus();
-	
-	
+	Boolean getHasiceform();
+	Boolean getHasenrollmentform();
+	String getHivTestResult();
+	LocalDate getDateConfirmedHiv();
 }

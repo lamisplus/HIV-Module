@@ -10,6 +10,7 @@ import { url as baseUrl,token } from "./../../../../api";
 import axios from "axios";
 import moment from "moment";
 import { toast } from "react-toastify";
+import useCodesets from "../../../../hooks/useCodesets";
 
 const useStyles = makeStyles(theme => ({
   error: {
@@ -22,29 +23,31 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+const CODESET_KEYS = ["PREP_SIDE_EFFECTS"];
 const ADR = (props) => {
+   const { getOptions } = useCodesets(CODESET_KEYS);
   const [errors, setErrors] = useState({});
   const classes = useStyles()
   let temp = { ...errors }
   const [prepSideEffect, setPrepSideEffect] = useState([]);
 
-  useEffect(() => {
-    PrepSideEffect();
-  }, []);
+  // useEffect(() => {
+  //   PrepSideEffect();
+  // }, []);
     //Get list of PrepSideEffect
-    const PrepSideEffect =()=>{
-    axios
-        .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
-            { headers: {"Authorization" : `Bearer ${token}`} }
-        )
-        .then((response) => {
+    // const PrepSideEffect =()=>{
+    // axios
+    //     .get(`${baseUrl}application-codesets/v2/PREP_SIDE_EFFECTS`,
+    //         { headers: {"Authorization" : `Bearer ${token}`} }
+    //     )
+    //     .then((response) => {
             
-            setPrepSideEffect(response.data);
-        })
-        .catch((error) => {
-        });
+    //         setPrepSideEffect(response.data);
+    //     })
+    //     .catch((error) => {
+    //     });
     
-    }
+    // }
   const handAdrleInputChange = e => {
     props.setAdrObj ({...props.adrObj,  [e.target.name]: e.target.value});
   }
@@ -77,86 +80,92 @@ const ADR = (props) => {
     <div>
       <div className="row">
         <div className="form-group mb-3 col-md-5">
-            <FormGroup>
-            <Label >ADR </Label>
+          <FormGroup>
+            <Label>ADR </Label>
             <Input
-                type="select"
-                name="adr"
-                id="adr"
-                value={props.adrObj.adr}
-                onChange={handAdrleInputChange}
-                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                required
-                >
-                  <option value=""> Select</option>
-                    {prepSideEffect.map((value) => (
-                        <option key={value.id} value={value.display}>
-                            {value.display}
-                        </option>
-                    ))}
+              type="select"
+              name="adr"
+              id="adr"
+              value={props.adrObj.adr}
+              onChange={handAdrleInputChange}
+              style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+              required
+            >
+              <option value=""> Select</option>
+              {getOptions("PREP_SIDE_EFFECTS").map((value) => (
+                <option key={value.id} value={value.display}>
+                  {value.display}
+                </option>
+              ))}
             </Input>
-            {errors.adr !=="" ? (
-                <span className={classes.error}>{errors.adr}</span>
-            ) : "" }
-            </FormGroup>
+            {errors.adr !== "" ? (
+              <span className={classes.error}>{errors.adr}</span>
+            ) : (
+              ""
+            )}
+          </FormGroup>
         </div>
-        <div className="form-group mb-3 col-md-5">        
-        <FormGroup>
-            <Label > Onset Date</Label>
+        <div className="form-group mb-3 col-md-5">
+          <FormGroup>
+            <Label> Onset Date</Label>
             <Input
-                type="date"
-                name="adrOnsetDate"
-                id="adrOnsetDate"
-                value={props.adrObj.adrOnsetDate}
-                onChange={handAdrleInputChange}
-                min={props.artStartDate}
-                style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}
-                max= {props.encounterDate}
-                required
-                > 
-            </Input>
-            {errors.adrOnsetDate !=="" ? (
-                <span className={classes.error}>{errors.adrOnsetDate}</span>
-            ) : "" }
-            </FormGroup>
+              type="date"
+              name="adrOnsetDate"
+              id="adrOnsetDate"
+              value={props.adrObj.adrOnsetDate}
+              onChange={handAdrleInputChange}
+              min={props.artStartDate}
+              style={{ border: "1px solid #014D88", borderRadius: "0.25rem" }}
+              max={props.encounterDate}
+              required
+            ></Input>
+            {errors.adrOnsetDate !== "" ? (
+              <span className={classes.error}>{errors.adrOnsetDate}</span>
+            ) : (
+              ""
+            )}
+          </FormGroup>
         </div>
-        
+
         <div className="form-group mb-3 col-md-2">
-        <LabelSui as='a' color='black'  onClick={addADR}  size='tiny' style={{ marginTop:35}}>
-            <Icon name='plus' /> Add
-        </LabelSui>
+          <LabelSui
+            as="a"
+            color="black"
+            onClick={addADR}
+            size="tiny"
+            style={{ marginTop: 35 }}
+          >
+            <Icon name="plus" /> Add
+          </LabelSui>
         </div>
 
-        {props.adrList.length >0 
-          ?
-            <List>
-            <Table  striped responsive>
-                  <thead >
-                      <tr>
-                          <th>ADR</th>
-                          <th>OnSetDate</th>
-                          <th ></th>
-                      </tr>
-                  </thead>
-                  <tbody>
+        {props.adrList.length > 0 ? (
+          <List>
+            <Table striped responsive>
+              <thead>
+                <tr>
+                  <th>ADR</th>
+                  <th>OnSetDate</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
                 {props.adrList.map((relative, index) => (
-
                   <RelativeList
-                      key={index}
-                      index={index}
-                      relative={relative}
-                      removeRelativeLocation={removeRelativeLocation}
+                    key={index}
+                    index={index}
+                    relative={relative}
+                    removeRelativeLocation={removeRelativeLocation}
                   />
-                  ))}
-                  </tbody>
-                  </Table>
-            </List>
-            :
-            ""
-        }       
+                ))}
+              </tbody>
+            </Table>
+          </List>
+        ) : (
+          ""
+        )}
       </div>
     </div>
-     
   );
 };
 

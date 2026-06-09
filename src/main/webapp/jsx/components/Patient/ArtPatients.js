@@ -159,8 +159,8 @@ const Patients = (props) => {
                         <>
                           <Link
                             to={{
-                              pathname: "/enroll-patient",
-                              state: { patientId: row.id, patientObj: row },
+                              pathname: "/patient-history",
+                              state: { patientObj: row, enrollmentFlow: true },
                             }}
                             title={"Enroll Patient"}
                           >
@@ -188,7 +188,7 @@ const Patients = (props) => {
                                 style={{
                                   backgroundColor: "rgb(153, 46, 98)",
                                   height: "30px",
-                                  width: "215px",
+                                  // width: "215px",
                                 }}
                                 size="large"
                               >
@@ -206,6 +206,9 @@ const Patients = (props) => {
                                 <Button
                                   style={{
                                     backgroundColor: "rgb(153, 46, 98)",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
                                   }}
                                 >
                                   <span
@@ -225,8 +228,8 @@ const Patients = (props) => {
                           <>
                             <Link
                               to={{
-                                pathname: "/enroll-patient",
-                                state: { patientId: row.id, patientObj: row },
+                                pathname: "/patient-history",
+                                state: { patientObj: row, enrollmentFlow: true },
                               }}
                             >
                               <ButtonGroup

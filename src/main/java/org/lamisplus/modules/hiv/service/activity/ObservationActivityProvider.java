@@ -24,6 +24,7 @@ public class ObservationActivityProvider implements PatientActivityProvider {
     public List<PatientActivity> getActivitiesFor(Person person) {
         List<Observation> observations = observationRepository.getAllByPersonAndArchived (person, 0);
         return observations.stream ()
+                .filter(observation -> !"Clinical evaluation".equalsIgnoreCase(observation.getType()))
                 .map (observation -> {
                     String type = observation.getType ();
                     String path = type.replace(" ", "-");

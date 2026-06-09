@@ -151,8 +151,6 @@ const DsdServiceForm = (props) => {
     const [payload, setPayLoad] = useState(payLoadObject);
     const [patientDsdRecords, setPatientDsdRecords] = useState([]);
 
-    console.log("payload", payload)
-
     useEffect(() => {
         if (props.activeContent.id) {
             axios
@@ -466,7 +464,6 @@ const DsdServiceForm = (props) => {
             // temp.serviceProvided = selectedServiceProvided.length !== 0 ? "" : "This field is required.";
         }
         setErrors({...temp});
-        console.log("error", temp)
         return Object.values(temp).every((x) => x === "");
     };
 

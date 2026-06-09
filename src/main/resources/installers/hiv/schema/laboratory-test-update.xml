@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20260127-001" author="gboyeguntaiwo" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+                FROM laboratory_test
+                WHERE lab_test_id IN (71, 73);
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE laboratory_test
+            SET lab_test_id = 51
+            WHERE lab_test_id IN (71, 73);
+
+            DELETE FROM laboratory_labtest
+            WHERE id IN (71, 73, 78);
+        </sql>
+        <rollback>
+            -- Note: Rollback may not be possible if records were permanently deleted
+            -- Manual intervention may be required to restore original lab_test_id values
+        </rollback>
+    </changeSet>
+
+    <changeSet id="20260326-001" author="gboyeguntaiwo" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM laboratory_labtest
+                WHERE lab_test_name = 'TB LAMP';
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO public.laboratory_labtest(
+                id,
+                uuid,
+                lab_test_name,
+                unit,
+                labtestgroup_id,
+                created_by,
+                date_created,
+                modified_by,
+                date_modified,
+                archived
+            )
+            SELECT
+                73,
+                '4009e658-869a-452b-94af-609dcc6b4afc',
+                'TB LAMP',
+                '+/-',
+                5,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM laboratory_labtest
+                WHERE lab_test_name = 'TB LAMP'
+                LIMIT 1
+            );
+        </sql>
+        <rollback>
+            DELETE FROM laboratory_labtest WHERE lab_test_name = 'TB LAMP' AND id = 73;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

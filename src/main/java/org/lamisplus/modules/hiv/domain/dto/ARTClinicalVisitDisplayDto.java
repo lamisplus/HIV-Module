@@ -32,6 +32,7 @@ public class ARTClinicalVisitDisplayDto implements Serializable {
 	private Long cd4Percentage;
 	private Boolean isCommencement;
 	private Long functionalStatusId;
+	private String functionalStatus;
 	private String clinicalNote;
 	private String uuid;
 	private Long hivEnrollmentId;
@@ -74,16 +75,55 @@ public class ARTClinicalVisitDisplayDto implements Serializable {
 	private String onFamilyPlaning;
 	private String levelOfAdherence;
 	private String tbStatus;
+	private String tbStatusConfirmed;
 	private String tbPrevention;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
+	@com.fasterxml.jackson.annotation.JsonProperty("aRVDrugsRegimen")
 	private JsonNode aRVDrugsRegimen;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
+	@com.fasterxml.jackson.annotation.JsonProperty("viralLoadOrder")
 	private JsonNode viralLoadOrder;
 	@Type(type = "jsonb")
 	@Column(columnDefinition = "jsonb")
 	private JsonNode extra;
 	private String  pregnancyStatus;
-	
+
+	// Care Card Follow-Up specific fields
+	private Integer durationOnArtMonths;
+	private String clinicianName;
+	private Double bmiMuac;
+	private String paediatricDisclosure;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode whoStageCriteria;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode sideEffects;
+	private String dsdStatus;
+	private String dsdModel;
+	@Convert(converter = LocalDateConverter.class)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	private LocalDate dateDevolved;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode cotrimoxazoleDose;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode tptData;
+	private String otherDrugs;
+	private Boolean cd4Ordered;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode cd4Data;
+	private Boolean viralLoadOrdered;
+	private String eac;
+	private Double rbs;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private JsonNode otherTestsDone;
+	private String typeOfAppointment;
+	private String healthInsuranceCoverage;
+
 }

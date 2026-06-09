@@ -1,0 +1,959 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+    <!-- Create hiv_enrollment_commencement table                                -->
+    <changeSet id="20250219-ec-01" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="hiv_enrollment_commencement"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="hiv_enrollment_commencement">
+            <!-- ── Infrastructure ────────────────────────────────────────── -->
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="uuid" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="unique_id" type="VARCHAR(100)"/>
+            <column name="facility_id" type="BIGINT"/>
+            <column name="person_uuid" type="VARCHAR(255)">
+                <constraints nullable="false"
+                             foreignKeyName="fk_ec_person_uuid"
+                             references="patient_person(uuid)"/>
+            </column>
+            <column name="visit_id" type="VARCHAR(255)">
+                <constraints nullable="false"
+                             foreignKeyName="fk_ec_visit"
+                             references="patient_visit(uuid)"/>
+            </column>
+            <column name="vital_sign_uuid" type="VARCHAR(255)">
+                <constraints foreignKeyName="fk_ec_vital_sign"
+                             references="triage_vital_sign(uuid)"/>
+            </column>
+            <column name="is_commencement" type="BOOLEAN" defaultValueBoolean="true"/>
+            <column name="art_status_id" type="BIGINT"/>
+            <column name="status_at_registration_id" type="BIGINT"/>
+            <column name="source" type="VARCHAR(255)"/>
+            <column name="latitude" type="VARCHAR(255)"/>
+            <column name="longitude" type="VARCHAR(255)"/>
+            <column name="archived" type="INTEGER" defaultValueNumeric="0"/>
+            <!-- ── Audit ──────────────────────────────────────────────────── -->
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <!-- ── Registration — HIV Care & Identification ───────────────── -->
+            <column name="date_enrolled_in_hiv_care" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_confirmed_hiv_test" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hiv_test_location" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mode_of_hiv_test_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="care_entry_point_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="care_entry_point_other" type="VARCHAR(255)"/>
+            <!-- mother_unique_id: Required ONLY if age < 18 months (infant) - validated in backend -->
+            <column name="mother_unique_id" type="VARCHAR(100)"/>
+            <!-- ── Registration — Prior ART & KP ─────────────────────────── -->
+            <column name="prior_art_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_kp" type="BOOLEAN" defaultValueBoolean="false"/>
+            <!-- kp_typology_id: Required ONLY if is_kp = TRUE - validated in backend -->
+            <column name="kp_typology_id" type="VARCHAR(255)"/>
+
+            <!-- ── Registration — Transfer Details ───────────────────────── -->
+            <!-- date_transferred_in: Required ONLY if care_entry_point = "Transfer In" - validated in backend -->
+            <!-- facility_transferred_from: Required ONLY if date_transferred_in is provided - validated in backend -->
+            <column name="date_transferred_in" type="DATE"/>
+            <column name="facility_transferred_from" type="VARCHAR(255)"/>
+
+            <!-- ── Commencement — Clinical Status ─────────────────────────── -->
+            <column name="clinical_stage_id" type="VARCHAR(255)"/>
+            <column name="cd4_at_art_start" type="BIGINT"/>
+            <column name="cd4_percentage" type="DOUBLE"/>
+            <column name="cd4_lf_id" type="VARCHAR(255)"/>
+
+            <!-- ── Commencement — ART Dates & Regimen ─────────────────────── -->
+            <column name="date_adherence_counseling_completed" type="DATE"/>
+            <column name="date_art_started" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="regimen_line_id" type="VARCHAR(255)"/>
+            <column name="regimen_id" type="VARCHAR(255)"/>
+
+            <!-- ── Commencement — Vitals ──────────────────────────────────── -->
+            <column name="weight_kg" type="DOUBLE"/>
+            <column name="height_cm" type="DOUBLE"/>
+            <column name="bmi" type="DOUBLE"/>
+            <column name="muac" type="DOUBLE"/>
+            <column name="muac_indication" type="VARCHAR(50)"/>
+            <column name="is_pregnant" type="BOOLEAN"/>
+            <column name="pregnancy_status" type="VARCHAR(50)"/>
+
+            <!-- ── Commencement — TB Preventive Therapy ───────────────────── -->
+            <column name="tpt_medication" type="BIGINT"/>
+            <column name="tpt_dose" type="VARCHAR(100)"/>
+            <column name="tpt_start_date" type="DATE"/>
+            <column name="tpt_completed" type="VARCHAR(50)"/>
+            <column name="tpt_completion_date" type="DATE"/>
+
+        </createTable>
+    </changeSet>
+
+    <!-- Indexes                                                                -->
+    <changeSet id="20250219-ec-02" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <createIndex indexName="idx_ec_person_uuid"
+                     tableName="hiv_enrollment_commencement">
+            <column name="person_uuid"/>
+            <column name="archived"/>
+        </createIndex>
+
+        <createIndex indexName="idx_ec_unique_id"
+                     tableName="hiv_enrollment_commencement">
+            <column name="unique_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_ec_mother_unique_id"
+                     tableName="hiv_enrollment_commencement">
+            <column name="mother_unique_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Unique constraint to ensure one active record per person               -->
+    <changeSet id="20250220-ec-03" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <not>
+                <indexExists tableName="hiv_enrollment_commencement" indexName="uk_ec_person_active"/>
+            </not>
+        </preConditions>
+
+        <sql>
+            CREATE UNIQUE INDEX uk_ec_person_active
+            ON hiv_enrollment_commencement (person_uuid)
+            WHERE archived = 0;
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS uk_ec_person_active;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Add enrollment_commencement_uuid column to hiv_art_clinical table     -->
+    <changeSet id="20250330-ec-04" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+            <not>
+                <columnExists tableName="hiv_art_clinical" columnName="enrollment_commencement_uuid"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="hiv_art_clinical">
+            <column name="enrollment_commencement_uuid" type="VARCHAR(255)">
+                <constraints nullable="true"
+                             foreignKeyName="fk_art_clinical_enrollment_commencement"
+                             references="hiv_enrollment_commencement(uuid)"/>
+            </column>
+        </addColumn>
+
+        <createIndex indexName="idx_art_clinical_enrollment_commencement"
+                     tableName="hiv_art_clinical">
+            <column name="enrollment_commencement_uuid"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Make hiv_art_clinical columns nullable for backward compatibility     -->
+    <changeSet id="20250330-ec-05" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+        </preConditions>
+
+        <!-- Make hiv_enrollment_uuid nullable (new records use enrollment_commencement_uuid instead) -->
+        <dropNotNullConstraint tableName="hiv_art_clinical"
+                               columnName="hiv_enrollment_uuid"
+                               columnDataType="VARCHAR(255)"/>
+
+        <!-- Make visit_id nullable (can be null if visit creation fails) -->
+        <dropNotNullConstraint tableName="hiv_art_clinical"
+                               columnName="visit_id"
+                               columnDataType="VARCHAR(255)"/>
+    </changeSet>
+
+    <!-- Add visit_date column to hiv_enrollment_commencement table          -->
+    <changeSet id="20250401-ec-06" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <not>
+                <columnExists tableName="hiv_enrollment_commencement" columnName="visit_date"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="hiv_enrollment_commencement">
+            <column name="visit_date" type="DATE">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <rollback>
+            <dropColumn tableName="hiv_enrollment_commencement" columnName="visit_date"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Create hiv_initial_clinical_evaluation table                         -->
+    <changeSet id="20250401-ice-01" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="hiv_initial_clinical_evaluation">
+            <!-- ── Primary key and audit fields ────────────────────────────── -->
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(255)"/>
+
+            <!-- ── Core identification fields ──────────────────────────────── -->
+            <column name="facility_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_hiv_ice_facility"
+                             references="base_organisation_unit(id)"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_hiv_ice_person"
+                             references="patient_person(id)"/>
+            </column>
+            <column name="visit_id" type="BIGINT">
+                <constraints foreignKeyName="fk_hiv_ice_visit"
+                             references="patient_visit(id)"/>
+            </column>
+            <column name="uuid" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="archived" type="INTEGER" defaultValueNumeric="0"/>
+
+            <!-- ── Basic ICE fields ────────────────────────────────────────── -->
+            <column name="visit_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="clinician_name" type="VARCHAR(255)"/>
+
+            <!-- ── Regimen fields (structured columns) ───── -->
+            <column name="regimen_line_id" type="VARCHAR(255)"/>
+            <column name="regimen_id" type="VARCHAR(255)"/>
+
+            <!-- ── WHO Staging ──────────────────────────────────────────────── -->
+            <column name="who_stage_id" type="BIGINT">
+                <constraints foreignKeyName="fk_hiv_ice_who_stage"
+                             references="base_application_codeset(id)"/>
+            </column>
+
+            <!-- ── Complex nested data stored as JSONB ─────────────────────── -->
+            <column name="symptoms" type="JSONB"/>
+            <column name="other_symptom" type="VARCHAR(500)"/>
+            <column name="tb_assessment" type="JSONB"/>
+            <column name="known_drug_allergies" type="JSONB"/>
+            <column name="pregnancy" type="JSONB"/>
+            <column name="current_medications" type="JSONB"/>
+            <column name="disclosure" type="JSONB"/>
+            <column name="disclosure_other_text" type="VARCHAR(500)"/>
+            <column name="arv_side_effects" type="JSONB"/>
+            <column name="arv_history" type="JSONB"/>
+            <column name="vitals" type="JSONB"/>
+            <column name="physical_exam" type="JSONB"/>
+            <column name="assessment" type="JSONB"/>
+            <column name="next_appointment" type="DATE"/>
+
+            <!-- ── Geolocation and metadata ────────────────────────────────── -->
+            <column name="source" type="VARCHAR(255)"/>
+            <column name="latitude" type="VARCHAR(255)"/>
+            <column name="longitude" type="VARCHAR(255)"/>
+            <column name="comment" type="TEXT"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Create indexes for hiv_initial_clinical_evaluation                   -->
+    <changeSet id="20250401-ice-02" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+        </preConditions>
+
+        <createIndex indexName="idx_hiv_ice_person"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="person_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_facility"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="facility_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_archived"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="archived"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_visit_date"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="visit_date"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_regimen_line"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="regimen_line_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_regimen"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="regimen_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_ice_uuid"
+                     tableName="hiv_initial_clinical_evaluation">
+            <column name="uuid"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Unique constraint to ensure one ICE record per person per facility   -->
+    <changeSet id="20250401-ice-03" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            <not>
+                <indexExists tableName="hiv_initial_clinical_evaluation" indexName="uk_ice_person_facility_active"/>
+            </not>
+        </preConditions>
+
+        <sql>
+            CREATE UNIQUE INDEX uk_ice_person_facility_active
+            ON hiv_initial_clinical_evaluation (person_id, facility_id)
+            WHERE archived = 0;
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS uk_ice_person_facility_active;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Add person_uuid column to hiv_initial_clinical_evaluation table      -->
+    <changeSet id="20260402-ice-04" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            <not>
+                <columnExists tableName="hiv_initial_clinical_evaluation" columnName="person_uuid"/>
+            </not>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Add person_uuid column to hiv_initial_clinical_evaluation table
+            ALTER TABLE hiv_initial_clinical_evaluation ADD COLUMN IF NOT EXISTS person_uuid VARCHAR(255);
+
+            -- Populate person_uuid from person table based on person_id
+            UPDATE hiv_initial_clinical_evaluation ice
+            SET person_uuid = p.uuid
+            FROM patient_person p
+            WHERE ice.person_id = p.id
+            AND ice.person_uuid IS NULL;
+
+            -- Add index for better query performance
+            CREATE INDEX IF NOT EXISTS idx_ice_person_uuid ON hiv_initial_clinical_evaluation(person_uuid);
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_initial_clinical_evaluation.person_uuid IS 'Person UUID from patient_person table';
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS idx_ice_person_uuid;
+                ALTER TABLE hiv_initial_clinical_evaluation DROP COLUMN IF EXISTS person_uuid;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="20260404-combined-updates-01" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <addColumn tableName="hiv_initial_clinical_evaluation">
+            <column name="transfer_in" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <dropColumn tableName="hiv_enrollment_commencement" columnName="art_status_id"/>
+
+        <rollback>
+            <dropColumn tableName="hiv_initial_clinical_evaluation" columnName="transfer_in"/>
+            <addColumn tableName="hiv_enrollment_commencement">
+                <column name="art_status_id" type="BIGINT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <!-- Create hiv_patient_transfer_in table                                    -->
+    <changeSet id="20260407-transfer-in-01" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="hiv_patient_transfer_in"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="hiv_patient_transfer_in">
+            <!-- ── Primary key and audit fields ────────────────────────────── -->
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(255)"/>
+
+            <!-- ── Core identification fields ──────────────────────────────── -->
+            <column name="facility_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_hiv_transfer_in_facility"
+                             references="base_organisation_unit(id)"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_hiv_transfer_in_person"
+                             references="patient_person(id)"/>
+            </column>
+            <column name="person_uuid" type="VARCHAR(255)"/>
+            <column name="uuid" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="archived" type="INTEGER" defaultValueNumeric="0"/>
+
+            <!-- ── Transfer-In specific fields ─────────────────────────────── -->
+            <column name="patient_came_with_transfer_form" type="VARCHAR(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="patient_attended_first_visit" type="VARCHAR(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="received_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_of_visit" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="clinician_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="telephone_number" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Create indexes for hiv_patient_transfer_in                              -->
+    <changeSet id="20260407-transfer-in-02" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_patient_transfer_in"/>
+        </preConditions>
+
+        <createIndex indexName="idx_hiv_transfer_in_person"
+                     tableName="hiv_patient_transfer_in">
+            <column name="person_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_transfer_in_facility"
+                     tableName="hiv_patient_transfer_in">
+            <column name="facility_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_transfer_in_archived"
+                     tableName="hiv_patient_transfer_in">
+            <column name="archived"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_transfer_in_received_date"
+                     tableName="hiv_patient_transfer_in">
+            <column name="received_date"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_transfer_in_uuid"
+                     tableName="hiv_patient_transfer_in">
+            <column name="uuid"/>
+        </createIndex>
+
+        <createIndex indexName="idx_hiv_transfer_in_person_uuid"
+                     tableName="hiv_patient_transfer_in">
+            <column name="person_uuid"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Unique constraint to ensure one active transfer-in record per person    -->
+    <changeSet id="20260407-transfer-in-03" author="taiwo-dev" failOnError="true">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_patient_transfer_in"/>
+            <not>
+                <indexExists tableName="hiv_patient_transfer_in" indexName="uk_transfer_in_person_facility_active"/>
+            </not>
+        </preConditions>
+
+        <sql>
+            CREATE UNIQUE INDEX uk_transfer_in_person_facility_active
+            ON hiv_patient_transfer_in (person_id, facility_id)
+            WHERE archived = 0;
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS uk_transfer_in_person_facility_active;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Convert noted_side_effect from TEXT to JSONB for multi-select support -->
+    <changeSet id="20260417-art-clinical-01" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+            <columnExists tableName="hiv_art_clinical" columnName="noted_side_effect"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- First, backup any existing text data by converting to JSON array
+            -- If the column has text data, wrap it in a JSON array with a single element
+            UPDATE hiv_art_clinical
+            SET noted_side_effect = CASE
+                WHEN noted_side_effect IS NOT NULL AND noted_side_effect != '' AND noted_side_effect !~ '^\[.*\]$'
+                THEN ('["' || noted_side_effect || '"]')::text
+                ELSE noted_side_effect
+            END
+            WHERE noted_side_effect IS NOT NULL AND noted_side_effect != '';
+
+            -- Change column type from TEXT to JSONB
+            ALTER TABLE hiv_art_clinical
+            ALTER COLUMN noted_side_effect TYPE JSONB USING noted_side_effect::jsonb;
+
+            -- Create GIN index for better JSONB query performance
+            CREATE INDEX IF NOT EXISTS idx_art_clinical_noted_side_effect
+            ON hiv_art_clinical USING GIN(noted_side_effect)
+            WHERE noted_side_effect IS NOT NULL;
+
+            -- Update comment
+            COMMENT ON COLUMN hiv_art_clinical.noted_side_effect IS 'JSON array of side effect codes from PREP_SIDE_EFFECTS codeset';
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS idx_art_clinical_noted_side_effect;
+                ALTER TABLE hiv_art_clinical ALTER COLUMN noted_side_effect TYPE TEXT;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Add tb_status_confirmed column to hiv_art_clinical table -->
+    <changeSet id="20260417-art-clinical-02" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+            <not>
+                <columnExists tableName="hiv_art_clinical" columnName="tb_status_confirmed"/>
+            </not>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Add tb_status_confirmed column
+            ALTER TABLE hiv_art_clinical ADD COLUMN IF NOT EXISTS tb_status_confirmed VARCHAR(255);
+
+            -- Create index for filtering
+            CREATE INDEX IF NOT EXISTS idx_art_clinical_tb_status_confirmed
+            ON hiv_art_clinical(tb_status_confirmed)
+            WHERE tb_status_confirmed IS NOT NULL;
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_art_clinical.tb_status_confirmed IS 'Confirmed TB status - shown conditionally when TB Status is "Currently on TB Treatment"';
+        </sql>
+
+        <rollback>
+            <sql>
+                DROP INDEX IF EXISTS idx_art_clinical_tb_status_confirmed;
+                ALTER TABLE hiv_art_clinical DROP COLUMN IF EXISTS tb_status_confirmed;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Fix noted_side_effect data migration - convert remaining text to JSONB arrays -->
+    <changeSet id="20260417-art-clinical-03" author="taiwo-dev" failOnError="false">
+        <validCheckSum>8:8b259cb77672326c6467e406d513fb80</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_art_clinical"/>
+            <columnExists tableName="hiv_art_clinical" columnName="noted_side_effect"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Clean up any records that still have invalid JSONB values
+            -- This handles cases where the column type was changed but data wasn't properly migrated
+
+            -- Set all non-JSONB values to NULL (they will be re-entered through the new UI)
+            UPDATE hiv_art_clinical
+            SET noted_side_effect = NULL
+            WHERE noted_side_effect IS NOT NULL
+            AND NOT (
+                -- Check if it's valid JSONB
+                (noted_side_effect::text ~ '^\s*\[.*\]\s*$' OR noted_side_effect::text ~ '^\s*\{.*\}\s*$')
+                AND noted_side_effect::text::jsonb IS NOT NULL
+            );
+
+            -- Add comment about the cleanup
+            COMMENT ON COLUMN hiv_art_clinical.noted_side_effect IS 'JSON array of side effect codes from PREP_SIDE_EFFECTS codeset. Old text values were cleared during migration.';
+        </sql>
+
+        <rollback>
+            <sql>
+                -- No rollback needed - this is a data cleanup operation
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="20260506-ec-07" author="taiwo-dev" failOnError="false">
+        <validCheckSum>8:d90bd760ec15c2d38c0c3ad206e7ed26</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <indexExists tableName="hiv_enrollment_commencement" indexName="uk_ec_person_active"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            DROP INDEX IF EXISTS uk_ec_person_active;
+            CREATE INDEX IF NOT EXISTS idx_ec_person_visit_archived
+            ON hiv_enrollment_commencement (person_uuid, visit_date DESC, archived)
+            WHERE archived = 0;
+
+            -- Create index for efficient queries to fetch all enrollments for a person
+            CREATE INDEX IF NOT EXISTS idx_ec_person_date_art_started
+            ON hiv_enrollment_commencement (person_uuid, date_art_started DESC)
+            WHERE archived = 0;
+
+            -- Add comment explaining the 1:Many relationship
+            COMMENT ON TABLE hiv_enrollment_commencement IS 'HIV Enrollment and ART Commencement records. Supports 1:Many relationship - a person can have multiple enrollment records (e.g., after transfer-out and transfer-in).';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Restore the unique constraint
+                -- WARNING: This will fail if there are multiple active enrollment records per person
+                CREATE UNIQUE INDEX uk_ec_person_active
+                ON hiv_enrollment_commencement (person_uuid)
+                WHERE archived = 0;
+
+                -- Drop the new composite indices
+                DROP INDEX IF EXISTS idx_ec_person_visit_archived;
+                DROP INDEX IF EXISTS idx_ec_person_date_art_started;
+
+                -- Restore original comment
+                COMMENT ON TABLE hiv_enrollment_commencement IS 'HIV Enrollment and ART Commencement records.';
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Remove pregnancy_status and add is_breast_feeding column                -->
+    <changeSet id="20260513-ec-08" author="System" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <!-- Drop pregnancy_status column if it exists -->
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS pregnancy_status;
+        </sql>
+
+        <!-- Add is_breast_feeding column if it doesn't exist -->
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS is_breast_feeding BOOLEAN;
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_enrollment_commencement.is_breast_feeding IS 'Indicates if the patient is breastfeeding';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Restore pregnancy_status column
+                ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS pregnancy_status VARCHAR(50);
+
+                -- Drop is_breast_feeding column
+                ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS is_breast_feeding;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Update status name from 'HIV Exposed Status Unknown' to 'Transfer-in not active' -->
+    <changeSet id="20260515-status-update-01" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_status_tracker"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Update status name in hiv_status_tracker table
+            UPDATE hiv_status_tracker
+            SET hiv_status = 'Transfer-in not active'
+            WHERE hiv_status = 'HIV Exposed Status Unknown'
+            AND archived = 0;
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Restore old status name
+                UPDATE hiv_status_tracker
+                SET hiv_status = 'HIV Exposed Status Unknown'
+                WHERE hiv_status = 'Transfer-in not active'
+                AND archived = 0;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Remove NOT NULL constraints from enrollment fields -->
+    <changeSet id="20260515-ec-09" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="date_confirmed_hiv_test"
+                               columnDataType="DATE"/>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="hiv_test_location"
+                               columnDataType="VARCHAR(255)"/>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="mode_of_hiv_test_id"
+                               columnDataType="VARCHAR(255)"/>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="care_entry_point_id"
+                               columnDataType="VARCHAR(255)"/>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="prior_art_id"
+                               columnDataType="VARCHAR(255)"/>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Restore NOT NULL constraints (will fail if there are NULL values)
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN date_confirmed_hiv_test SET NOT NULL;
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN hiv_test_location SET NOT NULL;
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN mode_of_hiv_test_id SET NOT NULL;
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN care_entry_point_id SET NOT NULL;
+                ALTER TABLE hiv_enrollment_commencement ALTER COLUMN prior_art_id SET NOT NULL;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Fix sequence synchronization issue for hiv_enrollment_commencement table -->
+    <changeSet id="20260516-ec-10" author="taiwo-dev" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Reset the sequence to the correct value based on the maximum ID in the table
+            -- This fixes the "duplicate key value violates unique constraint" error
+            -- that occurs when the sequence gets out of sync with the actual data
+
+            SELECT setval(
+                pg_get_serial_sequence('hiv_enrollment_commencement', 'id'),
+                COALESCE((SELECT MAX(id) FROM hiv_enrollment_commencement), 1),
+                true
+            );
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_enrollment_commencement.id IS 'Primary key - auto-incremented sequence';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- No rollback needed - this is a sequence synchronization operation
+                -- The sequence will remain at the corrected value
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Add enrollment_setting and OVC fields to hiv_enrollment_commencement table -->
+    <changeSet id="20260520-ec-11" author="System" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+        </preConditions>
+
+        <!-- Add enrollment_setting column -->
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS enrollment_setting VARCHAR(50);
+
+            -- Add comment
+            COMMENT ON COLUMN hiv_enrollment_commencement.enrollment_setting IS 'Enrollment setting: Facility or Community';
+        </sql>
+
+        <!-- Add OVC-related columns -->
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS has_ovc_information BOOLEAN DEFAULT FALSE;
+
+            ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS ovc_data JSONB;
+
+            -- Add comments
+            COMMENT ON COLUMN hiv_enrollment_commencement.has_ovc_information IS 'Indicates if patient has OVC (Orphans and Vulnerable Children) information - only applicable for patients 18 years and below';
+            COMMENT ON COLUMN hiv_enrollment_commencement.ovc_data IS 'JSONB data containing OVC information: household_unique_number, ovc_unique_id, referred_to_ovc_partner, date_referred_to_ovc_partner, referred_from_ovc_partner, date_referred_from_ovc_partner';
+        </sql>
+
+        <!-- Create index for OVC data queries -->
+        <sql dbms="postgresql">
+            CREATE INDEX IF NOT EXISTS idx_ec_has_ovc_information
+            ON hiv_enrollment_commencement(has_ovc_information)
+            WHERE has_ovc_information = TRUE;
+
+            CREATE INDEX IF NOT EXISTS idx_ec_ovc_data
+            ON hiv_enrollment_commencement USING GIN(ovc_data)
+            WHERE ovc_data IS NOT NULL;
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Drop indices
+                DROP INDEX IF EXISTS idx_ec_has_ovc_information;
+                DROP INDEX IF EXISTS idx_ec_ovc_data;
+
+                -- Drop columns
+                ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS enrollment_setting;
+                ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS has_ovc_information;
+                ALTER TABLE hiv_enrollment_commencement DROP COLUMN IF EXISTS ovc_data;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Update regimen_id and regimen_line_id data types from VARCHAR to BIGINT -->
+    <changeSet id="20260521-ec-12" author="System" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <columnExists tableName="hiv_enrollment_commencement" columnName="regimen_id"/>
+            <columnExists tableName="hiv_enrollment_commencement" columnName="regimen_line_id"/>
+        </preConditions>
+
+        <sql dbms="postgresql">
+            -- Update regimen_line_id from VARCHAR to BIGINT
+            -- First, clear any non-numeric values
+            UPDATE hiv_enrollment_commencement
+            SET regimen_line_id = NULL
+            WHERE regimen_line_id IS NOT NULL
+            AND regimen_line_id !~ '^[0-9]+$';
+
+            -- Change column type
+            ALTER TABLE hiv_enrollment_commencement
+            ALTER COLUMN regimen_line_id TYPE BIGINT USING regimen_line_id::BIGINT;
+
+            -- Update regimen_id from VARCHAR to BIGINT
+            -- First, clear any non-numeric values
+            UPDATE hiv_enrollment_commencement
+            SET regimen_id = NULL
+            WHERE regimen_id IS NOT NULL
+            AND regimen_id !~ '^[0-9]+$';
+
+            -- Change column type
+            ALTER TABLE hiv_enrollment_commencement
+            ALTER COLUMN regimen_id TYPE BIGINT USING regimen_id::BIGINT;
+
+            -- Add comments
+            COMMENT ON COLUMN hiv_enrollment_commencement.regimen_line_id IS 'Regimen line ID reference (BIGINT) - updated from VARCHAR';
+            COMMENT ON COLUMN hiv_enrollment_commencement.regimen_id IS 'Regimen ID reference (BIGINT) - updated from VARCHAR';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- Revert regimen_line_id back to VARCHAR
+                ALTER TABLE hiv_enrollment_commencement
+                ALTER COLUMN regimen_line_id TYPE VARCHAR(255) USING regimen_line_id::VARCHAR;
+
+                -- Revert regimen_id back to VARCHAR
+                ALTER TABLE hiv_enrollment_commencement
+                ALTER COLUMN regimen_id TYPE VARCHAR(255) USING regimen_id::VARCHAR;
+
+                -- Restore original comments
+                COMMENT ON COLUMN hiv_enrollment_commencement.regimen_line_id IS 'Regimen line ID reference';
+                COMMENT ON COLUMN hiv_enrollment_commencement.regimen_id IS 'Regimen ID reference';
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Remove NOT NULL constraint from date_enrolled_in_hiv_care for migration compatibility -->
+    <changeSet id="20260525-ec-13" author="System" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <columnExists tableName="hiv_enrollment_commencement" columnName="date_enrolled_in_hiv_care"/>
+        </preConditions>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="date_enrolled_in_hiv_care"
+                               columnDataType="DATE"/>
+
+        <sql dbms="postgresql">
+            -- Add comment explaining why this field is now nullable
+            COMMENT ON COLUMN hiv_enrollment_commencement.date_enrolled_in_hiv_care IS 'Date patient was enrolled in HIV care. Nullable to support legacy data migration where enrollment date may not be recorded.';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                -- WARNING: Restore NOT NULL constraint (will fail if there are NULL values)
+                ALTER TABLE hiv_enrollment_commencement
+                ALTER COLUMN date_enrolled_in_hiv_care SET NOT NULL;
+
+                -- Restore original comment
+                COMMENT ON COLUMN hiv_enrollment_commencement.date_enrolled_in_hiv_care IS 'Date patient was enrolled in HIV care';
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- Remove NOT NULL constraint from date_art_started for migration compatibility -->
+    <changeSet id="20260525-ec-14" author="gboyegun taiwo" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_enrollment_commencement"/>
+            <columnExists tableName="hiv_enrollment_commencement" columnName="date_art_started"/>
+        </preConditions>
+
+        <dropNotNullConstraint tableName="hiv_enrollment_commencement"
+                               columnName="date_art_started"
+                               columnDataType="DATE"/>
+
+        <sql dbms="postgresql">
+            COMMENT ON COLUMN hiv_enrollment_commencement.date_art_started IS 'Date ART started. Nullable to support legacy data migration where ART start date may not be recorded.';
+        </sql>
+
+        <rollback>
+            <sql dbms="postgresql">
+                ALTER TABLE hiv_enrollment_commencement
+                ALTER COLUMN date_art_started SET NOT NULL;
+
+                COMMENT ON COLUMN hiv_enrollment_commencement.date_art_started IS 'Date ART started';
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

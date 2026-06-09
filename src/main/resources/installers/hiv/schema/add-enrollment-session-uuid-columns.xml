@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <!-- Add enrollment_session_uuid columns to track enrollment cycles -->
+    <changeSet failOnError="false" id="20260511-001" author="taiwogboyegun">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_adherence_preparation" columnName="enrollment_session_uuid"/>
+            </not>
+        </preConditions>
+        <sqlFile dbms="postgresql"
+                 path="sql/add_enrollment_session_uuid_columns.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="false"
+                 stripComments="false"/>
+    </changeSet>
+
+    <!-- Fallback: Add enrollment_session_uuid to hiv_adherence_preparation if not exists -->
+    <changeSet failOnError="false" id="20260511-002" author="taiwogboyegun">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_adherence_preparation" columnName="enrollment_session_uuid"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_adherence_preparation ADD COLUMN IF NOT EXISTS enrollment_session_uuid VARCHAR(255);
+            COMMENT ON COLUMN hiv_adherence_preparation.enrollment_session_uuid IS 'UUID linking this adherence preparation record to a specific enrollment cycle. Generated in frontend when form loads.';
+            CREATE INDEX IF NOT EXISTS idx_adherence_prep_enrollment_session_uuid ON hiv_adherence_preparation(enrollment_session_uuid) WHERE enrollment_session_uuid IS NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- Fallback: Add enrollment_session_uuid to hiv_initial_clinical_evaluation if not exists -->
+    <changeSet failOnError="false" id="20260511-003" author="taiwogboyegun">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_initial_clinical_evaluation" columnName="enrollment_session_uuid"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_initial_clinical_evaluation ADD COLUMN IF NOT EXISTS enrollment_session_uuid VARCHAR(255);
+            COMMENT ON COLUMN hiv_initial_clinical_evaluation.enrollment_session_uuid IS 'UUID linking this ICE record to a specific enrollment cycle. Shared with AdherencePreparation and EnrollmentCommencement.';
+            CREATE INDEX IF NOT EXISTS idx_ice_enrollment_session_uuid ON hiv_initial_clinical_evaluation(enrollment_session_uuid) WHERE enrollment_session_uuid IS NOT NULL;
+            CREATE INDEX IF NOT EXISTS idx_ice_person_session ON hiv_initial_clinical_evaluation(person_uuid, enrollment_session_uuid) WHERE enrollment_session_uuid IS NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- Fallback: Add enrollment_session_uuid to hiv_enrollment_commencement if not exists -->
+    <changeSet failOnError="false" id="20260511-004" author="taiwogboyegun">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_enrollment_commencement" columnName="enrollment_session_uuid"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_enrollment_commencement ADD COLUMN IF NOT EXISTS enrollment_session_uuid VARCHAR(255);
+            COMMENT ON COLUMN hiv_enrollment_commencement.enrollment_session_uuid IS 'UUID linking this enrollment record to a specific enrollment cycle. Shared with AdherencePreparation and ICE.';
+            CREATE INDEX IF NOT EXISTS idx_enrollment_comm_enrollment_session_uuid ON hiv_enrollment_commencement(enrollment_session_uuid) WHERE enrollment_session_uuid IS NOT NULL;
+            CREATE INDEX IF NOT EXISTS idx_enrollment_comm_person_session ON hiv_enrollment_commencement(person_uuid, enrollment_session_uuid) WHERE enrollment_session_uuid IS NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- Fallback: Add enrollment_session_uuid to hiv_observation if not exists -->
+    <changeSet failOnError="false" id="20260511-005" author="taiwogboyegun">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_observation" columnName="enrollment_session_uuid"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_observation ADD COLUMN IF NOT EXISTS enrollment_session_uuid VARCHAR(255);
+            COMMENT ON COLUMN hiv_observation.enrollment_session_uuid IS 'UUID linking this observation (Transfer OUT/IN) to a specific enrollment cycle for returning clients.';
+            CREATE INDEX IF NOT EXISTS idx_observation_enrollment_session_uuid ON hiv_observation(enrollment_session_uuid) WHERE enrollment_session_uuid IS NOT NULL;
+            CREATE INDEX IF NOT EXISTS idx_observation_person_type_session ON hiv_observation(person_uuid, type, enrollment_session_uuid) WHERE enrollment_session_uuid IS NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- Fallback: Add enrollment_session_uuid to hiv_patient_transfer_in if not exists -->
+    <changeSet failOnError="false" id="20260511-006" author="taiwogboyegun">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_patient_transfer_in" columnName="enrollment_session_uuid"/>
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_patient_transfer_in ADD COLUMN IF NOT EXISTS enrollment_session_uuid VARCHAR(255);
+            COMMENT ON COLUMN hiv_patient_transfer_in.enrollment_session_uuid IS 'UUID linking this transfer-in record to a specific enrollment cycle. Created when new patient transfers in.';
+            CREATE INDEX IF NOT EXISTS idx_transfer_in_enrollment_session_uuid ON hiv_patient_transfer_in(enrollment_session_uuid) WHERE enrollment_session_uuid IS NOT NULL;
+            CREATE INDEX IF NOT EXISTS idx_transfer_in_person_session ON hiv_patient_transfer_in(person_uuid, enrollment_session_uuid) WHERE enrollment_session_uuid IS NOT NULL;
+        </sql>
+    </changeSet>
+
+    <!-- Remove art_clinical_uuid column from hiv_adherence_preparation -->
+    <changeSet failOnError="false" id="20260511-007" author="taiwogboyegun">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="hiv_adherence_preparation" columnName="art_clinical_uuid"/>
+        </preConditions>
+        <sql dbms="postgresql">
+            -- Drop foreign key constraint if exists
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM pg_constraint
+                    WHERE conname = 'fk_adherence_prep_art_clinical'
+                    AND conrelid = 'hiv_adherence_preparation'::regclass
+                ) THEN
+                    ALTER TABLE hiv_adherence_preparation DROP CONSTRAINT fk_adherence_prep_art_clinical;
+                    RAISE NOTICE 'Dropped constraint: fk_adherence_prep_art_clinical';
+                END IF;
+            EXCEPTION
+                WHEN OTHERS THEN
+                    RAISE NOTICE 'Constraint fk_adherence_prep_art_clinical does not exist or already dropped';
+            END $$;
+
+            -- Drop index if exists
+            DROP INDEX IF EXISTS idx_adherence_prep_art_clinical_uuid;
+
+            -- Drop the column
+            ALTER TABLE hiv_adherence_preparation DROP COLUMN IF EXISTS art_clinical_uuid;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Input, Label, FormGroup } from "reactstrap";
 import { makeStyles } from "@material-ui/core/styles";
-import { token, url as baseUrl } from "./../../../../api";
-import axios from "axios";
+import useCodesets from "./../../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -77,29 +76,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = ["TB_STATUS"];
+
 const TBScreeningForm = (props) => {
   const classes = useStyles();
-  const [tbStatus, setTbStatus] = useState([]);
+  const { getOptions } = useCodesets(CODESET_KEYS);
 
-  useEffect(() => {
-    TBStatus()
-  }, []);
-  ///GET LIST OF FUNCTIONAL%20_STATUS
-  // TB STATUS
-  const TBStatus = () => {
-    axios
-        .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-
-          setTbStatus(response.data);
-
-        })
-        .catch((error) => {
-
-        });
-  };
 
   const handleInputChange = (e) => {
     props.setTbObj({ ...props.tbObj, [e.target.name]: e.target.value });
@@ -125,12 +107,11 @@ const TBScreeningForm = (props) => {
                   // required
               >
                 <option value="">Select</option>
-                {tbStatus &&
-                    tbStatus.map((tb) => (
-                        <option key={tb.id} value={tb.id}>
-                          {tb.display}
-                        </option>
-                    ))}
+                {getOptions("TB_STATUS").map((tb) => (
+                    <option key={tb.id} value={tb.id}>
+                      {tb.display}
+                    </option>
+                ))}
               </Input>
             </FormGroup>
             {props.errors.tbStatusId !== "" ? (

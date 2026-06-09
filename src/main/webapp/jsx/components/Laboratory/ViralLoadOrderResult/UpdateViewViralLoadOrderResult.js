@@ -12,7 +12,7 @@ import { url as baseUrl, token } from "../../../../api";
 import moment from "moment";
 import { List, Label as LabelSui} from 'semantic-ui-react'
 import { toast} from "react-toastify";
-
+import useCodesets from "../../../../hooks/useCodesets";
 import { Button, } from 'semantic-ui-react'
 import {TiArrowBack} from 'react-icons/ti'
 import { queryClient } from '../../../../utils/queryClient';
@@ -59,6 +59,8 @@ const useStyles = makeStyles(theme => ({
 },
 }))
 
+const CODESET_KEYS = ["VIRAL_LOAD_INDICATION"];
+
 const Laboratory = (props) => {
     let visitId=""
     const patientObj = props.patientObj;
@@ -70,13 +72,13 @@ const Laboratory = (props) => {
     const [moduleStatus, setModuleStatus]= useState("0")
     const [disabledField, setDisabledField] = useState(false);
     //const [currentVisit, setCurrentVisit]=useState(true)
-    const [vLIndication, setVLIndication] = useState([]);
     const [labTestDetail, setLabTestDetail]=useState([])
     const [labNumberOption, setLabNumberOption] = useState("")
     const [showResult, setShowResult]=useState(false)
     const [showPcrLabDetail, setShowPcrLabDetail]=useState(false)
     const [labNumbers, setLabNumbers] = useState([]);//
     const [pcrs, setPcrs] = useState([]);//
+    const { getOptions } = useCodesets(CODESET_KEYS);
     let temp = { ...errors }
     const [showObj, setShowObj] = useState(
         {
@@ -103,6 +105,7 @@ const Laboratory = (props) => {
             labTestId: "",
             orderBy: "",
             patientId: props.patientObj?props.patientObj.id:"",
+            patientCategory: "",  // Add patientCategory field
             pcrLabName: "",
             pcrLabSampleNumber: "",
             result: "",
@@ -114,12 +117,12 @@ const Laboratory = (props) => {
     })
 
     useEffect(() => {
-           
+
         CheckLabModule();
-        ViraLoadIndication();
         LabTestDetail();
         PCRLabList();
-        setTests(props.activeContent.obj) 
+
+        setTests(props.activeContent.obj)
         tests.sampleCollectionDate=moment(props.activeContent.obj.sampleCollectionDate).format("YYYY-MM-DD HH:MM:SS")
         tests.dateResultReceived=props.activeContent.obj.dateResultReceived!==null && props.activeContent.obj.dateResultReceived!=="" ? moment(props.activeContent.obj.dateResultReceived).format("YYYY-MM-DD HH:MM:SS")  : ""
         showObj.isPcr=props.activeContent.obj.pcrLabName!==null && props.activeContent.obj.pcrLabName!=="" ? true :false
@@ -163,7 +166,7 @@ const Laboratory = (props) => {
         })
       .then((response) => {
           const data = response.data
-          const formattedResultDate = data?.resultDate ? moment(data.resultDate).format('YYYY-MM-DDTHH:mm'): '';
+          const formattedResultDate = data?.resultDate ? moment(data.resultDate).format('YYYY-MM-DD HH:mm:ss'): '';
             setTests((prevTests) => ({
                 ...prevTests,
                 result: data?.testResult || props.activeContent.obj? props.activeContent.obj?.result : "",
@@ -231,19 +234,6 @@ const Laboratory = (props) => {
             });
         
     }  
-    //Get list of Test Group
-    const ViraLoadIndication =()=>{
-        axios
-            .get(`${baseUrl}application-codesets/v2/VIRAL_LOAD_INDICATION`,
-                { headers: {"Authorization" : `Bearer ${token}`} }
-            )
-            .then((response) => {
-                setVLIndication(response.data);
-            })
-            .catch((error) => {
-            
-            });        
-    }
     const handleInputChange = e => {
         setErrors({...temp, [e.target.name]:""})//reset the error message to empty once the field as value
         //tests.labNumber
@@ -257,7 +247,7 @@ const Laboratory = (props) => {
     }
     
       //Validations of the forms
-      const validate = () => {  
+      const validate = () => {
         temp.sampleTypeId = tests.sampleTypeId ? "" : "This field is required"
         temp.sampleCollectionDate =  tests.sampleCollectionDate ? "" : "This field is required"
         temp.viralLoadIndication = tests.viralLoadIndication ? "" : "This field is required"
@@ -265,44 +255,56 @@ const Laboratory = (props) => {
         temp.sampleCollectedBy = tests.sampleCollectedBy ? "" : "This field is required"
         temp.dateOrderBy = tests.dateOrderBy ? "" : "This field is required"
         temp.orderBy = tests.orderBy ? "" : "This field is required"
-        showResult && (temp.dateResultReceived = tests.dateResultReceived ? "" : "This field is required")
-        showResult && (temp.assayedBy = tests.assayedBy ? "" : "This field is required")
-        showResult && (temp.result = tests.result ? "" : "This field is required")
-        showResult && (temp.dateAssayedBy = tests.dateAssayedBy ? "" : "This field is required")
 
+        // Only validate result fields if checkbox is checked OR if there's already result data
+        const shouldValidateResult = showObj.hasResult || tests.result || tests.dateResultReceived || tests.assayedBy || tests.dateAssayedBy;
+        shouldValidateResult && (temp.dateResultReceived = tests.dateResultReceived ? "" : "This field is required")
+        shouldValidateResult && (temp.assayedBy = tests.assayedBy ? "" : "This field is required")
+        shouldValidateResult && (temp.result = tests.result ? "" : "This field is required")
+        shouldValidateResult && (temp.dateAssayedBy = tests.dateAssayedBy ? "" : "This field is required")
 
-        showPcrLabDetail && ( temp.dateCheckedBy = tests.dateCheckedBy ? "" : "This field is required")
-        //showPcrLabDetail && (temp.dateCollectedBy =  tests.dateCollectedBy ? "" : "This field is required")
-        //showPcrLabDetail && (temp.orderBy = tests.orderBy ? "" : "This field is required")
-        showPcrLabDetail && (tests.sampleLoggedRemotely ==='1'  || tests.sampleLoggedRemotely ===1 ) && (temp.dateSampleLoggedRemotely = tests.dateSampleLoggedRemotely ? "" : "This field is required")
-        showPcrLabDetail && (temp.dateReceivedAtPcrLab = tests.dateReceivedAtPcrLab ? "" : "This field is required")
-        //showPcrLabDetail && (temp.dateOrderBy = tests.dateOrderBy ? "" : "This field is required")
-        showPcrLabDetail && (temp.pcrLabSampleNumber = tests.pcrLabSampleNumber ? "" : "This field is required")
-        showPcrLabDetail && (temp.pcrLabName =  tests.pcrLabName ? "" : "This field is required")
-        showPcrLabDetail && (temp.dateApproved = tests.dateApproved ? "" : "This field is required")
-        showPcrLabDetail && (temp.sampleLoggedRemotely = tests.sampleLoggedRemotely ? "" : "This field is required")
-        showPcrLabDetail &&  (temp.checkedBy = tests.checkedBy ? "" : "This field is required")
-        showPcrLabDetail && (temp.approvedBy = tests.approvedBy ? "" : "This field is required")
-        //showPcrLabDetail && (temp.sampleCollectedBy = tests.sampleCollectedBy ? "" : "This field is required")
+        // Only validate PCR fields if checkbox is checked OR if there's already PCR data
+        const shouldValidatePCR = showObj.isPcr || tests.pcrLabName || tests.pcrLabSampleNumber || tests.dateReceivedAtPcrLab;
+        shouldValidatePCR && ( temp.dateCheckedBy = tests.dateCheckedBy ? "" : "This field is required")
+        //shouldValidatePCR && (temp.dateCollectedBy =  tests.dateCollectedBy ? "" : "This field is required")
+        //shouldValidatePCR && (temp.orderBy = tests.orderBy ? "" : "This field is required")
+        shouldValidatePCR && (tests.sampleLoggedRemotely ==='1'  || tests.sampleLoggedRemotely ===1 ) && (temp.dateSampleLoggedRemotely = tests.dateSampleLoggedRemotely ? "" : "This field is required")
+        shouldValidatePCR && (temp.dateReceivedAtPcrLab = tests.dateReceivedAtPcrLab ? "" : "This field is required")
+        //shouldValidatePCR && (temp.dateOrderBy = tests.dateOrderBy ? "" : "This field is required")
+        shouldValidatePCR && (temp.pcrLabSampleNumber = tests.pcrLabSampleNumber ? "" : "This field is required")
+        shouldValidatePCR && (temp.pcrLabName =  tests.pcrLabName ? "" : "This field is required")
+        shouldValidatePCR && (temp.dateApproved = tests.dateApproved ? "" : "This field is required")
+        shouldValidatePCR && (temp.sampleLoggedRemotely = tests.sampleLoggedRemotely ? "" : "This field is required")
+        shouldValidatePCR &&  (temp.checkedBy = tests.checkedBy ? "" : "This field is required")
+        shouldValidatePCR && (temp.approvedBy = tests.approvedBy ? "" : "This field is required")
+        //shouldValidatePCR && (temp.sampleCollectedBy = tests.sampleCollectedBy ? "" : "This field is required")
         setErrors({
             ...temp
         })
         return Object.values(temp).every(x => x == "")
     }
 
-    const handleSubmit = (e) => {        
+    const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         if(validate()){
             setSaving(true);
-            tests.labTestGroupId= labTestDetail.labTestGroupId
-            tests.labTestId= labTestDetail.id   
-            //tests.pcrLabSampleNumber=tests.pcrLabName              
-            
-            tests.sampleCollectionDate = moment(tests.sampleCollectionDate).format("YYYY-MM-DD HH:MM:SS")
-            tests.dateResultReceived =tests.dateResultReceived!==null && tests.dateResultReceived!=="" ? moment(tests.dateResultReceived).format("YYYY-MM-DD HH:MM:SS") : ""
-            tests.dateReceivedAtPcrLab =tests.dateReceivedAtPcrLab!==null && tests.dateReceivedAtPcrLab!=="" ? moment(tests.dateReceivedAtPcrLab).format("YYYY-MM-DD HH:MM:SS") : ""
-            axios.put(`${baseUrl}laboratory/vl-results/${props.activeContent.obj.id}`,tests,
+            const payload = {
+                ...tests,
+                labTestGroupId: 4,
+                labTestId: 16,
+                sampleCollectionDate: tests.sampleCollectionDate
+                    ? moment(tests.sampleCollectionDate).format("YYYY-MM-DD HH:mm:ss")
+                    : "",
+                dateResultReceived: tests.dateResultReceived
+                    ? moment(tests.dateResultReceived).format("YYYY-MM-DD HH:mm:ss")
+                    : "",
+                dateReceivedAtPcrLab: tests.dateReceivedAtPcrLab
+                    ? moment(tests.dateReceivedAtPcrLab).format("YYYY-MM-DD HH:mm:ss")
+                    : "",
+            };
+
+            axios.put(`${baseUrl}laboratory/vl-results/${props.activeContent.obj.orderId}`,payload,
             { headers: {"Authorization" : `Bearer ${token}`}},)
             .then(response => {
                 //Please do not remove
@@ -332,6 +334,14 @@ const Laboratory = (props) => {
             setShowResult(false)
             setShowObj({...showObj, hasResult:false})
             setShowPcrLabDetail(false)
+            // Clear result field errors when unchecking
+            setErrors({
+                ...errors,
+                dateResultReceived: "",
+                assayedBy: "",
+                result: "",
+                dateAssayedBy: ""
+            })
         }
     }
     const handleCheckBoxPCR =e =>{
@@ -341,6 +351,19 @@ const Laboratory = (props) => {
         }else{
             setShowPcrLabDetail(false)
             setShowObj({...showObj, isPcr:false})
+            // Clear PCR field errors when unchecking
+            setErrors({
+                ...errors,
+                dateCheckedBy: "",
+                dateSampleLoggedRemotely: "",
+                dateReceivedAtPcrLab: "",
+                pcrLabSampleNumber: "",
+                pcrLabName: "",
+                dateApproved: "",
+                sampleLoggedRemotely: "",
+                checkedBy: "",
+                approvedBy: ""
+            })
         }
     }
 
@@ -433,7 +456,7 @@ const Laboratory = (props) => {
                                 >
                                 <option value="">Select </option>
                                                 
-                                    {vLIndication.map((value) => (
+                                    {getOptions("VIRAL_LOAD_INDICATION").map((value) => (
                                         <option key={value.id} value={value.id}>
                                             {value.display}
                                         </option>

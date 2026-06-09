@@ -29,6 +29,7 @@ import "./patient.css";
 import { Modal } from "react-bootstrap";
 import { Label as LabelSui } from "semantic-ui-react";
 import { Icon } from "semantic-ui-react";
+import useCodesets from "../../../hooks/useCodesets";
 
 library.add(faCheckSquare, faCoffee, faEdit, faTrash);
 
@@ -102,7 +103,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "SEX",
+  "MARITAL_STATUS",
+  "EDUCATION",
+  "OCCUPATION",
+  "RELATIONSHIP",
+  "POINT_ENTRY",
+  "SOURCE_REFERRAL",
+  "HIV_STATUS_ENROL",
+  "ENROLLMENT_SETTING",
+  "TB_STATUS",
+  "TARGET_GROUP",
+  "PREGNANCY_STATUS",
+];
 const UserRegistration = (props) => {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const history = useHistory();
   const location = useLocation();
   const locationState = location.state;
@@ -232,19 +248,19 @@ const UserRegistration = (props) => {
   useEffect(() => {
     handleSexId(basicInfo?.gender);
     handleDobChange(basicInfo?.birthDate);
-    loadGenders();
-    loadMaritalStatus();
-    loadEducation();
-    loadOccupation();
-    loadRelationships();
+    // loadGenders();
+    // loadMaritalStatus();
+    // loadEducation();
+    // loadOccupation();
+    // loadRelationships();
     loadTopLevelCountry();
-    CareEntryPoint();
-    SourceReferral();
-    HivStatus();
-    EnrollmentSetting();
-    TBStatus();
-    KP();
-    PregnancyStatus();
+    // CareEntryPoint();
+    // SourceReferral();
+    // HivStatus();
+    // EnrollmentSetting();
+    // TBStatus();
+    // KP();
+    // PregnancyStatus();
     GetCountry();
     setStateByCountryId();
     if (basicInfo.dateOfRegistration < basicInfo.dob) {
@@ -252,51 +268,51 @@ const UserRegistration = (props) => {
     }
   }, [basicInfo.dateOfRegistration]);
 
-  const loadGenders = useCallback(async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}application-codesets/v2/SEX`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setGenders(response.data.sort());
-    } catch (e) {}
-  }, []);
-  const loadMaritalStatus = useCallback(async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}application-codesets/v2/MARITAL_STATUS`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setMaritalStatusOptions(response.data.sort());
-    } catch (e) {}
-  }, []);
-  const loadEducation = useCallback(async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}application-codesets/v2/EDUCATION`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setEducationOptions(response.data.sort());
-    } catch (e) {}
-  }, []);
-  const loadOccupation = useCallback(async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}application-codesets/v2/OCCUPATION`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setOccupationOptions(response.data.sort());
-    } catch (e) {}
-  }, []);
-  const loadRelationships = useCallback(async () => {
-    try {
-      const response = await axios.get(
-        `${baseUrl}application-codesets/v2/RELATIONSHIP`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setRelationshipOptions(response.data.sort());
-    } catch (e) {}
-  }, []);
+  // const loadGenders = useCallback(async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${baseUrl}application-codesets/v2/SEX`,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     setGenders(response.data.sort());
+  //   } catch (e) {}
+  // }, []);
+  // const loadMaritalStatus = useCallback(async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${baseUrl}application-codesets/v2/MARITAL_STATUS`,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     setMaritalStatusOptions(response.data.sort());
+  //   } catch (e) {}
+  // }, []);
+  // const loadEducation = useCallback(async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${baseUrl}application-codesets/v2/EDUCATION`,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     setEducationOptions(response.data.sort());
+  //   } catch (e) {}
+  // }, []);
+  // const loadOccupation = useCallback(async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${baseUrl}application-codesets/v2/OCCUPATION`,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     setOccupationOptions(response.data.sort());
+  //   } catch (e) {}
+  // }, []);
+  // const loadRelationships = useCallback(async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${baseUrl}application-codesets/v2/RELATIONSHIP`,
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     setRelationshipOptions(response.data.sort());
+  //   } catch (e) {}
+  // }, []);
   const loadTopLevelCountry = useCallback(async () => {
     const response = await axios.get(
       `${baseUrl}organisation-units/parent-organisation-units/0`,
@@ -569,12 +585,12 @@ const UserRegistration = (props) => {
     setShowRelative(true);
     contacts.splice(index, 1);
   };
-  const getRelationship = (relationshipId) => {
-    const relationship = relationshipOptions.find(
-      (obj) => obj.id == relationshipId
-    );
-    return relationship ? relationship.display : "";
-  };
+ const getRelationship = (relationshipId) => {
+   const relationship = getOptions("RELATIONSHIP").find(
+     (obj) => obj.id == relationshipId
+   );
+   return relationship ? relationship.display : "";
+ };
   const handleInputChangeRelatives = (e) => {
     setRelatives({ ...relatives, [e.target.name]: e.target.value });
   };
@@ -789,82 +805,82 @@ const UserRegistration = (props) => {
      return result;
    };
 
-   const CareEntryPoint = () => {
-     axios
-       .get(`${baseUrl}application-codesets/v2/POINT_ENTRY`, {
-         headers: { Authorization: `Bearer ${token}` },
-       })
-       .then((response) => {
-         setCarePoints(response.data);
-       })
-       .catch((error) => {});
-   };
+  //  const CareEntryPoint = () => {
+  //    axios
+  //      .get(`${baseUrl}application-codesets/v2/POINT_ENTRY`, {
+  //        headers: { Authorization: `Bearer ${token}` },
+  //      })
+  //      .then((response) => {
+  //        setCarePoints(response.data);
+  //      })
+  //      .catch((error) => {});
+  //  };
    //Get list of Source of Referral
-   const SourceReferral = () => {
-     axios
-       .get(`${baseUrl}application-codesets/v2/SOURCE_REFERRAL`, {
-         headers: { Authorization: `Bearer ${token}` },
-       })
-       .then((response) => {
-         setSourceReferral(response.data);
-       })
-       .catch((error) => {});
-   };
+  //  const SourceReferral = () => {
+  //    axios
+  //      .get(`${baseUrl}application-codesets/v2/SOURCE_REFERRAL`, {
+  //        headers: { Authorization: `Bearer ${token}` },
+  //      })
+  //      .then((response) => {
+  //        setSourceReferral(response.data);
+  //      })
+  //      .catch((error) => {});
+  //  };
    //Get list of HIV STATUS ENROLLMENT
-   const HivStatus = () => {
-     axios
-       .get(`${baseUrl}application-codesets/v2/HIV_STATUS_ENROL`, {
-         headers: { Authorization: `Bearer ${token}` },
-       })
-       .then((response) => {
-         setHivStatus(response.data);
-       })
-       .catch((error) => {});
-   };
+  //  const HivStatus = () => {
+  //    axios
+  //      .get(`${baseUrl}application-codesets/v2/HIV_STATUS_ENROL`, {
+  //        headers: { Authorization: `Bearer ${token}` },
+  //      })
+  //      .then((response) => {
+  //        setHivStatus(response.data);
+  //      })
+  //      .catch((error) => {});
+  //  };
    //Get list of HIV STATUS ENROLLMENT
-   const EnrollmentSetting = () => {
-     axios
-       .get(`${baseUrl}application-codesets/v2/ENROLLMENT_SETTING`, {
-         headers: { Authorization: `Bearer ${token}` },
-       })
-       .then((response) => {
-         setEnrollSetting(response.data);
-       })
-       .catch((error) => {});
-   };
-   //Get list of HIV STATUS ENROLLMENT
-   const TBStatus = () => {
-     axios
-       .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
-         headers: { Authorization: `Bearer ${token}` },
-       })
-       .then((response) => {
-         setTbStatus(response.data);
-       })
-       .catch((error) => {});
-   };
+  //  const EnrollmentSetting = () => {
+  //    axios
+  //      .get(`${baseUrl}application-codesets/v2/ENROLLMENT_SETTING`, {
+  //        headers: { Authorization: `Bearer ${token}` },
+  //      })
+  //      .then((response) => {
+  //        setEnrollSetting(response.data);
+  //      })
+  //      .catch((error) => {});
+  //  };
+  //  //Get list of HIV STATUS ENROLLMENT
+  //  const TBStatus = () => {
+  //    axios
+  //      .get(`${baseUrl}application-codesets/v2/TB_STATUS`, {
+  //        headers: { Authorization: `Bearer ${token}` },
+  //      })
+  //      .then((response) => {
+  //        setTbStatus(response.data);
+  //      })
+  //      .catch((error) => {});
+  //  };
    //Get list of KP
-   const KP = () => {
-     axios
-       .get(`${baseUrl}application-codesets/v2/TARGET_GROUP`, {
-         headers: { Authorization: `Bearer ${token}` },
-       })
-       .then((response) => {
-         setKP(response.data);
-       })
-       .catch((error) => {});
-   };
+  //  const KP = () => {
+  //    axios
+  //      .get(`${baseUrl}application-codesets/v2/TARGET_GROUP`, {
+  //        headers: { Authorization: `Bearer ${token}` },
+  //      })
+  //      .then((response) => {
+  //        setKP(response.data);
+  //      })
+  //      .catch((error) => {});
+  //  };
    //Get list of KP
-   const PregnancyStatus = () => {
-     axios
-       .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-         headers: { Authorization: `Bearer ${token}` },
-       })
-       .then((response) => {
-         setPregnancyStatus(response.data);
-       })
-       .catch((error) => {});
-   };
+  //  const PregnancyStatus = () => {
+  //    axios
+  //      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
+  //        headers: { Authorization: `Bearer ${token}` },
+  //      })
+  //      .then((response) => {
+  //        setPregnancyStatus(response.data);
+  //      })
+  //      .catch((error) => {});
+  //  };
    const handleInputChange = (e) => {
      setObjValues({ ...objValues, [e.target.name]: e.target.value });
      if (e.target.name === "entryPointId") {
@@ -1221,7 +1237,7 @@ const UserRegistration = (props) => {
                              }}
                            >
                              <option value={""}>Select</option>
-                             {genders.map((gender, index) => (
+                             {getOptions("SEX").map((gender, index) => (
                                <option key={gender.id} value={gender.id}>
                                  {gender.display}
                                </option>
@@ -1343,7 +1359,7 @@ const UserRegistration = (props) => {
                              }}
                            >
                              <option value={""}>Select</option>
-                             {maritalStatusOptions.map(
+                             {getOptions("MARITAL_STATUS").map(
                                (maritalStatusOption, index) => (
                                  <option
                                    key={maritalStatusOption.id}
@@ -1375,7 +1391,7 @@ const UserRegistration = (props) => {
                              }}
                            >
                              <option value={""}>Select</option>
-                             {occupationOptions.map(
+                             {getOptions("OCCUPATION").map(
                                (occupationOption, index) => (
                                  <option
                                    key={occupationOption.id}
@@ -1414,14 +1430,16 @@ const UserRegistration = (props) => {
                              }}
                            >
                              <option value={""}>Select</option>
-                             {educationOptions.map((educationOption, index) => (
-                               <option
-                                 key={educationOption.id}
-                                 value={educationOption.id}
-                               >
-                                 {educationOption.display}
-                               </option>
-                             ))}
+                             {getOptions("EDUCATION").map(
+                               (educationOption, index) => (
+                                 <option
+                                   key={educationOption.id}
+                                   value={educationOption.id}
+                                 >
+                                   {educationOption.display}
+                                 </option>
+                               )
+                             )}
                            </select>
                            {errors.educationId !== "" ? (
                              <span className={classes.error}>
@@ -1824,7 +1842,7 @@ const UserRegistration = (props) => {
                                      onChange={handleInputChangeRelatives}
                                    >
                                      <option value={""}>Select</option>
-                                     {relationshipOptions.map(
+                                     {getOptions("RELATIONSHIP").map(
                                        (relative, index) => (
                                          <option
                                            key={relative.id}
@@ -2158,7 +2176,7 @@ const UserRegistration = (props) => {
                            }}
                          >
                            <option value=""> </option>
-                           {carePoints.map((value) => (
+                           {getOptions("POINT_ENTRY").map((value) => (
                              <option key={value.id} value={value.id}>
                                {value.display}
                              </option>
@@ -2232,7 +2250,7 @@ const UserRegistration = (props) => {
                            }}
                          >
                            <option value=""> Select</option>
-                           {hivStatus.map((value) => (
+                           {getOptions("HIV_STATUS_ENROL").map((value) => (
                              <option key={value.id} value={value.id}>
                                {value.display}
                              </option>
@@ -2296,7 +2314,7 @@ const UserRegistration = (props) => {
                            required
                          >
                            <option value="">Select </option>
-                           {sourceReferral.map((value) => (
+                           {getOptions("SOURCE_REFERRAL").map((value) => (
                              <option key={value.id} value={value.id}>
                                {value.display}
                              </option>
@@ -2352,7 +2370,7 @@ const UserRegistration = (props) => {
                          >
                            <option value=""> Select</option>
 
-                           {enrollSetting.map((value) => (
+                           {getOptions("ENROLLMENT_SETTING").map((value) => (
                              <option key={value.id} value={value.id}>
                                {value.display}
                              </option>
@@ -2386,7 +2404,7 @@ const UserRegistration = (props) => {
                            required
                          >
                            <option value=""> Select</option>
-                           {tbStatus.map((value) => (
+                           {getOptions("TB_STATUS").map((value) => (
                              <option key={value.id} value={value.id}>
                                {value.display}
                              </option>
@@ -2424,7 +2442,7 @@ const UserRegistration = (props) => {
                                basicInfo.sexId === "377" ||
                                basicInfo?.gender === "Female") && (
                                <>
-                                 {kP
+                                 {getOptions("TARGET_GROUP")
                                    .filter((x) => x.display !== "MSM")
                                    .map((value) => (
                                      <option key={value.id} value={value.id}>
@@ -2437,7 +2455,7 @@ const UserRegistration = (props) => {
                                basicInfo.sexId === "376" ||
                                basicInfo?.gender === "Male") && (
                                <>
-                                 {kP
+                                 {getOptions("TARGET_GROUP")
                                    .filter((x) => x.display !== "FSW")
                                    .map((value) => (
                                      <option key={value.id} value={value.id}>
@@ -2480,7 +2498,7 @@ const UserRegistration = (props) => {
                                onChange={handleInputChange}
                              >
                                <option value="">Select </option>
-                               {pregnancyStatus.map((value) => (
+                               {getOptions("PREGNANCY_STATUS").map((value) => (
                                  <option key={value.id} value={value.id}>
                                    {value.display}
                                  </option>
@@ -2541,24 +2559,24 @@ const UserRegistration = (props) => {
                      {/*)}*/}
 
                      {basicInfo.age !== "" && basicInfo.age <= 20 && (
-                         <div className="form-group mb-3 col-md-3">
-                           <div className="form-check custom-checkbox ml-1 ">
-                             <input
-                                 type="checkbox"
-                                 className="form-check-input"
-                                 name="ovc_enrolled"
-                                 id="ovc_enrolled"
-                                 checked={ovcEnrolled}
-                                 onChange={handleCheckBox}
-                             />
-                             <label
-                                 className="form-check-label"
-                                 htmlFor="basic_checkbox_1"
-                             >
-                               Enrolled into OVC?
-                             </label>
-                           </div>
+                       <div className="form-group mb-3 col-md-3">
+                         <div className="form-check custom-checkbox ml-1 ">
+                           <input
+                             type="checkbox"
+                             className="form-check-input"
+                             name="ovc_enrolled"
+                             id="ovc_enrolled"
+                             checked={ovcEnrolled}
+                             onChange={handleCheckBox}
+                           />
+                           <label
+                             className="form-check-label"
+                             htmlFor="basic_checkbox_1"
+                           >
+                             Enrolled into OVC?
+                           </label>
                          </div>
+                       </div>
                      )}
                      {ovcEnrolled === true && (
                        <>
@@ -2572,7 +2590,7 @@ const UserRegistration = (props) => {
                                  id="houseHoldNumber"
                                  required={ovcEnrolled}
                                  // value={basicInfo.householdUniqueId}
-                                   value={basicInfo.householdNumber}
+                                 value={basicInfo.householdNumber}
                                  onChange={handleInputChange}
                                  // disabled={true}
                                  style={{

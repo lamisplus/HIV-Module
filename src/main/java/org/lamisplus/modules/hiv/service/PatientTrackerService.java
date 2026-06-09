@@ -126,6 +126,16 @@ public class PatientTrackerService {
         patentTrackingDto.setPatientId(entity.getPerson().getId());
         patentTrackingDto.setDateOfObservation(entity.getDateOfObservation());
 
+        // New fields mapping
+        patentTrackingDto.setArtStartDate(entity.getArtStartDate());
+        patentTrackingDto.setCurrentArvRegimen(entity.getCurrentArvRegimen());
+        patentTrackingDto.setRegimenAtStartOfArt(entity.getRegimenAtStartOfArt());
+        patentTrackingDto.setNextAgreedClinicAppointmentDate(entity.getNextAgreedClinicAppointmentDate());
+        patentTrackingDto.setDatePatientReturned(entity.getDatePatientReturned());
+        patentTrackingDto.setReferredForSpecify(entity.getReferredForSpecify());
+        patentTrackingDto.setCompletedBy(entity.getCompletedBy());
+        patentTrackingDto.setDate(entity.getDate());
+
         if (entity.getStatusTracker() != null) {
             HIVStatusTrackerDto statusTracker =
                     statusTrackerService.convertEntityToDto(entity.getStatusTracker());
@@ -162,6 +172,15 @@ public class PatientTrackerService {
                 .dateMissedAppointment(dto.getDateMissedAppointment())
                 .person(getPatient(dto.getPatientId()))
                 .dateOfObservation(dto.getDateOfObservation())
+                // New fields mapping
+                .artStartDate(dto.getArtStartDate())
+                .currentArvRegimen(dto.getCurrentArvRegimen())
+                .regimenAtStartOfArt(dto.getRegimenAtStartOfArt())
+                .nextAgreedClinicAppointmentDate(dto.getNextAgreedClinicAppointmentDate())
+                .datePatientReturned(dto.getDatePatientReturned())
+                .referredForSpecify(dto.getReferredForSpecify())
+                .completedBy(dto.getCompletedBy())
+                .date(dto.getDate())
                 .archived(0)
                 .build();
     }

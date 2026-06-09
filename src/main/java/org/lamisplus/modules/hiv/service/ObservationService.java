@@ -12,6 +12,7 @@ import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.lamisplus.modules.hiv.domain.dto.TPtCompletionStatusInfoDTO;
 import org.lamisplus.modules.hiv.domain.dto.ObservationDto;
+import org.lamisplus.modules.hiv.domain.dto.ViralLoadEligibilityProjection;
 import org.lamisplus.modules.hiv.domain.entity.ArtPharmacy;
 import org.lamisplus.modules.hiv.domain.entity.Observation;
 import org.lamisplus.modules.hiv.repositories.ArtPharmacyRepository;
@@ -21,6 +22,10 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
 import org.lamisplus.modules.patient.repository.PersonRepository;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -67,7 +72,17 @@ public class ObservationService {
                 observationDto.setVisitId(visit.getId());
                 observationDto.setLatitude(observationDto.getLatitude());
                 observationDto.setLongitude(observationDto.getLongitude());
-                String sourceSupport = observationDto.getSource() == null || observationDto.getSource().isEmpty() ? Constants.WEB_SOURCE : Constants.MOBILE_SOURCE;
+                String rawSource = observationDto.getSource();
+                String sourceSupport;
+                if (rawSource == null || rawSource.isEmpty()) {
+                    sourceSupport = Constants.WEB_SOURCE;
+                } else if (Constants.POC_SOURCE.equalsIgnoreCase(rawSource)) {
+                    sourceSupport = Constants.POC_SOURCE;
+                } else if (rawSource.toLowerCase().contains("mobile")) {
+                    sourceSupport = Constants.MOBILE_SOURCE;
+                } else {
+                    sourceSupport = Constants.WEB_SOURCE;
+                }
                 observationDto.setSource(sourceSupport);
             }
 
@@ -118,46 +133,20 @@ public class ObservationService {
         observation.setUuid(UUID.randomUUID().toString());
         observation.setVisit(visit);
         observation.setArchived(0);
+
+        // PART 2 (Returning Client - Transfer IN): Generate NEW enrollment session UUID
+        if ("ART Transfer In".equalsIgnoreCase(observationDto.getType())) {
+            String enrollmentSessionUuid = UUID.randomUUID().toString();
+            observation.setEnrollmentSessionUuid(enrollmentSessionUuid);
+            log.info("Part 2 (Returning Client - Transfer IN): Created NEW enrollment session UUID: {} for person ID: {}",
+                     enrollmentSessionUuid, person.getId());
+        }
+
         Observation saveObservation = observationRepository.save(observation);
         observationDto.setId(saveObservation.getId());
+        observationDto.setEnrollmentSessionUuid(saveObservation.getEnrollmentSessionUuid());
     }
 
-
-//     private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Person person) {
-//         if (observationDto.getType().equals("Chronic Care")) {
-//             JsonNode tptMonitoring = observationDto.getData().get("tptMonitoring");
-//             JsonNode iptCompletionDate = tptMonitoring.get("date");
-//             JsonNode outComeOfIpt = tptMonitoring.get("outComeOfIpt");
-//             if ((outComeOfIpt != null && !outComeOfIpt.isEmpty()) || (iptCompletionDate != null && !iptCompletionDate.asText().isEmpty())) {
-// //                log.info ("found for IPT out come");
-//                 StringBuilder dateIptCompleted = new StringBuilder();
-//                 StringBuilder iptCompletionStatus = new StringBuilder();
-// //                log.info ("checking if IPT out come has a date");
-//                 if (iptCompletionDate != null) {
-// //                    log.info ("found for IPT out come date");
-//                     dateIptCompleted.append(iptCompletionDate.asText());
-//                 }
-//                 if (outComeOfIpt != null) {
-//                     iptCompletionStatus.append(outComeOfIpt.asText());
-//                 }
-// //                log.info ("fetching current IPT from pharmacy");
-//                 Optional<ArtPharmacy> recentIPtPharmacy =
-//                         pharmacyRepository.getPharmacyIpt(person.getUuid());
-//                 if (recentIPtPharmacy.isPresent()) {
-// //                    log.info ("found current IPT from pharmacy");
-//                     ArtPharmacy artPharmacy = recentIPtPharmacy.get();
-//                     JsonNode ipt = artPharmacy.getIpt();
-//                     ((ObjectNode) ipt).put("dateCompleted", dateIptCompleted.toString());
-//                     ((ObjectNode) ipt).put("completionStatus", iptCompletionStatus.toString());
-//                     artPharmacy.setIpt(ipt);
-// //                    log.info ("updating  current IPT from pharmacy");
-//                     pharmacyRepository.save(artPharmacy);
-// //                    log.info ("update was successful  current pharmacy affected uuid {}", artPharmacy.getUuid());
-//                 }
-
-//             }
-//         }
-//     }
 
 private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Person person) {
     ObjectMapper objectMapper = new ObjectMapper();
@@ -217,10 +206,14 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
         existingObservation.setType(observationDto.getType());
         existingObservation.setDateOfObservation(observationDto.getDateOfObservation());
         existingObservation.setData(observationDto.getData());
+        existingObservation.setComment(observationDto.getComment());
+        // NOTE: enrollmentSessionUuid is NEVER updated - it's immutable once set
+        // This ensures the observation remains linked to the same enrollment cycle
         processAndUpdateIptFromPharmacy(observationDto, existingObservation.getPerson());
         Observation saveObservation = observationRepository.save(existingObservation);
         observationDto.setId(saveObservation.getId());
         observationDto.setFacilityId(saveObservation.getFacilityId());
+        observationDto.setEnrollmentSessionUuid(saveObservation.getEnrollmentSessionUuid());
         return observationDto;
     }
 
@@ -260,6 +253,8 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
                 .type(observation.getType())
                 .visitId(observation.getVisit().getId())
                 .id(observation.getId())
+                .comment(observation.getComment())
+                .enrollmentSessionUuid(observation.getEnrollmentSessionUuid())
                 .build();
     }
 
@@ -321,8 +316,35 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
         }
         return resultList;
 
-
     }
 
+    /**
+     * Get all eligible patients by facility - Returns complete response
+     */
+    public Map<String, Object> getAllEligiblePatientsByFacility(Long facilityId) {
+        try {
+            List<ViralLoadEligibilityProjection> patients =
+                observationRepository.findAllEligiblePatientsByFacility(facilityId);
+            Map<String, Object> response = new HashMap<String, Object>();
+            response.put("success", true);
+            response.put("message", "Eligible patients retrieved successfully for facility " + facilityId);
+            response.put("data", patients);
+            response.put("facilityId", facilityId);
+            response.put("totalRecords", patients.size());
+
+            return response;
+
+        } catch (Exception e) {
+            return buildErrorResponse("Error retrieving eligible patients for facility " + facilityId + ": " + e.getMessage());
+        }
+    }
+
+    private Map<String, Object> buildErrorResponse(String message) {
+        Map<String, Object> errorResponse = new HashMap<String, Object>();
+        errorResponse.put("success", false);
+        errorResponse.put("message", message);
+        errorResponse.put("data", null);
+        return errorResponse;
+    }
 
 }

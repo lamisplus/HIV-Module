@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   FormGroup,
   Label,
@@ -20,7 +19,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-widgets/dist/css/react-widgets.css";
 import { useHistory } from "react-router-dom";
 // import {TiArrowBack} from 'react-icons/ti'
-import { token, url as baseUrl } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-phone-input-2/lib/style.css";
 import "semantic-ui-css/semantic.min.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -71,57 +70,39 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "NUTRITION_EDUCATION_COUNSELLED",
+  "NUTRITION_SUPPORT"
+];
+
 const BasicInfo = (props) => {
   const classes = useStyles();
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const [errors, setErrors] = useState({});
+  
+  const getFormattedOptionsForEducation = () => {
+    return getOptions("NUTRITION_EDUCATION_COUNSELLED").map(option => ({
+      label: option.display,
+      value: option.display,
+    }));
+  };
+  
+  const getFormattedOptionsForSupport = () => {
+    return getOptions("NUTRITION_SUPPORT").map(option => ({
+      label: option.display,
+      value: option.display,
+    }));
+  };
   const [selectedOptions1, setSelectedOptions1] = useState([]);
   const [selectedOptions2, setSelectedOptions2] = useState([]);
-  const [nutritionEducation, setNutritionEducation] = useState([]);
-  const [nutritionSupport, setNutritionSupport] = useState([]);
   useEffect(() => {
-    NUTRITION_EDUCATION_COUNSELLED();
-    NUTRITION_SUPPORT();
-  }, []);
-  //Get list of NUTRITION_EDUCATION_COUNSELLED
-  const NUTRITION_EDUCATION_COUNSELLED = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/NUTRITION_EDUCATION_COUNSELLED`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        if (props.nutrition.education.length > 0) {
-          setSelectedOptions1(props.nutrition.education);
-        }
-        
-        setNutritionEducation(
-          Object.entries(response.data).map(([key, value]) => ({
-            label: value.display,
-            value: value.display,
-          }))
-        );
-      })
-      .catch((error) => {});
-  };
-  //Get list of NUTRITION_SUPPORT
-  const NUTRITION_SUPPORT = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/NUTRITION_SUPPORT`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        if (props.nutrition.support.length > 0) {
-          setSelectedOptions2(props.nutrition.support);
-        }
-
-        setNutritionSupport(
-          Object.entries(response.data).map(([key, value]) => ({
-            label: value.display,
-            value: value.display,
-          }))
-        );
-      })
-      .catch((error) => {});
-  };
+    if (props.nutrition.education.length > 0) {
+      setSelectedOptions1(props.nutrition.education);
+    }
+    if (props.nutrition.support.length > 0) {
+      setSelectedOptions2(props.nutrition.support);
+    }
+  }, [props.nutrition.education, props.nutrition.support]);
   const [vital, setVitalSignDto] = useState({
     bodyWeight: props?.nutrition?.bodyWeight
       ? props?.nutrition?.bodyWeight
@@ -372,7 +353,7 @@ const BasicInfo = (props) => {
                   {/* Nutrition Education */}
                   <DualListBox
                     //canFilter
-                    options={nutritionEducation}
+                    options={getFormattedOptionsForEducation()}
                     onChange={onSelectedOption}
                     selected={selectedOptions1}
                     disabled={props.action === "view" ? true : false}
@@ -385,7 +366,7 @@ const BasicInfo = (props) => {
                   {/* Nutrition Education */}
                   <DualListBox
                     //canFilter
-                    options={nutritionSupport}
+                    options={getFormattedOptionsForSupport()}
                     onChange={onSelectedOption2}
                     selected={selectedOptions2}
                     disabled={props.action === "view" ? true : false}

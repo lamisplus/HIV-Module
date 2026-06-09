@@ -44,7 +44,6 @@ public class HandleHIVVisitEncounter {
 		if (personDto.getVisitId() != null) {
 			Optional<Visit> visitOptional = visitRepository.findById(personDto.getVisitId());
 			if (visitOptional.isPresent()) {
-				log.debug("visit already exist, updating encounter only!!");
 				List<Encounter> visitEncounters = encounterRepository.getEncounterByVisit(visitOptional.get());
 				List<String> serviceCodes = visitEncounters.stream()
 						.map(Encounter::getServiceCode)
@@ -61,10 +60,9 @@ public class HandleHIVVisitEncounter {
 			visit.setVisitStartDate(visitDate.atTime(0,0));
 			visit.setArchived(0);
 			visit.setUuid(UUID.randomUUID().toString());
-			log.debug("about saving visit, person is available? {}", personOptional.isPresent());
 			try {
 				Visit currentVisit = visitRepository.save(visit);
-				createHivVisitEncounter(personOptional, visit);
+				createHivVisitEncounter(personOptional, currentVisit);
 				return currentVisit;
 			} catch (DataAccessException e) {
 				log.error("Failed to save visit and encounter", e);
@@ -74,6 +72,26 @@ public class HandleHIVVisitEncounter {
 		return null;
 	}
 	
+
+	public Visit createVisitForEac(Long personId, LocalDate visitDate) {
+		Optional<Person> personOptional = personRepository.findById(personId);
+
+		Visit visit = new Visit();
+		personOptional.ifPresent(visit::setPerson);
+		personOptional.ifPresent(person -> visit.setFacilityId(person.getFacilityId()));
+		visit.setVisitStartDate(visitDate.atTime(0, 0));
+		visit.setArchived(0);
+		visit.setUuid(UUID.randomUUID().toString());
+		try {
+			Visit currentVisit = visitRepository.save(visit);
+			createHivVisitEncounter(personOptional, currentVisit);
+			return currentVisit;
+		} catch (DataAccessException e) {
+			log.error("Failed to save visit and encounter for EAC", e);
+			throw new RuntimeException("Failed to save visit and encounter for EAC", e);
+		}
+	}
+
 	private void createHivVisitEncounter(Optional<Person> personOptional, Visit visit) {
 		Encounter encounter = new Encounter();
 		encounter.setVisit(visit);

@@ -1,15 +1,18 @@
 package org.lamisplus.modules.hiv.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
+import org.lamisplus.modules.base.domain.dto.ApplicationCodesetDTO;
 import org.lamisplus.modules.base.service.ApplicationCodesetService;
 import org.lamisplus.modules.hiv.domain.dto.ARTClinicVisitDto;
 import org.lamisplus.modules.hiv.domain.dto.ARTClinicalVisitDisplayDto;
 import org.lamisplus.modules.hiv.domain.entity.ARTClinical;
-import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
+import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
 import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
+import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
 import org.lamisplus.modules.patient.domain.entity.Person;
 import org.lamisplus.modules.patient.domain.entity.Visit;
@@ -47,19 +50,24 @@ public class ArtClinicVisitService {
 	private final PersonRepository personRepository;
 
 	private final HIVStatusTrackerService hivStatusTrackerService;
-	
+
 	private final ApplicationCodesetService applicationCodesetService;
-	
+
 	private final HandleHIVVisitEncounter hivVisitEncounter;
+
+	private final EnrollmentCommencementRepository enrollmentCommencementRepository;
 	
 	public ARTClinicVisitDto createArtClinicVisit(ARTClinicVisitDto artClinicVisitDto) {
-		Long hivEnrollmentId = artClinicVisitDto.getHivEnrollmentId();
-		HivEnrollment hivEnrollment = hivEnrollmentRepository
-				.findById(hivEnrollmentId)
-				.orElseThrow(() -> new EntityNotFoundException(HivEnrollment.class, "id", "" + hivEnrollmentId));
 		Long personId = artClinicVisitDto.getPersonId();
-		if (!Objects.equals(hivEnrollment.getPerson().getId(), personId))
-			throw new EntityNotFoundException(Person.class, "personId", "" + personId);
+		Person person = getPerson(personId);
+
+		// Get LATEST EnrollmentCommencement by Person for clinic visit
+		EnrollmentCommencement enrollmentCommencement = enrollmentCommencementRepository
+				.findLatestByPersonIdAndArchived(personId, 0)
+				.orElseThrow(() -> new EntityNotFoundException(
+						EnrollmentCommencement.class,
+						"personId",
+						"" + personId));
 		Visit visit = hivVisitEncounter.processAndCreateVisit(personId, artClinicVisitDto.getVisitDate());
 		VitalSignRequestDto vitalSignDto = artClinicVisitDto.getVitalSignDto();
 		String captureDate = artClinicVisitDto.getVisitDate().toString().concat(" 00:00");
@@ -76,13 +84,13 @@ public class ArtClinicVisitService {
 		} else {
 			vitalSignId = vitalSignService.registerVitalSign(vitalSignDto).getId();
 		}
-		ARTClinical artClinical = convertDtoToART(artClinicVisitDto, vitalSignId);
+		ARTClinical artClinical = convertDtoToART(artClinicVisitDto, vitalSignId, enrollmentCommencement.getId());
 		artClinical.setClinicalStageId(artClinicVisitDto.getWhoStagingId());
 		artClinical.setUuid(UUID.randomUUID().toString());
 		artClinical.setArchived(0);
-		artClinical.setHivEnrollment(hivEnrollment);
+		artClinical.setEnrollmentCommencement(enrollmentCommencement);
 		artClinical.setVisit(visit);
-		artClinical.setPerson(hivEnrollment.getPerson());
+		artClinical.setPerson(enrollmentCommencement.getPerson());
 		artClinical.setIsCommencement(false);
 		return convertToClinicVisitDto(artClinicalRepository.save(artClinical));
 	}
@@ -94,11 +102,13 @@ public class ArtClinicVisitService {
 		String captureDate = artClinicVisitDto.getVisitDate().toString().concat(" 00:00");
 		vitalSignDto.setCaptureDate(captureDate);
 		vitalSignService.updateVitalSign(existArtClinical.getVitalSign().getId(), vitalSignDto);
-		ARTClinical artClinical = convertDtoToART(artClinicVisitDto, existArtClinical.getVitalSign().getId());
+		ARTClinical artClinical = convertDtoToART(artClinicVisitDto, existArtClinical.getVitalSign().getId(), existArtClinical.getEnrollmentCommencement().getId());
 		artClinical.setVisit(existArtClinical.getVisit());
-		artClinical.setHivEnrollment(existArtClinical.getHivEnrollment());
+		artClinical.setEnrollmentCommencement(existArtClinical.getEnrollmentCommencement());
+		artClinical.setArtStatusId(existArtClinical.getArtStatusId());
 		artClinical.setPerson(existArtClinical.getPerson());
 		artClinical.setId(existArtClinical.getId());
+		artClinical.setUuid(existArtClinical.getUuid());
 		artClinical.setArchived(0);
 		return convertToClinicVisitDto(artClinicalRepository.save(artClinical));
 	}
@@ -141,28 +151,42 @@ public class ArtClinicVisitService {
 			String who = applicationCodesetService.getApplicationCodeset(whoStagingId).getDisplay();
 			whoStage.append(who);
 		}
+
+		// Get functional status display value
+		Long functionalStatusId = visit.getFunctionalStatusId();
+		String functionalStatus = "";
+		if(functionalStatusId != null) {
+			functionalStatus = applicationCodesetService.getApplicationCodeset(functionalStatusId).getDisplay();
+		}
+
 		return ARTClinicalVisitDisplayDto.builder()
 				.id(visit.getId())
 				.visitDate(visit.getVisitDate())
 				.nextAppointment(visit.getNextAppointment())
 				.artStatus(hivStatusTrackerService.getPersonCurrentHIVStatusByPersonId(visit.getPerson().getId()).getStatus())
 				.personId(visit.getPerson().getId())
-				.hivEnrollmentId(visit.getHivEnrollment().getId())
+				.hivEnrollmentId(visit.getEnrollmentCommencement().getId())
 				.adherenceLevel(visit.getAdherenceLevel())
-				.isCommencement(visit.getIsCommencement())
+//				.isCommencement(visit.getEnrollmentCommencement().getIsCommencement())
+				.isCommencement(visit.getEnrollmentCommencement().getIsCommencement())
 				.adheres(visit.getAdheres())
 				.clinicalNote(visit.getClinicalNote())
 				.facilityId(visit.getFacilityId())
+				.functionalStatusId(visit.getFunctionalStatusId())
+				.functionalStatus(functionalStatus)
 				.cd4(visit.getCd4())
 				.cd4Percentage(visit.getCd4Percentage())
 				.adrScreened(visit.getAdrScreened())
-				.visitId(visit.getVisit().getId())
+				.visitId(visit.getVisit() != null ? visit.getVisit().getId() : null)
 				.vitalSignDto(vitalSignService.getVitalSignById(visit.getVitalSign().getId()))
 				.tbScreen(visit.getTbScreen())
 				.whoStaging(whoStage.toString())
+				.clinicalStageId(visit.getClinicalStageId())
 				.opportunisticInfections(visit.getOpportunisticInfections())
 				.cryptococcalScreeningStatus(visit.getCryptococcalScreeningStatus())
 				.familyPlaning(visit.getFamilyPlaning())
+				.onFamilyPlaning(visit.getOnFamilyPlaning())
+				.pregnancyStatus(visit.getPregnancyStatus())
 				.hepatitisScreeningResult(visit.getHepatitisScreeningResult())
 				.cervicalCancerScreeningStatus(visit.getCervicalCancerScreeningStatus())
 				.cervicalCancerTreatmentProvided(visit.getCervicalCancerTreatmentProvided())
@@ -171,6 +195,28 @@ public class ArtClinicVisitService {
 				.levelOfAdherence(visit.getLevelOfAdherence())
 				.tbPrevention(visit.getTbPrevention())
 				.tbStatus(visit.getTbStatus())
+				.tbStatusConfirmed(visit.getTbStatusConfirmed())
+				// Care Card Follow-Up specific fields
+				.durationOnArtMonths(visit.getDurationOnArtMonths())
+				.clinicianName(visit.getClinicianName())
+				.bmiMuac(visit.getBmiMuac())
+				.paediatricDisclosure(visit.getPaediatricDisclosure())
+				.whoStageCriteria(visit.getWhoStageCriteria())
+				.sideEffects(convertSideEffectsToDisplayFormat(visit.getNotedSideEffect()))
+				.dsdStatus(visit.getDsdStatus())
+				.dsdModel(visit.getDsdModel())
+				.dateDevolved(visit.getDateDevolved())
+				.cotrimoxazoleDose(visit.getCotrimoxazoleDose())
+				.tptData(visit.getTptData())
+				.otherDrugs(visit.getOtherDrugs())
+				.cd4Ordered(visit.getCd4Ordered())
+				.cd4Data(visit.getCd4Data())
+				.viralLoadOrdered(visit.getViralLoadOrdered())
+				.eac(visit.getEac())
+				.rbs(visit.getRbs())
+				.otherTestsDone(visit.getOtherTestsDone())
+				.typeOfAppointment(visit.getTypeOfAppointment())
+				.healthInsuranceCoverage(visit.getHealthInsuranceCoverage())
 				.build();
 	}
 	
@@ -196,19 +242,86 @@ public class ArtClinicVisitService {
 		return artClinicVisitDto;
 	}
 	@NotNull
-	public ARTClinical convertDtoToART(ARTClinicVisitDto artClinicVisitDto, Long vitalSignId) {
+	public ARTClinical convertDtoToART(ARTClinicVisitDto artClinicVisitDto, Long vitalSignId, Long enrollmentCommmenceId) {
 		ARTClinical artClinical = new ARTClinical();
 		BeanUtils.copyProperties(artClinicVisitDto, artClinical);
+		artClinical.setArtStatusId(enrollmentCommmenceId);
 		VitalSign vitalSign = getVitalSign(vitalSignId);
 		artClinical.setVitalSign(vitalSign);
 		artClinical.setFacilityId(organizationUtil.getCurrentUserOrganization());
 		artClinical.setArchived(0);
+
+		// Explicitly set JSONB fields to ensure they are copied
+		artClinical.setARVDrugsRegimen(artClinicVisitDto.getARVDrugsRegimen());
+		artClinical.setViralLoadOrder(artClinicVisitDto.getViralLoadOrder());
+		artClinical.setWhoStageCriteria(artClinicVisitDto.getWhoStageCriteria());
+		artClinical.setOpportunisticInfections(artClinicVisitDto.getOpportunisticInfections());
+		artClinical.setAdheres(artClinicVisitDto.getAdheres());
+		artClinical.setWho(artClinicVisitDto.getWho());
+		artClinical.setTbScreen(artClinicVisitDto.getTbScreen());
+		artClinical.setAdverseDrugReactions(artClinicVisitDto.getAdverseDrugReactions());
+		artClinical.setTptData(artClinicVisitDto.getTptData());
+		artClinical.setOtherTestsDone(artClinicVisitDto.getOtherTestsDone());
+		artClinical.setCd4Data(artClinicVisitDto.getCd4Data());
+
+		// Convert side effects list to JsonNode
+		if (artClinicVisitDto.getSideEffects() != null && !artClinicVisitDto.getSideEffects().isEmpty()) {
+			artClinical.setNotedSideEffect(convertListToJsonNode(artClinicVisitDto.getSideEffects()));
+		}
+
 		return artClinical;
 	}
 	
 	private VitalSign getVitalSign(Long vitalSignId) {
 		return vitalSignRepository.findById(vitalSignId).orElseThrow(() -> new EntityNotFoundException(VitalSign.class, "id", String.valueOf(vitalSignId)));
-		
+
 	}
-	
+
+	// Helper method to convert List<String> to JsonNode
+	private JsonNode convertListToJsonNode(List<String> list) {
+		try {
+			com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+			return mapper.valueToTree(list);
+		} catch (Exception e) {
+			log.error("Error converting list to JsonNode", e);
+			return null;
+		}
+	}
+
+	// Helper method to convert side effects JsonNode to list with codeset information
+	private JsonNode convertSideEffectsToDisplayFormat(JsonNode sideEffectsNode) {
+		if (sideEffectsNode == null || sideEffectsNode.isNull()) {
+			return null;
+		}
+
+		try {
+			com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+			List<Map<String, String>> displayList = new ArrayList<>();
+
+			if (sideEffectsNode.isArray()) {
+				for (JsonNode codeNode : sideEffectsNode) {
+					String code = codeNode.asText();
+					try {
+						ApplicationCodesetDTO codeset = applicationCodesetService.getOneByCode(code);
+						Map<String, String> item = new HashMap<>();
+						item.put("code", code);
+						item.put("display", codeset.getDisplay());
+						displayList.add(item);
+					} catch (Exception e) {
+						// If codeset not found, just include the code
+						Map<String, String> item = new HashMap<>();
+						item.put("code", code);
+						item.put("display", code);
+						displayList.add(item);
+					}
+				}
+			}
+
+			return mapper.valueToTree(displayList);
+		} catch (Exception e) {
+			log.error("Error converting side effects to display format", e);
+			return sideEffectsNode; // Return original if conversion fails
+		}
+	}
+
 }

@@ -22,19 +22,19 @@ public class HivEnrollmentActivityProvider implements PatientActivityProvider {
 
     @Override
     public List<PatientActivity> getActivitiesFor(Person person) {
-        Optional<HivEnrollment> hivEnrollmentOptional = hivEnrollmentRepository.getHivEnrollmentByPersonAndArchived (person, 0);
-        List<PatientActivity> patientActivities = new ArrayList<> ();
-        StringBuilder name = new StringBuilder("HIV Enrollment");
-        PatientActivity patientActivity = hivEnrollmentOptional
-                .map (hivEnrollment -> {
-                    LocalDate dateOfRegistration =
-                            CustomDateTimeFormat.handleNullDateActivity(name, hivEnrollment.getDateOfRegistration());
-                    return new PatientActivity (hivEnrollment.getId (), name.toString(), dateOfRegistration, "", "hiv-enrollment");
-                })
-                .orElse (null);
-        patientActivities.add (patientActivity);
-        return patientActivities;
-
+//        Optional<HivEnrollment> hivEnrollmentOptional = hivEnrollmentRepository.getHivEnrollmentByPersonAndArchived (person, 0);
+//        List<PatientActivity> patientActivities = new ArrayList<> ();
+//        StringBuilder name = new StringBuilder("HIV Enrollment");
+//        PatientActivity patientActivity = hivEnrollmentOptional
+//                .map (hivEnrollment -> {
+//                    LocalDate dateOfRegistration =
+//                            CustomDateTimeFormat.handleNullDateActivity(name, hivEnrollment.getDateOfRegistration());
+//                    return new PatientActivity (hivEnrollment.getId (), name.toString(), dateOfRegistration, "", "hiv-enrollment");
+//                })
+//                .orElse (null);
+//        patientActivities.add (patientActivity);
+//        return patientActivities;
+        return new ArrayList<>();
     }
 
 }

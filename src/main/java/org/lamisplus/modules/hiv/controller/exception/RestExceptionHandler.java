@@ -2,6 +2,7 @@ package org.lamisplus.modules.hiv.controller.exception;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.jetbrains.annotations.NotNull;
+import org.lamisplus.modules.base.controller.apierror.RecordExistException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -80,6 +81,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseStatus(BAD_REQUEST)
     protected ResponseEntity<Object> handleAlreadyExistException(AlreadyExistException ex) {
         ApiError apiError = new ApiError(BAD_REQUEST);
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(RecordExistException.class)
+    @ResponseStatus(CONFLICT)
+    protected ResponseEntity<Object> handleRecordExistException(RecordExistException ex) {
+        ApiError apiError = new ApiError(CONFLICT);
         apiError.setMessage(ex.getMessage());
         return buildResponseEntity(apiError);
     }

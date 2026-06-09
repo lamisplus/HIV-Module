@@ -48,6 +48,7 @@ import fingerprintimage from "./../../images/fingerprintimage.png";
 import DeleteIcon from "@material-ui/icons/Delete";
 import UpgradeIcon from "@mui/icons-material/Upgrade";
 import _ from "lodash";
+import useCodesets from "../../../hooks/useCodesets";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -121,7 +122,9 @@ const useStyles = makeStyles((theme) => ({
 
 let checkUrl = "";
 
+const CODESET_KEYS = ["BIOMETRIC_CAPTURE_FINGERS"];
 function Biometrics(props) {
+  const { getOptions } = useCodesets(CODESET_KEYS);
   const classes = useStyles();
   let history = useHistory();
   const permissions =
@@ -158,11 +161,7 @@ function Biometrics(props) {
   };
 
   const getPersonBiometrics = async () => {
-    const fingersCodeset = await axios.get(
-      `${baseUrl}application-codesets/v2/BIOMETRIC_CAPTURE_FINGERS`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
+    const fingersCodeset = getOptions("BIOMETRIC_CAPTURE_FINGERS");
     axios
       .get(`${baseUrl}biometrics/person/${props.patientId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -213,7 +212,7 @@ function Biometrics(props) {
     clear_storelist();
     getPersonBiometrics();
     TemplateType();
-    //biometricFingers();
+    // biometricFingers();
   }, []);
   //Get list of KP
   const TemplateType = () => {
@@ -238,16 +237,16 @@ function Biometrics(props) {
   };
 
   //Get list of Finger index
-  const biometricFingers = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/BIOMETRIC_CAPTURE_FINGERS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setFingerType(response.data);
-      })
-      .catch((error) => {});
-  };
+  // const biometricFingers = () => {
+  //   axios
+  //     .get(`${baseUrl}application-codesets/v2/BIOMETRIC_CAPTURE_FINGERS`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then((response) => {
+  //       setFingerType(response.data);
+  //     })
+  //     .catch((error) => {});
+  // };
   //check if device is plugged or not
   const checkDevice = (e) => {
     const deviceName = e.target.value;

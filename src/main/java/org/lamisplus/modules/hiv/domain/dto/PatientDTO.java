@@ -31,4 +31,9 @@ public class PatientDTO {
 	private Long enrollmentId;
 	private LocalDate dateOfBirth;
 	private LocalDate dateOfRegistration;
+
+	private Boolean hasiceform;
+	private Boolean hasenrollmentform;
+	private String hivTestResult;
+	private boolean hasTransferIn;
 }

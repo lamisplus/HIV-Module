@@ -1,8 +1,24 @@
 export const url =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:8789/api/v1/"
-    : "/api/v1/";
+    process.env.NODE_ENV === "development"
+        ? "http://localhost:8789/api/v1/"
+        : "/api/v1/";
+
+// export const token =
+//     process.env.NODE_ENV === "development"
+//         ? process.env.REACT_APP_DEV_JWT
+//         : new URLSearchParams(window.location.search).get("jwt");
+
+export const wsUrl =
+    process.env.NODE_ENV === "development"
+        ? "http://localhost:8789/websocket"
+        : "/websocket";
+
+export const audioTranscriptionUrl = process.env.NODE_ENV === "development"
+
+    ? "http://96.0.47.224:7860/api/v1"
+
+    : "http://96.0.47.224:7860/api/v1";
+
 export const token =
-  process.env.NODE_ENV === "development"
-    ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJndWVzdEBsYW1pc3BsdXMub3JnIiwiYXV0aCI6IlN1cGVyIEFkbWluIiwibmFtZSI6Ikd1ZXN0IEd1ZXN0IiwiZXhwIjoxNzUyNjY0MTcwfQ.xFetsoUIogVBi0cEKH9jYHws3HnTbw9bLLdeUGU7CwsdxQsQFKqkLLnKk-m68tp6_h6eBVJ5wA7p_YKuJxmPbA"
-    : new URLSearchParams(window.location.search).get("jwt");
+    process.env.NODE_ENV === "development"
+        ? "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJlY2V3c0FDRTUiLCJhdXRoIjoiU3VwZXIgQWRtaW4sUkRFIiwiZXhwIjoxNzc5MzY0OTExLCJuYW1lIjoiRUNFV1MgQUNFNSJ9.uQ-TqbV88OKQFH72HmNhM-BxIcjRazHcgbznG2ZWuuF_ChP2asuvBkglwRWmpz010wqSGnME_sFcHk8xkejG9A" : new URLSearchParams(window.location.search).get("jwt");

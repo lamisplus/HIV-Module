@@ -17,6 +17,7 @@ import { Spinner } from "reactstrap";
 import { Icon, List, Label as LabelSui } from "semantic-ui-react";
 import Select from "react-select";
 import { useRowState } from "react-table";
+import { getFacilityId } from "../../../utils/localstorage";
 
 // import moment from "moment";
 
@@ -99,7 +100,8 @@ const Tracking = (props) => {
     const [baselineCDCount, setBaselineCDCount] = useState("");
     const [currentCD4, setCurrentCD4] = useState("");
     const [BMI, setBMI] = useState("");
-    const [facId, setFacId] = useState(localStorage.getItem("facId"))
+    const [facId, setFacId] = useState(null);
+
     const [attemptList, setAttemptList] = useState([]);
     // const [selectedLga, setSelectedLga] = useState("");
     const [reasonForTransfer, setReasonForTransfer] = useState([
@@ -174,7 +176,22 @@ const Tracking = (props) => {
     const [selectedFacility, setSelectedFacility] = useState({});
     const [selectedLga, setSelectedLga] = useState({});
 
+    useEffect(() => {
+        const init = async () => {
+          const facilityId = getFacilityId();
+          setFacId(facilityId);
+        };
+        init();
+      }, []);
 
+
+      useEffect(() => {
+        if (facId) {
+          getTreatmentInfo();
+          getLabResult();
+        }
+      }, [facId]);
+    
     // console.log("paylaod", payload)
     const loadStates1 = () => {
         axios.get(`${baseUrl}organisation-units/parent-organisation-units/1`, {
@@ -296,10 +313,34 @@ const Tracking = (props) => {
             .then((response) => {
                 setSaving(false);
                 toast.success("Transfer Form Submitted Successfully");
-                props.setActiveContent({
-                    ...props.activeContent,
-                    route: "recent-history",
-                });
+
+                // If this was a Transfer IN (returning client), route to Adherence Preparation (Part 2 flow)
+                if (patientCurrentStatus === "ART TRANSFER OUT") {
+                    // Transfer IN - Set status to "TRANSFER-IN NOT ACTIVE" for Part 2 flow
+                    localStorage.setItem("currentStatus", "TRANSFER-IN NOT ACTIVE");
+
+                    // Route to Adherence Preparation (first step in Part 2 enrollment cycle)
+                    props.setActiveContent({
+                        ...props.activeContent,
+                        route: "adherence-preparation",
+                        activeTab: "home",
+                        actionType: "create",
+                        refreshPatient: true,
+                        refreshTimestamp: Date.now(), // Force refresh of patient data
+                    });
+                } else {
+                    // Transfer OUT - Set status to "ART TRANSFER OUT"
+                    localStorage.setItem("currentStatus", "ART TRANSFER OUT");
+
+                    // Route to Home (recent-history) with refresh to show updated menu
+                    props.setActiveContent({
+                        ...props.activeContent,
+                        route: "recent-history",
+                        activeTab: "home",
+                        refreshPatient: true,
+                        refreshTimestamp: Date.now(), // Force refresh of patient data
+                    });
+                }
             })
             .catch((error) => {
                 setSaving(false);

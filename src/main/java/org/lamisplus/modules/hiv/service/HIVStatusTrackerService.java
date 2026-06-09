@@ -8,9 +8,11 @@ import org.lamisplus.modules.base.service.ApplicationCodesetService;
 import org.lamisplus.modules.hiv.domain.dto.HIVStatusTrackerDto;
 import org.lamisplus.modules.hiv.domain.dto.StatusDto;
 import org.lamisplus.modules.hiv.domain.entity.ArtPharmacy;
+import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
 import org.lamisplus.modules.hiv.domain.entity.HIVStatusTracker;
 import org.lamisplus.modules.hiv.domain.entity.HivEnrollment;
 import org.lamisplus.modules.hiv.repositories.ArtPharmacyRepository;
+import org.lamisplus.modules.hiv.repositories.EnrollmentCommencementRepository;
 import org.lamisplus.modules.hiv.repositories.HIVStatusTrackerRepository;
 import org.lamisplus.modules.hiv.repositories.HivEnrollmentRepository;
 import org.lamisplus.modules.hiv.utility.Constants;
@@ -54,8 +56,9 @@ public class HIVStatusTrackerService {
 
     private final HandleHIVVisitEncounter hivVisitEncounter;
 
-
     private final ApplicationCodesetService applicationCodesetService;
+
+    private final EnrollmentCommencementRepository enrollmentCommencementRepository;
 
     public HIVStatusTrackerDto registerHIVStatusTracker(HIVStatusTrackerDto hivStatusTrackerDto) {
         if (hivStatusTrackerDto != null) {
@@ -99,48 +102,31 @@ public class HIVStatusTrackerService {
         Optional<HIVStatusTracker> currentStatus = hivStatusTrackerRepository.findAllByPersonAndArchived(person, 0)
                 .stream()
                 .max(personStatusDateComparator);
-        List<ArtPharmacy> pharmacyRefills = artPharmacyRepository.getArtPharmaciesByPersonAndArchived(person, 0);
-        StatusDto statusDto = new StatusDto(HIV_PLUS_NON_ART, null);
-        if (!pharmacyRefills.isEmpty()) {
-            return currentStatus.map(this::calculatePatientCurrentStatus)
-                    .orElse(statusDto);
+
+        // ALWAYS use the latest HIVStatusTracker if it exists (regardless of pharmacy refills)
+        // This ensures Part 2 returning clients maintain their "Transfer-in not active" status
+        if (currentStatus.isPresent()) {
+            log.info("Using latest HIVStatusTracker status for person {}: {}", personId, currentStatus.get().getHivStatus());
+            return calculatePatientCurrentStatus(currentStatus.get());
         }
 
-        HivEnrollment hivEnrollment = hivEnrollmentRepository.getHivEnrollmentByPersonAndArchived(person, 0)
-                .orElseThrow(() -> new EntityNotFoundException(HivEnrollment.class, "person id", String.valueOf(person.getId())));
-        LocalDate dateOfRegistration = hivEnrollment.getDateOfRegistration();
+        // Fallback: If no status tracker exists, check pharmacy refills
+        List<ArtPharmacy> pharmacyRefills = artPharmacyRepository.getArtPharmaciesByPersonAndArchived(person, 0);
+        if (!pharmacyRefills.isEmpty()) {
+            log.info("No status tracker found, but patient has pharmacy refills. Using default status.");
+            return new StatusDto(HIV_PLUS_NON_ART, null);
+        }
+
+        // Final fallback: Use the FIRST/EARLIEST enrollment commencement for initial status
+        log.info("No status tracker or pharmacy refills found. Using enrollment status for person {}", personId);
+        EnrollmentCommencement hivEnrollment = enrollmentCommencementRepository.findFirstByPersonIdAndArchived(person.getId(), 0)
+                .orElseThrow(() -> new EntityNotFoundException(EnrollmentCommencement.class, "person id", String.valueOf(person.getId())));
+        LocalDate dateOfRegistration = hivEnrollment.getDateEnrolledInHivCare();
         Long statusAtRegistrationId = hivEnrollment.getStatusAtRegistrationId();
         String statusAtRegistration = applicationCodesetService.getApplicationCodeset(statusAtRegistrationId).getDisplay();
         return new StatusDto(statusAtRegistration, dateOfRegistration);
 
     }
-
-    public StatusDto getPersonCurrentHIVStatusByPersonId(Long personId, LocalDate startDate, LocalDate endDate) {
-        Person person = getPerson(personId);
-        Comparator<HIVStatusTracker> personStatusDateComparator = Comparator.comparing(HIVStatusTracker::getStatusDate);
-        Optional<HIVStatusTracker> currentStatus = hivStatusTrackerRepository.findAllByPersonAndArchived(person, 0)
-                .stream()
-                .filter(status ->
-                        status.getStatusDate().isAfter(startDate.minusDays(1))
-                                && status.getStatusDate().isBefore(endDate.plusDays(1)))
-                .max(personStatusDateComparator);
-        List<ArtPharmacy> pharmacyRefills = artPharmacyRepository.getArtPharmaciesByPersonAndArchived(person, 0);
-        StatusDto statusDto = new StatusDto(HIV_PLUS_NON_ART, null);
-        if (!pharmacyRefills.isEmpty()) {
-            return currentStatus.map(this::calculatePatientCurrentStatus)
-                    .orElse(statusDto);
-        }
-
-        HivEnrollment hivEnrollment = hivEnrollmentRepository.getHivEnrollmentByPersonAndArchived(person, 0)
-                .orElseThrow(() -> new EntityNotFoundException(HivEnrollment.class, "person id", String.valueOf(person.getId())));
-        LocalDate dateOfRegistration = hivEnrollment.getDateOfRegistration();
-        Long statusAtRegistrationId = hivEnrollment.getStatusAtRegistrationId();
-        String statusAtRegistration = applicationCodesetService.getApplicationCodeset(statusAtRegistrationId).getDisplay();
-        return new StatusDto(statusAtRegistration, dateOfRegistration);
-
-
-    }
-
 
     private StatusDto calculatePatientCurrentStatus(HIVStatusTracker statusTracker) {
         if (statusTracker.getStatusDate() == null) statusTracker.setStatusDate(INVALID_DATE);
@@ -150,11 +136,12 @@ public class HIVStatusTrackerService {
                 .getOneArtPharmaciesByPersonAndArchived(statusTracker.getPerson().getUuid(), 0);
 
         artPharmacy.ifPresent(p -> statusDate.set(p.getNextAppointment()));
-        List<String> staticStatus = Arrays.asList("Stopped Treatment", "Died (Confirmed)", "ART Transfer Out", "HIV_NEGATIVE", "ART Transfer In" );
+        List<String> staticStatus = Arrays.asList("Stopped Treatment", "Died (Confirmed)", "ART Transfer Out", "HIV_NEGATIVE", "ART Transfer In", "Transfer-in not active" );
         if (staticStatus.contains(statusTracker.getHivStatus())) {
             if (statusTracker.getHivStatus().equalsIgnoreCase(Constants.HIV_NEGATIVE)) {
                 return new StatusDto(NOT_ENROLLED, statusTracker.getStatusDate());
             }
+            // Return the status as-is for all static statuses including "Transfer-in not active"
             return new StatusDto(statusTracker.getHivStatus(), statusTracker.getStatusDate());
         } else {
             LocalDate dateStatus;
@@ -255,5 +242,44 @@ public class HIVStatusTrackerService {
         hivStatusTracker.setUuid(UUID.randomUUID().toString());
         hivStatusTracker.setReasonForInterruption("Self-returned _to_care");
          hivStatusTrackerRepository.save(hivStatusTracker);
+    }
+
+
+    public void autoUpdateHIVStatus(Person person, Visit visit, String hivStatus, LocalDate statusDate) {
+        try {
+            log.info("Auto-updating HIV status to '{}' for person: {}", hivStatus, person.getId());
+
+            // Check if the exact same status already exists for this person on this date
+            boolean duplicateExists = hivStatusTrackerRepository
+                    .findAllByPersonAndArchived(person, 0)
+                    .stream()
+                    .anyMatch(s -> s.getStatusDate().equals(statusDate) &&
+                                  s.getHivStatus().equalsIgnoreCase(hivStatus));
+
+            if (duplicateExists) {
+                log.info("Status '{}' already exists for person {} on date {}, skipping duplicate",
+                    hivStatus, person.getId(), statusDate);
+                return;
+            }
+
+            // Create new HIV Status Tracker record
+            HIVStatusTracker statusTracker = HIVStatusTracker.builder()
+                    .person(person)
+                    .visit(visit)
+                    .hivStatus(hivStatus)
+                    .statusDate(statusDate)
+                    .uuid(UUID.randomUUID().toString())
+                    .archived(0)
+                    .auto(true)  // Automatically created by the system
+                    .build();
+            // Set facilityId using setter (not available in builder as it's from parent class)
+            statusTracker.setFacilityId(organizationUtil.getCurrentUserOrganization());
+            hivStatusTrackerRepository.save(statusTracker);
+            log.info("HIV status auto-updated to '{}' successfully for person: {}", hivStatus, person.getId());
+
+        } catch (Exception e) {
+            log.error("Error auto-updating HIV status for person {}: {}", person.getId(), e.getMessage());
+
+        }
     }
 }

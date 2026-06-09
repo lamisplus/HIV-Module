@@ -1,6 +1,7 @@
 package org.lamisplus.modules.hiv.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
 import org.lamisplus.modules.hiv.domain.entity.*;
 import org.lamisplus.modules.hiv.repositories.HIVDrugRepository;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RegimenService {
 
     private final RegimenRepository regimenRepository;

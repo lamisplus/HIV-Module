@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet failOnError="true" id="20260302-001" author="gboyeguntaiwo">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="hiv_adherence_preparation"/>
+            </not>
+        </preConditions>
+        <sqlFile dbms="postgresql"
+                 path="sql/create_adherence_preparation_table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="false"/>
+    </changeSet>
+
+    <!-- Add ready_for_art column -->
+    <changeSet id="20260519-ap-01" author="gboyeguntaiwo" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_adherence_preparation" columnName="ready_for_art"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="hiv_adherence_preparation">
+            <column name="ready_for_art" type="varchar(10)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Migrate old adherenceServices data format to new format with default values -->
+    <changeSet id="20260519-ap-04" author="gboyeguntaiwo" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT CASE
+                    WHEN EXISTS (
+                        SELECT 1 FROM hiv_adherence_preparation
+                        WHERE adherence_services::text LIKE '%"services"%'
+                    ) THEN 1
+                    ELSE 0
+                END
+            </sqlCheck>
+        </preConditions>
+        <sql dbms="postgresql" splitStatements="false" endDelimiter=";">
+            UPDATE hiv_adherence_preparation
+            SET adherence_services = jsonb_build_object(
+                'visitDate', to_char(service_date, 'YYYY-MM-DD'),
+                'educateOnEssentials', 'No',
+                'explainCompleteAdherence', 'No',
+                'explainDoseAndSchedule', 'No',
+                'explainSideEffects', 'No',
+                'discussAdherencePlan', 'No',
+                'prepareTreatmentSupporter', 'No'
+            )
+            WHERE adherence_services::text LIKE '%"services"%'
+            AND jsonb_typeof(adherence_services->'services') = 'array';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

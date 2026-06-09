@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet id="20250729-01" author="Taiwo Gboyegun">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_observation"/>
+            <not>
+                <columnExists tableName="hiv_observation" columnName="comment"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="hiv_observation">
+            <column name="comment" type="text"/>
+        </addColumn>
+        <rollback>
+            ALTER TABLE hiv_observation DROP COLUMN comment;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

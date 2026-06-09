@@ -18,6 +18,7 @@ import "react-widgets/dist/css/react-widgets.css";
 import { useHistory } from "react-router-dom";
 // import {TiArrowBack} from 'react-icons/ti'
 import { token, url as baseUrl } from "../../../api";
+import useCodesets from "../../../hooks/useCodesets";
 import "react-phone-input-2/lib/style.css";
 import "semantic-ui-css/semantic.min.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -91,17 +92,20 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const CODESET_KEYS = [
+  "CHRONIC_CARE_CLIENT_TYPE",
+  "ART_STATUS",
+  "PREGNANCY_STATUS",
+  "WHO_STAGING_CRITERIA",
+];
+
 const Eligibility = (props) => {
   const classes = useStyles();
+  const { getOptions } = useCodesets(CODESET_KEYS);
 
   const [facilityId, setFacilityId] = useState(null);
-  const [clientType, setClientType] = useState([]);
-  const [pregnancyStatus, setPregnancyStatus] = useState([]);
-  const [who, setWho] = useState([]);
-  const [artStatus, setArtStatus] = useState([]);
   const [lastCd4Result, setLastCd4Result] = useState({});
   const getFacilityId = useFacilityId(baseUrl, token);
-
   const handleEligibility = (e) => {
     props.setEligibility({
       ...props.eligibility,
@@ -109,58 +113,12 @@ const Eligibility = (props) => {
     });
   };
   useEffect(() => {
-    CHRONIC_CARE_CLIENT_TYPE();
-    PREGNANCY_STATUS();
-    ART_STATUS();
-    WHO_STAGING_CRITERIA();
     getLastCD4Result();
   }, [getFacilityId]);
-  const CHRONIC_CARE_CLIENT_TYPE = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/CHRONIC_CARE_CLIENT_TYPE`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setClientType(response.data);
-      })
-      .catch((error) => {});
-  };
-  const ART_STATUS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/ART_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setArtStatus(response.data);
-      })
-      .catch((error) => {});
-  };
-
-  const PREGNANCY_STATUS = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/PREGNANCY_STATUS`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        // Filter out "Post Partum" from the response.data array
-        const filteredData = response.data.filter(
-          (status) => status.display !== "Post Partum"
-        );
-        setPregnancyStatus(filteredData);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-  const WHO_STAGING_CRITERIA = () => {
-    axios
-      .get(`${baseUrl}application-codesets/v2/WHO_STAGING_CRITERIA`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        setWho(response.data);
-      })
-      .catch((error) => {});
+  const getFilteredPregnancyStatus = () => {
+    return getOptions("PREGNANCY_STATUS").filter(
+      (status) => status.display !== "Post Partum"
+    );
   };
 
   const patientAge = calculate_age_to_number(props.patientObj.dateOfBirth);
@@ -181,9 +139,6 @@ const Eligibility = (props) => {
         console.error("Error fetching Last CD4 Result:", error);
       });
   };
-
-    console.log("Eligibility ", lastCd4Result);
-
   useEffect(() => {
     // Update props.eligibility.lastCd4Result with the value of lastCd4Result.cd4?.resultReported
     props.setEligibility((prevEligibility) => ({
@@ -200,7 +155,6 @@ const Eligibility = (props) => {
 
   
   
-    console.log("Eligibility ", lastCd4Result)
     const dateObject = new Date(inputDate);
       if (isNaN(dateObject)) {
         return ""; 
@@ -233,7 +187,7 @@ const Eligibility = (props) => {
                       disabled={props.action === "view" ? true : false}
                     >
                       <option value="">Select</option>
-                      {clientType.map((value) => (
+                      {getOptions("CHRONIC_CARE_CLIENT_TYPE").map((value) => (
                         <option key={value.id} value={value.display}>
                           {value.display}
                         </option>
@@ -256,7 +210,7 @@ const Eligibility = (props) => {
                         value={props.eligibility.pregnantStatus}
                       >
                         <option value="">Select</option>
-                        {pregnancyStatus.map((value) => (
+                        {getFilteredPregnancyStatus().map((value) => (
                           <option key={value.id} value={value.display}>
                             {value.display}
                           </option>
@@ -279,7 +233,7 @@ const Eligibility = (props) => {
                       value={props.eligibility.artStatus}
                     >
                       <option value="">Select</option>
-                      {artStatus.map((value) => (
+                      {getOptions("ART_STATUS").map((value) => (
                         <option key={value.id} value={value.display}>
                           {value.display}
                         </option>
@@ -355,8 +309,7 @@ const Eligibility = (props) => {
                       id="lastViralLoadResult"
                       value={props.eligibility.lastViralLoadResult}
                       onChange={handleEligibility}
-                      // disabled={props.action === "view" ? true : false}
-                      disabled={true}
+                      disabled={props.entryPointId !== 21}
                     />
                   </InputGroup>
                 </FormGroup>
@@ -366,13 +319,13 @@ const Eligibility = (props) => {
                   <Label>Last Viral Load Result Date</Label>
                   <InputGroup>
                     <Input
-                      type="text"
+                      type="date"
                       name="lastViralLoadResultDate"
                       id="lastViralLoadResultDate"
                       value={props.eligibility.lastViralLoadResultDate}
                       onChange={handleEligibility}
-                      // disabled={props.action === "view" ? true : false}
-                      disabled={true}
+                      disabled={props.entryPointId !== 21}
+                      min={props.entryPointId === 21 && props.enrollDate ? props.enrollDate : undefined}
                     />
                   </InputGroup>
                 </FormGroup>

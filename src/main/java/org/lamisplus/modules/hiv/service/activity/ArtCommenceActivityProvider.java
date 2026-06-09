@@ -21,16 +21,18 @@ public class ArtCommenceActivityProvider implements PatientActivityProvider {
 
     @Override
     public List<PatientActivity> getActivitiesFor(Person person) {
-        Optional<ARTClinical> artCommencement = artClinicalRepository.findTopByPersonAndIsCommencementIsTrueAndArchived (person, 0);
-        StringBuilder name = new StringBuilder("ART Commencement");
-        PatientActivity patientActivity = artCommencement
-                .map (artPharmacy -> {
-                    LocalDate visitDate = CustomDateTimeFormat.handleNullDateActivity(name, artPharmacy.getVisitDate());
-                    return new PatientActivity (artPharmacy.getId (), name.toString(), visitDate, "", "Art-commence");
-                }).orElse (null);
-        ArrayList<PatientActivity> patientActivities = new ArrayList<> ();
-        patientActivities.add (patientActivity);
-        return patientActivities;
+//        Optional<ARTClinical> artCommencement = artClinicalRepository.findTopByPersonAndIsCommencementIsTrueAndArchived (person, 0);
+//        StringBuilder name = new StringBuilder("ART Commencement");
+//        PatientActivity patientActivity = artCommencement
+//                .map (artPharmacy -> {
+//                    LocalDate visitDate = CustomDateTimeFormat.handleNullDateActivity(name, artPharmacy.getVisitDate());
+//                    return new PatientActivity (artPharmacy.getId (), name.toString(), visitDate, "", "Art-commence");
+//                }).orElse (null);
+//        ArrayList<PatientActivity> patientActivities = new ArrayList<> ();
+//        patientActivities.add (patientActivity);
+//        return patientActivities;
+        return new ArrayList<>();
+
     }
     
     

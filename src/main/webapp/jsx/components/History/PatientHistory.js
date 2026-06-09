@@ -176,7 +176,7 @@ const PatientnHistory = (props) => {
     } else if (row.path === "clinic-visit") {
       props.setActiveContent({
         ...props.activeContent,
-        route: "consultation",
+        route: "care-card-follow-up",
         id: row.id,
         activeTab: "history",
         actionType: action,
@@ -249,6 +249,46 @@ const PatientnHistory = (props) => {
       props.setActiveContent({
         ...props.activeContent,
         route: "filled-transferForm",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
+    } else if (row.path === "Transfer-In-Acknowledgement") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "transfer-in-acknowledgement-view",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
+    } else if (row.path === "enrollment-commencement") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: action === "view" ? "enrollment-and-commencement-view" : "enrollment-and-commencement-update",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
+    } else if (row.path === "Initial-Clinical-evaluation") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: action === "view" ? "initial-clinical-evaluation-view" : "initial-clinical-evaluation-update",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
+    } else if (row.path === "Substitutions-and-Switches") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: action === "view" ? "substitution-switch-view" : "substitution-switch-update",
+        id: row.id,
+        activeTab: "home",
+        actionType: action,
+      });
+    } else if (row.path === "adherence-preparation") {
+      props.setActiveContent({
+        ...props.activeContent,
+        route: "adherence-preparation",
         id: row.id,
         activeTab: "home",
         actionType: action,
@@ -693,6 +733,132 @@ const PatientnHistory = (props) => {
           .catch((error) => {
             setSaving(false);
             toggle();
+            if (error.response && error.response.data) {
+              let errorMessage =
+                  error.response.data.apierror &&
+                  error.response.data.apierror.message !== ""
+                      ? error.response.data.apierror.message
+                      : "Something went wrong, please try again";
+              toast.error(errorMessage);
+            } else {
+              toast.error("Something went wrong. Please try again...");
+            }
+          });
+    } else if (row.path === "enrollment-commencement") {
+      setSaving(true);
+      axios
+          .delete(`${baseUrl}hiv/enrollment-commencement/${row.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => {
+            toast.success("Enrollment and Commencement record deleted successfully");
+            PatientHistory();
+            toggle();
+            setSaving(false);
+          })
+          .catch((error) => {
+            setSaving(false);
+            if (error.response && error.response.data) {
+              let errorMessage =
+                  error.response.data.apierror &&
+                  error.response.data.apierror.message !== ""
+                      ? error.response.data.apierror.message
+                      : "Something went wrong, please try again";
+              toast.error(errorMessage);
+            } else {
+              toast.error("Something went wrong. Please try again...");
+            }
+          });
+    } else if (row.path === "Initial-Clinical-evaluation") {
+      setSaving(true);
+      axios
+          .delete(`${baseUrl}hiv/observation/initial-clinical-evaluation/${row.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => {
+            toast.success("Initial Clinical Evaluation record deleted successfully");
+            PatientHistory();
+            toggle();
+            setSaving(false);
+          })
+          .catch((error) => {
+            setSaving(false);
+            if (error.response && error.response.data) {
+              let errorMessage =
+                  error.response.data.apierror &&
+                  error.response.data.apierror.message !== ""
+                      ? error.response.data.apierror.message
+                      : "Something went wrong, please try again";
+              toast.error(errorMessage);
+            } else {
+              toast.error("Something went wrong. Please try again...");
+            }
+          });
+    } else if (row.path === "Transfer-In-Acknowledgement") {
+      setSaving(true);
+      axios
+          .delete(`${baseUrl}hiv/patient-transfer-in/${row.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => {
+            toast.success("Transfer-In Acknowledgement record deleted successfully");
+            PatientHistory();
+            toggle();
+            setSaving(false);
+          })
+          .catch((error) => {
+            setSaving(false);
+            if (error.response && error.response.data) {
+              let errorMessage =
+                  error.response.data.apierror &&
+                  error.response.data.apierror.message !== ""
+                      ? error.response.data.apierror.message
+                      : "Something went wrong, please try again";
+              toast.error(errorMessage);
+            } else {
+              toast.error("Something went wrong. Please try again...");
+            }
+          });
+    } else if (row.path === "Substitutions-and-Switches") {
+      setSaving(true);
+      axios
+          .delete(`${baseUrl}observation/${row.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => {
+            queryClient.invalidateQueries()
+            toast.success("Substitution / Switch record deleted successfully");
+            PatientHistory();
+            toggle();
+            setSaving(false);
+          })
+          .catch((error) => {
+            setSaving(false);
+            if (error.response && error.response.data) {
+              let errorMessage =
+                  error.response.data.apierror &&
+                  error.response.data.apierror.message !== ""
+                      ? error.response.data.apierror.message
+                      : "Something went wrong, please try again";
+              toast.error(errorMessage);
+            } else {
+              toast.error("Something went wrong. Please try again...");
+            }
+          });
+    } else if (row.path === "adherence-preparation") {
+      setSaving(true);
+      axios
+          .delete(`${baseUrl}adherence-preparation/${row.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((response) => {
+            toast.success("ART Adherence Preparation record deleted successfully");
+            PatientHistory();
+            toggle();
+            setSaving(false);
+          })
+          .catch((error) => {
+            setSaving(false);
             if (error.response && error.response.data) {
               let errorMessage =
                   error.response.data.apierror &&

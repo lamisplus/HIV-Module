@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="autoIncrement" value="true"/>
+
+    <changeSet id="20260223-003" author="gboyeguntaiwo">
+        <comment>Update cotrimoxazole and TB regimen codes to full descriptions</comment>
+        <sqlFile path="sql/updateCotrimoxazoleRegimen.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="20260223-004" author="gboyeguntaiwo">
+        <comment>Update regimen separators from hyphen to plus sign</comment>
+        <sqlFile path="sql/updateRegimenSeparators.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="20260223-005" author="gboyeguntaiwo">
+        <comment>Update HIV regimen composition and TPT regimen names</comment>
+        <sqlFile path="sql/updateHIVRegimenComposition.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="20260223-006" author="gboyeguntaiwo">
+        <comment>Update OI regimen codes and NDR codes</comment>
+        <sqlFile path="sql/updateOIRegimenCodes.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="20260223-007" author="gboyeguntaiwo">
+        <comment>Update TB regimen NDR codes and cleanup orphaned entries</comment>
+        <sqlFile path="sql/updateNDRCodeSetTBRegimen.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="20260223-008" author="gboyeguntaiwo">
+        <comment>Update Rifabutin and Pyrazinamide NDR codes</comment>
+        <sql>
+            UPDATE ndr_code_set
+            SET ndr_code = CASE
+                WHEN code_description = 'Rifabutin' AND code = 'RF' THEN 'NDRRF0206'
+                WHEN code_description = 'Pyrazinamide (PZI)' AND code = 'Z' THEN 'NDRZ0192'
+                ELSE ndr_code
+            END
+            WHERE (code_description = 'Rifabutin' AND code = 'RF')
+               OR (code_description = 'Pyrazinamide (PZI)' AND code = 'Z');
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260223-009" author="gboyeguntaiwo">
+        <comment>Update Rifampicin NDR code</comment>
+        <sql>
+            UPDATE ndr_code_set
+            SET ndr_code = 'NDRR0191'
+            WHERE code_description = 'Rifampicin' AND code = 'R';
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260223-011" author="gboyeguntaiwo">
+        <comment>Delete orphaned Isoniazid-Rifampicin record with null NDR code</comment>
+        <sql>
+            DELETE FROM ndr_code_set
+            WHERE code = 'HR'
+              AND code_description = 'Isoniazid-Rifampicin'
+              AND ndr_code IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260223-012" author="gboyeguntaiwo">
+        <comment>Update ARV regimen codes and insert pediatric regimens</comment>
+        <sqlFile path="sql/updateARVRegimenCodes.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+</databaseChangeLog>
