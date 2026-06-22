@@ -32,7 +32,7 @@ import { Label } from "semantic-ui-react";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
 import { TiArrowForward } from "react-icons/ti";
-import { calculate_age } from "../../../utils";
+import { calculate_age, calculateAge } from "../../../utils";
 Moment.locale("en");
 momentLocalizer();
 
@@ -171,7 +171,7 @@ const Patients = (props) => {
                       ),
                     uniqueId: row.uniqueId,
                     sex: row.sex,
-                    age: calculate_age(row.dateOfBirth),
+                    age: calculateAge(row.dateOfBirth),
                     actions: (
                       <div>
                         {row.currentStatus !== "Not Enrolled" ? (
