@@ -1491,6 +1491,14 @@ const InitialClinicalEvaluationForm = (props) => {
         if (numValue < 48.26) return "Height cannot be less than 48.26 cm";
         if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
         break;
+      case "respiratoryRate":
+        if (numValue < 5) return "Respiratory Rate cannot be less than 5 breaths/min";
+        if (numValue > 60) return "Respiratory Rate cannot be greater than 60 breaths/min";
+        break;
+      case "surfaceArea":
+         if (numValue < 0.1) return "Surface Area cannot be less than 0.1 m²";
+         if (numValue > 3.0) return "Surface Area cannot be greater than 3.0 m²";
+         break;
       default:
         break;
     }
@@ -1605,30 +1613,54 @@ const InitialClinicalEvaluationForm = (props) => {
   };
 
   // Handle checkbox arrays (assessment, enroll_in, plan_for_art)
-  const handleCheckboxArray = (arrayName, code, checked) => {
-    setAssessment((prev) => {
-      const currentArray = prev[arrayName] || [];
-      let newArray;
+  // const handleCheckboxArray = (arrayName, code, checked) => {
+  //   setAssessment((prev) => {
+  //     const currentArray = prev[arrayName] || [];
+  //     let newArray;
+  //
+  //     // Special handling for single-select fields
+  //     if (arrayName === 'planForArtItems' || arrayName === 'assessmentItems') {
+  //       if (checked) {
+  //         // Replace all selections with just this one (single-select behavior)
+  //         newArray = [code];
+  //       } else {
+  //         // Unchecking - just remove this code
+  //         newArray = currentArray.filter((item) => item !== code);
+  //       }
+  //     } else {
+  //       // Multi-select behavior for other arrays
+  //       newArray = checked
+  //         ? [...currentArray, code]  // Add code if checked
+  //         : currentArray.filter((item) => item !== code);  // Remove code if unchecked
+  //     }
+  //
+  //     return { ...prev, [arrayName]: newArray };
+  //   });
+  // };
 
-      // Special handling for single-select fields
-      if (arrayName === 'planForArtItems' || arrayName === 'assessmentItems') {
-        if (checked) {
-          // Replace all selections with just this one (single-select behavior)
-          newArray = [code];
-        } else {
-          // Unchecking - just remove this code
-          newArray = currentArray.filter((item) => item !== code);
-        }
-      } else {
-        // Multi-select behavior for other arrays
-        newArray = checked
-          ? [...currentArray, code]  // Add code if checked
-          : currentArray.filter((item) => item !== code);  // Remove code if unchecked
-      }
-
-      return { ...prev, [arrayName]: newArray };
-    });
-  };
+    // Handle checkbox arrays (assessment, enroll_in, plan_for_art)
+    const handleCheckboxArray = (arrayName, code, checked) => {
+        setAssessment((prev) => {
+            const currentArray = prev[arrayName] || [];
+            let newArray;
+            // Special handling for single-select fields (Added 'enrollInItems')
+            if (arrayName === 'planForArtItems' || arrayName === 'assessmentItems' || arrayName === 'enrollInItems') {
+                if (checked) {
+                    // Replace all selections with just this one (single-select behavior)
+                    newArray = [code];
+                } else {
+                    // Unchecking - just remove this code
+                    newArray = currentArray.filter((item) => item !== code);
+                }
+            } else {
+                // Multi-select behavior for other arrays
+                newArray = checked
+                    ? [...currentArray, code]  // Add code if checked
+                    : currentArray.filter((item) => item !== code);  // Remove code if unchecked
+            }
+            return { ...prev, [arrayName]: newArray };
+        });
+    };
 
   // Helper to check if pregnancy code indicates "Yes"
   const isPregnant = () => {
@@ -3588,7 +3620,11 @@ const InitialClinicalEvaluationForm = (props) => {
                     value={vitals.surfaceArea}
                     onChange={handleVitals}
                     placeholder="m²"
+                    style={{ borderColor: vitalsErrors.surfaceArea ? "#d32f2f" : "" }}
                   />
+                    {vitalsErrors.surfaceArea && (
+                        <span className={classes.error}>{vitalsErrors.surfaceArea}</span>
+                    )}
                 </Col>
                 <Col size={4}>
                   <SectionLabel>Respiratory Rate (breaths/min)</SectionLabel>
@@ -3598,7 +3634,11 @@ const InitialClinicalEvaluationForm = (props) => {
                     value={vitals.respiratoryRate}
                     onChange={handleVitals}
                     placeholder="breaths/min"
+                    style={{ borderColor: vitalsErrors.respiratoryRate ? "#d32f2f" : "" }}
                   />
+                    {vitalsErrors.respiratoryRate && (
+                        <span className={classes.error}>{vitalsErrors.respiratoryRate}</span>
+                    )}
                 </Col>
               </div>
             </Box>
