@@ -264,10 +264,10 @@ const EnrollmentAndCommencementForm = (props) => {
       return "PRIOR_ART_PEP"; // PEP
     }
     if (arvHistory.tran === true) {
-      return "PRIOR_ART_TRANSFER_IN_WITHOUT_RECORDS"; // Transfer in without records
+      return "PRIOR_ART_TRANSFER_IN_WITHOUT_RECORDS";
     }
     if (arvHistory.earlierArvNotTransfer === true) {
-      return "PRIOR_ART_EARLIER_ARV_BUT_NOT_A_TRANSFER_IN"; // Earlier ARV but not a transfer in
+      return "PRIOR_ART_EARLIER_ARV_BUT_NOT_A_TRANSFER_IN";
     }
 
     return "";
@@ -1110,18 +1110,24 @@ const EnrollmentAndCommencementForm = (props) => {
 
     if (errors[name]) {
       const newErrors = { ...errors };
-      if ((name === 'date_art_started' || name === 'visit_date') && value && String(value).trim() !== '') {
+      if (name === 'visit_date' && value && String(value).trim() !== '') {
+        const isValid = !props.patientObj?.dateOfBirth || value >= props.patientObj1.dateOfBirth;
+        if (isValid) {
+          delete newErrors[name];
+        }
+      } else if (name === 'date_art_started' && value && String(value).trim() !== '') {
         delete newErrors[name];
       }
+      // if ((name === 'date_art_started' || name === 'visit_date') && value && String(value).trim() !== '') {
+      //   delete newErrors[name];
+      // }
 
       setErrors(newErrors);
     }
   };
-
   // Handler for the nested TPT object
   const handleTpt = (e) => {
     const { name, value } = e.target;
-
     // If TPT Completed changes to "No" or empty, clear completion date and error
     if (name === "tpt_completed" && value !== "Yes") {
       setCommencement((prev) => ({
@@ -1160,7 +1166,6 @@ const EnrollmentAndCommencementForm = (props) => {
   useEffect(() => {
     // Find the selected care entry point
     const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.code == registration.care_entry_point);
-
     // Check if Care Entry Point is Transfer-in using code or display
     const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
                          selectedCareEntryPoint?.display?.toLowerCase().includes("transfer");
@@ -1299,6 +1304,11 @@ const EnrollmentAndCommencementForm = (props) => {
 
     if (!commencement.visit_date || String(commencement.visit_date).trim() === '') {
       temp.visit_date = "Visit date is required";
+    }
+    else {
+      if (props.patientObj?.dateOfBirth && commencement.visit_date < props.patientObj.dateOfBirth) {
+        temp.visit_date = "Visit date cannot be earlier than date of birth";
+      }
     }
 
     if (!commencement.date_art_started || String(commencement.date_art_started).trim() === '') {
@@ -1896,6 +1906,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="visit_date"
                   value={commencement.visit_date}
                   max={moment(new Date()).format("YYYY-MM-DD")}
+                  min={props.patientObj?.dateOfBirth || undefined}
                   onChange={handleCommencement}
                   disabled={isViewMode}
                   style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
