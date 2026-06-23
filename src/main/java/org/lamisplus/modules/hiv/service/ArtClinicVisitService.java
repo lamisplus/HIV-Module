@@ -9,6 +9,7 @@ import org.lamisplus.modules.base.domain.dto.ApplicationCodesetDTO;
 import org.lamisplus.modules.base.service.ApplicationCodesetService;
 import org.lamisplus.modules.hiv.domain.dto.ARTClinicVisitDto;
 import org.lamisplus.modules.hiv.domain.dto.ARTClinicalVisitDisplayDto;
+import org.lamisplus.modules.hiv.domain.dto.StatusDto;
 import org.lamisplus.modules.hiv.domain.entity.ARTClinical;
 import org.lamisplus.modules.hiv.domain.entity.EnrollmentCommencement;
 import org.lamisplus.modules.hiv.repositories.ARTClinicalRepository;
@@ -143,32 +144,60 @@ public class ArtClinicVisitService {
 		return new ArrayList<>();
 	}
 	
-	
+
+
 	private ARTClinicalVisitDisplayDto getArtClinicalVisitDisplayDto(ARTClinical visit) {
 		Long whoStagingId = visit.getWhoStagingId();
 		StringBuilder whoStage = new StringBuilder();
-		if(whoStagingId != null) {
-			String who = applicationCodesetService.getApplicationCodeset(whoStagingId).getDisplay();
-			whoStage.append(who);
+		if (whoStagingId != null) {
+			ApplicationCodesetDTO codeset = applicationCodesetService.getApplicationCodeset(whoStagingId);
+			if (codeset != null) {
+				whoStage.append(codeset.getDisplay());
+			}
 		}
 
-		// Get functional status display value
 		Long functionalStatusId = visit.getFunctionalStatusId();
 		String functionalStatus = "";
-		if(functionalStatusId != null) {
-			functionalStatus = applicationCodesetService.getApplicationCodeset(functionalStatusId).getDisplay();
+		if (functionalStatusId != null) {
+			ApplicationCodesetDTO codeset = applicationCodesetService.getApplicationCodeset(functionalStatusId);
+			if (codeset != null) {
+				functionalStatus = codeset.getDisplay();
+			}
 		}
 
+		String artStatus = null;
+		StatusDto hivStatus = hivStatusTrackerService.getPersonCurrentHIVStatusByPersonId(visit.getPerson().getId());
+		if (hivStatus != null) {
+			artStatus = hivStatus.getStatus();
+		}
+
+
+		Long hivEnrollmentId = null;
+		Boolean isCommencement = null;
+		if (visit.getEnrollmentCommencement() != null) {
+			hivEnrollmentId = visit.getEnrollmentCommencement().getId();
+			isCommencement = visit.getEnrollmentCommencement().getIsCommencement();
+		}
+
+		Long visitId = visit.getVisit() != null ? visit.getVisit().getId() : null;
+
+		VitalSignDto vitalSignDto = null;
+		if (visit.getVitalSign() != null) {
+			vitalSignDto = vitalSignService.getVitalSignById(visit.getVitalSign().getId());
+		}
+
+		JsonNode safeSideEffects = visit.getNotedSideEffect() != null
+				? convertSideEffectsToDisplayFormat(visit.getNotedSideEffect())
+				: null;
 		return ARTClinicalVisitDisplayDto.builder()
 				.id(visit.getId())
 				.visitDate(visit.getVisitDate())
 				.nextAppointment(visit.getNextAppointment())
-				.artStatus(hivStatusTrackerService.getPersonCurrentHIVStatusByPersonId(visit.getPerson().getId()).getStatus())
+				.artStatus(artStatus)
 				.personId(visit.getPerson().getId())
-				.hivEnrollmentId(visit.getEnrollmentCommencement().getId())
+				.hivEnrollmentId(hivEnrollmentId)
 				.adherenceLevel(visit.getAdherenceLevel())
-//				.isCommencement(visit.getEnrollmentCommencement().getIsCommencement())
-				.isCommencement(visit.getEnrollmentCommencement().getIsCommencement())
+				.isCommencement(isCommencement)
 				.adheres(visit.getAdheres())
 				.clinicalNote(visit.getClinicalNote())
 				.facilityId(visit.getFacilityId())
@@ -177,8 +206,8 @@ public class ArtClinicVisitService {
 				.cd4(visit.getCd4())
 				.cd4Percentage(visit.getCd4Percentage())
 				.adrScreened(visit.getAdrScreened())
-				.visitId(visit.getVisit() != null ? visit.getVisit().getId() : null)
-				.vitalSignDto(vitalSignService.getVitalSignById(visit.getVitalSign().getId()))
+				.visitId(visitId)
+				.vitalSignDto(vitalSignDto)
 				.tbScreen(visit.getTbScreen())
 				.whoStaging(whoStage.toString())
 				.clinicalStageId(visit.getClinicalStageId())
@@ -202,7 +231,7 @@ public class ArtClinicVisitService {
 				.bmiMuac(visit.getBmiMuac())
 				.paediatricDisclosure(visit.getPaediatricDisclosure())
 				.whoStageCriteria(visit.getWhoStageCriteria())
-				.sideEffects(convertSideEffectsToDisplayFormat(visit.getNotedSideEffect()))
+				.sideEffects(safeSideEffects)
 				.dsdStatus(visit.getDsdStatus())
 				.dsdModel(visit.getDsdModel())
 				.dateDevolved(visit.getDateDevolved())
@@ -219,7 +248,6 @@ public class ArtClinicVisitService {
 				.healthInsuranceCoverage(visit.getHealthInsuranceCoverage())
 				.build();
 	}
-	
 	
 	private Person getPerson(Long personId) {
 		return personRepository.findById(personId).orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
