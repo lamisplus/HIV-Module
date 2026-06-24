@@ -18,6 +18,23 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
 
     List<HivEnrollment> getHivEnrollmentByFacilityIdAndArchived(Long facilityId, Integer archived);
 
+    @Query(value = "SELECT e.status_at_registration_id,e.date_enrolled_in_hiv_care " +
+            "AS enrollmentDate, a.display AS hivEnrollmentStatus  " +
+            "FROM hiv_enrollment_commencement e INNER JOIN base_application_codeset a " +
+            "ON a.id = e.status_at_registration_id " +
+            "WHERE person_uuid = ?1 AND e.archived = 0 " +
+            "ORDER BY e.date_art_started DESC, e.id DESC LIMIT 1", nativeQuery = true)
+    Optional<EnrollmentStatus> getHivEnrollmentStatusByPersonUuid(String uuid);
+
+    @Query(value = "SELECT COUNT(*)\n" +
+            "FROM patient_person p\n" +
+            "WHERE p.archived = 0 \n" +
+            "AND p.facility_id = ?1\n" +
+            "AND NOT EXISTS (\n" +
+            "    SELECT 1 FROM hiv_enrollment_commencement e WHERE e.person_uuid = p.uuid\n" +
+            ")", nativeQuery = true)
+    Long countPatientsByFacilityId(Long facilityId);
+
     @Query(value = "WITH filtered_patients AS ( " +
             "    SELECT p.uuid, p.id, p.created_by, p.date_of_registration, p.first_name, p.surname, p.other_name, p.hospital_number, " +
             "    p.date_of_birth, p.sex, p.is_date_of_birth_estimated, p.facility_id FROM patient_person p " +
@@ -28,8 +45,17 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "        AND EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = p.uuid AND ice.archived = 0) " +
             "    ) " +
             "    AND NOT EXISTS ( " +
-            "        SELECT 1 FROM hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
-            "        AND hc.archived IS FALSE AND patient_uuid = p.uuid " +
+            "        SELECT 1 FROM hts_encounter hc " +
+            "        WHERE hc.patient_uuid = p.uuid " +
+            "        AND hc.archived IS FALSE " +
+            "        AND ( " +
+            "            hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
+            "            OR hc.observation->>'hivEarlyDetectResult' IN ( " +
+            "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
+            "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
+            "            ) " +
+            "            OR hc.observation->>'suspectedAcuteInfection' = 'YES_NO_YES' " +
+            "        ) " +
             "    ) " +
             "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
             "), " +
@@ -88,33 +114,22 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
                     "    AND EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice2 WHERE ice2.person_uuid = p.uuid AND ice2.archived = 0) " +
                     ") " +
                     "AND NOT EXISTS ( " +
-                    "    SELECT 1 FROM hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
-                    "    AND hc.archived IS FALSE AND patient_uuid = p.uuid " +
+                    "    SELECT 1 FROM hts_encounter hc " +
+                    "    WHERE hc.patient_uuid = p.uuid " +
+                    "    AND hc.archived IS FALSE " +
+                    "    AND ( " +
+                    "        hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
+                    "        OR hc.observation->>'hivEarlyDetectResult' IN ( " +
+                    "            'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
+                    "            'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
+                    "        ) " +
+                    "        OR hc.observation->>'suspectedAcuteInfection' = 'YES_NO_YES' " +
+                    "    ) " +
                     ") " +
                     "AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
                     "AND (p.hospital_number ILIKE ?2 OR p.first_name ILIKE ?2 OR p.surname ILIKE ?2 OR p.other_name ILIKE ?2)",
             nativeQuery = true)
     Page<PatientProjection> getPatientsByFacilityBySearchParam(Long facilityId, String searchParam, Pageable page);
-
-
-    @Query(value = "SELECT e.status_at_registration_id,e.date_enrolled_in_hiv_care " +
-            "AS enrollmentDate, a.display AS hivEnrollmentStatus  " +
-            "FROM hiv_enrollment_commencement e INNER JOIN base_application_codeset a " +
-            "ON a.id = e.status_at_registration_id " +
-            "WHERE person_uuid = ?1 AND e.archived = 0 " +
-            "ORDER BY e.date_art_started DESC, e.id DESC LIMIT 1", nativeQuery = true)
-    Optional<EnrollmentStatus> getHivEnrollmentStatusByPersonUuid(String uuid);
-
-    @Query(value = "SELECT COUNT(*)\n" +
-            "FROM patient_person p\n" +
-            "WHERE p.archived = 0 \n" +
-            "AND p.facility_id = ?1\n" +
-            "AND NOT EXISTS (\n" +
-            "    SELECT 1 FROM hiv_enrollment_commencement e WHERE e.person_uuid = p.uuid\n" +
-            ")", nativeQuery = true)
-    Long countPatientsByFacilityId(Long facilityId);
-
-
 
     @Query(value = "WITH filtered_patients AS (\n" +
             "    SELECT p.uuid, p.id, p.created_by, p.date_of_registration, p.first_name, p.surname, p.other_name, p.hospital_number,\n" +
@@ -126,16 +141,27 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "        AND EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = p.uuid AND ice.archived = 0)\n" +
             "    )\n" +
             "    AND NOT EXISTS (\n" +
-            "        SELECT 1 from hts_encounter hc WHERE hc.observation->>'confirmatoryHivTest'  = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' AND hc.archived IS FALSE AND patient_uuid = p.uuid\n" +
+            "        SELECT 1 FROM hts_encounter hc \n" +
+            "        WHERE hc.patient_uuid = p.uuid \n" +
+            "        AND hc.archived IS FALSE\n" +
+            "        AND (\n" +
+            "            hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE'\n" +
+            "            OR hc.observation->>'hivEarlyDetectResult' IN (\n" +
+            "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', \n" +
+            "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE'\n" +
+            "            )\n" +
+            "            OR hc.observation->>'suspectedAcuteInfection' = 'YES_NO_YES'\n" +
+            "        )\n" +
             "    )\n" +
             "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0)\n" +
             "),\n" +
             "htsResult AS (\n" +
-            "SELECT patient_uuid, hivTestResult FROM(\n" +
-            "SELECT patient_uuid, hc.observation->>'confirmatoryHivTest' as hivTestResult,\n" +
-            "ROW_NUMBER() OVER (PARTITION BY patient_uuid ORDER BY date_of_visit DESC) rnkk\n" +
-            "FROM hts_encounter hc \n" +
-            "WHERE hc.archived IS FALSE) hts WHERE rnkk = 1\n" +
+            "    SELECT patient_uuid, hivTestResult FROM (\n" +
+            "        SELECT patient_uuid, hc.observation->>'confirmatoryHivTest' as hivTestResult,\n" +
+            "        ROW_NUMBER() OVER (PARTITION BY patient_uuid ORDER BY date_of_visit DESC) rnkk\n" +
+            "        FROM hts_encounter hc \n" +
+            "        WHERE hc.archived IS FALSE\n" +
+            "    ) hts WHERE rnkk = 1\n" +
             ")\n" +
             "SELECT\n" +
             "    fp.id AS id,\n" +
@@ -151,7 +177,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "    fp.is_date_of_birth_estimated AS isdobestimated,\n" +
             "    fp.facility_id AS facilityid,\n" +
             "    fp.uuid AS personuuid,\n" +
-            "\tbac.display hivTestResult,\n" +
+            "    bac.display hivTestResult,\n" +
             "    (SELECT EXISTS (SELECT 1 FROM hiv_initial_clinical_evaluation ice WHERE ice.person_uuid = fp.uuid AND ice.archived = 0)) AS isEnrolled,\n" +
             "    (SELECT EXISTS (SELECT 1 FROM hiv_enrollment_commencement ec WHERE ec.person_uuid = fp.uuid AND ec.archived = 0)) AS commenced,\n" +
             "    b.biometric_type AS biometricstatus,\n" +
@@ -163,7 +189,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             ") b ON b.person_uuid = fp.uuid\n" +
             "LEFT JOIN htsResult hr ON hr.patient_uuid = fp.uuid\n" +
             "LEFT JOIN base_application_codeset bac ON bac.code = hr.hivTestResult\n" +
-            "ORDER BY fp.id DESC\n"+
+            "ORDER BY fp.id DESC\n" +
             "LIMIT ?2 OFFSET ?3",
             nativeQuery = true)
     List<PatientProjection> findPatientsByFacilityId(Long facilityId, int limit, int offset);
