@@ -29,12 +29,12 @@ public class RegimenService {
         RegimenType regimenType = regimenTypeRepository
                 .findById(typeId)
                 .orElseThrow(() -> new EntityNotFoundException(RegimenType.class, "id ", String.valueOf(typeId)));
-        List<Regimen> regimens = regimenRepository.getAllByRegimenTypeAndActiveIsTrue(regimenType);
-        if (regimenType.getId( ) !=  null  &&  regimenType.getId() == 3L) {
-            Optional<Regimen> adultRegimen = regimenRepository.findById(116L);
-            adultRegimen.ifPresent(regimens::add);
-        }
-        return regimens;
+              return regimenRepository.getAllByRegimenTypeAndActiveIsTrue(regimenType);
+//        if (regimenType.getId( ) !=  null  &&  regimenType.getId() == 3L) {
+//            Optional<Regimen> adultRegimen = regimenRepository.findById(116L);
+//            adultRegimen.ifPresent(regimens::add);
+//        }
+//        return regimens;
     }
 
     public Regimen getRegimenById(Long id) {
