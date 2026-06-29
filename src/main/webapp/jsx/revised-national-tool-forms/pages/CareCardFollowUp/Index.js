@@ -871,21 +871,30 @@ const CareCardFollowUpForm = (props) => {
     duration_on_art_months: "",
     clinician_name: "",
   });
+
   const handleVisit = (e) => {
     const { name, value } = e.target;
 
-    // If visit date changes, also update duration on ART
+    // If visit date changes, also update duration on ART and next appointment date
     if (name === "visit_date") {
       const artStartDate = props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started;
-      if (artStartDate) {
-        const duration = calculateDurationOnArt(artStartDate, value || moment(new Date()).format("YYYY-MM-DD"));
-        setVisitInfo((prev) => ({ ...prev, [name]: value, duration_on_art_months: duration }));
-        return;
-      }
+      const duration = artStartDate
+          ? calculateDurationOnArt(artStartDate, value || moment(new Date()).format("YYYY-MM-DD"))
+          : visitInfo.duration_on_art_months;
+
+      const nextAppointment = calculateNextAppointmentDate(value, arvList);
+      setFollowUp((prev) => ({
+        ...prev,
+        next_appointment_date: nextAppointment || prev.next_appointment_date,
+      }));
+
+      setVisitInfo((prev) => ({ ...prev, [name]: value, duration_on_art_months: duration }));
+      return;
     }
 
     setVisitInfo((prev) => ({ ...prev, [name]: value }));
   };
+
 
   // ── Section 2: Vitals & Clinical Status ─────────────────────────────────
   const [vitals, setVitals] = useState({
@@ -1132,6 +1141,13 @@ const CareCardFollowUpForm = (props) => {
   // Save new ARV entry
   const saveNewArv = () => {
     // Validation - at least regimen line should be selected
+    if (arvList.length >= 1) {
+      toast.error("Only one ARV regimen is allowed. Edit or delete the existing entry first.");
+      setAddModalOpen(false);
+      return;
+    }
+
+    // Validation - at least regimen line should be selected
     if (!newArv.regimen_line) {
       toast.error("Please select a regimen line");
       return;
@@ -1147,6 +1163,16 @@ const CareCardFollowUpForm = (props) => {
 
     setAddModalOpen(false);
     toast.success("ARV regimen added successfully");
+  };
+
+  const calculateNextAppointmentDate = (visitDate, arvEntries) => {
+    if (!visitDate || !arvEntries || arvEntries.length === 0) return "";
+
+    const doseDays = parseInt(arvEntries[0]?.dose, 10);
+    if (isNaN(doseDays) || doseDays <= 0) return "";
+
+    const next = moment(visitDate).add(doseDays, "days");
+    return next.isValid() ? next.format("YYYY-MM-DD") : "";
   };
 
   const removeArvEntry = (index) => {
@@ -1662,6 +1688,13 @@ const CareCardFollowUpForm = (props) => {
     }
   };
 
+  useEffect(() => {
+    const nextAppointment = calculateNextAppointmentDate(visitInfo.visit_date, arvList);
+    if (nextAppointment) {
+      setFollowUp((prev) => ({ ...prev, next_appointment_date: nextAppointment }));
+    }
+  }, [arvList, visitInfo.visit_date]);
+
   // ─────────────────────────────────────────────────────────────────────────
   // Render
   // ─────────────────────────────────────────────────────────────────────────
@@ -2108,133 +2141,151 @@ const CareCardFollowUpForm = (props) => {
           {/* ══════════════════════════════════════════════════════════════ */}
           {/*  SECTION 3 — MEDICATIONS                                     */}
           {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion panel="medications" title="Medications" index={2} expanded={expanded} onToggle={toggleAccordion}>
+          <FormAccordion panel="medications" title="Medications" index={2} expanded={expanded}
+                         onToggle={toggleAccordion}>
 
-            {/* ARV */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <SubHeading style={{ marginBottom: 0 }}>ARV Drugs</SubHeading>
-              <MatButton
-                size="small"
-                variant="contained"
-                startIcon={<AddIcon />}
-                style={{ backgroundColor: "#014d88", color: "#fff", textTransform: "none" }}
-                onClick={openAddModal}
-              >
-                Add ARV Regimen
-              </MatButton>
+            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px"}}>
+              <SubHeading style={{marginBottom: 0}}>ARV Drugs</SubHeading>
+              <Tooltip
+                  title={arvList.length >= 1 ? "Only one ARV regimen is allowed. Edit or delete the existing entry first." : ""}>
+                    <span>
+                      <MatButton
+                          size="small"
+                          variant="contained"
+                          startIcon={<AddIcon/>}
+                          style={{
+                            backgroundColor: arvList.length >= 1 ? "#bdbdbd" : "#014d88",
+                            color: "#fff",
+                            textTransform: "none",
+                          }}
+                          onClick={openAddModal}
+                          disabled={arvList.length >= 1}
+                      >
+                        Add ARV Regimen
+                      </MatButton>
+                    </span>
+              </Tooltip>
             </div>
 
             {errors.arv_regimen && (
-              <div style={{ marginBottom: "12px" }}>
-                <span className={classes.error}>{errors.arv_regimen}</span>
-              </div>
+                <div style={{marginBottom: "12px"}}>
+                  <span className={classes.error}>{errors.arv_regimen}</span>
+                </div>
             )}
 
             {arvList.length > 0 && (
-              <TableContainer component={Paper} sx={{ marginBottom: "16px", border: "1px solid #014d88" }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: "#014d88" }}>
-                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>#</TableCell>
-                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen Line</TableCell>
-                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen</TableCell>
-                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Adherence</TableCell>
-                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Dose</TableCell>
-                      <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px", textAlign: "center" }}>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {arvList.map((arv, index) => (
-                      <TableRow key={index} sx={{ "&:hover": { backgroundColor: "#f5f5f5" } }}>
-                        <TableCell sx={{ fontSize: "13px" }}>{index + 1}</TableCell>
-                        <TableCell sx={{ fontSize: "13px" }}>
-                          {arv.regimen_line ? getRegimenLineDisplay(arv.regimen_line) : <span style={{ color: "#9e9e9e" }}>Not set</span>}
-                        </TableCell>
-                        <TableCell sx={{ fontSize: "13px" }}>
-                          {arv.regimen ? getRegimenDisplay(arv.regimen, index) : <span style={{ color: "#9e9e9e" }}>Not set</span>}
-                        </TableCell>
-                        <TableCell sx={{ fontSize: "13px" }}>
-                          {arv.adherence ? getAdherenceDisplay(arv.adherence) : <span style={{ color: "#9e9e9e" }}>Not set</span>}
-                        </TableCell>
-                        <TableCell sx={{ fontSize: "13px" }}>
-                          {arv.dose || <span style={{ color: "#9e9e9e" }}>Not set</span>}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center" }}>
-                          <Tooltip title="Edit">
-                            <IconButton
-                              size="small"
-                              onClick={() => openEditModal(index)}
-                              sx={{ color: "#014d88", marginRight: "4px" }}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              onClick={() => openDeleteDialog(index)}
-                              sx={{ color: "#d32f2f" }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
+                <TableContainer component={Paper} sx={{marginBottom: "16px", border: "1px solid #014d88"}}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{backgroundColor: "#014d88"}}>
+                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>#</TableCell>
+                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>Regimen Line</TableCell>
+                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>Regimen</TableCell>
+                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>Adherence</TableCell>
+                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>Dose</TableCell>
+                        <TableCell sx={{
+                          color: "#fff",
+                          fontWeight: "bold",
+                          fontSize: "12px",
+                          textAlign: "center"
+                        }}>Actions</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {arvList.map((arv, index) => (
+                          <TableRow key={index} sx={{"&:hover": {backgroundColor: "#f5f5f5"}}}>
+                            <TableCell sx={{fontSize: "13px"}}>{index + 1}</TableCell>
+                            <TableCell sx={{fontSize: "13px"}}>
+                              {arv.regimen_line ? getRegimenLineDisplay(arv.regimen_line) :
+                                  <span style={{color: "#9e9e9e"}}>Not set</span>}
+                            </TableCell>
+                            <TableCell sx={{fontSize: "13px"}}>
+                              {arv.regimen ? getRegimenDisplay(arv.regimen, index) :
+                                  <span style={{color: "#9e9e9e"}}>Not set</span>}
+                            </TableCell>
+                            <TableCell sx={{fontSize: "13px"}}>
+                              {arv.adherence ? getAdherenceDisplay(arv.adherence) :
+                                  <span style={{color: "#9e9e9e"}}>Not set</span>}
+                            </TableCell>
+                            <TableCell sx={{fontSize: "13px"}}>
+                              {arv.dose || <span style={{color: "#9e9e9e"}}>Not set</span>}
+                            </TableCell>
+                            <TableCell sx={{textAlign: "center"}}>
+                              <Tooltip title="Edit">
+                                <IconButton
+                                    size="small"
+                                    onClick={() => openEditModal(index)}
+                                    sx={{color: "#014d88", marginRight: "4px"}}
+                                >
+                                  <EditIcon fontSize="small"/>
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                    size="small"
+                                    onClick={() => openDeleteDialog(index)}
+                                    sx={{color: "#d32f2f"}}
+                                >
+                                  <DeleteIcon fontSize="small"/>
+                                </IconButton>
+                              </Tooltip>
+                            </TableCell>
+                          </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
             )}
 
             {/* Add ARV Modal */}
             <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)} maxWidth="md" fullWidth>
-              <DialogTitle sx={{ backgroundColor: "#014d88", color: "#fff", fontWeight: "bold" }}>
+              <DialogTitle sx={{backgroundColor: "#014d88", color: "#fff", fontWeight: "bold"}}>
                 Add ARV Regimen
               </DialogTitle>
-              <DialogContent sx={{ paddingTop: "20px !important" }}>
-                <FieldRow style={{ marginTop: "16px" }}>
+              <DialogContent sx={{paddingTop: "20px !important"}}>
+                <FieldRow style={{marginTop: "16px"}}>
                   <Col size={6}>
-                    <SectionLabel>Regimen Line <span style={{ color: "red" }}>*</span></SectionLabel>
+                    <SectionLabel>Regimen Line <span style={{color: "red"}}>*</span></SectionLabel>
                     <Input
-                      type="select"
-                      name="regimen_line"
-                      value={newArv.regimen_line}
-                      onChange={handleAddModalRegimenLineChange}
+                        type="select"
+                        name="regimen_line"
+                        value={newArv.regimen_line}
+                        onChange={handleAddModalRegimenLineChange}
                     >
                       <option value="">Select</option>
                       {patientAge >= 15 && (
-                        <>
-                          {adultRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {adultRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                       {patientAge < 15 && (
-                        <>
-                          {childRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {childRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                     </Input>
                   </Col>
                   <Col size={6}>
                     <SectionLabel>Regimen</SectionLabel>
                     <Input
-                      type="select"
-                      name="regimen"
-                      value={newArv.regimen}
-                      onChange={handleAddModalChange}
+                        type="select"
+                        name="regimen"
+                        value={newArv.regimen}
+                        onChange={handleAddModalChange}
                     >
                       <option value="">Select</option>
                       {addModalRegimenTypes.map((value) => (
-                        <option key={value.id} value={value.id}>
-                          {value.description}
-                        </option>
+                          <option key={value.id} value={value.id}>
+                            {value.description}
+                          </option>
                       ))}
                     </Input>
                   </Col>
@@ -2243,65 +2294,65 @@ const CareCardFollowUpForm = (props) => {
                   <Col size={6}>
                     <SectionLabel>Adherence</SectionLabel>
                     <Input
-                      type="select"
-                      name="adherence"
-                      value={newArv.adherence}
-                      onChange={handleAddModalChange}
+                        type="select"
+                        name="adherence"
+                        value={newArv.adherence}
+                        onChange={handleAddModalChange}
                     >
                       <option value="">Select</option>
                       {arvDrugAdherenceCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
-                        </option>
+                          <option key={option.id} value={option.code}>
+                            {option.display}
+                          </option>
                       ))}
                     </Input>
                   </Col>
                   <Col size={6}>
                     <SectionLabel>Dose</SectionLabel>
                     <Input
-                      type="number"
-                      name="dose"
-                      value={newArv.dose}
-                      onChange={handleAddModalChange}
-                      placeholder="e.g. 1 tablet daily"
-                      min="0"
-                      step="1"
+                        type="number"
+                        name="dose"
+                        value={newArv.dose}
+                        onChange={handleAddModalChange}
+                        placeholder="e.g. 1 tablet daily"
+                        min="0"
+                        step="1"
                     />
                   </Col>
                 </FieldRow>
                 {(newArv.adherence === "P" || newArv.adherence === "F") && (
-                  <FieldRow>
-                    <Col size={12}>
-                      <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
-                      <Input
-                        type="select"
-                        name="why_poor_fair_adherence"
-                        value={newArv.why_poor_fair_adherence}
-                        onChange={handleAddModalChange}
-                      >
-                        <option value="">Select</option>
-                        {whyPoorFairAdherenceCodeset.map((option) => (
-                          <option key={option.id} value={option.code}>
-                            {option.display}
-                          </option>
-                        ))}
-                      </Input>
-                    </Col>
-                  </FieldRow>
+                    <FieldRow>
+                      <Col size={12}>
+                        <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
+                        <Input
+                            type="select"
+                            name="why_poor_fair_adherence"
+                            value={newArv.why_poor_fair_adherence}
+                            onChange={handleAddModalChange}
+                        >
+                          <option value="">Select</option>
+                          {whyPoorFairAdherenceCodeset.map((option) => (
+                              <option key={option.id} value={option.code}>
+                                {option.display}
+                              </option>
+                          ))}
+                        </Input>
+                      </Col>
+                    </FieldRow>
                 )}
               </DialogContent>
-              <DialogActions sx={{ padding: "16px" }}>
+              <DialogActions sx={{padding: "16px"}}>
                 <MatButton
-                  onClick={() => setAddModalOpen(false)}
-                  style={{ textTransform: "none" }}
+                    onClick={() => setAddModalOpen(false)}
+                    style={{textTransform: "none"}}
                 >
                   Cancel
                 </MatButton>
                 <MatButton
-                  onClick={saveNewArv}
-                  variant="contained"
-                  style={{ backgroundColor: "#014d88", color: "#fff", textTransform: "none" }}
-                  startIcon={<AddIcon />}
+                    onClick={saveNewArv}
+                    variant="contained"
+                    style={{backgroundColor: "#014d88", color: "#fff", textTransform: "none"}}
+                    startIcon={<AddIcon/>}
                 >
                   Add to List
                 </MatButton>
@@ -2310,53 +2361,53 @@ const CareCardFollowUpForm = (props) => {
 
             {/* Edit ARV Modal */}
             <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)} maxWidth="md" fullWidth>
-              <DialogTitle sx={{ backgroundColor: "#014d88", color: "#fff", fontWeight: "bold" }}>
+              <DialogTitle sx={{backgroundColor: "#014d88", color: "#fff", fontWeight: "bold"}}>
                 Edit ARV Regimen
               </DialogTitle>
-              <DialogContent sx={{ paddingTop: "20px !important" }}>
-                <FieldRow style={{ marginTop: "16px" }}>
+              <DialogContent sx={{paddingTop: "20px !important"}}>
+                <FieldRow style={{marginTop: "16px"}}>
                   <Col size={6}>
-                    <SectionLabel>Regimen Line <span style={{ color: "red" }}>*</span></SectionLabel>
+                    <SectionLabel>Regimen Line <span style={{color: "red"}}>*</span></SectionLabel>
                     <Input
-                      type="select"
-                      name="regimen_line"
-                      value={editingArv.regimen_line}
-                      onChange={handleEditModalRegimenLineChange}
+                        type="select"
+                        name="regimen_line"
+                        value={editingArv.regimen_line}
+                        onChange={handleEditModalRegimenLineChange}
                     >
                       <option value="">Select</option>
                       {patientAge >= 15 && (
-                        <>
-                          {adultRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {adultRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                       {patientAge < 15 && (
-                        <>
-                          {childRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {childRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                     </Input>
                   </Col>
                   <Col size={6}>
                     <SectionLabel>Regimen</SectionLabel>
                     <Input
-                      type="select"
-                      name="regimen"
-                      value={editingArv.regimen}
-                      onChange={handleEditModalChange}
+                        type="select"
+                        name="regimen"
+                        value={editingArv.regimen}
+                        onChange={handleEditModalChange}
                     >
                       <option value="">Select</option>
                       {editModalRegimenTypes.map((value) => (
-                        <option key={value.id} value={value.id}>
-                          {value.description}
-                        </option>
+                          <option key={value.id} value={value.id}>
+                            {value.description}
+                          </option>
                       ))}
                     </Input>
                   </Col>
@@ -2365,64 +2416,64 @@ const CareCardFollowUpForm = (props) => {
                   <Col size={6}>
                     <SectionLabel>Adherence</SectionLabel>
                     <Input
-                      type="select"
-                      name="adherence"
-                      value={editingArv.adherence}
-                      onChange={handleEditModalChange}
+                        type="select"
+                        name="adherence"
+                        value={editingArv.adherence}
+                        onChange={handleEditModalChange}
                     >
                       <option value="">Select</option>
                       {arvDrugAdherenceCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
-                        </option>
+                          <option key={option.id} value={option.code}>
+                            {option.display}
+                          </option>
                       ))}
                     </Input>
                   </Col>
                   <Col size={6}>
                     <SectionLabel>Dose</SectionLabel>
                     <Input
-                      type="number"
-                      name="dose"
-                      value={editingArv.dose}
-                      onChange={handleEditModalChange}
-                      placeholder="e.g. 1 tablet daily"
-                      min="0"
-                      step="1"
+                        type="number"
+                        name="dose"
+                        value={editingArv.dose}
+                        onChange={handleEditModalChange}
+                        placeholder="e.g. 1 tablet daily"
+                        min="0"
+                        step="1"
                     />
                   </Col>
                 </FieldRow>
                 {(editingArv.adherence === "P" || editingArv.adherence === "F") && (
-                  <FieldRow>
-                    <Col size={12}>
-                      <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
-                      <Input
-                        type="select"
-                        name="why_poor_fair_adherence"
-                        value={editingArv.why_poor_fair_adherence}
-                        onChange={handleEditModalChange}
-                      >
-                        <option value="">Select</option>
-                        {whyPoorFairAdherenceCodeset.map((option) => (
-                          <option key={option.id} value={option.code}>
-                            {option.display}
-                          </option>
-                        ))}
-                      </Input>
-                    </Col>
-                  </FieldRow>
+                    <FieldRow>
+                      <Col size={12}>
+                        <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
+                        <Input
+                            type="select"
+                            name="why_poor_fair_adherence"
+                            value={editingArv.why_poor_fair_adherence}
+                            onChange={handleEditModalChange}
+                        >
+                          <option value="">Select</option>
+                          {whyPoorFairAdherenceCodeset.map((option) => (
+                              <option key={option.id} value={option.code}>
+                                {option.display}
+                              </option>
+                          ))}
+                        </Input>
+                      </Col>
+                    </FieldRow>
                 )}
               </DialogContent>
-              <DialogActions sx={{ padding: "16px" }}>
+              <DialogActions sx={{padding: "16px"}}>
                 <MatButton
-                  onClick={() => setEditModalOpen(false)}
-                  style={{ textTransform: "none" }}
+                    onClick={() => setEditModalOpen(false)}
+                    style={{textTransform: "none"}}
                 >
                   Cancel
                 </MatButton>
                 <MatButton
-                  onClick={saveEditedArv}
-                  variant="contained"
-                  style={{ backgroundColor: "#014d88", color: "#fff", textTransform: "none" }}
+                    onClick={saveEditedArv}
+                    variant="contained"
+                    style={{backgroundColor: "#014d88", color: "#fff", textTransform: "none"}}
                 >
                   Save Changes
                 </MatButton>
@@ -2431,29 +2482,29 @@ const CareCardFollowUpForm = (props) => {
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onClose={cancelDelete} maxWidth="xs" fullWidth>
-              <DialogTitle sx={{ backgroundColor: "#d32f2f", color: "#fff", fontWeight: "bold" }}>
+              <DialogTitle sx={{backgroundColor: "#d32f2f", color: "#fff", fontWeight: "bold"}}>
                 Confirm Delete
               </DialogTitle>
-              <DialogContent sx={{ paddingTop: "20px !important" }}>
-                <Typography sx={{ fontSize: "14px", marginBottom: "8px" }}>
+              <DialogContent sx={{paddingTop: "20px !important"}}>
+                <Typography sx={{fontSize: "14px", marginBottom: "8px"}}>
                   Are you sure you want to delete this ARV regimen?
                 </Typography>
-                <Typography sx={{ fontSize: "13px", color: "#666", fontStyle: "italic" }}>
+                <Typography sx={{fontSize: "13px", color: "#666", fontStyle: "italic"}}>
                   This action cannot be undone.
                 </Typography>
               </DialogContent>
-              <DialogActions sx={{ padding: "16px" }}>
+              <DialogActions sx={{padding: "16px"}}>
                 <MatButton
-                  onClick={cancelDelete}
-                  variant="outlined"
-                  style={{ textTransform: "none", borderColor: "#666", color: "#666" }}
+                    onClick={cancelDelete}
+                    variant="outlined"
+                    style={{textTransform: "none", borderColor: "#666", color: "#666"}}
                 >
                   Cancel
                 </MatButton>
                 <MatButton
-                  onClick={confirmDelete}
-                  variant="contained"
-                  style={{ backgroundColor: "#d32f2f", color: "#fff", textTransform: "none" }}
+                    onClick={confirmDelete}
+                    variant="contained"
+                    style={{backgroundColor: "#d32f2f", color: "#fff", textTransform: "none"}}
                 >
                   Delete
                 </MatButton>
@@ -2462,55 +2513,69 @@ const CareCardFollowUpForm = (props) => {
 
             {/* Cotrimoxazole */}
             <SubHeading>Cotrimoxazole (CTX)</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Box sx={{
+              background: "#fff",
+              border: "1px solid #014d88",
+              borderRadius: "4px",
+              padding: "14px 16px",
+              marginBottom: "16px"
+            }}>
               <FieldRow>
                 <Col size={6}>
                   <SectionLabel>Cotrimoxazole (CTX) Medication</SectionLabel>
                   <Input type="select" value={ctx_medication} onChange={handleCtxMedication}>
                     <option value="">Select</option>
                     {ctxMedications.map((medication) => (
-                      <option key={medication.id} value={medication.id}>
-                        {medication.description}
-                      </option>
+                        <option key={medication.id} value={medication.id}>
+                          {medication.description}
+                        </option>
                     ))}
                   </Input>
                 </Col>
                 <Col size={6}>
                   <SectionLabel>Dose</SectionLabel>
-                  <Input type="number" value={ctx} onChange={handleCtx} placeholder="e.g. 1 tablet daily, 960mg" min="0" step="1" />
+                  <Input type="number" value={ctx} onChange={handleCtx} placeholder="e.g. 1 tablet daily, 960mg" min="0"
+                         step="1"/>
                 </Col>
               </FieldRow>
             </Box>
 
             {/* TB Preventive Therapy */}
             <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Box sx={{
+              background: "#fff",
+              border: "1px solid #014d88",
+              borderRadius: "4px",
+              padding: "14px 16px",
+              marginBottom: "16px"
+            }}>
               <FieldRow>
                 <Col size={6}>
                   <SectionLabel>TPT Medication (Code)</SectionLabel>
                   <Input type="select" name="code" value={tpt.code} onChange={handleTpt}>
                     <option value="">Select</option>
                     {tptMedications.map((medication) => (
-                      <option key={medication.id} value={medication.id}>
-                        {medication.description}
-                      </option>
+                        <option key={medication.id} value={medication.id}>
+                          {medication.description}
+                        </option>
                     ))}
                   </Input>
                 </Col>
                 <Col size={6}>
                   <SectionLabel>Dose</SectionLabel>
-                  <Input type="number" name="dose" value={tpt.dose} onChange={handleTpt} placeholder="e.g. 300mg" min="0" step="1" />
+                  <Input type="number" name="dose" value={tpt.dose} onChange={handleTpt} placeholder="e.g. 300mg"
+                         min="0" step="1"/>
                 </Col>
               </FieldRow>
               <FieldRow>
                 <Col size={6}>
                   <SectionLabel>Start Date</SectionLabel>
-                  <Input type="date" name="start_date" value={tpt.start_date} onChange={handleTpt} />
+                  <Input type="date" name="start_date" value={tpt.start_date} onChange={handleTpt}/>
                   {errors.tpt_start_date && <span className={classes.error}>{errors.tpt_start_date}</span>}
                 </Col>
                 <Col size={6}>
                   <SectionLabel>Completion Date</SectionLabel>
-                  <Input type="date" name="completion_date" value={tpt.completion_date} onChange={handleTpt} />
+                  <Input type="date" name="completion_date" value={tpt.completion_date} onChange={handleTpt}/>
                   {errors.tpt_completion_date && <span className={classes.error}>{errors.tpt_completion_date}</span>}
                 </Col>
               </FieldRow>
@@ -2518,17 +2583,23 @@ const CareCardFollowUpForm = (props) => {
 
             {/* Other Drugs */}
             <SubHeading>Other Drugs Prescribed</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Box sx={{
+              background: "#fff",
+              border: "1px solid #014d88",
+              borderRadius: "4px",
+              padding: "14px 16px",
+              marginBottom: "16px"
+            }}>
               <FieldRow>
                 <Col size={12}>
                   <SectionLabel>Other Medications</SectionLabel>
                   <Input
-                    type="textarea"
-                    value={otherDrugs}
-                    onChange={(e) => setOtherDrugs(e.target.value)}
-                    rows={2}
-                    placeholder="List any other drugs prescribed at this visit..."
-                    style={{ height: "auto" }}
+                      type="textarea"
+                      value={otherDrugs}
+                      onChange={(e) => setOtherDrugs(e.target.value)}
+                      rows={2}
+                      placeholder="List any other drugs prescribed at this visit..."
+                      style={{height: "auto"}}
                   />
                 </Col>
               </FieldRow>
@@ -2538,16 +2609,23 @@ const CareCardFollowUpForm = (props) => {
           {/* ══════════════════════════════════════════════════════════════ */}
           {/*  SECTION 4 — LAB RESULTS & FOLLOW-UP                         */}
           {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion panel="lab" title="Lab Results & Follow-up" index={3} expanded={expanded} onToggle={toggleAccordion}>
+          <FormAccordion panel="lab" title="Lab Results & Follow-up" index={3} expanded={expanded}
+                         onToggle={toggleAccordion}>
 
             {/* CD4 */}
             <SubHeading>CD4 Count</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Box sx={{
+              background: "#fff",
+              border: "1px solid #014d88",
+              borderRadius: "4px",
+              padding: "14px 16px",
+              marginBottom: "16px"
+            }}>
               <FieldRow>
                 <Col size={12}>
                   <CheckGroup
-                    name="cd4_ordered"
-                    id="cd4_ordered"
+                      name="cd4_ordered"
+                      id="cd4_ordered"
                     label="Ordered"
                     checked={cd4Ordered}
                     onChange={(e) => setCd4Ordered(e.target.checked)}
