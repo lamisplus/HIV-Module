@@ -1477,9 +1477,9 @@ const CareCardFollowUpForm = (props) => {
       return false;
     }
 
-    // Check if at least one ARV entry has a regimen
-    const hasAtLeastOneRegimen = arvList.some((arv) => arv.regimen);
-    if (!hasAtLeastOneRegimen) temp.arv_regimen = "At least one ARV regimen is required";
+    // Check if at least one ARV en, the nexttry has a regimen
+    // const hasAtLeastOneRegimen = arvList.some((arv) => arv.regimen);
+    // if (!hasAtLeastOneRegimen) temp.arv_regimen = "At least one ARV regimen is required";
 
     // Validate "Other Findings (Specify)" field when "Other findings (specify)" is selected
     if (isFemale && cervical_cancer_screening === "CERVICAL_CANCER_SCREENING_STATUS__OTHER_FINDINGS_(SPECIFY)") {
@@ -1501,6 +1501,12 @@ const CareCardFollowUpForm = (props) => {
       // Completion Date cannot be before Start Date
       if (moment(tpt.completion_date).isBefore(tpt.start_date)) {
         temp.tpt_completion_date = "Completion Date cannot be before Start Date";
+      }
+    }
+
+    if (!isEditMode && followUp.next_appointment_date) {
+      if (moment(followUp.next_appointment_date).isBefore(today, "day")) {
+        temp.next_appointment_date = "Next Appointment Date cannot be earlier than today";
       }
     }
 
@@ -2762,7 +2768,6 @@ const CareCardFollowUpForm = (props) => {
                   type="date"
                   name="next_appointment_date"
                   value={followUp.next_appointment_date}
-                  min={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleFollowUp}
                 />
               </Col>
