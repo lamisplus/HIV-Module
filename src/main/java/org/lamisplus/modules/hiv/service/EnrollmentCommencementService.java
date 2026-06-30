@@ -52,16 +52,13 @@ public class EnrollmentCommencementService {
 
     public EnrollmentCommencement create(EnrollmentCommencementRequestDto request) {
         Person person = resolvePerson(request.getPersonId());
-
-        // Validate that Initial Clinical Evaluation exists before enrollment
         if (!initialClinicalEvaluationService.hasExistingICE(person.getId())) {
             log.error("Attempted enrollment for person {} without Initial Clinical Evaluation", person.getId());
             throw new IllegalStateException(
                     "Initial Clinical Evaluation must be completed before enrollment. " +
-                    "Please complete the ICE form first for this patient.");
+                            "Please complete the ICE form first for this patient.");
         }
 
-        // NEW: Check for duplicate enrollment on the SAME ART start date (instead of blocking all duplicates)
         CommencementDto com = request.getData().getCommencement();
         LocalDate artStartDate = parseDate(com.getDateArtStarted());
 
@@ -70,11 +67,22 @@ public class EnrollmentCommencementService {
                     EnrollmentCommencement.class,
                     "dateArtStarted",
                     "An enrollment commencement record already exists for this patient with ART start date: " + artStartDate +
-                    ". Please use a different ART start date or update the existing record.");
+                            ". Please use a different ART start date or update the existing record.");
         }
 
         validateRequiredFields(request, person);
+        String enrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
+        if (enrollmentSessionUuid == null) {
+            log.error("Cannot create Enrollment & Commencement for person ID: {} - No enrollment session UUID found.", person.getId());
+            throw new IllegalStateException(
+                    "Cannot create Enrollment & Commencement without an active enrollment session. " +
+                            "Please ensure Adherence Preparation has been completed first for this patient."
+            );
+        }
+
         EnrollmentCommencement entity = buildEntity(request, person);
+        entity.setEnrollmentSessionUuid(enrollmentSessionUuid);
+        entity.setStatusAtRegistrationId(getStatusAtRegistrationId(person.getId()));
         EnrollmentCommencement saved = repository.save(entity);
 
         // Update HIV Status to ART Start after enrollment commencement
@@ -110,8 +118,10 @@ public class EnrollmentCommencementService {
         // NOTE: enrollmentSessionUuid is NEVER updated - it's immutable once set
         // This ensures the Enrollment remains linked to the same enrollment cycle
         updated.setEnrollmentSessionUuid(existing.getEnrollmentSessionUuid());
+        updated.setStatusAtRegistrationId(existing.getStatusAtRegistrationId());
         return repository.save(updated);
     }
+
 
     public EnrollmentCommencement getById(Long id) {
         return repository.findByIdAndArchived(id, 0)
@@ -325,14 +335,14 @@ public class EnrollmentCommencementService {
         Visit visit = hivVisitEncounter.processAndCreateVisit(person.getId(), artStartDate);
 
         // CRITICAL: Get enrollment session UUID from the latest AdherencePreparation record
-        String enrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
-        if (enrollmentSessionUuid == null) {
-            log.error("Cannot create Enrollment & Commencement for person ID: {} - No enrollment session UUID found.", person.getId());
-            throw new IllegalStateException(
-                "Cannot create Enrollment & Commencement without an active enrollment session. " +
-                "Please ensure Adherence Preparation has been completed first for this patient."
-            );
-        }
+//        String enrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
+//        if (enrollmentSessionUuid == null) {
+//            log.error("Cannot create Enrollment & Commencement for person ID: {} - No enrollment session UUID found.", person.getId());
+//            throw new IllegalStateException(
+//                "Cannot create Enrollment & Commencement without an active enrollment session. " +
+//                "Please ensure Adherence Preparation has been completed first for this patient."
+//            );
+//        }
 
         EnrollmentCommencement entity = new EnrollmentCommencement();
         entity.setUuid(UUID.randomUUID().toString());
@@ -343,10 +353,10 @@ public class EnrollmentCommencementService {
         entity.setArchived(0);
         entity.setFacilityId(currentUserOrganizationService.getCurrentUserOrganization());
         entity.setSource(Constants.WEB_SOURCE);
-        entity.setEnrollmentSessionUuid(enrollmentSessionUuid);
+//        entity.setEnrollmentSessionUuid(enrollmentSessionUuid);
         // ── Registration fields ───────────────────────────────────────────────
         entity.setUniqueId(reg.getUniqueId());
-        entity.setStatusAtRegistrationId(getStatusAtRegistrationId(person.getId()));
+//        entity.setStatusAtRegistrationId(getStatusAtRegistrationId(person.getId()));
         entity.setDateEnrolledInHivCare(parseDate(reg.getDateEnrolledInHivCare()));
         entity.setDateConfirmedHivTest(parseDate(reg.getDateConfirmedHivTest()));
         entity.setHivTestLocation(reg.getHivTestLocation());
