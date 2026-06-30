@@ -55,6 +55,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
             "            ) " +
             "            OR hc.observation->>'suspectedAcuteInfection' = 'YES_NO_YES' " +
+            "            OR hc.observation->>'finalHivTestResult' = 'Negative' " +
             "        ) " +
             "    ) " +
             "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
@@ -151,6 +152,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE'\n" +
             "            )\n" +
             "            OR hc.observation->>'suspectedAcuteInfection' = 'YES_NO_YES'\n" +
+            "            OR hc.observation->>'finalHivTestResult' = 'Negative'\n" +
             "        )\n" +
             "    )\n" +
             "    AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0)\n" +
