@@ -25,53 +25,10 @@ import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import { calculate_age_to_number } from "../../../../utils";
 
 
-const CARE_ENTRY_POINTS = [
-  { value: "1", label: "OPD" },
-  { value: "2", label: "In-patients" },
-  { value: "3", label: "HTS" },
-  { value: "4", label: "TB DOTS" },
-  { value: "5", label: "STI Clinic" },
-  { value: "6", label: "ANC/PMTCT" },
-  { value: "7", label: "Transfer-in" },
-  { value: "8", label: "Community" },
-  { value: "9", label: "Others (specify)" },
-];
-
-const PRIOR_ART_OPTIONS = [
-  { value: "1", label: "Earlier ARV but not a transfer in" },
-  { value: "2", label: "Transfer in without records" },
-  { value: "3", label: "PrEP" },
-  { value: "4", label: "PEP" },
-];
-
-const KP_TYPOLOGY_OPTIONS = [
-  "MSM",
-  "FSW",
-  "PWID",
-  "TG",
-  "Persons in custodial centers",
-];
-
-const MODE_OF_HIV_TEST_OPTIONS = [
-  "Rapid Test",
-  "PCR",
-  "Western Blot",
-  "ELISA",
-  "DNA PCR",
-];
-
-const CLINICAL_STAGES = ["Stage 1", "Stage 2", "Stage 3", "Stage 4"];
-
-const CD4_LF_OPTIONS = [
-  { value: "<200",  label: "< 200" },
-  { value: ">=200", label: "≥ 200" },
-];
-
 const ACCORDION_STYLES = [
   { bg: "#014d88" },
   { bg: "#014d88" },
 ];
-
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -1381,6 +1338,7 @@ const EnrollmentAndCommencementForm = (props) => {
     try {
       const payload = {
         personId: props.patientObj.id,
+        dateOfObservation: commencement.visit_date,
         data: {
           registration,
           commencement,
@@ -2019,7 +1977,6 @@ const EnrollmentAndCommencementForm = (props) => {
                   type="date"
                   name="date_art_started"
                   value={commencement.date_art_started}
-                  min={registration.date_enrolled_in_hiv_care}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleCommencement}
                   disabled={isViewMode}
