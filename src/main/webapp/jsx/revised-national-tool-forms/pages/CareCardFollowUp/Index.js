@@ -1447,34 +1447,35 @@ const CareCardFollowUpForm = (props) => {
       }
     }
 
-    // Check if care and support exists for the visit date
-    try {
-      const careAndSupportResponse = await axios.get(
-        `${baseUrl}observation/person/${props.patientObj.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    if (!isEditMode) {
+      try {
+        const careAndSupportResponse = await axios.get(
+            `${baseUrl}observation/person/${props.patientObj.id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-      const careAndSupportRecords = careAndSupportResponse.data || [];
-      const hasCareAndSupportForDate = careAndSupportRecords.some(
-        (record) =>
-          record.type === "Chronic Care" &&
-          moment(record.dateOfObservation).format("YYYY-MM-DD") === visitInfo.visit_date
-      );
+        const careAndSupportRecords = careAndSupportResponse.data || [];
+        const hasCareAndSupportForDate = careAndSupportRecords.some(
+            (record) =>
+                record.type === "Chronic Care" &&
+                moment(record.dateOfObservation).format("YYYY-MM-DD") === visitInfo.visit_date
+        );
 
-      if (!hasCareAndSupportForDate) {
-        temp.visit_date = "Care and Support must be documented for this visit date before creating a Care Card Follow-up.";
-        setErrors(temp);
-        toast.error("Please document Care and Support for this date first", {
+        if (!hasCareAndSupportForDate) {
+          temp.visit_date = "Care and Support must be documented for this visit date before creating a Care Card Follow-up.";
+          setErrors(temp);
+          toast.error("Please document Care and Support for this date first", {
+            position: toast.POSITION.TOP_CENTER,
+          });
+          return false;
+        }
+      } catch (error) {
+        console.error("Error checking care and support:", error);
+        // Relaxed: don't block the save just because the check failed (e.g. API/network issue) — warn and continue.
+        toast.warning("Unable to verify Care and Support documentation; proceeding anyway.", {
           position: toast.POSITION.TOP_CENTER,
         });
-        return false;
       }
-    } catch (error) {
-      console.error("Error checking care and support:", error);
-      toast.error("Unable to verify Care and Support documentation", {
-        position: toast.POSITION.TOP_CENTER,
-      });
-      return false;
     }
 
     // Check if at least one ARV en, the nexttry has a regimen
