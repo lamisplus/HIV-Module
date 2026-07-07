@@ -35,6 +35,8 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             ")", nativeQuery = true)
     Long countPatientsByFacilityId(Long facilityId);
 
+
+
     @Query(value = "WITH filtered_patients AS (\n" +
             "    SELECT p.uuid, p.id, p.created_by, p.date_of_registration, p.first_name, p.surname, p.other_name, p.hospital_number,\n" +
             "    p.date_of_birth, p.sex, p.is_date_of_birth_estimated, p.facility_id FROM patient_person p\n" +
@@ -59,7 +61,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "        AND hc.archived IS FALSE\n" +
             "        AND (\n" +
             "            hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE'\n" +
-            "            OR hc.observation->>'hivEarlyDetectResult' IN (\n" +
+            "            OR COALESCE(hc.observation->>'hivEarlyDetectResult', hc.observation->>'hivEarlyDetect') IN (\n" +
             "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', \n" +
             "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE'\n" +
             "            )\n" +
@@ -128,7 +130,7 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "        AND hc.archived IS FALSE " +
             "        AND ( " +
             "            hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
-            "            OR hc.observation->>'hivEarlyDetectResult' IN ( " +
+            "            OR COALESCE(hc.observation->>'hivEarlyDetectResult', hc.observation->>'hivEarlyDetect') IN ( " +
             "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
             "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
             "            ) " +
@@ -203,17 +205,19 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
                     "    AND hc.archived IS FALSE " +
                     "    AND ( " +
                     "        hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
-                    "        OR hc.observation->>'hivEarlyDetectResult' IN ( " +
+                    "        OR COALESCE(hc.observation->>'hivEarlyDetectResult', hc.observation->>'hivEarlyDetect') IN ( " +
                     "            'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
                     "            'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
                     "        ) " +
                     "        OR hc.observation->>'suspectedAcuteInfection' = 'YES_NO_YES' " +
+                    "        OR hc.observation->>'finalHivTestResult' = 'Negative' " +
                     "    ) " +
                     ") " +
                     "AND NOT EXISTS (SELECT 1 FROM hiv_patient_transfer_in ti WHERE ti.person_uuid = p.uuid AND ti.archived = 0) " +
                     "AND (p.hospital_number ILIKE ?2 OR p.first_name ILIKE ?2 OR p.surname ILIKE ?2 OR p.other_name ILIKE ?2)",
             nativeQuery = true)
     Page<PatientProjection> getPatientsByFacilityBySearchParam(Long facilityId, String searchParam, Pageable page);
+
 
     @Query(value = "WITH enrolledART AS ( " +
             "SELECT DISTINCT ON (person_uuid) " +
