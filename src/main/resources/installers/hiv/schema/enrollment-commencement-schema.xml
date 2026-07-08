@@ -1010,4 +1010,109 @@
         </rollback>
     </changeSet>
 
+    <!-- Update old WHO_STAGING_CRITERIA IDs and codes in hiv_initial_clinical_evaluation -->
+    <changeSet id="update-ice-who-staging-ids-and-codes" author="gboyeguntaiwo" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="hiv_initial_clinical_evaluation"/>
+            <columnExists tableName="hiv_initial_clinical_evaluation" columnName="who_stage_id"/>
+            <columnExists tableName="hiv_initial_clinical_evaluation" columnName="assessment"/>
+        </preConditions>
+
+        <sql>
+            -- 1. Update the top-level who_stage_id column
+            UPDATE hiv_initial_clinical_evaluation
+            SET who_stage_id = CASE
+                                   WHEN who_stage_id = 773 THEN 119
+                                   WHEN who_stage_id = 774 THEN 120
+                                   WHEN who_stage_id = 775 THEN 121
+                                   WHEN who_stage_id = 776 THEN 122
+                                   ELSE who_stage_id
+                END
+            WHERE who_stage_id IN (773, 774, 775, 776);
+
+            -- 2. Update the JSONB assessment column (both whoStageId and whoStage code)
+            UPDATE hiv_initial_clinical_evaluation
+            SET assessment = jsonb_set(
+                    jsonb_set(
+                            assessment::jsonb,
+                            '{whoStageId}',
+                            CASE
+                                WHEN (assessment::jsonb->>'whoStageId')::int = 773 THEN to_jsonb(119)
+                        WHEN (assessment::jsonb->>'whoStageId')::int = 774 THEN to_jsonb(120)
+                        WHEN (assessment::jsonb->>'whoStageId')::int = 775 THEN to_jsonb(121)
+                        WHEN (assessment::jsonb->>'whoStageId')::int = 776 THEN to_jsonb(122)
+                        ELSE (assessment::jsonb->>'whoStageId')::jsonb
+                    END
+                    ),
+                    '{whoStage}',
+                    CASE
+                        WHEN assessment::jsonb->>'whoStage' = 'WHO_STAGING_CRITERIA_STAGE_1' THEN '"CLINICAL_STAGE_STAGE_I"'::jsonb
+                        WHEN assessment::jsonb->>'whoStage' = 'WHO_STAGING_CRITERIA_STAGE_2' THEN '"CLINICAL_STAGE_STAGE_II"'::jsonb
+                        WHEN assessment::jsonb->>'whoStage' = 'WHO_STAGING_CRITERIA_STAGE_3' THEN '"CLINICAL_STAGE_STAGE_III"'::jsonb
+                        WHEN assessment::jsonb->>'whoStage' = 'WHO_STAGING_CRITERIA_STAGE_4' THEN '"CLINICAL_STAGE_STAGE_IV"'::jsonb
+                        ELSE (assessment::jsonb->>'whoStage')::jsonb
+                        END
+                             )
+            WHERE assessment IS NOT NULL
+              AND (
+                (assessment::jsonb->>'whoStageId')::int IN (773, 774, 775, 776)
+                OR assessment::jsonb->>'whoStage' IN (
+                    'WHO_STAGING_CRITERIA_STAGE_1',
+                    'WHO_STAGING_CRITERIA_STAGE_2',
+                    'WHO_STAGING_CRITERIA_STAGE_3',
+                    'WHO_STAGING_CRITERIA_STAGE_4'
+                )
+              );
+        </sql>
+
+        <rollback>
+            <sql>
+                -- Revert top-level who_stage_id
+                UPDATE hiv_initial_clinical_evaluation
+                SET who_stage_id = CASE
+                WHEN who_stage_id = 119 THEN 773
+                WHEN who_stage_id = 120 THEN 774
+                WHEN who_stage_id = 121 THEN 775
+                WHEN who_stage_id = 122 THEN 776
+                ELSE who_stage_id
+                END
+                WHERE who_stage_id IN (119, 120, 121, 122);
+
+                -- Revert JSONB assessment column
+                UPDATE hiv_initial_clinical_evaluation
+                SET assessment = jsonb_set(
+                jsonb_set(
+                assessment::jsonb,
+                '{whoStageId}',
+                CASE
+                WHEN (assessment::jsonb->>'whoStageId')::int = 119 THEN to_jsonb(773)
+                WHEN (assessment::jsonb->>'whoStageId')::int = 120 THEN to_jsonb(774)
+                WHEN (assessment::jsonb->>'whoStageId')::int = 121 THEN to_jsonb(775)
+                WHEN (assessment::jsonb->>'whoStageId')::int = 122 THEN to_jsonb(776)
+                ELSE (assessment::jsonb->>'whoStageId')::jsonb
+                END
+                ),
+                '{whoStage}',
+                CASE
+                WHEN assessment::jsonb->>'whoStage' = 'CLINICAL_STAGE_STAGE_I' THEN '"WHO_STAGING_CRITERIA_STAGE_1"'::jsonb
+                WHEN assessment::jsonb->>'whoStage' = 'CLINICAL_STAGE_STAGE_II' THEN '"WHO_STAGING_CRITERIA_STAGE_2"'::jsonb
+                WHEN assessment::jsonb->>'whoStage' = 'CLINICAL_STAGE_STAGE_III' THEN '"WHO_STAGING_CRITERIA_STAGE_3"'::jsonb
+                WHEN assessment::jsonb->>'whoStage' = 'CLINICAL_STAGE_STAGE_IV' THEN '"WHO_STAGING_CRITERIA_STAGE_4"'::jsonb
+                ELSE (assessment::jsonb->>'whoStage')::jsonb
+                END
+                )
+                WHERE assessment IS NOT NULL
+                AND (
+                (assessment::jsonb->>'whoStageId')::int IN (119, 120, 121, 122)
+                OR assessment::jsonb->>'whoStage' IN (
+                'CLINICAL_STAGE_STAGE_I',
+                'CLINICAL_STAGE_STAGE_II',
+                'CLINICAL_STAGE_STAGE_III',
+                'CLINICAL_STAGE_STAGE_IV'
+                )
+                );
+            </sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

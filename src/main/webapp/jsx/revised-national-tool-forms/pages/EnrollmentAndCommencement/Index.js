@@ -452,7 +452,7 @@ const EnrollmentAndCommencementForm = (props) => {
         'WHO_STAGING_CRITERIA_STAGE_4': 'CLINICAL_STAGE_STAGE_IV'
       };
 
-      const clinicalStage = whoToClinicalStageMap[whoStage];
+      const clinicalStage = whoToClinicalStageMap[whoStage] || whoStage;
 
       if (clinicalStage) {
         setCommencement((prev) => ({
