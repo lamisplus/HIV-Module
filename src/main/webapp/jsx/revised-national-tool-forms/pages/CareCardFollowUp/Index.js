@@ -42,61 +42,21 @@ import EditIcon from "@material-ui/icons/Edit";
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-// const OI_CONDITIONS = [
-//   { value: "bacterial_pneumonia",    label: "Bacterial Pneumonia" },
-//   { value: "candidiasis",            label: "Candidiasis" },
-//   { value: "cryptococcal_meningitis",label: "Cryptococcal Meningitis" },
-//   { value: "cryptosporidiosis",      label: "Cryptosporidiosis" },
-//   { value: "cytomegalovirus",        label: "Cytomegalovirus" },
-//   { value: "herpes_simplex",         label: "Herpes Simplex" },
-//   { value: "herpes_zoster",          label: "Herpes Zoster" },
-//   { value: "hiv_wasting_syndrome",   label: "HIV Wasting Syndrome" },
-//   { value: "isosporiasis",           label: "Isosporiasis" },
-//   { value: "kaposi_sarcoma",         label: "Kaposi's Sarcoma" },
-//   { value: "mac",                    label: "MAC (Mycobacterium Avium Complex)" },
-//   { value: "molluscum_contagiosum",  label: "Molluscum Contagiosum" },
-//   { value: "pcp",                    label: "PCP (Pneumocystis Pneumonia)" },
-//   { value: "peripheral_neuropathy",  label: "Peripheral Neuropathy" },
-//   { value: "pml",                    label: "Progressive Multifocal Leukoencephalopathy" },
-//   { value: "pulmonary_tb",           label: "Pulmonary TB" },
-//   { value: "toxoplasmosis",          label: "Toxoplasmosis" },
-//   { value: "other",                  label: "Other" },
-// ];
-
-// const SIDE_EFFECTS = [
-//   { value: "anaemia",               label: "Anaemia" },
-//   { value: "dizziness_confusion",   label: "Dizziness / Confusion" },
-//   { value: "diarrhoea",             label: "Diarrhoea" },
-//   { value: "fatigue",               label: "Fatigue" },
-//   { value: "hepatotoxicity",        label: "Hepatotoxicity" },
-//   { value: "hypersensitivity",      label: "Hypersensitivity" },
-//   { value: "jaundice",              label: "Jaundice" },
-//   { value: "lactic_acidosis",       label: "Lactic Acidosis" },
-//   { value: "lipoatrophy",           label: "Lipoatrophy" },
-//   { value: "lipodystrophy",         label: "Lipodystrophy" },
-//   { value: "nausea_vomiting",       label: "Nausea / Vomiting" },
-//   { value: "pancreatitis",          label: "Pancreatitis" },
-//   { value: "peripheral_neuropathy", label: "Peripheral Neuropathy" },
-//   { value: "rash",                  label: "Rash" },
-//   { value: "renal_toxicity",        label: "Renal Toxicity" },
-//   { value: "other",                 label: "Other" },
-// ];
-
 
 const WHO_STAGE_CRITERIA_OPTIONS = {
-  "WHO_STAGING_CRITERIA_STAGE_1": [
+  "CLINICAL_STAGE_STAGE_I": [
     "Asymptomatic",
     "Persistent generalized lymphadenopathy",
     "Performance scale: 1 asymptomatic, normal activity",
   ],
-  "WHO_STAGING_CRITERIA_STAGE_2": [
+  "CLINICAL_STAGE_STAGE_II": [
     "Weight loss <10% of body weight",
     "Minor Mucocutaneous Manifestations",
     "Herpes Zoster (within last 5 years)",
     "Recurrent Upper Respiratory Tract Infections",
     "Performance scale: 2 symptomatic, normal activity",
   ],
-  "WHO_STAGING_CRITERIA_STAGE_3": [
+  "CLINICAL_STAGE_STAGE_III": [
     "Weight loss >10% of body weight",
     "Unexplained Chronic Diarrhea (>1 month)",
     "Unexplained Prolonged Fever",
@@ -106,7 +66,7 @@ const WHO_STAGE_CRITERIA_OPTIONS = {
     "Severe Bacterial Infections",
     "Performance scale: 3 bedridden <50% of day in last month",
   ],
-  "WHO_STAGING_CRITERIA_STAGE_4": [
+  "CLINICAL_STAGE_STAGE_IV": [
     "HIV Wasting syndrome",
     "PCP",
     "Toxoplasmosis, CNS",
@@ -127,24 +87,6 @@ const WHO_STAGE_CRITERIA_OPTIONS = {
   ],
 };
 
-
-// const TPT_CODES = [
-//   { value: "6H",   label: "6H — Isoniazid (6 months)" },
-//   { value: "3HP",  label: "3HP — Isoniazid and Rifapentine" },
-//   { value: "3HR",  label: "3HR — Isoniazid and Rifampicin" },
-//   { value: "QTIP", label: "QTIP — CTX/INH/B6 FDC Fixed Dose" },
-// ];
-
-// const VL_INDICATION_OPTIONS = [
-//   { value: "1", label: "1 — Routine (Baseline)" },
-//   { value: "2", label: "2 — Routine (6 months)" },
-//   { value: "3", label: "3 — Routine (12 months)" },
-//   { value: "4", label: "4 — Routine (24 months / annual)" },
-//   { value: "5", label: "5 — High Viral Load follow-up" },
-//   { value: "6", label: "6 — Clinical / Immunological failure" },
-//   { value: "7", label: "7 — PMTCT" },
-//   { value: "8", label: "8 — Other" },
-// ];
 
 const EAC_OPTIONS = [
   "None",
@@ -541,7 +483,8 @@ const CareCardFollowUpForm = (props) => {
         params.append('codes', 'YES_NO_OUTBREAK');
         params.append('codes', 'FAMILY_PLANNING_METHOD');
         params.append('codes', 'FAMILY_PLANNING_STATUS');
-        params.append('codes', 'WHO_STAGING_CRITERIA');
+        // params.append('codes', 'WHO_STAGING_CRITERIA');
+        params.append('codes', 'CLINICAL_STAGE');
         params.append('codes', 'PREGNANCY_STATUS');
         params.append('codes', 'TB_STATUS');
         params.append('codes', 'TB_STAUS_CONFIRMED');
@@ -574,7 +517,8 @@ const CareCardFollowUpForm = (props) => {
         setYesNoCodeset(data.YES_NO_OUTBREAK || []);
         setFamilyPlanningMethodCodeset(data.FAMILY_PLANNING_METHOD || []);
         setFamilyPlanningStatusCodeset(data.FAMILY_PLANNING_STATUS || []);
-        setWhoStagingCodeset(data.WHO_STAGING_CRITERIA || []);
+        // setWhoStagingCodeset(data.WHO_STAGING_CRITERIA || []);
+        setWhoStagingCodeset(data.CLINICAL_STAGE || []);
         setPregnancyStatusCodeset(data.PREGNANCY_STATUS || []);
         setTbStatusCodeset(data.TB_STATUS || []);
         setTbStatusConfirmedCodeset(data.TB_STAUS_CONFIRMED || []);
