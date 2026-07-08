@@ -29,7 +29,7 @@ import { Label } from "semantic-ui-react";
 import Moment from "moment";
 import momentLocalizer from "react-widgets-moment";
 import moment from "moment";
-import { calculate_age } from "../../../utils";
+import {calculate_age, calculateAge} from "../../../utils";
 import FindPatientActions from "../Globals/FindPatientActions";
 
 //Dtate Picker package
@@ -149,7 +149,7 @@ const Patients = (props) => {
                      row.firstName + " " + row.surname,
                     hospital_number: row.hospitalNumber,
                     sex: row.sex,
-                    age: calculate_age(row.dateOfBirth),
+                    age: calculateAge(row.dateOfBirth),
                     actions: <FindPatientActions row={row} />,
                   })),
                   page: query.page,

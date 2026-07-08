@@ -84,9 +84,24 @@ const CareCardVisitDetails = ({
     setIsEditing(mode === "edit");
   }, [mode]);
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    if (onEdit) onEdit();
+  // const handleEdit = () => {
+  //   setIsEditing(true);
+  //   if (onEdit) onEdit();
+  // };
+
+  const handleEdit = async () => {
+    try {
+      // Fetch the full Request DTO with all the raw IDs needed for updating
+      const response = await axios.get(
+          `${baseUrl}hiv/art/clinic-visit/${visit.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEditData(response.data);
+      setIsEditing(true);
+      if (onEdit) onEdit();
+    } catch (error) {
+      toast.error("Failed to load visit data for editing");
+    }
   };
 
   const handleCancel = () => {

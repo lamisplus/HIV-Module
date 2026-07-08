@@ -456,6 +456,11 @@ public class InitialClinicalEvaluationService {
                 .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
     }
 
+    private Person getPersonByUUid(String uuid){
+        return personRepository.getPersonByUuidAndFacilityIdAndArchived(uuid,currentUserOrganizationService.getCurrentUserOrganization(),0)
+                .orElseThrow(() -> new EntityNotFoundException(Person.class, "id", uuid));
+    }
+
     /**
      * Get the latest enrollment session UUID from AdherencePreparation for this person
      * This ensures ICE is linked to the same enrollment cycle as AdherencePrep

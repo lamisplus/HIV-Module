@@ -25,53 +25,10 @@ import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import { calculate_age_to_number } from "../../../../utils";
 
 
-const CARE_ENTRY_POINTS = [
-  { value: "1", label: "OPD" },
-  { value: "2", label: "In-patients" },
-  { value: "3", label: "HTS" },
-  { value: "4", label: "TB DOTS" },
-  { value: "5", label: "STI Clinic" },
-  { value: "6", label: "ANC/PMTCT" },
-  { value: "7", label: "Transfer-in" },
-  { value: "8", label: "Community" },
-  { value: "9", label: "Others (specify)" },
-];
-
-const PRIOR_ART_OPTIONS = [
-  { value: "1", label: "Earlier ARV but not a transfer in" },
-  { value: "2", label: "Transfer in without records" },
-  { value: "3", label: "PrEP" },
-  { value: "4", label: "PEP" },
-];
-
-const KP_TYPOLOGY_OPTIONS = [
-  "MSM",
-  "FSW",
-  "PWID",
-  "TG",
-  "Persons in custodial centers",
-];
-
-const MODE_OF_HIV_TEST_OPTIONS = [
-  "Rapid Test",
-  "PCR",
-  "Western Blot",
-  "ELISA",
-  "DNA PCR",
-];
-
-const CLINICAL_STAGES = ["Stage 1", "Stage 2", "Stage 3", "Stage 4"];
-
-const CD4_LF_OPTIONS = [
-  { value: "<200",  label: "< 200" },
-  { value: ">=200", label: "≥ 200" },
-];
-
 const ACCORDION_STYLES = [
   { bg: "#014d88" },
   { bg: "#014d88" },
 ];
-
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -264,10 +221,10 @@ const EnrollmentAndCommencementForm = (props) => {
       return "PRIOR_ART_PEP"; // PEP
     }
     if (arvHistory.tran === true) {
-      return "PRIOR_ART_TRANSFER_IN_WITHOUT_RECORDS"; // Transfer in without records
+      return "PRIOR_ART_TRANSFER_IN_WITHOUT_RECORDS";
     }
     if (arvHistory.earlierArvNotTransfer === true) {
-      return "PRIOR_ART_EARLIER_ARV_BUT_NOT_A_TRANSFER_IN"; // Earlier ARV but not a transfer in
+      return "PRIOR_ART_EARLIER_ARV_BUT_NOT_A_TRANSFER_IN";
     }
 
     return "";
@@ -495,7 +452,7 @@ const EnrollmentAndCommencementForm = (props) => {
         'WHO_STAGING_CRITERIA_STAGE_4': 'CLINICAL_STAGE_STAGE_IV'
       };
 
-      const clinicalStage = whoToClinicalStageMap[whoStage];
+      const clinicalStage = whoToClinicalStageMap[whoStage] || whoStage;
 
       if (clinicalStage) {
         setCommencement((prev) => ({
@@ -1110,18 +1067,24 @@ const EnrollmentAndCommencementForm = (props) => {
 
     if (errors[name]) {
       const newErrors = { ...errors };
-      if ((name === 'date_art_started' || name === 'visit_date') && value && String(value).trim() !== '') {
+      if (name === 'visit_date' && value && String(value).trim() !== '') {
+        const isValid = !props.patientObj?.dateOfBirth || value >= props.patientObj1.dateOfBirth;
+        if (isValid) {
+          delete newErrors[name];
+        }
+      } else if (name === 'date_art_started' && value && String(value).trim() !== '') {
         delete newErrors[name];
       }
+      // if ((name === 'date_art_started' || name === 'visit_date') && value && String(value).trim() !== '') {
+      //   delete newErrors[name];
+      // }
 
       setErrors(newErrors);
     }
   };
-
   // Handler for the nested TPT object
   const handleTpt = (e) => {
     const { name, value } = e.target;
-
     // If TPT Completed changes to "No" or empty, clear completion date and error
     if (name === "tpt_completed" && value !== "Yes") {
       setCommencement((prev) => ({
@@ -1160,7 +1123,6 @@ const EnrollmentAndCommencementForm = (props) => {
   useEffect(() => {
     // Find the selected care entry point
     const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.code == registration.care_entry_point);
-
     // Check if Care Entry Point is Transfer-in using code or display
     const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
                          selectedCareEntryPoint?.display?.toLowerCase().includes("transfer");
@@ -1300,6 +1262,11 @@ const EnrollmentAndCommencementForm = (props) => {
     if (!commencement.visit_date || String(commencement.visit_date).trim() === '') {
       temp.visit_date = "Visit date is required";
     }
+    else {
+      if (props.patientObj?.dateOfBirth && commencement.visit_date < props.patientObj.dateOfBirth) {
+        temp.visit_date = "Visit date cannot be earlier than date of birth";
+      }
+    }
 
     if (!commencement.date_art_started || String(commencement.date_art_started).trim() === '') {
       temp.date_art_started = "Date ART started is required";
@@ -1371,6 +1338,7 @@ const EnrollmentAndCommencementForm = (props) => {
     try {
       const payload = {
         personId: props.patientObj.id,
+        dateOfObservation: commencement.visit_date,
         data: {
           registration,
           commencement,
@@ -1896,6 +1864,7 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="visit_date"
                   value={commencement.visit_date}
                   max={moment(new Date()).format("YYYY-MM-DD")}
+                  min={props.patientObj?.dateOfBirth || undefined}
                   onChange={handleCommencement}
                   disabled={isViewMode}
                   style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
@@ -2008,7 +1977,6 @@ const EnrollmentAndCommencementForm = (props) => {
                   type="date"
                   name="date_art_started"
                   value={commencement.date_art_started}
-                  min={registration.date_enrolled_in_hiv_care}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={handleCommencement}
                   disabled={isViewMode}

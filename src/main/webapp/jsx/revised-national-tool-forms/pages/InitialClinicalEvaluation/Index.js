@@ -68,50 +68,49 @@ const SYMPTOM_OPTIONS = [
   { value: "numbness", label: "Numbness / Tingling" },
 ];
 
-// WHO Stage Clinical Criteria Options - these are hardcoded on the frontend
-// Each WHO stage code maps to an array of available clinical criteria
+
 const WHO_STAGE_CRITERIA_OPTIONS = {
-  "WHO_STAGING_CRITERIA_STAGE_1": [
-    "Asymptomatic",
-    "Persistent generalized lymphadenopathy",
-    "Performance scale: 1 asymptomatic, normal activity",
-  ],
-  "WHO_STAGING_CRITERIA_STAGE_2": [
-    "Weight loss <10% of body weight",
-    "Minor Mucocutaneous Manifestations",
-    "Herpes Zoster (within last 5 years)",
-    "Recurrent Upper Respiratory Tract Infections",
-    "Performance scale: 2 symptomatic, normal activity",
-  ],
-  "WHO_STAGING_CRITERIA_STAGE_3": [
-    "Weight loss >10% of body weight",
-    "Unexplained Chronic Diarrhea (>1 month)",
-    "Unexplained Prolonged Fever",
-    "Oral Candidiasis",
-    "Oral Hairy Leukoplakia",
-    "TB, Pulmonary (within previous year)",
-    "Severe Bacterial Infections",
-    "Performance scale: 3 bedridden <50% of day in last month",
-  ],
-  "WHO_STAGING_CRITERIA_STAGE_4": [
-    "HIV Wasting syndrome",
-    "PCP",
-    "Toxoplasmosis, CNS",
-    "Cryptosporidiosis with Diarrhea (>1 month)",
-    "Cryptococcosis, Extrapulmonary",
-    "Cytomegalovirus disease",
-    "Herpes Simplex (mucotaneous >1 month)",
-    "Progressive Multifocal Leukoencephalopathy",
-    "Mycosis, disseminated",
-    "Oesophageal Candidiasis",
-    "Atypical Mycobacteriosis, disseminated",
-    "Salmonella Septicemia, Non-typhoid",
-    "TB, Extrapulmonary",
-    "Lymphoma",
-    "Kaposi's Sarcoma",
-    "HIV encephalopathy",
-    "Performance scale: 4 bedridden >50% of the day in last month",
-  ],
+    "CLINICAL_STAGE_STAGE_I": [
+        "Asymptomatic",
+        "Persistent generalized lymphadenopathy",
+        "Performance scale: 1 asymptomatic, normal activity",
+    ],
+    "CLINICAL_STAGE_STAGE_II": [
+        "Weight loss <10% of body weight",
+        "Minor Mucocutaneous Manifestations",
+        "Herpes Zoster (within last 5 years)",
+        "Recurrent Upper Respiratory Tract Infections",
+        "Performance scale: 2 symptomatic, normal activity",
+    ],
+    "CLINICAL_STAGE_STAGE_III": [
+        "Weight loss >10% of body weight",
+        "Unexplained Chronic Diarrhea (>1 month)",
+        "Unexplained Prolonged Fever",
+        "Oral Candidiasis",
+        "Oral Hairy Leukoplakia",
+        "TB, Pulmonary (within previous year)",
+        "Severe Bacterial Infections",
+        "Performance scale: 3 bedridden <50% of day in last month",
+    ],
+    "CLINICAL_STAGE_STAGE_IV": [
+        "HIV Wasting syndrome",
+        "PCP",
+        "Toxoplasmosis, CNS",
+        "Cryptosporidiosis with Diarrhea (>1 month)",
+        "Cryptococcosis, Extrapulmonary",
+        "Cytomegalovirus disease",
+        "Herpes Simplex (mucotaneous >1 month)",
+        "Progressive Multifocal Leukoencephalopathy",
+        "Mycosis, disseminated",
+        "Oesophageal Candidiasis",
+        "Atypical Mycobacteriosis, disseminated",
+        "Salmonella Septicemia, Non-typhoid",
+        "TB, Extrapulmonary",
+        "Lymphoma",
+        "Kaposi's Sarcoma",
+        "HIV encephalopathy",
+        "Performance scale: 4 bedridden >50% of the day in last month",
+    ],
 };
 
 const SYSTEM_FINDINGS = {
@@ -768,7 +767,7 @@ const InitialClinicalEvaluationForm = (props) => {
       params.append('codes', 'YES_NO');
       params.append('codes', 'YES_NO_OUTBREAK');
       params.append('codes', 'DO_YOU_HAVE_THE_FOLLOWING');
-      params.append('codes', 'WHO_STAGING_CRITERIA');
+      params.append('codes', 'CLINICAL_STAGE');
       params.append('codes', 'PHYSICAL_EXAM_ASSESSMENT');
       params.append('codes', 'ENROLL_IN');
       params.append('codes', 'PLAN_FOR_ART');
@@ -786,7 +785,7 @@ const InitialClinicalEvaluationForm = (props) => {
         immunisationComplete: response.data.YES_NO || [],
         knownDrugAllergies: response.data.DO_YOU_HAVE_THE_FOLLOWING || [],
         currentlyPregnant: response.data.YES_NO_OUTBREAK || [],
-        whoStage: response.data.WHO_STAGING_CRITERIA || [],
+        whoStage: response.data.CLINICAL_STAGE || [],
         assessment: response.data.PHYSICAL_EXAM_ASSESSMENT || [],
         enrollIn: response.data.ENROLL_IN || [],
         planForArt: response.data.PLAN_FOR_ART || [],
@@ -1491,6 +1490,14 @@ const InitialClinicalEvaluationForm = (props) => {
         if (numValue < 48.26) return "Height cannot be less than 48.26 cm";
         if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
         break;
+      case "respiratoryRate":
+        if (numValue < 5) return "Respiratory Rate cannot be less than 5 breaths/min";
+        if (numValue > 60) return "Respiratory Rate cannot be greater than 60 breaths/min";
+        break;
+      case "surfaceArea":
+         if (numValue < 0.1) return "Surface Area cannot be less than 0.1 m²";
+         if (numValue > 3.0) return "Surface Area cannot be greater than 3.0 m²";
+         break;
       default:
         break;
     }
@@ -1604,31 +1611,30 @@ const InitialClinicalEvaluationForm = (props) => {
     setAssessment((prev) => ({ ...prev, whoStageCriteria: newSelectedCriteria }));
   };
 
-  // Handle checkbox arrays (assessment, enroll_in, plan_for_art)
-  const handleCheckboxArray = (arrayName, code, checked) => {
-    setAssessment((prev) => {
-      const currentArray = prev[arrayName] || [];
-      let newArray;
 
-      // Special handling for single-select fields
-      if (arrayName === 'planForArtItems' || arrayName === 'assessmentItems') {
-        if (checked) {
-          // Replace all selections with just this one (single-select behavior)
-          newArray = [code];
-        } else {
-          // Unchecking - just remove this code
-          newArray = currentArray.filter((item) => item !== code);
-        }
-      } else {
-        // Multi-select behavior for other arrays
-        newArray = checked
-          ? [...currentArray, code]  // Add code if checked
-          : currentArray.filter((item) => item !== code);  // Remove code if unchecked
-      }
-
-      return { ...prev, [arrayName]: newArray };
-    });
-  };
+    // Handle checkbox arrays (assessment, enroll_in, plan_for_art)
+    const handleCheckboxArray = (arrayName, code, checked) => {
+        setAssessment((prev) => {
+            const currentArray = prev[arrayName] || [];
+            let newArray;
+            // Special handling for single-select fields (Added 'enrollInItems')
+            if (arrayName === 'planForArtItems' || arrayName === 'assessmentItems' || arrayName === 'enrollInItems') {
+                if (checked) {
+                    // Replace all selections with just this one (single-select behavior)
+                    newArray = [code];
+                } else {
+                    // Unchecking - just remove this code
+                    newArray = currentArray.filter((item) => item !== code);
+                }
+            } else {
+                // Multi-select behavior for other arrays
+                newArray = checked
+                    ? [...currentArray, code]  // Add code if checked
+                    : currentArray.filter((item) => item !== code);  // Remove code if unchecked
+            }
+            return { ...prev, [arrayName]: newArray };
+        });
+    };
 
   // Helper to check if pregnancy code indicates "Yes"
   const isPregnant = () => {
@@ -3588,7 +3594,11 @@ const InitialClinicalEvaluationForm = (props) => {
                     value={vitals.surfaceArea}
                     onChange={handleVitals}
                     placeholder="m²"
+                    style={{ borderColor: vitalsErrors.surfaceArea ? "#d32f2f" : "" }}
                   />
+                    {vitalsErrors.surfaceArea && (
+                        <span className={classes.error}>{vitalsErrors.surfaceArea}</span>
+                    )}
                 </Col>
                 <Col size={4}>
                   <SectionLabel>Respiratory Rate (breaths/min)</SectionLabel>
@@ -3598,7 +3608,11 @@ const InitialClinicalEvaluationForm = (props) => {
                     value={vitals.respiratoryRate}
                     onChange={handleVitals}
                     placeholder="breaths/min"
+                    style={{ borderColor: vitalsErrors.respiratoryRate ? "#d32f2f" : "" }}
                   />
+                    {vitalsErrors.respiratoryRate && (
+                        <span className={classes.error}>{vitalsErrors.respiratoryRate}</span>
+                    )}
                 </Col>
               </div>
             </Box>
