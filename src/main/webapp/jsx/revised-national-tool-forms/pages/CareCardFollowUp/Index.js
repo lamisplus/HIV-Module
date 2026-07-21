@@ -38,10 +38,6 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import AddIcon from "@material-ui/icons/Add";
 import EditIcon from "@material-ui/icons/Edit";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
 
 const WHO_STAGE_CRITERIA_OPTIONS = {
   "CLINICAL_STAGE_STAGE_I": [
@@ -105,9 +101,6 @@ const ACCORDION_STYLES = [
   { bg: "#014d88" },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-components — ALL at module scope (never inside a component)
-// ─────────────────────────────────────────────────────────────────────────────
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -384,17 +377,11 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────────────────────────────────────
 
 const CareCardFollowUpForm = (props) => {
   const classes = useStyles();
   const isFemale = ["female", "FEMALE", "Female"].includes(props.patientObj?.sex);
 
-  // Determine if patient is pediatric or adult based on age
-  // Pediatric: age < 15 years (use MUAC)
-  // Adult: age >= 15 years (use BMI)
   const patientAge = props.patientObj?.age || 0;
   const isPediatric = patientAge < 15;
 
@@ -862,10 +849,6 @@ const CareCardFollowUpForm = (props) => {
     }
 
     if (isPediatric) {
-      // For pediatric patients: calculate MUAC using formula
-      // MUAC (cm) = √[(weight_kg × 4) / (height_cm × 0.01 × π)]
-      // Alternative simplified formula: MUAC ≈ (weight / height) × constant
-      // Standard pediatric MUAC estimation: MUAC = (weight(kg) × 314) / height(cm)
       const muac = (weightNum * 314) / heightNum;
       return muac.toFixed(1); // Return MUAC with 1 decimal place
     } else {
@@ -876,9 +859,66 @@ const CareCardFollowUpForm = (props) => {
     }
   };
 
+  // Validate vital signs based on defined ranges
+  const validateVitalField = (name, value) => {
+    if (value === "" || value === null || value === undefined) return "";
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return "";
+
+    switch (name) {
+      case "temperature":
+        if (numValue < 35) return "Temperature cannot be less than 35°C";
+        if (numValue > 47) return "Temperature cannot be greater than 47°C";
+        break;
+      case "bp_systolic":
+        if (numValue < 90) return "Systolic pressure cannot be less than 90 mmHg";
+        if (numValue > 240) return "Systolic pressure cannot be greater than 240 mmHg";
+        break;
+      case "bp_diastolic":
+        if (numValue < 60) return "Diastolic pressure cannot be less than 60 mmHg";
+        if (numValue > 140) return "Diastolic pressure cannot be greater than 140 mmHg";
+        break;
+      case "pulse":
+        if (numValue < 40) return "Pulse cannot be less than 40 b/min";
+        if (numValue > 120) return "Pulse cannot be greater than 120 b/min";
+        break;
+      case "weight_kg":
+        if (numValue < 48.26) return "Weight cannot be less than 48.26 kg";
+        if (numValue > 216.408) return "Weight cannot be greater than 216.408 kg";
+        break;
+      case "height_cm":
+        if (numValue < 48.26) return "Height cannot be less than 48.26 cm";
+        if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
+        break;
+      case "respiratory_rate":
+        if (numValue < 5) return "Respiratory Rate cannot be less than 5 breaths/min";
+        if (numValue > 60) return "Respiratory Rate cannot be greater than 60 breaths/min";
+        break;
+      case "surface_area":
+        if (numValue < 0.1) return "Surface Area cannot be less than 0.1 m²";
+        if (numValue > 3.0) return "Surface Area cannot be greater than 3.0 m²";
+        break;
+      default:
+        break;
+    }
+    return "";
+  };
+
   const handleVitals = (e) => {
     const { name, value } = e.target;
     const updatedVitals = { ...vitals, [name]: value };
+
+    // Validate the specific field
+    const error = validateVitalField(name, value);
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors[name] = error;
+      } else {
+        delete newErrors[name];
+      }
+      return newErrors;
+    });
 
     // Auto-calculate BMI/MUAC when height or weight changes
     if (name === "height_cm" || name === "weight_kg") {
@@ -887,7 +927,7 @@ const CareCardFollowUpForm = (props) => {
       updatedVitals.bmi_muac = calculateBmiMuac(newHeight, newWeight);
     }
 
-    // Clear "On Family Planning" when Family Planning Status changes to not "on family planning"
+    // Clear "On Family Planning" when Family Planning Status changes
     if (name === "family_planning_status") {
       if (value !== "FAMILY_PLANNING_STATUS_ON_FAMILY_PLANNING") {
         updatedVitals.on_family_planning = "";
@@ -928,8 +968,8 @@ const CareCardFollowUpForm = (props) => {
       setClinical((prev) => ({
         ...prev,
         [name]: value,
-        dsd_model: "", // Clear DSD model when status changes
-        date_devolved: isFacilityOrCommunity ? prev.date_devolved : "" // Clear date if not facility/community
+        dsd_model: "",
+        date_devolved: isFacilityOrCommunity ? prev.date_devolved : ""
       }));
     } else if (name === "tb_status") {
       // Clear tb_status_confirmed when tb_status changes away from "Confirmed TB"
@@ -1454,6 +1494,13 @@ const CareCardFollowUpForm = (props) => {
         temp.next_appointment_date = "Next Appointment Date cannot be earlier than today";
       }
     }
+    // Check for vital validation errors
+    const vitalFields = ["bp_systolic", "bp_diastolic", "weight_kg", "height_cm",];
+    const hasVitalErrors = vitalFields.some(field => errors[field]);
+    if (hasVitalErrors) {
+      toast.error("Please correct the out-of-range values in the Vitals section");
+      return false;
+    }
 
     setErrors(temp);
     return Object.keys(temp).length === 0;
@@ -1466,12 +1513,22 @@ const CareCardFollowUpForm = (props) => {
     }
   };
 
+  // console.log("error log", errors)
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const isValid = await validate();
-    if (!isValid) {
-      toast.error("Please fill all required fields");
+    // const isValid = await validate();
+    // if (!isValid) {
+    //   toast.error("Please fill all required fields");
+    //   return;
+    // }
+    const validationErrors = await validate();
+    const hasErrors = Object.keys(validationErrors).length > 0;
+
+    if (hasErrors) {
+      // Grab the first error message to show in the toast
+      const firstErrorMsg = Object.values(validationErrors)[0];
+      toast.error(firstErrorMsg || "Please fill all required fields");
       return;
     }
     setSaving(true);
@@ -1553,8 +1610,6 @@ const CareCardFollowUpForm = (props) => {
       const whoStageOption = whoStagingCodeset.find(opt => opt.code === clinical.who_stage);
       const functionalStatusOption = functionalStatusCodeset.find(opt => opt.code === clinical.functional_status);
 
-      // Build ARTClinicVisitDto payload (matching backend DTO structure with new columns)
-      // Note: hivEnrollmentId and artStatusId are now set automatically by the backend
       const payload = {
         visitDate: visitInfo.visit_date,
         personId: props.patientObj.id,
@@ -1802,6 +1857,7 @@ const CareCardFollowUpForm = (props) => {
                     min="0"
                     step="0.1"
                   />
+                  {errors.height_cm && <span className={classes.error}>{errors.height_cm}</span>}
                 </Col>
                 <Col size={3}>
                   <SectionLabel>Weight (kg)</SectionLabel>
@@ -1814,6 +1870,7 @@ const CareCardFollowUpForm = (props) => {
                     min="0"
                     step="0.1"
                   />
+                  {errors.weight_kg && <span className={classes.error}>{errors.weight_kg}</span>}
                 </Col>
                 <Col size={3}>
                   <SectionLabel>
@@ -1839,6 +1896,7 @@ const CareCardFollowUpForm = (props) => {
                     <span style={{ color: "#546e7a", fontSize: "18px", fontWeight: 300 }}>/</span>
                     <Input type="number" name="bp_diastolic" value={vitals.bp_diastolic} onChange={handleVitals} placeholder="Dia" min="0" />
                   </div>
+                  {(errors.bp_systolic || errors.bp_diastolic) && <span className={classes.error}>{errors.bp_systolic || errors.bp_diastolic}</span>}
                 </Col>
               </FieldRow>
             </Box>
@@ -1994,6 +2052,7 @@ const CareCardFollowUpForm = (props) => {
                       placeholder="Specify other findings"
                       required
                     />
+                    {errors.cervical_cancer_other_findings && <span className={classes.error}>{errors.cervical_cancer_other_findings}</span>}
                   </Col>
                 )}
               </FieldRow>
@@ -2715,6 +2774,7 @@ const CareCardFollowUpForm = (props) => {
                   value={followUp.next_appointment_date}
                   onChange={handleFollowUp}
                 />
+                {errors.next_appointment_date && <span className={classes.error}>{errors.next_appointment_date}</span>}
               </Col>
             </FieldRow>
           </FormAccordion>

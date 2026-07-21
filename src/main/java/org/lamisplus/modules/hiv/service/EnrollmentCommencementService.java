@@ -277,13 +277,13 @@ public class EnrollmentCommencementService {
         TbPreventiveTherapyDto tpt = com.getTbPreventiveTherapy();
         if (tpt != null) {
             // TPT start date must not be before date enrolled in HIV care
-            if (!isNullOrEmpty(tpt.getStartDate())) {
-                LocalDate tptStartDate = parseDate(tpt.getStartDate());
-                if (tptStartDate != null && dateEnrolled != null && tptStartDate.isBefore(dateEnrolled)) {
-                    throw new IllegalArgumentException(
-                        "tpt_start_date cannot be before date_enrolled_in_hiv_care");
-                }
-            }
+//            if (!isNullOrEmpty(tpt.getStartDate())) {
+//                LocalDate tptStartDate = parseDate(tpt.getStartDate());
+//                if (tptStartDate != null && dateEnrolled != null && tptStartDate.isBefore(dateEnrolled)) {
+//                    throw new IllegalArgumentException(
+//                        "tpt_start_date cannot be before date_enrolled_in_hiv_care");
+//                }
+//            }
 
             // TPT completion date must not be before TPT start date
             if (!isNullOrEmpty(tpt.getCompletionDate()) && !isNullOrEmpty(tpt.getStartDate())) {
@@ -333,16 +333,6 @@ public class EnrollmentCommencementService {
         LocalDate artStartDate = parseDate(com.getDateArtStarted());
         LocalDate visitDate = parseDate(request.getDateOfObservation());
         Visit visit = hivVisitEncounter.processAndCreateVisit(person.getId(), artStartDate);
-
-        // CRITICAL: Get enrollment session UUID from the latest AdherencePreparation record
-//        String enrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
-//        if (enrollmentSessionUuid == null) {
-//            log.error("Cannot create Enrollment & Commencement for person ID: {} - No enrollment session UUID found.", person.getId());
-//            throw new IllegalStateException(
-//                "Cannot create Enrollment & Commencement without an active enrollment session. " +
-//                "Please ensure Adherence Preparation has been completed first for this patient."
-//            );
-//        }
 
         EnrollmentCommencement entity = new EnrollmentCommencement();
         entity.setUuid(UUID.randomUUID().toString());

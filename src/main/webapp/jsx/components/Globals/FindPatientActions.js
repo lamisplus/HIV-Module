@@ -5,11 +5,12 @@ import { MdDashboard } from "react-icons/md";
 import { TiArrowForward } from "react-icons/ti";
 import { FaUserPlus, FaExchangeAlt } from "react-icons/fa";
 import { usePermissions } from "../../../hooks/usePermissions";
+import { getAgeInMonths } from "../../../utils/index";
 import { useRoles } from "../../../hooks/useRoles";
 import TransferInForm from "../../revised-national-tool-forms/pages/TransferIn/Index";
 
 const FindPatientActions = memo(({ row }) => {
-  const { hasiceform, hasenrollmentform , hivTestResult, transferIn} = row;
+  const { hasiceform, hasenrollmentform , hivTestResult, transferIn, dateOfBirth } = row;
   const { hasPermission } = usePermissions();
   const { hasRole } = useRoles();
   const history = useHistory();
@@ -21,24 +22,55 @@ const FindPatientActions = memo(({ row }) => {
   const [showEnrollmentTypeModal, setShowEnrollmentTypeModal] = useState(false);
   const [showTransferFormModal, setShowTransferFormModal] = useState(false);
 
-  if (!isRDE) return null;
+  if (!isRDE) return null;// 2. Logic: Determine patient enrollment status
+  const isFullyEnrolled = hasiceform && hasenrollmentform;
+  const hasCompletedICE = hasiceform && !hasenrollmentform;
 
-  // 2. Logic: Determine patient enrollment status
-  const isFullyEnrolled = hasiceform && hasenrollmentform; // Both ICE and Enrollment done
-  const hasCompletedICE = hasiceform && !hasenrollmentform; // ICE done, Enrollment pending
-  const handleEnrollClick = (e) => {
-    if (e) e.preventDefault();
-    // If ICE is already done, skip the transfer-in question and go directly to enrollment
-    if (hasCompletedICE) {
-      handleDirectEnrollment();
-    }
-    else if (hivTestResult === "Positive" || hasTransferIn) {
-      handleNewEnrollment();
-    }
-    else {
-      setShowEnrollmentTypeModal(true);
-    }
-  };
+  //   const handleEnrollClick = (e) => {
+  //   if (e) e.preventDefault();
+  //   // If ICE is already done, skip the transfer-in question and go directly to enrollment
+  //   if (hasCompletedICE) {
+  //     handleDirectEnrollment();
+  //   }
+  //   else if (hivTestResult === "Positive" || hasTransferIn) {
+  //     handleNewEnrollment();
+  //   }
+  //   else {
+  //     setShowEnrollmentTypeModal(true);
+  //   }
+  // };
+
+    const handleEnrollClick = (e) => {
+        if (e) e.preventDefault();
+        // Calculate exact age in months from dateOfBirth
+        const ageInMonths = getAgeInMonths(dateOfBirth);
+        const isUnder24Months = ageInMonths >= 0 && ageInMonths <= 24;
+        // If client is <= 24 months, go straight to adherence preparation
+        if (isUnder24Months) {
+            history.push({
+                pathname: "/patient-history",
+                state: {
+                    patientObj: row,
+                    enrollmentFlow: true,
+                    skipToAdherence: true,
+                    route: "adherence-preparation"
+
+                },
+            });
+            return; // Exit early so it doesn't trigger ICE/Enrollment
+        }
+
+        // If ICE is already done, skip the transfer-in question and go directly to enrollment
+        if (hasCompletedICE) {
+            handleDirectEnrollment();
+        }
+        else if (hivTestResult === "Positive" || hasTransferIn) {
+            handleNewEnrollment();
+        }
+        else {
+            setShowEnrollmentTypeModal(true);
+        }
+    };
 
   const handleDirectEnrollment = () => {
     // Patient has already completed ICE, go directly to Enrollment & Commencement form
@@ -149,7 +181,7 @@ const FindPatientActions = memo(({ row }) => {
                 <FaExchangeAlt style={{ marginRight: "8px" }} /> Yes, Transfer-In
               </Button>
               <Button onClick={() => setShowEnrollmentTypeModal(false)} variant="contained" style={{ backgroundColor: "#992E62", color: "white" }}>
-                Cancel
+                No
               </Button>
             </div>
           </DialogContent>
