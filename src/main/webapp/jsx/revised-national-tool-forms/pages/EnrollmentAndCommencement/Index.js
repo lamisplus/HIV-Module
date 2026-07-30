@@ -221,6 +221,8 @@ const EnrollmentAndCommencementForm = (props) => {
   const arvHistory = props.patientObj1?.initialClinicalEvaluation?.data?.arvHistory;
   const previousArvExposure = arvHistory?.previousArvExposure;
 
+  const isReturningClient =
+      isCreateMode && localStorage.getItem("currentStatus")?.toUpperCase() === "TRANSFER-IN NOT ACTIVE";
   // Determine which Prior ART option to auto-populate based on ICE form
   const getPriorArtFromICE = () => {
     if (!arvHistory || previousArvExposure !== "Yes") return "";
@@ -1398,13 +1400,17 @@ const EnrollmentAndCommencementForm = (props) => {
       temp.date_confirmed_hiv_test = "Date of confirmed HIV test is required";
     }
 
-    if (!registration.hiv_test_location || String(registration.hiv_test_location).trim() === '') {
-      temp.hiv_test_location = "HIV test location is required";
+
+    if (!isReturningClient) {
+      if (!registration.hiv_test_location || String(registration.hiv_test_location).trim() === '') {
+        temp.hiv_test_location = "HIV test location is required";
+      }
+
+      if (!registration.mode_of_hiv_test || String(registration.mode_of_hiv_test).trim() === '') {
+        temp.mode_of_hiv_test = "Mode of HIV test is required";
+      }
     }
 
-    if (!registration.mode_of_hiv_test || String(registration.mode_of_hiv_test).trim() === '') {
-      temp.mode_of_hiv_test = "Mode of HIV test is required";
-    }
 
     if (!registration.enrollment_setting || String(registration.enrollment_setting).trim() === '') {
       temp.enrollment_setting = "Enrollment setting is required";
@@ -1471,9 +1477,8 @@ const EnrollmentAndCommencementForm = (props) => {
 
       if (props.patientObj?.dateOfBirth && startDate < props.patientObj.dateOfBirth) {
         temp.tpt_start_date = "TPT Start Date cannot be earlier than date of birth";
-      } else if (!isTransferIn && registration.date_enrolled_in_hiv_care && startDate < registration.date_enrolled_in_hiv_care) {
-        temp.tpt_start_date = "TPT Start Date cannot be earlier than date enrolled in HIV care";
       }
+
     }
 
     const vitalFields = ["weight_kg", "height_cm"];
@@ -1919,8 +1924,8 @@ const EnrollmentAndCommencementForm = (props) => {
                   name="mode_of_hiv_test"
                   value={registration.mode_of_hiv_test}
                   onChange={handleReg}
-                  disabled={loadingCodesets || isViewMode || registration.previousEnrollmentDate}
-                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={loadingCodesets || isViewMode || (registration.previousEnrollmentDate && !isReturningClient)}
+                  style={(isViewMode || (registration.previousEnrollmentDate && !isReturningClient)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                   {codesets.mode_of_hiv_test.map((opt) => (
@@ -1948,9 +1953,9 @@ const EnrollmentAndCommencementForm = (props) => {
                   value={registration.hiv_test_location}
                   onChange={handleReg}
                   placeholder="e.g. ANC, HTS Site"
-                  disabled={isViewMode || registration.previousEnrollmentDate}
-                  readOnly={isViewMode || registration.previousEnrollmentDate}
-                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  disabled={isViewMode || (registration.previousEnrollmentDate && !isReturningClient)}
+                  readOnly={isViewMode || (registration.previousEnrollmentDate && !isReturningClient)}
+                  style={(isViewMode || (registration.previousEnrollmentDate && !isReturningClient)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 />
                 {errors.hiv_test_location && (
                   <span className={classes.error}>
