@@ -418,7 +418,7 @@ const CareCardFollowUpForm = (props) => {
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [expanded, setExpanded] = useState(["visit", "vitals", "medications", "lab"]);
+  const [expanded, setExpanded] = useState(["visit", "vitals", "medications", "lab", "note"]);
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Codesets from application
@@ -650,7 +650,7 @@ const CareCardFollowUpForm = (props) => {
         duration_on_art_months: visit.durationOnArtMonths || "",
         clinician_name: visit.clinicianName || "",
       });
-
+      setClinicalNote(visit.clinicalNote || "");
       // Populate Vitals
       setVitals({
         height_cm: visit.vitalSignDto?.height || "",
@@ -1325,7 +1325,7 @@ const CareCardFollowUpForm = (props) => {
   };
 
   const [otherDrugs, setOtherDrugs] = useState("");
-
+  const [clinicalNote, setClinicalNote] = useState("");
   // ── Section 5: Lab Results & Follow-up ──────────────────────────────────
   const [cd4Ordered, setCd4Ordered] = useState(false);
   const [viralLoadOrdered, setViralLoadOrdered] = useState(false);
@@ -1619,7 +1619,7 @@ const CareCardFollowUpForm = (props) => {
         whoStagingId: whoStageOption?.id || null,
         who: whoData,
         functionalStatusId: functionalStatusOption?.id || null,
-        clinicalNote: "",
+        clinicalNote: clinicalNote || "",
         vitalSignDto: vitalSignDto,
         aRVDrugsRegimen: arvdrugsRegimen,
         viralLoadOrder: viralLoadOrder,
@@ -2778,6 +2778,27 @@ const CareCardFollowUpForm = (props) => {
               </Col>
             </FieldRow>
           </FormAccordion>
+
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  SECTION 5 — CLINICAL NOTE                                   */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            <FormAccordion panel="note" title="Clinical Note" index={4} expanded={expanded} onToggle={toggleAccordion}>
+                <FieldRow>
+                    <Col size={12}>
+                        <SectionLabel>Clinical Note</SectionLabel>
+                        <Input
+                            type="textarea"
+                            name="clinical_note"
+                            value={clinicalNote}
+                            onChange={(e) => setClinicalNote(e.target.value)}
+                            rows={5}
+                            placeholder="Enter any additional clinical notes, observations, or remarks for this visit..."
+                            style={{ height: "auto", minHeight: "120px" }}
+                        />
+                    </Col>
+                </FieldRow>
+            </FormAccordion>
+
 
           {/* ── Action Buttons ────────────────────────────────────────────── */}
           <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid #e0e0e0", marginTop: "8px" }}>
