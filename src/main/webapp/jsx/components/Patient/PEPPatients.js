@@ -198,7 +198,7 @@ const PEPPatients = (props) => {
 
                         // Check for numeric values
                         const numericValue = parseFloat(resultStr);
-                        if (!isNaN(numericValue) && numericValue > 0) {
+                        if (!isNaN(numericValue) && numericValue >= 1000 ) {
                           return true;
                         }
 
