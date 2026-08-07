@@ -24,6 +24,7 @@ public class CorsConfig {
         configAutenticacao.addAllowedMethod("GET");
         configAutenticacao.addAllowedMethod("DELETE");
         configAutenticacao.addAllowedMethod("PUT");
+        configAutenticacao.addAllowedMethod("PATCH");
         configAutenticacao.addAllowedMethod("OPTIONS");
         configAutenticacao.setMaxAge(3600L);
         source.registerCorsConfiguration("/**", configAutenticacao);

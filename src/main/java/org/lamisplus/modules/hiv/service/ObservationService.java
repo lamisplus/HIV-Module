@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ObservationService {
-
+    private static final double HIV_EARLY_DETECT_THRESHOLD = 1000;
     private final ObservationRepository observationRepository;
     private final PersonRepository personRepository;
 
@@ -345,6 +345,41 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
         errorResponse.put("message", message);
         errorResponse.put("data", null);
         return errorResponse;
+    }
+
+    public Map<String, Object> updateFinalHivTestResultFromEarlyDetect(String patientUuid, String result, Long htsEncounterId) {
+        try {
+            double numericResult;
+            try {
+                numericResult = Double.parseDouble(result);
+            } catch (NumberFormatException | NullPointerException e) {
+                return buildErrorResponse("Invalid result value '" + result + "' for htsEncounterId " + htsEncounterId
+                        + ": must be a numeric string");
+            }
+
+            String finalHivTestResult = (numericResult < HIV_EARLY_DETECT_THRESHOLD)
+                    ? "Negative"
+                    : "Acute HIV Infection";
+
+            int updated = observationRepository.updateFinalHivTestResult(htsEncounterId, patientUuid, finalHivTestResult);
+
+            if (updated == 0) {
+                return buildErrorResponse("No observation found for htsEncounterId " + htsEncounterId
+                        + " and patientUuid " + patientUuid);
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "HIV test result updated successfully");
+            response.put("htsEncounterId", htsEncounterId);
+            response.put("patientUuid", patientUuid);
+            response.put("finalHivTestResult", finalHivTestResult);
+            return response;
+
+        } catch (Exception e) {
+            return buildErrorResponse("Error updating HIV test result for htsEncounterId "
+                    + htsEncounterId + ": " + e.getMessage());
+        }
     }
 
 }

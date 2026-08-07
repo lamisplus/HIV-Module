@@ -165,6 +165,7 @@ const PEPPatients = (props) => {
                                 surname: row.surname,
                                 otherName: row.otherName,
                                 dateOfBirth: row.dateOfBirth,
+                                htsEncounterId: row.htsEncounterId,
                               }
                             },
                           }}
@@ -311,6 +312,7 @@ const PEPPatients = (props) => {
                                     surname: row.surname,
                                     otherName: row.otherName,
                                     dateOfBirth: row.dateOfBirth,
+                                    htsEncounterId: row.htsEncounterId,
                                   },
                                   ...routeState,
                                 }

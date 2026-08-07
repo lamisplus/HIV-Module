@@ -15,4 +15,6 @@ public interface PEPClientProjection {
     Boolean getHasSample();
     Boolean getHasResult();
     String getTestResult();
+    Long getHtsEncounterId();
+
 }

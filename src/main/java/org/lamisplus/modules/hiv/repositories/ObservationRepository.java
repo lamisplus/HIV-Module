@@ -6,8 +6,10 @@ import org.lamisplus.modules.patient.domain.entity.Person;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -387,7 +389,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
     Optional<String> findCurrentTbStatus(String personUuid);
 
 
-    @Query(value = "SELECT p.id AS id, hts.client_code AS uniqueId, p.hospital_number AS hospitalNumber, " +
+    @Query(value = "SELECT p.id AS id, hts.client_code AS uniqueId, hts.id as htsEncounterId, p.hospital_number AS hospitalNumber, " +
             "p.surname AS surname, p.first_name AS firstName, p.other_name AS otherName, " +
             "hts.date_of_visit AS dateEnrolled, p.date_of_birth AS dateOfBirth, p.uuid AS personUuid, " +
             "CASE WHEN ls.patient_uuid IS NOT NULL THEN TRUE ELSE FALSE END AS hasSample, " +
@@ -396,7 +398,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "FROM patient_person p " +
             "INNER JOIN ( " +
             "    SELECT DISTINCT ON (patient_uuid) " +
-            "        patient_uuid, client_code, date_of_visit, observation " +
+            "        patient_uuid, id, client_code, date_of_visit, observation " +
             "    FROM hts_encounter " +
             "    WHERE COALESCE(observation->>'hivEarlyDetectResult', observation->>'hivEarlyDetect') IN ( " +
             "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
@@ -437,7 +439,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
                     "FROM patient_person p " +
                     "INNER JOIN ( " +
                     "    SELECT DISTINCT ON (patient_uuid) " +
-                    "        patient_uuid, client_code, date_of_visit " +
+                    "        patient_uuid, id, client_code, date_of_visit " +
                     "    FROM hts_encounter " +
                     "    WHERE COALESCE(observation->>'hivEarlyDetectResult', observation->>'hivEarlyDetect') IN ( " +
                     "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
@@ -661,4 +663,35 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
     Optional<Observation> findByEnrollmentSessionUuidAndTypeAndArchived(String enrollmentSessionUuid, String type, Integer archived);
     boolean existsByEnrollmentSessionUuidAndTypeAndArchived(String enrollmentSessionUuid, String type, Integer archived);
     List<Observation> findAllByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
+
+//    @Modifying
+//    @Transactional
+//    @Query(value = "UPDATE hts_encounter " +
+//            "SET observation = jsonb_set(" +
+//            "                     jsonb_set(observation, '{finalHivTestResult}', to_jsonb(CAST(:finalResult AS text)), true), " +
+//            "                     '{hivEarlyDetectResult}', to_jsonb(CAST('' AS text)), true" +
+//            "                   ) " +
+//            "WHERE id = :htsEncounterId AND patient_uuid = :patientUuid",
+//            nativeQuery = true)
+//    int updateFinalHivTestResult(@Param("htsEncounterId") Long htsEncounterId,
+//                                 @Param("patientUuid") String patientUuid,
+//                                 @Param("finalResult") String finalResult);
+
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE hts_encounter " +
+            "SET observation = jsonb_set(" +
+            "                     jsonb_set(" +
+            "                       jsonb_set(observation, '{finalHivTestResult}', to_jsonb(CAST(:finalResult AS text)), true), " +
+            "                       '{hivEarlyDetectResult}', to_jsonb(CAST('' AS text)), true" +
+            "                     ), " +
+            "                     '{suspectedAcuteInfection}', to_jsonb(CAST('' AS text)), true" +
+            "                   ) " +
+            "WHERE id = :htsEncounterId AND patient_uuid = :patientUuid",
+            nativeQuery = true)
+    int updateFinalHivTestResult(@Param("htsEncounterId") Long htsEncounterId,
+                                 @Param("patientUuid") String patientUuid,
+                                 @Param("finalResult") String finalResult);
+
 }
