@@ -30,6 +30,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,33 +60,105 @@ public class ArtClinicVisitService {
 
 	private final EnrollmentCommencementRepository enrollmentCommencementRepository;
 	
+//	public ARTClinicVisitDto createArtClinicVisit(ARTClinicVisitDto artClinicVisitDto) {
+//		Long personId = artClinicVisitDto.getPersonId();
+//		Person person = getPerson(personId);
+//
+//		// Get LATEST EnrollmentCommencement by Person for clinic visit
+//		EnrollmentCommencement enrollmentCommencement = enrollmentCommencementRepository
+//				.findLatestByPersonIdAndArchived(personId, 0)
+//				.orElseThrow(() -> new EntityNotFoundException(
+//						EnrollmentCommencement.class,
+//						"personId",
+//						"" + personId));
+//		Visit visit = hivVisitEncounter.processAndCreateVisit(personId, artClinicVisitDto.getVisitDate());
+//		VitalSignRequestDto vitalSignDto = artClinicVisitDto.getVitalSignDto();
+//		String captureDate = artClinicVisitDto.getVisitDate().toString().concat(" 00:00");
+//		vitalSignDto.setCaptureDate(captureDate);
+//		if (visit != null) {
+//			vitalSignDto.setVisitId(visit.getId());
+//		}
+//		Optional<VitalSign> vitalSignOptional =
+//				vitalSignRepository.getVitalSignByVisitAndArchived(visit, 0);
+//		Long vitalSignId = null;
+//		if (vitalSignOptional.isPresent()) {
+//			vitalSignId = vitalSignOptional.get().getId();
+//			vitalSignService.updateVitalSign(vitalSignId, vitalSignDto);
+//		} else {
+//			vitalSignId = vitalSignService.registerVitalSign(vitalSignDto).getId();
+//		}
+//		ARTClinical artClinical = convertDtoToART(artClinicVisitDto, vitalSignId, enrollmentCommencement.getId());
+//		artClinical.setClinicalStageId(artClinicVisitDto.getWhoStagingId());
+//		artClinical.setUuid(UUID.randomUUID().toString());
+//		artClinical.setArchived(0);
+//		artClinical.setEnrollmentCommencement(enrollmentCommencement);
+//		artClinical.setVisit(visit);
+//		artClinical.setPerson(enrollmentCommencement.getPerson());
+//		artClinical.setIsCommencement(false);
+//		return convertToClinicVisitDto(artClinicalRepository.save(artClinical));
+//	}
+	
+	
+//	public ARTClinicVisitDto updateClinicVisit(Long id, ARTClinicVisitDto artClinicVisitDto) {
+//		ARTClinical existArtClinical = getExistClinicVisit(id);
+//		VitalSignRequestDto vitalSignDto = artClinicVisitDto.getVitalSignDto();
+//		String captureDate = artClinicVisitDto.getVisitDate().toString().concat(" 00:00");
+//		vitalSignDto.setCaptureDate(captureDate);
+//		vitalSignService.updateVitalSign(existArtClinical.getVitalSign().getId(), vitalSignDto);
+//		ARTClinical artClinical = convertDtoToART(artClinicVisitDto, existArtClinical.getVitalSign().getId(), existArtClinical.getEnrollmentCommencement().getId());
+//		artClinical.setVisit(existArtClinical.getVisit());
+//		artClinical.setEnrollmentCommencement(existArtClinical.getEnrollmentCommencement());
+//		artClinical.setArtStatusId(existArtClinical.getArtStatusId());
+//		artClinical.setPerson(existArtClinical.getPerson());
+//		artClinical.setId(existArtClinical.getId());
+//		artClinical.setUuid(existArtClinical.getUuid());
+//		artClinical.setArchived(0);
+//		return convertToClinicVisitDto(artClinicalRepository.save(artClinical));
+
 	public ARTClinicVisitDto createArtClinicVisit(ARTClinicVisitDto artClinicVisitDto) {
 		Long personId = artClinicVisitDto.getPersonId();
 		Person person = getPerson(personId);
 
-		// Get LATEST EnrollmentCommencement by Person for clinic visit
 		EnrollmentCommencement enrollmentCommencement = enrollmentCommencementRepository
 				.findLatestByPersonIdAndArchived(personId, 0)
 				.orElseThrow(() -> new EntityNotFoundException(
 						EnrollmentCommencement.class,
 						"personId",
 						"" + personId));
+
 		Visit visit = hivVisitEncounter.processAndCreateVisit(personId, artClinicVisitDto.getVisitDate());
 		VitalSignRequestDto vitalSignDto = artClinicVisitDto.getVitalSignDto();
-		String captureDate = artClinicVisitDto.getVisitDate().toString().concat(" 00:00");
-		vitalSignDto.setCaptureDate(captureDate);
-		if (visit != null) {
-			vitalSignDto.setVisitId(visit.getId());
-		}
-		Optional<VitalSign> vitalSignOptional =
-				vitalSignRepository.getVitalSignByVisitAndArchived(visit, 0);
-		Long vitalSignId = null;
-		if (vitalSignOptional.isPresent()) {
-			vitalSignId = vitalSignOptional.get().getId();
-			vitalSignService.updateVitalSign(vitalSignId, vitalSignDto);
+
+		String captureDateString = artClinicVisitDto.getVisitDate().toString().concat(" 00:00");
+		vitalSignDto.setCaptureDate(captureDateString);
+
+		LocalDateTime visitStartDateTime;
+		String captureDate = vitalSignDto.getCaptureDate();
+		if (captureDate != null) {
+			if (captureDate.contains("T")) {
+				String removeTime = captureDate.replace("T", " ");
+				captureDate = removeTime.substring(0, removeTime.length() - 3);
+			}
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+			visitStartDateTime = LocalDateTime.parse(captureDate, formatter);
 		} else {
-			vitalSignId = vitalSignService.registerVitalSign(vitalSignDto).getId();
+			visitStartDateTime = LocalDateTime.now();
 		}
+
+		// Bypass VitalSignService to avoid RecordExistException and prevent overwriting shared Triage vitals
+		VitalSign newVitalSign = new VitalSign();
+		BeanUtils.copyProperties(vitalSignDto, newVitalSign);
+
+		newVitalSign.setPerson(person);
+		newVitalSign.setVisit(visit);
+		newVitalSign.setCaptureDate(visitStartDateTime);
+		newVitalSign.setArchived(0);
+		newVitalSign.setUuid(UUID.randomUUID().toString());
+		newVitalSign.setFacilityId(organizationUtil.getCurrentUserOrganization());
+
+		VitalSign savedVitalSign = vitalSignRepository.save(newVitalSign);
+		Long vitalSignId = savedVitalSign.getId();
+
 		ARTClinical artClinical = convertDtoToART(artClinicVisitDto, vitalSignId, enrollmentCommencement.getId());
 		artClinical.setClinicalStageId(artClinicVisitDto.getWhoStagingId());
 		artClinical.setUuid(UUID.randomUUID().toString());
@@ -93,17 +167,51 @@ public class ArtClinicVisitService {
 		artClinical.setVisit(visit);
 		artClinical.setPerson(enrollmentCommencement.getPerson());
 		artClinical.setIsCommencement(false);
+
 		return convertToClinicVisitDto(artClinicalRepository.save(artClinical));
 	}
-	
-	
+//	}
+
 	public ARTClinicVisitDto updateClinicVisit(Long id, ARTClinicVisitDto artClinicVisitDto) {
 		ARTClinical existArtClinical = getExistClinicVisit(id);
 		VitalSignRequestDto vitalSignDto = artClinicVisitDto.getVitalSignDto();
-		String captureDate = artClinicVisitDto.getVisitDate().toString().concat(" 00:00");
-		vitalSignDto.setCaptureDate(captureDate);
-		vitalSignService.updateVitalSign(existArtClinical.getVitalSign().getId(), vitalSignDto);
-		ARTClinical artClinical = convertDtoToART(artClinicVisitDto, existArtClinical.getVitalSign().getId(), existArtClinical.getEnrollmentCommencement().getId());
+
+		// 1. Format capture date
+		String captureDateString = artClinicVisitDto.getVisitDate().toString().concat(" 00:00");
+		vitalSignDto.setCaptureDate(captureDateString);
+
+		LocalDateTime visitStartDateTime;
+		String captureDate = vitalSignDto.getCaptureDate();
+		if (captureDate != null) {
+			if (captureDate.contains("T")) {
+				String removeTime = captureDate.replace("T", " ");
+				captureDate = removeTime.substring(0, removeTime.length() - 3);
+			}
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+			visitStartDateTime = LocalDateTime.parse(captureDate, formatter);
+		} else {
+			visitStartDateTime = LocalDateTime.now();
+		}
+
+		// 2. Bypass VitalSignService.registerVitalSign() to avoid RecordExistException
+		// We manually create a new VitalSign entity and save it directly via the repository.
+		// This allows multiple VitalSigns per Visit (history preservation) without triggering the 1-to-1 check.
+		VitalSign newVitalSign = new VitalSign();
+		BeanUtils.copyProperties(vitalSignDto, newVitalSign); // Safely copies weight, height, bp, etc.
+
+		newVitalSign.setPerson(existArtClinical.getPerson());
+		newVitalSign.setVisit(existArtClinical.getVisit());
+		newVitalSign.setCaptureDate(visitStartDateTime);
+		newVitalSign.setArchived(0);
+		newVitalSign.setUuid(UUID.randomUUID().toString());
+		newVitalSign.setFacilityId(organizationUtil.getCurrentUserOrganization());
+
+		// Save directly to repository
+		VitalSign savedVitalSign = vitalSignRepository.save(newVitalSign);
+		Long newVitalSignId = savedVitalSign.getId();
+
+		// 3. Update the ARTClinical record to point to the NEW VitalSign
+		ARTClinical artClinical = convertDtoToART(artClinicVisitDto, newVitalSignId, existArtClinical.getEnrollmentCommencement().getId());
 		artClinical.setVisit(existArtClinical.getVisit());
 		artClinical.setEnrollmentCommencement(existArtClinical.getEnrollmentCommencement());
 		artClinical.setArtStatusId(existArtClinical.getArtStatusId());
@@ -111,8 +219,11 @@ public class ArtClinicVisitService {
 		artClinical.setId(existArtClinical.getId());
 		artClinical.setUuid(existArtClinical.getUuid());
 		artClinical.setArchived(0);
+
 		return convertToClinicVisitDto(artClinicalRepository.save(artClinical));
 	}
+
+
 	
 	
 	public void archivedClinicVisit(Long id, String message) {
