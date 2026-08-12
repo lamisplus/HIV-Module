@@ -1275,28 +1275,28 @@ const EnrollmentAndCommencementForm = (props) => {
   };
 
   // ── Auto-populate Date ART Started with Date Enrolled in HIV Care ────────
-  useEffect(() => {
-    // Find the selected care entry point
-    const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.code == registration.care_entry_point);
-    // Check if Care Entry Point is Transfer-in using code or display
-    const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
-                         selectedCareEntryPoint?.display?.toLowerCase().includes("transfer");
-
-    const hasPriorArt = registration.prior_art && String(registration.prior_art).trim() !== '';
-    const hasEnrollmentDate = registration.date_enrolled_in_hiv_care && String(registration.date_enrolled_in_hiv_care).trim() !== '';
+  // useEffect(() => {
+  //   // Find the selected care entry point
+  //   const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.code == registration.care_entry_point);
+  //   // Check if Care Entry Point is Transfer-in using code or display
+  //   const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
+  //                        selectedCareEntryPoint?.display?.toLowerCase().includes("transfer");
+  //
+  //   const hasPriorArt = registration.prior_art && String(registration.prior_art).trim() !== '';
+  //   const hasEnrollmentDate = registration.date_enrolled_in_hiv_care && String(registration.date_enrolled_in_hiv_care).trim() !== '';
 
     // Only auto-populate if:
     // 1. Date enrolled in HIV care is filled
     // 2. Care entry point is NOT Transfer-in
     // 3. Prior ART is NOT documented (empty)
     // 4. Date ART started is currently empty (don't override user's edits)
-    if (hasEnrollmentDate && !isTransferIn && !hasPriorArt && !commencement.date_art_started) {
-      setCommencement((prev) => ({
-        ...prev,
-        date_art_started: registration.date_enrolled_in_hiv_care
-      }));
-    }
-  }, [registration.date_enrolled_in_hiv_care, registration.care_entry_point, registration.prior_art, codesets.careEntryPoints]);
+    // if (hasEnrollmentDate && !isTransferIn && !hasPriorArt && !commencement.date_art_started) {
+    //   setCommencement((prev) => ({
+    //     ...prev,
+    //     date_art_started: registration.date_enrolled_in_hiv_care
+    //   }));
+    // }
+  // }, [registration.date_enrolled_in_hiv_care, registration.care_entry_point, registration.prior_art, codesets.careEntryPoints]);
 
   // ── Auto-populate Weight, Height from Triage/Vital Signs ────────────────
   useEffect(() => {
