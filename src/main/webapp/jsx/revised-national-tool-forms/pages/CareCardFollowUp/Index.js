@@ -1060,6 +1060,8 @@ const CareCardFollowUpForm = (props) => {
   });
   const [addModalRegimenTypes, setAddModalRegimenTypes] = useState([]);
   const [editModalRegimenTypes, setEditModalRegimenTypes] = useState([]);
+  const [addArvErrors, setAddArvErrors] = useState({});
+  const [editArvErrors, setEditArvErrors] = useState({});
 
   const handleArv = (index, e) => {
     const { name, value } = e.target;
@@ -1076,7 +1078,39 @@ const CareCardFollowUpForm = (props) => {
     setArvList(updatedArvList);
   };
 
-  // Open add modal
+  const isArvValueEmpty = (value) => {
+    return value === null || value === undefined || String(value).trim() === "";
+  };
+
+  const validateArvEntry = (arvEntry) => {
+    const errors = {};
+
+    if (isArvValueEmpty(arvEntry.regimen_line)) {
+      errors.regimen_line = "Required";
+    }
+
+    if (isArvValueEmpty(arvEntry.regimen)) {
+      errors.regimen = "Required";
+    }
+
+    if (isArvValueEmpty(arvEntry.adherence)) {
+      errors.adherence = "Required";
+    }
+
+    if (isArvValueEmpty(arvEntry.dose)) {
+      errors.dose = "Required";
+    }
+
+    if (
+        (arvEntry.adherence === "P" || arvEntry.adherence === "F") &&
+        isArvValueEmpty(arvEntry.why_poor_fair_adherence)
+    ) {
+      errors.why_poor_fair_adherence = "Required";
+    }
+
+    return errors;
+  };
+
   const openAddModal = () => {
     setNewArv({
       regimen_line: "",
@@ -1086,10 +1120,10 @@ const CareCardFollowUpForm = (props) => {
       why_poor_fair_adherence: "",
     });
     setAddModalRegimenTypes([]);
+    setAddArvErrors({});
     setAddModalOpen(true);
   };
 
-  // Handle add modal field changes
   const handleAddModalChange = (e) => {
     const { name, value } = e.target;
     const updatedArv = { ...newArv, [name]: value };
@@ -1102,12 +1136,42 @@ const CareCardFollowUpForm = (props) => {
     }
 
     setNewArv(updatedArv);
+
+    setAddArvErrors((prev) => {
+      const newErrors = { ...prev };
+
+      if (!isArvValueEmpty(value)) {
+        delete newErrors[name];
+      }
+
+      if (name === "adherence" && value !== "P" && value !== "F") {
+        delete newErrors.why_poor_fair_adherence;
+      }
+
+      return newErrors;
+    });
   };
 
-  // Handle regimen line change in add modal
   const handleAddModalRegimenLineChange = async (e) => {
     const regimenLineId = e.target.value;
+
     setNewArv({ ...newArv, regimen_line: regimenLineId, regimen: "" });
+
+    setAddArvErrors((prev) => {
+      const newErrors = { ...prev };
+
+      if (regimenLineId) {
+        delete newErrors.regimen_line;
+      } else {
+        newErrors.regimen_line = "Required";
+      }
+
+      // Regimen is cleared when regimen line changes,
+      // so remove stale regimen error until user clicks Add to List again.
+      delete newErrors.regimen;
+
+      return newErrors;
+    });
 
     if (regimenLineId) {
       try {
@@ -1123,18 +1187,18 @@ const CareCardFollowUpForm = (props) => {
     }
   };
 
-  // Save new ARV entry
   const saveNewArv = () => {
-    // Validation - at least regimen line should be selected
     if (arvList.length >= 1) {
       toast.error("Only one ARV regimen is allowed. Edit or delete the existing entry first.");
       setAddModalOpen(false);
       return;
     }
 
-    // Validation - at least regimen line should be selected
-    if (!newArv.regimen_line) {
-      toast.error("Please select a regimen line");
+    const newArvValidationErrors = validateArvEntry(newArv);
+    setAddArvErrors(newArvValidationErrors);
+
+    if (Object.keys(newArvValidationErrors).length > 0) {
+      toast.error("Please fill all required fields in Add ARV Regimen");
       return;
     }
 
@@ -1147,8 +1211,84 @@ const CareCardFollowUpForm = (props) => {
     }
 
     setAddModalOpen(false);
+    setAddArvErrors({});
     toast.success("ARV regimen added successfully");
   };
+
+
+  // Open add modal
+  // const openAddModal = () => {
+  //   setNewArv({
+  //     regimen_line: "",
+  //     regimen: "",
+  //     adherence: "",
+  //     dose: "",
+  //     why_poor_fair_adherence: "",
+  //   });
+  //   setAddModalRegimenTypes([]);
+  //   setAddModalOpen(true);
+  // };
+
+  // Handle add modal field changes
+  // const handleAddModalChange = (e) => {
+  //   const { name, value } = e.target;
+  //   const updatedArv = { ...newArv, [name]: value };
+  //
+  //   // Clear why_poor_fair_adherence if adherence is not Poor or Fair
+  //   if (name === "adherence") {
+  //     if (value !== "P" && value !== "F") {
+  //       updatedArv.why_poor_fair_adherence = "";
+  //     }
+  //   }
+  //
+  //   setNewArv(updatedArv);
+  // };
+
+  // Handle regimen line change in add modal
+  // const handleAddModalRegimenLineChange = async (e) => {
+  //   const regimenLineId = e.target.value;
+  //   setNewArv({ ...newArv, regimen_line: regimenLineId, regimen: "" });
+  //
+  //   if (regimenLineId) {
+  //     try {
+  //       const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+  //       setAddModalRegimenTypes(response.data);
+  //     } catch (error) {
+  //       console.error("Error fetching regimen types:", error);
+  //     }
+  //   } else {
+  //     setAddModalRegimenTypes([]);
+  //   }
+  // };
+
+  // Save new ARV entry
+  // const saveNewArv = () => {
+  //   // Validation - at least regimen line should be selected
+  //   if (arvList.length >= 1) {
+  //     toast.error("Only one ARV regimen is allowed. Edit or delete the existing entry first.");
+  //     setAddModalOpen(false);
+  //     return;
+  //   }
+  //
+  //   // Validation - at least regimen line should be selected
+  //   if (!newArv.regimen_line) {
+  //     toast.error("Please select a regimen line");
+  //     return;
+  //   }
+  //
+  //   const newIndex = arvList.length;
+  //   setArvList([...arvList, { ...newArv }]);
+  //
+  //   // Store regimen types for this index
+  //   if (addModalRegimenTypes.length > 0) {
+  //     setRegimenTypes((prev) => ({ ...prev, [newIndex]: addModalRegimenTypes }));
+  //   }
+  //
+  //   setAddModalOpen(false);
+  //   toast.success("ARV regimen added successfully");
+  // };
 
   const calculateNextAppointmentDate = (visitDate, arvEntries) => {
     if (!visitDate || !arvEntries || arvEntries.length === 0) return "";
@@ -1178,15 +1318,38 @@ const CareCardFollowUpForm = (props) => {
     setRegimenTypes(reindexedTypes);
   };
 
+
   // Open edit modal
+  // const openEditModal = (index) => {
+  //   setCurrentArvIndex(index);
+  //   setEditingArv({ ...arvList[index] });
+  //   setEditModalRegimenTypes(regimenTypes[index] || []);
+  //   setEditModalOpen(true);
+  // };
+
+  // Handle edit modal field changes
+  // const handleEditModalChange = (e) => {
+  //   const { name, value } = e.target;
+  //   const updatedArv = { ...editingArv, [name]: value };
+  //
+  //   // Clear why_poor_fair_adherence if adherence is not Poor or Fair
+  //   if (name === "adherence") {
+  //     if (value !== "P" && value !== "F") {
+  //       updatedArv.why_poor_fair_adherence = "";
+  //     }
+  //   }
+  //
+  //   setEditingArv(updatedArv);
+  // };
+
   const openEditModal = (index) => {
     setCurrentArvIndex(index);
     setEditingArv({ ...arvList[index] });
     setEditModalRegimenTypes(regimenTypes[index] || []);
+    setEditArvErrors({});
     setEditModalOpen(true);
   };
 
-  // Handle edit modal field changes
   const handleEditModalChange = (e) => {
     const { name, value } = e.target;
     const updatedArv = { ...editingArv, [name]: value };
@@ -1199,12 +1362,75 @@ const CareCardFollowUpForm = (props) => {
     }
 
     setEditingArv(updatedArv);
+
+    setEditArvErrors((prev) => {
+      const newErrors = { ...prev };
+
+      if (!isArvValueEmpty(value)) {
+        delete newErrors[name];
+      }
+
+      if (name === "adherence" && value !== "P" && value !== "F") {
+        delete newErrors.why_poor_fair_adherence;
+      }
+
+      return newErrors;
+    });
   };
 
   // Handle regimen line change in edit modal
+  // const handleEditModalRegimenLineChange = async (e) => {
+  //   const regimenLineId = e.target.value;
+  //   setEditingArv({ ...editingArv, regimen_line: regimenLineId, regimen: "" });
+  //
+  //   if (regimenLineId) {
+  //     try {
+  //       const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+  //       setEditModalRegimenTypes(response.data);
+  //     } catch (error) {
+  //       console.error("Error fetching regimen types:", error);
+  //     }
+  //   } else {
+  //     setEditModalRegimenTypes([]);
+  //   }
+  // };
+
+  // Save edited ARV entry
+  // const saveEditedArv = () => {
+  //   const updatedArvList = [...arvList];
+  //   updatedArvList[currentArvIndex] = { ...editingArv };
+  //   setArvList(updatedArvList);
+  //
+  //   // Update regimen types for this index
+  //   setRegimenTypes((prev) => ({ ...prev, [currentArvIndex]: editModalRegimenTypes }));
+  //
+  //   setEditModalOpen(false);
+  //   setCurrentArvIndex(null);
+  //   toast.success("ARV regimen updated successfully");
+  // };
+
   const handleEditModalRegimenLineChange = async (e) => {
     const regimenLineId = e.target.value;
+
     setEditingArv({ ...editingArv, regimen_line: regimenLineId, regimen: "" });
+
+    setEditArvErrors((prev) => {
+      const newErrors = { ...prev };
+
+      if (regimenLineId) {
+        delete newErrors.regimen_line;
+      } else {
+        newErrors.regimen_line = "Required";
+      }
+
+      // Regimen is cleared when regimen line changes,
+      // so remove stale regimen error until user clicks Save Changes again.
+      delete newErrors.regimen;
+
+      return newErrors;
+    });
 
     if (regimenLineId) {
       try {
@@ -1220,8 +1446,15 @@ const CareCardFollowUpForm = (props) => {
     }
   };
 
-  // Save edited ARV entry
   const saveEditedArv = () => {
+    const editArvValidationErrors = validateArvEntry(editingArv);
+    setEditArvErrors(editArvValidationErrors);
+
+    if (Object.keys(editArvValidationErrors).length > 0) {
+      toast.error("Please fill all required fields in Edit ARV Regimen");
+      return;
+    }
+
     const updatedArvList = [...arvList];
     updatedArvList[currentArvIndex] = { ...editingArv };
     setArvList(updatedArvList);
@@ -1231,8 +1464,10 @@ const CareCardFollowUpForm = (props) => {
 
     setEditModalOpen(false);
     setCurrentArvIndex(null);
+    setEditArvErrors({});
     toast.success("ARV regimen updated successfully");
   };
+
 
   // Open delete confirmation dialog
   const openDeleteDialog = (index) => {
@@ -2256,100 +2491,129 @@ const CareCardFollowUpForm = (props) => {
               <DialogContent sx={{ paddingTop: "20px !important" }}>
                 <FieldRow style={{ marginTop: "16px" }}>
                   <Col size={6}>
-                    <SectionLabel>Regimen Line <span style={{ color: "red" }}>*</span></SectionLabel>
+                    <SectionLabel>
+                      Regimen Line <span style={{ color: "red" }}>*</span>
+                    </SectionLabel>
                     <Input
-                      type="select"
-                      name="regimen_line"
-                      value={newArv.regimen_line}
-                      onChange={handleAddModalRegimenLineChange}
+                        type="select"
+                        name="regimen_line"
+                        value={newArv.regimen_line}
+                        onChange={handleAddModalRegimenLineChange}
                     >
                       <option value="">Select</option>
                       {patientAge >= 15 && (
-                        <>
-                          {adultRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {adultRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                       {patientAge < 15 && (
-                        <>
-                          {childRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {childRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                     </Input>
+                    {addArvErrors.regimen_line && (
+                        <span className={classes.error}>{addArvErrors.regimen_line}</span>
+                    )}
                   </Col>
+
                   <Col size={6}>
-                    <SectionLabel>Regimen</SectionLabel>
+                    <SectionLabel>
+                      Regimen <span style={{ color: "red" }}>*</span>
+                    </SectionLabel>
                     <Input
-                      type="select"
-                      name="regimen"
-                      value={newArv.regimen}
-                      onChange={handleAddModalChange}
+                        type="select"
+                        name="regimen"
+                        value={newArv.regimen}
+                        onChange={handleAddModalChange}
                     >
                       <option value="">Select</option>
                       {addModalRegimenTypes.map((value) => (
-                        <option key={value.id} value={value.id}>
-                          {value.description}
-                        </option>
+                          <option key={value.id} value={value.id}>
+                            {value.description}
+                          </option>
                       ))}
                     </Input>
+                    {addArvErrors.regimen && (
+                        <span className={classes.error}>{addArvErrors.regimen}</span>
+                    )}
                   </Col>
                 </FieldRow>
                 <FieldRow>
                   <Col size={6}>
-                    <SectionLabel>Adherence</SectionLabel>
+                    <SectionLabel>
+                      Adherence <span style={{ color: "red" }}>*</span>
+                    </SectionLabel>
                     <Input
-                      type="select"
-                      name="adherence"
-                      value={newArv.adherence}
-                      onChange={handleAddModalChange}
+                        type="select"
+                        name="adherence"
+                        value={newArv.adherence}
+                        onChange={handleAddModalChange}
                     >
                       <option value="">Select</option>
                       {arvDrugAdherenceCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                  <Col size={6}>
-                    <SectionLabel>Dose</SectionLabel>
-                    <Input
-                      type="number"
-                      name="dose"
-                      value={newArv.dose}
-                      onChange={handleAddModalChange}
-                      placeholder="e.g. 1 tablet daily"
-                      min="0"
-                      step="1"
-                    />
-                  </Col>
-                </FieldRow>
-                {(newArv.adherence === "P" || newArv.adherence === "F") && (
-                  <FieldRow>
-                    <Col size={12}>
-                      <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
-                      <Input
-                        type="select"
-                        name="why_poor_fair_adherence"
-                        value={newArv.why_poor_fair_adherence}
-                        onChange={handleAddModalChange}
-                      >
-                        <option value="">Select</option>
-                        {whyPoorFairAdherenceCodeset.map((option) => (
                           <option key={option.id} value={option.code}>
                             {option.display}
                           </option>
-                        ))}
-                      </Input>
-                    </Col>
-                  </FieldRow>
+                      ))}
+                    </Input>
+                    {addArvErrors.adherence && (
+                        <span className={classes.error}>{addArvErrors.adherence}</span>
+                    )}
+                  </Col>
+
+                  <Col size={6}>
+                    <SectionLabel>
+                      Dose <span style={{ color: "red" }}>*</span>
+                    </SectionLabel>
+                    <Input
+                        type="number"
+                        name="dose"
+                        value={newArv.dose}
+                        onChange={handleAddModalChange}
+                        placeholder="e.g. 30"
+                        min="0"
+                        step="1"
+                    />
+                    {addArvErrors.dose && (
+                        <span className={classes.error}>{addArvErrors.dose}</span>
+                    )}
+                  </Col>
+                </FieldRow>
+                {(newArv.adherence === "P" || newArv.adherence === "F") && (
+                    <FieldRow>
+                      <Col size={12}>
+                        <SectionLabel>
+                          Why Poor/Fair Adherence <span style={{ color: "red" }}>*</span>
+                        </SectionLabel>
+                        <Input
+                            type="select"
+                            name="why_poor_fair_adherence"
+                            value={newArv.why_poor_fair_adherence}
+                            onChange={handleAddModalChange}
+                        >
+                          <option value="">Select</option>
+                          {whyPoorFairAdherenceCodeset.map((option) => (
+                              <option key={option.id} value={option.code}>
+                                {option.display}
+                              </option>
+                          ))}
+                        </Input>
+                        {addArvErrors.why_poor_fair_adherence && (
+                            <span className={classes.error}>
+                        {addArvErrors.why_poor_fair_adherence}
+                      </span>
+                        )}
+                      </Col>
+                    </FieldRow>
                 )}
               </DialogContent>
               <DialogActions sx={{ padding: "16px" }}>
@@ -2378,100 +2642,129 @@ const CareCardFollowUpForm = (props) => {
               <DialogContent sx={{ paddingTop: "20px !important" }}>
                 <FieldRow style={{ marginTop: "16px" }}>
                   <Col size={6}>
-                    <SectionLabel>Regimen Line <span style={{ color: "red" }}>*</span></SectionLabel>
+                    <SectionLabel>
+                      Regimen Line <span style={{ color: "red" }}>*</span>
+                    </SectionLabel>
                     <Input
-                      type="select"
-                      name="regimen_line"
-                      value={editingArv.regimen_line}
-                      onChange={handleEditModalRegimenLineChange}
+                        type="select"
+                        name="regimen_line"
+                        value={editingArv.regimen_line}
+                        onChange={handleEditModalRegimenLineChange}
                     >
                       <option value="">Select</option>
                       {patientAge >= 15 && (
-                        <>
-                          {adultRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {adultRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                       {patientAge < 15 && (
-                        <>
-                          {childRegimenLine.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.description}
-                            </option>
-                          ))}
-                        </>
+                          <>
+                            {childRegimenLine.map((value) => (
+                                <option key={value.id} value={value.id}>
+                                  {value.description}
+                                </option>
+                            ))}
+                          </>
                       )}
                     </Input>
+                    {editArvErrors.regimen_line && (
+                        <span className={classes.error}>{editArvErrors.regimen_line}</span>
+                    )}
                   </Col>
+
                   <Col size={6}>
-                    <SectionLabel>Regimen</SectionLabel>
+                    <SectionLabel>
+                      Regimen <span style={{ color: "red" }}>*</span>
+                    </SectionLabel>
                     <Input
-                      type="select"
-                      name="regimen"
-                      value={editingArv.regimen}
-                      onChange={handleEditModalChange}
+                        type="select"
+                        name="regimen"
+                        value={editingArv.regimen}
+                        onChange={handleEditModalChange}
                     >
                       <option value="">Select</option>
                       {editModalRegimenTypes.map((value) => (
-                        <option key={value.id} value={value.id}>
-                          {value.description}
-                        </option>
+                          <option key={value.id} value={value.id}>
+                            {value.description}
+                          </option>
                       ))}
                     </Input>
+                    {editArvErrors.regimen && (
+                        <span className={classes.error}>{editArvErrors.regimen}</span>
+                    )}
                   </Col>
                 </FieldRow>
                 <FieldRow>
                   <Col size={6}>
-                    <SectionLabel>Adherence</SectionLabel>
+                    <SectionLabel>
+                      Adherence <span style={{ color: "red" }}>*</span>
+                    </SectionLabel>
                     <Input
-                      type="select"
-                      name="adherence"
-                      value={editingArv.adherence}
-                      onChange={handleEditModalChange}
+                        type="select"
+                        name="adherence"
+                        value={editingArv.adherence}
+                        onChange={handleEditModalChange}
                     >
                       <option value="">Select</option>
                       {arvDrugAdherenceCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                  <Col size={6}>
-                    <SectionLabel>Dose</SectionLabel>
-                    <Input
-                      type="number"
-                      name="dose"
-                      value={editingArv.dose}
-                      onChange={handleEditModalChange}
-                      placeholder="e.g. 1 tablet daily"
-                      min="0"
-                      step="1"
-                    />
-                  </Col>
-                </FieldRow>
-                {(editingArv.adherence === "P" || editingArv.adherence === "F") && (
-                  <FieldRow>
-                    <Col size={12}>
-                      <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
-                      <Input
-                        type="select"
-                        name="why_poor_fair_adherence"
-                        value={editingArv.why_poor_fair_adherence}
-                        onChange={handleEditModalChange}
-                      >
-                        <option value="">Select</option>
-                        {whyPoorFairAdherenceCodeset.map((option) => (
                           <option key={option.id} value={option.code}>
                             {option.display}
                           </option>
-                        ))}
-                      </Input>
-                    </Col>
-                  </FieldRow>
+                      ))}
+                    </Input>
+                    {editArvErrors.adherence && (
+                        <span className={classes.error}>{editArvErrors.adherence}</span>
+                    )}
+                  </Col>
+
+                  <Col size={6}>
+                    <SectionLabel>
+                      Dose <span style={{ color: "red" }}>*</span>
+                    </SectionLabel>
+                    <Input
+                        type="number"
+                        name="dose"
+                        value={editingArv.dose}
+                        onChange={handleEditModalChange}
+                        placeholder="e.g. 30"
+                        min="0"
+                        step="1"
+                    />
+                    {editArvErrors.dose && (
+                        <span className={classes.error}>{editArvErrors.dose}</span>
+                    )}
+                  </Col>
+                </FieldRow>
+                {(editingArv.adherence === "P" || editingArv.adherence === "F") && (
+                    <FieldRow>
+                      <Col size={12}>
+                        <SectionLabel>
+                          Why Poor/Fair Adherence <span style={{ color: "red" }}>*</span>
+                        </SectionLabel>
+                        <Input
+                            type="select"
+                            name="why_poor_fair_adherence"
+                            value={editingArv.why_poor_fair_adherence}
+                            onChange={handleEditModalChange}
+                        >
+                          <option value="">Select</option>
+                          {whyPoorFairAdherenceCodeset.map((option) => (
+                              <option key={option.id} value={option.code}>
+                                {option.display}
+                              </option>
+                          ))}
+                        </Input>
+                        {editArvErrors.why_poor_fair_adherence && (
+                            <span className={classes.error}>
+                          {editArvErrors.why_poor_fair_adherence}
+                        </span>
+                        )}
+                      </Col>
+                    </FieldRow>
                 )}
               </DialogContent>
               <DialogActions sx={{ padding: "16px" }}>
