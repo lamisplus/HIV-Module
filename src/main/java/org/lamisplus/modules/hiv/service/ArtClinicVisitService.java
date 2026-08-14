@@ -219,6 +219,7 @@ public class ArtClinicVisitService {
 		artClinical.setId(existArtClinical.getId());
 		artClinical.setUuid(existArtClinical.getUuid());
 		artClinical.setArchived(0);
+		artClinical.setIsCommencement(existArtClinical.getIsCommencement());
 
 		return convertToClinicVisitDto(artClinicalRepository.save(artClinical));
 	}
@@ -248,7 +249,8 @@ public class ArtClinicVisitService {
 	public List<ARTClinicalVisitDisplayDto> getAllArtClinicVisitByPersonId(Long personId, int pageNo, int pageSize) {
 		Person person = getPerson(personId);
 		Pageable paging = PageRequest.of(pageNo, pageSize, Sort.by("visitDate").descending());
-		Page<ARTClinical> clinicVisits = artClinicalRepository.findAllByPersonAndArchived(person, 0, paging);
+//		Page<ARTClinical> clinicVisits = artClinicalRepository.findAllByPersonAndArchived(person, 0, paging);
+		Page<ARTClinical> clinicVisits = artClinicalRepository.findAllByPersonAndIsCommencementIsFalseAndArchived (person, 0, paging);
 		if (clinicVisits.hasContent()) {
 			return clinicVisits.getContent().stream().map(this::getArtClinicalVisitDisplayDto).collect(Collectors.toList());
 		}
