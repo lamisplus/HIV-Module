@@ -664,19 +664,6 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
     boolean existsByEnrollmentSessionUuidAndTypeAndArchived(String enrollmentSessionUuid, String type, Integer archived);
     List<Observation> findAllByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 
-//    @Modifying
-//    @Transactional
-//    @Query(value = "UPDATE hts_encounter " +
-//            "SET observation = jsonb_set(" +
-//            "                     jsonb_set(observation, '{finalHivTestResult}', to_jsonb(CAST(:finalResult AS text)), true), " +
-//            "                     '{hivEarlyDetectResult}', to_jsonb(CAST('' AS text)), true" +
-//            "                   ) " +
-//            "WHERE id = :htsEncounterId AND patient_uuid = :patientUuid",
-//            nativeQuery = true)
-//    int updateFinalHivTestResult(@Param("htsEncounterId") Long htsEncounterId,
-//                                 @Param("patientUuid") String patientUuid,
-//                                 @Param("finalResult") String finalResult);
-
 
     @Modifying
     @Transactional

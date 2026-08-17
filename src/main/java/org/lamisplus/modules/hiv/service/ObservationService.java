@@ -359,7 +359,7 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
 
             String finalHivTestResult = (numericResult < HIV_EARLY_DETECT_THRESHOLD)
                     ? "Negative"
-                    : "Acute HIV Infection";
+                    : "Positive";
 
             int updated = observationRepository.updateFinalHivTestResult(htsEncounterId, patientUuid, finalHivTestResult);
 
