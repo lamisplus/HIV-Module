@@ -71,6 +71,10 @@ public class EnrollmentCommencementService {
         }
 
         validateRequiredFields(request, person);
+        validateUniqueIdNotUsedByAnotherPatient(
+                request.getData().getRegistration().getUniqueId(),
+                person
+        );
         String enrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
         if (enrollmentSessionUuid == null) {
             log.error("Cannot create Enrollment & Commencement for person ID: {} - No enrollment session UUID found.", person.getId());
@@ -109,6 +113,10 @@ public class EnrollmentCommencementService {
         EnrollmentCommencement existing = getById(id);
         Person person = existing.getPerson();
         validateRequiredFields(request, person);
+        validateUniqueIdNotUsedByAnotherPatient(
+                request.getData().getRegistration().getUniqueId(),
+                person
+        );
         EnrollmentCommencement updated = buildEntity(request, person);
         updated.setId(existing.getId());
         updated.setUuid(existing.getUuid());
@@ -447,5 +455,25 @@ public class EnrollmentCommencementService {
                 .findFirst()
                 .map(adherencePrep -> adherencePrep.getEnrollmentSessionUuid())
                 .orElse(null);
+    }
+
+    private void validateUniqueIdNotUsedByAnotherPatient(String uniqueId, Person person) {
+        if (uniqueId == null || uniqueId.trim().isEmpty()) {
+            return;
+        }
+
+        String trimmedUniqueId = uniqueId.trim();
+
+        boolean usedByAnotherPatient = repository
+                .findByUniqueIdAndArchivedAndPersonNot(trimmedUniqueId, 0, person)
+                .isPresent();
+
+        if (usedByAnotherPatient) {
+            throw new RecordExistException(
+                    EnrollmentCommencement.class,
+                    "uniqueId",
+                    "This Unique ID is already assigned to another patient."
+            );
+        }
     }
 }

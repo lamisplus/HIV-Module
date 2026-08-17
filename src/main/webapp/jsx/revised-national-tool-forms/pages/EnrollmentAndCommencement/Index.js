@@ -818,11 +818,45 @@ const EnrollmentAndCommencementForm = (props) => {
   };
 
   // ── Check if Unique ID already exists ────────────────────────────────────
+  // const checkUniqueIdExists = async (uniqueId) => {
+  //   if (!uniqueId || String(uniqueId).trim() === '') {
+  //     return;
+  //   }
+  //
+  //   setCheckingUniqueId(true);
+  //   try {
+  //     const personId = props.patientObj?.id;
+  //     const url = `${baseUrl}hiv/enrollment-commencement/unique-id-exists?uniqueId=${encodeURIComponent(uniqueId)}${personId ? `&personId=${personId}` : ''}`;
+  //
+  //     const response = await axios.get(url, {
+  //       headers: { Authorization: `Bearer ${token}` }
+  //     });
+  //
+  //     if (response.data === true) {
+  //       setErrors((prev) => ({
+  //         ...prev,
+  //         unique_id: "Unique ID already exists"
+  //       }));
+  //     } else {
+  //       // Clear error if ID is unique
+  //       setErrors((prev) => {
+  //         const newErrors = { ...prev };
+  //         delete newErrors.unique_id;
+  //         return newErrors;
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking unique ID:", error);
+  //     // Don't block the user if the check fails - let backend handle it
+  //   } finally {
+  //     setCheckingUniqueId(false);
+  //   }
+  // };
+
   const checkUniqueIdExists = async (uniqueId) => {
     if (!uniqueId || String(uniqueId).trim() === '') {
-      return;
+      return false;
     }
-
     setCheckingUniqueId(true);
     try {
       const personId = props.patientObj?.id;
@@ -837,17 +871,20 @@ const EnrollmentAndCommencementForm = (props) => {
           ...prev,
           unique_id: "Unique ID already exists"
         }));
+
+        return true;
       } else {
-        // Clear error if ID is unique
         setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.unique_id;
           return newErrors;
         });
+
+        return false;
       }
     } catch (error) {
       console.error("Error checking unique ID:", error);
-      // Don't block the user if the check fails - let backend handle it
+      return false;
     } finally {
       setCheckingUniqueId(false);
     }
@@ -978,121 +1015,6 @@ const EnrollmentAndCommencementForm = (props) => {
     }
   };
 
-  // const handleCommencement = (e) => {
-  //   const { name, value, type, checked } = e.target;
-  //
-  //   // Convert regimen IDs to numbers
-  //   let inputValue = type === 'checkbox' ? checked : value;
-  //   if (name === "regimen_line_id" || name === "first_art_regimen") {
-  //     inputValue = value ? Number(value) : null;
-  //   }
-  //
-  //   // If regimen line changes, fetch regimens for that line
-  //   if (name === "regimen_line_id") {
-  //     fetchRegimens(value);
-  //     setCommencement((prev) => ({
-  //       ...prev,
-  //       regimen_line_id: inputValue,
-  //       first_art_regimen: null // Clear selected regimen when line changes
-  //     }));
-  //     return;
-  //   }
-  //
-  //   // Handle TPT Started checkbox - clear TPT fields when unchecked
-  //   if (name === "tpt_started") {
-  //     setCommencement((prev) => ({
-  //       ...prev,
-  //       tpt_started: checked,
-  //       tb_preventive_therapy: checked ? prev.tb_preventive_therapy : {
-  //         medication: "",
-  //         dose: "",
-  //         start_date: "",
-  //         tpt_completed: "",
-  //         completion_date: "",
-  //       },
-  //     }));
-  //     return;
-  //   }
-  //
-  //   // Auto-populate weight, height, and BMI from ICE form when visit_date matches
-  //   if (name === "visit_date" && value) {
-  //     const iceVisitDate = props.patientObj1?.initialClinicalEvaluation?.dateOfObservation;
-  //     const iceVitals = props.patientObj1?.initialClinicalEvaluation?.data?.vitals;
-  //
-  //     if (iceVisitDate && iceVitals && value === iceVisitDate) {
-  //       setCommencement((prev) => {
-  //         const updates = { ...prev, [name]: inputValue };
-  //
-  //         // Auto-populate weight if available and not already filled
-  //         if (iceVitals.weight && !prev.weight_kg) {
-  //           updates.weight_kg = String(iceVitals.weight);
-  //         }
-  //
-  //         // Auto-populate height if available and not already filled
-  //         if (iceVitals.height && !prev.height_cm) {
-  //           updates.height_cm = String(iceVitals.height);
-  //         }
-  //
-  //         // Calculate BMI using the auto-populated or existing values
-  //         const w = updates.weight_kg || prev.weight_kg;
-  //         const h = updates.height_cm || prev.height_cm;
-  //         updates.bmi = calcBmi(w, h);
-  //
-  //         // MUAC indication
-  //         const muacVal = prev.muac;
-  //         updates.muac_indication = calcMuacIndication(muacVal);
-  //
-  //         return updates;
-  //       });
-  //
-  //       if (errors[name]) {
-  //         const newErrors = { ...errors };
-  //         delete newErrors[name];
-  //         setErrors(newErrors);
-  //       }
-  //       return;
-  //     }
-  //   }
-  //
-  //   // Handle dependent field clearing for pregnancy
-  //   if (name === "is_pregnant" && value !== "No") {
-  //     setCommencement((prev) => {
-  //       const updated = { ...prev, [name]: value, is_breast_feeding: "" };
-  //       const w = prev.weight_kg;
-  //       const h = prev.height_cm;
-  //       updated.bmi = calcBmi(w, h);
-  //       const muacVal = prev.muac;
-  //       updated.muac_indication = calcMuacIndication(muacVal);
-  //       return updated;
-  //     });
-  //   } else {
-  //     setCommencement((prev) => {
-  //       const updated = { ...prev, [name]: inputValue };
-  //       // BMI
-  //       const w = name === "weight_kg" ? value : prev.weight_kg;
-  //       const h = name === "height_cm" ? value : prev.height_cm;
-  //       updated.bmi = calcBmi(w, h);
-  //       // MUAC indication
-  //       const muacVal = name === "muac" ? value : prev.muac;
-  //       updated.muac_indication = calcMuacIndication(muacVal);
-  //       return updated;
-  //     });
-  //   }
-  //
-  //   if (errors[name]) {
-  //     const newErrors = { ...errors };
-  //     if (name === 'visit_date' && value && String(value).trim() !== '') {
-  //       const isValid = !props.patientObj?.dateOfBirth || value >= props.patientObj1.dateOfBirth;
-  //       if (isValid) {
-  //         delete newErrors[name];
-  //       }
-  //     } else if (name === 'date_art_started' && value && String(value).trim() !== '') {
-  //       delete newErrors[name];
-  //     }
-  //     setErrors(newErrors);
-  //   }
-  // };
-
   const handleCommencement = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -1103,13 +1025,33 @@ const EnrollmentAndCommencementForm = (props) => {
     }
 
     // If regimen line changes, fetch regimens for that line
+    // If regimen line changes, fetch regimens for that line
     if (name === "regimen_line_id") {
       fetchRegimens(value);
+
       setCommencement((prev) => ({
         ...prev,
         regimen_line_id: inputValue,
         first_art_regimen: null // Clear selected regimen when line changes
       }));
+
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+
+        // Regimen is reset when regimen line changes, so clear its error
+        delete newErrors.first_art_regimen;
+
+        if (inputValue) {
+          delete newErrors.regimen_line_id;
+        } else {
+          newErrors.regimen_line_id = `${
+              isPediatric ? "Child" : "Adult"
+          } First ART Regimen Line is required`;
+        }
+
+        return newErrors;
+      });
+
       return;
     }
 
@@ -1221,6 +1163,15 @@ const EnrollmentAndCommencementForm = (props) => {
         delete newErrors.date_art_started;
       }
 
+      // 4. Handle First ART Regimen Validation
+      if (name === 'first_art_regimen') {
+        if (inputValue) {
+          delete newErrors.first_art_regimen;
+        } else {
+          newErrors.first_art_regimen = "First ART Regimen is required";
+        }
+      }
+
       return newErrors;
     });
   };
@@ -1275,28 +1226,28 @@ const EnrollmentAndCommencementForm = (props) => {
   };
 
   // ── Auto-populate Date ART Started with Date Enrolled in HIV Care ────────
-  useEffect(() => {
-    // Find the selected care entry point
-    const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.code == registration.care_entry_point);
-    // Check if Care Entry Point is Transfer-in using code or display
-    const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
-                         selectedCareEntryPoint?.display?.toLowerCase().includes("transfer");
-
-    const hasPriorArt = registration.prior_art && String(registration.prior_art).trim() !== '';
-    const hasEnrollmentDate = registration.date_enrolled_in_hiv_care && String(registration.date_enrolled_in_hiv_care).trim() !== '';
-
-    // Only auto-populate if:
-    // 1. Date enrolled in HIV care is filled
-    // 2. Care entry point is NOT Transfer-in
-    // 3. Prior ART is NOT documented (empty)
-    // 4. Date ART started is currently empty (don't override user's edits)
-    if (hasEnrollmentDate && !isTransferIn && !hasPriorArt && !commencement.date_art_started) {
-      setCommencement((prev) => ({
-        ...prev,
-        date_art_started: registration.date_enrolled_in_hiv_care
-      }));
-    }
-  }, [registration.date_enrolled_in_hiv_care, registration.care_entry_point, registration.prior_art, codesets.careEntryPoints]);
+  // useEffect(() => {
+  //   // Find the selected care entry point
+  //   const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.code == registration.care_entry_point);
+  //   // Check if Care Entry Point is Transfer-in using code or display
+  //   const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
+  //                        selectedCareEntryPoint?.display?.toLowerCase().includes("transfer");
+  //
+  //   const hasPriorArt = registration.prior_art && String(registration.prior_art).trim() !== '';
+  //   const hasEnrollmentDate = registration.date_enrolled_in_hiv_care && String(registration.date_enrolled_in_hiv_care).trim() !== '';
+  //
+  //   // Only auto-populate if:
+  //   // 1. Date enrolled in HIV care is filled
+  //   // 2. Care entry point is NOT Transfer-in
+  //   // 3. Prior ART is NOT documented (empty)
+  //   // 4. Date ART started is currently empty (don't override user's edits)
+  //   if (hasEnrollmentDate && !isTransferIn && !hasPriorArt && !commencement.date_art_started) {
+  //     setCommencement((prev) => ({
+  //       ...prev,
+  //       date_art_started: registration.date_enrolled_in_hiv_care
+  //     }));
+  //   }
+  // }, [registration.date_enrolled_in_hiv_care, registration.care_entry_point, registration.prior_art, codesets.careEntryPoints]);
 
   // ── Auto-populate Weight, Height from Triage/Vital Signs ────────────────
   useEffect(() => {
@@ -1439,6 +1390,15 @@ const EnrollmentAndCommencementForm = (props) => {
         temp.date_art_started = "Date ART started cannot be earlier than date enrolled in HIV care";
       }
     }
+    if (!commencement.regimen_line_id) {
+      temp.regimen_line_id = `${
+          isPediatric ? "Child" : "Adult"
+      } First ART Regimen Line is required`;
+    }
+
+    if (!commencement.first_art_regimen) {
+      temp.first_art_regimen = "First ART Regimen is required";
+    }
 
 
     // 1. Mother's Unique ID — Required if patient age < 18 months (infant)
@@ -1501,15 +1461,25 @@ const EnrollmentAndCommencementForm = (props) => {
       return;
     }
 
+    // // Re-validate Unique ID before submission (only for create mode)
+    // if (isCreateMode && registration.unique_id && String(registration.unique_id).trim() !== '') {
+    //   await checkUniqueIdExists(registration.unique_id);
+    // }
+    //
+    // // Check if there's a duplicate Unique ID error after re-validation
+    // if (errors.unique_id === "Unique ID already exists") {
+    //   toast.error("Unique ID already exists. Please use a different Unique ID.");
+    //   return;
+    // }
+
     // Re-validate Unique ID before submission (only for create mode)
     if (isCreateMode && registration.unique_id && String(registration.unique_id).trim() !== '') {
-      await checkUniqueIdExists(registration.unique_id);
-    }
+      const uniqueIdAlreadyTaken = await checkUniqueIdExists(registration.unique_id);
 
-    // Check if there's a duplicate Unique ID error after re-validation
-    if (errors.unique_id === "Unique ID already exists") {
-      toast.error("Unique ID already exists. Please use a different Unique ID.");
-      return;
+      if (uniqueIdAlreadyTaken) {
+        toast.error("Unique ID already exists. Please use a different Unique ID.");
+        return;
+      }
     }
 
     if (!validate()) {
@@ -2194,46 +2164,62 @@ const EnrollmentAndCommencementForm = (props) => {
             {/* Row 4: First ART Regimen Line, First ART Regimen */}
             <FieldRow>
               <Col>
-                <SectionLabel>{isPediatric ? "Child" : "Adult"} First ART Regimen Line</SectionLabel>
+                <SectionLabel>
+                  {isPediatric ? "Child" : "Adult"} First ART Regimen Line{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
                 <Input
-                  type="select"
-                  name="regimen_line_id"
-                  value={commencement.regimen_line_id}
-                  onChange={handleCommencement}
-                  disabled={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                    type="select"
+                    name="regimen_line_id"
+                    value={commencement.regimen_line_id}
+                    onChange={handleCommencement}
+                    disabled={isViewMode}
+                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">Select regimen line first...</option>
                   {regimenLines.map((line) => (
-                    <option key={line.id} value={line.id}>
-                      {line.description}
-                    </option>
+                      <option key={line.id} value={line.id}>
+                        {line.description}
+                      </option>
                   ))}
                 </Input>
+                {errors.regimen_line_id && (
+                    <span className={classes.error}>
+                  {errors.regimen_line_id}
+                </span>
+                )}
               </Col>
               <Col>
-                <SectionLabel>First ART Regimen</SectionLabel>
+                <SectionLabel>
+                  First ART Regimen{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </SectionLabel>
                 <Input
-                  type="select"
-                  name="first_art_regimen"
-                  value={commencement.first_art_regimen}
-                  onChange={handleCommencement}
-                  disabled={!commencement.regimen_line_id || loadingRegimens || isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                    type="select"
+                    name="first_art_regimen"
+                    value={commencement.first_art_regimen}
+                    onChange={handleCommencement}
+                    disabled={!commencement.regimen_line_id || loadingRegimens || isViewMode}
+                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                 >
                   <option value="">
                     {!commencement.regimen_line_id
-                      ? "Select regimen line first..."
-                      : loadingRegimens
-                      ? "Loading..."
-                      : "Select regimen..."}
+                        ? "Select regimen line first..."
+                        : loadingRegimens
+                            ? "Loading..."
+                            : "Select regimen..."}
                   </option>
                   {regimens.map((regimen) => (
-                    <option key={regimen.id} value={regimen.id}>
-                      {regimen.description}
-                    </option>
+                      <option key={regimen.id} value={regimen.id}>
+                        {regimen.description}
+                      </option>
                   ))}
                 </Input>
+                {errors.first_art_regimen && (
+                    <span className={classes.error}>
+                  {errors.first_art_regimen}
+                </span>
+                )}
               </Col>
             </FieldRow>
 

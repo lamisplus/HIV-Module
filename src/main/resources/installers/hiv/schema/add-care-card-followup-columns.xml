@@ -81,4 +81,17 @@
         </sql>
     </changeSet>
 
+    <changeSet failOnError="false" id="20260815-001" author="gboyeguntaiwo">
+        <comment>
+            Fix records where is_commencement was accidentally nullified during Care Card Follow-Up updates.
+            The timeline query requires is_commencement = false, so NULL values caused historical visits to disappear.
+        </comment>
+        <sql dbms="postgresql">
+            UPDATE hiv_art_clinical
+            SET is_commencement = false
+            WHERE is_commencement IS NULL
+              AND archived = 0;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

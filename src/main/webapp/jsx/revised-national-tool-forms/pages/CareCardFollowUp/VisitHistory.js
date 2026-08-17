@@ -25,6 +25,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import * as moment from "moment";
 import { toast } from "react-toastify";
 import { token, url as baseUrl } from "../../../../api";
@@ -105,41 +107,50 @@ const CareCardVisitHistory = (props) => {
   const [loading, setLoading] = useState(true);
   const [visits, setVisits] = useState([]);
   const [selectedVisit, setSelectedVisit] = useState(null);
-  const [viewMode, setViewMode] = useState(null); // null = no selection, "view" = view mode, "edit" = edit mode
+  const [viewMode, setViewMode] = useState(null);
+
   const [pageNo, setPageNo] = useState(0);
   const [pageSize] = useState(10);
+  const [hasNext, setHasNext] = useState(false);
 
   useEffect(() => {
-    fetchVisits();
+    fetchVisits(0);
   }, []);
 
-  // Refresh visits when component becomes visible (useful after edit)
+// Refresh visits when component becomes visible (useful after edit)
   useEffect(() => {
-    // This will refetch when the component remounts or props change
-    fetchVisits();
+    fetchVisits(0); // Reset to first page on refresh
   }, [props.onEditVisit]);
 
-  // Handle incoming visit from Patient History
-  useEffect(() => {
-    if (props.visitFromHistory) {
-      setSelectedVisit(props.visitFromHistory);
-      setViewMode("view");
-    }
-  }, [props.visitFromHistory]);
-
-  const fetchVisits = async () => {
+  const fetchVisits = async (page = 0) => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${baseUrl}hiv/art/clinic-visit/person?pageNo=${pageNo}&pageSize=${pageSize}&personId=${props.patientObj.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+          `${baseUrl}hiv/art/clinic-visit/person?pageNo=${page}&pageSize=${pageSize}&personId=${props.patientObj.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
       );
-      setVisits(response.data || []);
+
+      const data = response.data || [];
+      setVisits(data);
+      setPageNo(page);
+
+      // If we received a full page, assume there might be more data
+      setHasNext(data.length === pageSize);
     } catch (error) {
       console.error("Error fetching visit history:", error);
       toast.error("Failed to load visit history");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleNextPage = () => {
+    fetchVisits(pageNo + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (pageNo > 0) {
+      fetchVisits(pageNo - 1);
     }
   };
 
@@ -163,9 +174,14 @@ const CareCardVisitHistory = (props) => {
     setViewMode("view");
   };
 
+  // const handleSaveEdit = async () => {
+  //   setViewMode("view");
+  //   await fetchVisits(); // Refresh list after save
+  // };
+
   const handleSaveEdit = async () => {
     setViewMode("view");
-    await fetchVisits(); // Refresh list after save
+    await fetchVisits(0); // Refresh and reset to first page after save
   };
 
   if (loading) {
@@ -305,6 +321,59 @@ const CareCardVisitHistory = (props) => {
               </AccordionDetails>
             </Accordion>
           ))}
+
+          {/* Pagination Controls */}
+          {visits.length > 0 && (
+              <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  mt={2}
+                  mb={2}
+                  px={1}
+              >
+                <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handlePrevPage}
+                    disabled={pageNo === 0 || loading}
+                    startIcon={<ChevronLeftIcon />}
+                    style={{
+                      borderColor: pageNo === 0 ? "#ccc" : "#014d88",
+                      color: pageNo === 0 ? "#ccc" : "#014d88",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      fontSize: "12px",
+                    }}
+                >
+                  Previous
+                </Button>
+
+                <Typography
+                    variant="body2"
+                    style={{ color: "#546e7a", fontWeight: 600, fontSize: "13px" }}
+                >
+                  Page {pageNo + 1}
+                </Typography>
+
+                <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleNextPage}
+                    disabled={!hasNext || loading}
+                    endIcon={<ChevronRightIcon />}
+                    style={{
+                      borderColor: !hasNext ? "#ccc" : "#014d88",
+                      color: !hasNext ? "#ccc" : "#014d88",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      fontSize: "12px",
+                    }}
+                >
+                  Next
+                </Button>
+              </Box>
+          )}
         </Grid>
 
         {/* Right Column: Selected Visit Details */}
