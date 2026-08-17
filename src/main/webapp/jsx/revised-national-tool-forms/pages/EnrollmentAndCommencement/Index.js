@@ -818,11 +818,45 @@ const EnrollmentAndCommencementForm = (props) => {
   };
 
   // ── Check if Unique ID already exists ────────────────────────────────────
+  // const checkUniqueIdExists = async (uniqueId) => {
+  //   if (!uniqueId || String(uniqueId).trim() === '') {
+  //     return;
+  //   }
+  //
+  //   setCheckingUniqueId(true);
+  //   try {
+  //     const personId = props.patientObj?.id;
+  //     const url = `${baseUrl}hiv/enrollment-commencement/unique-id-exists?uniqueId=${encodeURIComponent(uniqueId)}${personId ? `&personId=${personId}` : ''}`;
+  //
+  //     const response = await axios.get(url, {
+  //       headers: { Authorization: `Bearer ${token}` }
+  //     });
+  //
+  //     if (response.data === true) {
+  //       setErrors((prev) => ({
+  //         ...prev,
+  //         unique_id: "Unique ID already exists"
+  //       }));
+  //     } else {
+  //       // Clear error if ID is unique
+  //       setErrors((prev) => {
+  //         const newErrors = { ...prev };
+  //         delete newErrors.unique_id;
+  //         return newErrors;
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking unique ID:", error);
+  //     // Don't block the user if the check fails - let backend handle it
+  //   } finally {
+  //     setCheckingUniqueId(false);
+  //   }
+  // };
+
   const checkUniqueIdExists = async (uniqueId) => {
     if (!uniqueId || String(uniqueId).trim() === '') {
-      return;
+      return false;
     }
-
     setCheckingUniqueId(true);
     try {
       const personId = props.patientObj?.id;
@@ -837,17 +871,20 @@ const EnrollmentAndCommencementForm = (props) => {
           ...prev,
           unique_id: "Unique ID already exists"
         }));
+
+        return true;
       } else {
-        // Clear error if ID is unique
         setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.unique_id;
           return newErrors;
         });
+
+        return false;
       }
     } catch (error) {
       console.error("Error checking unique ID:", error);
-      // Don't block the user if the check fails - let backend handle it
+      return false;
     } finally {
       setCheckingUniqueId(false);
     }
@@ -1424,15 +1461,25 @@ const EnrollmentAndCommencementForm = (props) => {
       return;
     }
 
+    // // Re-validate Unique ID before submission (only for create mode)
+    // if (isCreateMode && registration.unique_id && String(registration.unique_id).trim() !== '') {
+    //   await checkUniqueIdExists(registration.unique_id);
+    // }
+    //
+    // // Check if there's a duplicate Unique ID error after re-validation
+    // if (errors.unique_id === "Unique ID already exists") {
+    //   toast.error("Unique ID already exists. Please use a different Unique ID.");
+    //   return;
+    // }
+
     // Re-validate Unique ID before submission (only for create mode)
     if (isCreateMode && registration.unique_id && String(registration.unique_id).trim() !== '') {
-      await checkUniqueIdExists(registration.unique_id);
-    }
+      const uniqueIdAlreadyTaken = await checkUniqueIdExists(registration.unique_id);
 
-    // Check if there's a duplicate Unique ID error after re-validation
-    if (errors.unique_id === "Unique ID already exists") {
-      toast.error("Unique ID already exists. Please use a different Unique ID.");
-      return;
+      if (uniqueIdAlreadyTaken) {
+        toast.error("Unique ID already exists. Please use a different Unique ID.");
+        return;
+      }
     }
 
     if (!validate()) {
