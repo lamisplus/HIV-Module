@@ -146,7 +146,9 @@ public class ObservationController {
         Map<String, Object> response = observationService.updateFinalHivTestResultFromEarlyDetect(
                 request.getPatientUuid(),
                 request.getResult(),
-                request.getHtsEncounterId());
+                request.getHtsEncounterId(),
+                request.getDateOfFinalHivTestDone()
+        );
 
         return createResponseEntity(response);
     }

@@ -403,7 +403,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "    WHERE COALESCE(observation->>'hivEarlyDetectResult', observation->>'hivEarlyDetect') IN ( " +
             "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
             "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
-            "    ) " +
+            "    ) AND observation->>'finalHivTestResult' != 'Positive' " +
             "    ORDER BY patient_uuid, date_of_visit DESC " +
             ") hts ON CAST(hts.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
             "LEFT JOIN ( " +
@@ -444,7 +444,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
                     "    WHERE COALESCE(observation->>'hivEarlyDetectResult', observation->>'hivEarlyDetect') IN ( " +
                     "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
                     "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
-                    "    ) " +
+                    "    ) AND observation->>'finalHivTestResult' != 'Positive' " +
                     "    ORDER BY patient_uuid, date_of_visit DESC " +
                     ") hts ON CAST(hts.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
                     "LEFT JOIN ( " +
@@ -665,20 +665,38 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
     List<Observation> findAllByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 
 
+//    @Modifying
+//    @Transactional
+//    @Query(value = "UPDATE hts_encounter " +
+//            "SET observation = jsonb_set(" +
+//            "                     jsonb_set(" +
+//            "                       jsonb_set(" +
+//            "                         jsonb_set(observation, '{finalHivTestResult}', to_jsonb(CAST(:finalResult AS text)), true), " +
+//            "                         '{hivEarlyDetectResult}', to_jsonb(CAST('' AS text)), true" +
+//            "                       ), " +
+//            "                       '{suspectedAcuteInfection}', to_jsonb(CAST('' AS text)), true" +
+//            "                     ), " +
+//            "                     '{dateOfFinalHivTestDone}', to_jsonb(CAST(:dateOfFinalHivTestDone AS text)), true" + // <--- NEW JSONB_SET
+//            "                   ) " +
+//            "WHERE id = :htsEncounterId AND patient_uuid = :patientUuid",
+//            nativeQuery = true)
+//    int updateFinalHivTestResult(@Param("htsEncounterId") Long htsEncounterId,
+//                                 @Param("patientUuid") String patientUuid,
+//                                 @Param("finalResult") String finalResult,
+//                                 @Param("dateOfFinalHivTestDone") String dateOfFinalHivTestDone);
+
+
     @Modifying
     @Transactional
     @Query(value = "UPDATE hts_encounter " +
             "SET observation = jsonb_set(" +
-            "                     jsonb_set(" +
-            "                       jsonb_set(observation, '{finalHivTestResult}', to_jsonb(CAST(:finalResult AS text)), true), " +
-            "                       '{hivEarlyDetectResult}', to_jsonb(CAST('' AS text)), true" +
-            "                     ), " +
-            "                     '{suspectedAcuteInfection}', to_jsonb(CAST('' AS text)), true" +
+            "                     jsonb_set(observation, '{finalHivTestResult}', to_jsonb(CAST(:finalResult AS text)), true), " +
+            "                     '{dateOfFinalHivTestDone}', to_jsonb(CAST(:dateOfFinalHivTestDone AS text)), true" +
             "                   ) " +
             "WHERE id = :htsEncounterId AND patient_uuid = :patientUuid",
             nativeQuery = true)
     int updateFinalHivTestResult(@Param("htsEncounterId") Long htsEncounterId,
                                  @Param("patientUuid") String patientUuid,
-                                 @Param("finalResult") String finalResult);
-
+                                 @Param("finalResult") String finalResult,
+                                 @Param("dateOfFinalHivTestDone") String dateOfFinalHivTestDone);
 }

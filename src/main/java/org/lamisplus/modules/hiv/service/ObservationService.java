@@ -347,7 +347,7 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
         return errorResponse;
     }
 
-    public Map<String, Object> updateFinalHivTestResultFromEarlyDetect(String patientUuid, String result, Long htsEncounterId) {
+    public Map<String, Object> updateFinalHivTestResultFromEarlyDetect(String patientUuid, String result, Long htsEncounterId, String dateOfFinalHivTestDone ) {
         try {
             double numericResult;
             try {
@@ -361,7 +361,7 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
                     ? "Negative"
                     : "Positive";
 
-            int updated = observationRepository.updateFinalHivTestResult(htsEncounterId, patientUuid, finalHivTestResult);
+            int updated = observationRepository.updateFinalHivTestResult(htsEncounterId, patientUuid, finalHivTestResult, dateOfFinalHivTestDone);
 
             if (updated == 0) {
                 return buildErrorResponse("No observation found for htsEncounterId " + htsEncounterId
@@ -373,6 +373,7 @@ private void processAndUpdateIptFromPharmacy(ObservationDto observationDto, Pers
             response.put("message", "HIV test result updated successfully");
             response.put("htsEncounterId", htsEncounterId);
             response.put("patientUuid", patientUuid);
+            response.put("dateOfFinalHivTestDone", dateOfFinalHivTestDone); // <--- Added to response
             response.put("finalHivTestResult", finalHivTestResult);
             return response;
 

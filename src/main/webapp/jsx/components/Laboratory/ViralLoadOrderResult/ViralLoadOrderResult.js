@@ -459,6 +459,10 @@ const Laboratory = (props) => {
                             ? apiResponseData[0].result
                             : tests.result;
 
+                        const savedDateResultReceived = Array.isArray(apiResponseData) && apiResponseData.length > 0
+                            ? apiResponseData[0].dateResultReceived
+                            : payload.dateResultReceived;
+
                         // Check if it's a PEP client (has htsId) AND result is not null/empty
                         if (htsId && personUuid && isPepClient && savedResult && String(savedResult).trim() !== "") {
 
@@ -469,6 +473,7 @@ const Laboratory = (props) => {
                             axios.put(`${baseUrl}observation/hiv-test-result`, {
                                 patientUuid: personUuid,
                                 result: savedResult,
+                                dateOfFinalHivTestDone: savedDateResultReceived,
                                 htsEncounterId: htsId
                             }, {
                                 headers: { "Authorization": `Bearer ${token}` }

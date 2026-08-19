@@ -283,6 +283,7 @@ const Laboratory = (props) => {
         setErrors({
             ...temp
         })
+          console.log("Error", temp)
         return Object.values(temp).every(x => x == "")
     }
 
@@ -366,6 +367,7 @@ const Laboratory = (props) => {
                     // Determine if it's a PEP client (checks props, activeContent, or the saved payload category)
                     const isPepClient = props.pepClient || props.activeContent?.pepClient || payload.patientCategory?.toUpperCase() === 'PEP';
                     const savedResult = payload.result;
+                    const savedDateResultReceived =  payload.dateResultReceived;
 
                     // Check if it's a PEP client (has htsId) AND result is not null/empty
                     if (htsId && personUuid && isPepClient && savedResult && String(savedResult).trim() !== "") {
@@ -374,6 +376,7 @@ const Laboratory = (props) => {
                         axios.put(`${baseUrl}observation/hiv-test-result`, {
                             patientUuid: personUuid,
                             result: savedResult,
+                            dateOfFinalHivTestDone: savedDateResultReceived,
                             htsEncounterId: htsId
                         }, {
                             headers: { "Authorization": `Bearer ${token}` }
