@@ -35,4 +35,66 @@
         </sql>
     </changeSet>
 
+    <changeSet id="20260818-01" author="taiwo-data.fi" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT CASE
+                           WHEN COUNT(*) > 0 THEN 1
+                           ELSE 0
+                           END
+                FROM ndr_code_set
+                WHERE code = '4H';
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+            UPDATE ndr_code_set
+            SET code = '4h',
+                ndr_code = 'NDR4h0121',
+                sys_description = 'Retired Regimen'
+            WHERE code = '4H';
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260818-002" author="taiwo-data.fi" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM hiv_regimen_resolver
+                WHERE regimensys = 'ABC(600mg)+3TC(300mg)+ATV/r(300mg/100mg)'
+                  AND regimen = 'ABC+3TC+ATV/r';
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+            INSERT INTO hiv_regimen_resolver (regimensys, regimen)
+            VALUES (
+                       'ABC(600mg)+3TC(300mg)+ATV/r(300mg/100mg)',
+                       'ABC+3TC+ATV/r'
+                   );
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260819-01" author="taiwo-data.fi" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT CASE
+                           WHEN COUNT(*) > 0 THEN 1
+                           ELSE 0
+                           END
+                FROM ndr_code_set
+                WHERE code = '5h';
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+            UPDATE ndr_code_set
+            SET code = '5h',
+                ndr_code = 'NDR5h140',
+                sys_description = 'Retired Regimen'
+            WHERE code = '5h';
+        </sql>
+    </changeSet>
+
+
 </databaseChangeLog>
