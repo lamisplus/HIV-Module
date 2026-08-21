@@ -22,7 +22,7 @@ const LaboratoryModule = (props) => {
     const [refreshing, setRefreshing] = useState(false)
     const patientObj = props.patientObj
 
-    console.log("ViralLoadOrderResult index.js - props.activeContent:", props.activeContent, "pepClient:", props.activeContent?.pepClient);
+    // console.log("ViralLoadOrderResult index.js - props.activeContent:", props.activeContent, "pepClient:", props.activeContent?.pepClient);
 
     const initializeView = () => {
         setInitializing(true);
