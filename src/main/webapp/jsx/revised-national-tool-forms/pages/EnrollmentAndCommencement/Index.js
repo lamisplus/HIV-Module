@@ -300,6 +300,22 @@ const EnrollmentAndCommencementForm = (props) => {
   const [hasExistingRecord, setHasExistingRecord] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [checkingUniqueId, setCheckingUniqueId] = useState(false);
+  // True whenever a previous Enrollment & Commencement record was found for this
+  // returning client. Used only for things that don't depend on which individual
+  // fields that record actually had data in (e.g. skipping the "no existing
+  // record" check). Do NOT use this alone to lock a specific input — see the
+  // per-field flags below.
+  const [hasPreviousEnrollmentRecord, setHasPreviousEnrollmentRecord] = useState(false);
+  // Per-field lock flags: true only when the prior record actually had a real
+  // value that got auto-populated into that field. Migrated/legacy records are
+  // frequently missing individual fields (uniqueId, dateConfirmedHivTest), and
+  // locking+disabling a required field that ends up empty would trap the user —
+  // unable to fill it in and unable to save. Each flag is set exactly at the
+  // point its field is actually populated, so a missing source value leaves the
+  // field editable (and still subject to normal required-field validation).
+  const [uniqueIdLocked, setUniqueIdLocked] = useState(false);
+  const [dateConfirmedHivTestLocked, setDateConfirmedHivTestLocked] = useState(false);
+  const [careEntryPointLocked, setCareEntryPointLocked] = useState(false);
 
   // ── Facility State ──────────────────────────────────────────────────────
   const [facilities, setFacilities] = useState([]);
@@ -354,6 +370,10 @@ const EnrollmentAndCommencementForm = (props) => {
 
   const checkForExistingRecord = async () => {
     setCheckingExisting(true);
+    setHasPreviousEnrollmentRecord(false);
+    setUniqueIdLocked(false);
+    setDateConfirmedHivTestLocked(false);
+    setCareEntryPointLocked(false);
     try {
       // Check if this is a returning client (Part 2 Transfer IN)
       const currentStatus = localStorage.getItem("currentStatus");
@@ -402,6 +422,9 @@ const EnrollmentAndCommencementForm = (props) => {
       const previousData = response.data;
 
       if (previousData) {
+        const hasUniqueId = Boolean(previousData.uniqueId && String(previousData.uniqueId).trim() !== '');
+        const hasDateConfirmedHivTest = Boolean(previousData.dateConfirmedHivTest);
+
         // Auto-populate registration fields from previous enrollment
         setRegistration((prev) => ({
           ...prev,
@@ -412,7 +435,29 @@ const EnrollmentAndCommencementForm = (props) => {
           previousEnrollmentDate: previousData.dateEnrolledInHivCare ? moment(previousData.dateEnrolledInHivCare).format("YYYY-MM-DD") : undefined
         }));
 
-        toast.info("Previous enrollment data loaded successfully", { autoClose: 2000 });
+        // A previous record exists for this person.
+        setHasPreviousEnrollmentRecord(true);
+        // Lock each field ONLY if the prior record actually had a value for it.
+        // A migrated record missing this value leaves the field open for entry
+        // instead of trapping the user with a blank, disabled, required field.
+        setUniqueIdLocked(hasUniqueId);
+        setDateConfirmedHivTestLocked(hasDateConfirmedHivTest);
+
+        if (hasUniqueId || hasDateConfirmedHivTest) {
+          toast.info("Previous enrollment data loaded successfully", { autoClose: 2000 });
+        }
+        if (!hasUniqueId) {
+          toast.warning(
+              "This client's earlier record has no Unique ID on file. Please enter it manually.",
+              { autoClose: 4000 }
+          );
+        }
+        if (!hasDateConfirmedHivTest) {
+          toast.warning(
+              "This client's earlier record has no Date of Confirmed HIV Test on file. Please enter it manually.",
+              { autoClose: 4000 }
+          );
+        }
       }
     } catch (error) {
       console.error("Error fetching previous enrollment data:", error);
@@ -668,6 +713,11 @@ const EnrollmentAndCommencementForm = (props) => {
               ...prev,
               care_entry_point: transferInOption.code
             }));
+            // Only lock the field once we've actually applied a value — if the
+            // codeset lookup ever fails to find a Transfer-in option, the field
+            // stays open so the user can pick one manually instead of being
+            // stuck with an empty, disabled, required dropdown.
+            setCareEntryPointLocked(true);
           }
         }
       }
@@ -923,7 +973,10 @@ const EnrollmentAndCommencementForm = (props) => {
 
   // Handler for unique_id onBlur event
   const handleUniqueIdBlur = () => {
-    if (registration.unique_id && String(registration.unique_id).trim() !== '') {
+    // Skip only when the field is locked with an inherited value — a returning
+    // client whose prior record had no Unique ID gets an editable field here
+    // and must still be validated like any freshly entered ID.
+    if (!uniqueIdLocked && registration.unique_id && String(registration.unique_id).trim() !== '') {
       checkUniqueIdExists(registration.unique_id);
     }
   };
@@ -1356,8 +1409,12 @@ const EnrollmentAndCommencementForm = (props) => {
 
     if (!registration.unique_id || String(registration.unique_id).trim() === '') {
       temp.unique_id = "Unique ID is required";
-    } else if (errors.unique_id === "Unique ID already exists") {
-      // Preserve existing duplicate error
+    } else if (!uniqueIdLocked && errors.unique_id === "Unique ID already exists") {
+      // Preserve existing duplicate error — but never when the field is locked:
+      // a locked Unique ID is auto-populated from the client's own previous
+      // enrollment record at this facility, so it can't actually be a duplicate.
+      // A returning client whose prior record had no Unique ID gets an editable
+      // field and must still be checked like a freshly entered ID.
       temp.unique_id = "Unique ID already exists";
     }
 
@@ -1389,14 +1446,19 @@ const EnrollmentAndCommencementForm = (props) => {
     }
 
 
-    if (!isReturningClient) {
-      if (!registration.hiv_test_location || String(registration.hiv_test_location).trim() === '') {
-        temp.hiv_test_location = "HIV test location is required";
-      }
+    // hiv_test_location and mode_of_hiv_test are required by the backend for
+    // every client type (see EnrollmentCommencementService.validateRequiredFields,
+    // which has no returning-client exception) — validate them here too so a
+    // returning client sees an inline error instead of a raw backend exception
+    // after submit. Both fields are auto-populated from the client's previous
+    // record when available (fetchPreviousEnrollmentData) and stay editable, so
+    // this only blocks submission when the value is genuinely still missing.
+    if (!registration.hiv_test_location || String(registration.hiv_test_location).trim() === '') {
+      temp.hiv_test_location = "HIV test location is required";
+    }
 
-      if (!registration.mode_of_hiv_test || String(registration.mode_of_hiv_test).trim() === '') {
-        temp.mode_of_hiv_test = "Mode of HIV test is required";
-      }
+    if (!registration.mode_of_hiv_test || String(registration.mode_of_hiv_test).trim() === '') {
+      temp.mode_of_hiv_test = "Mode of HIV test is required";
     }
 
 
@@ -1491,81 +1553,115 @@ const EnrollmentAndCommencementForm = (props) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if Unique ID validation is still in progress (only for create mode)
-    if (isCreateMode && checkingUniqueId) {
-      toast.warning("Please wait while we verify the Unique ID");
-      return;
-    }
-
-    // // Re-validate Unique ID before submission (only for create mode)
-    // if (isCreateMode && registration.unique_id && String(registration.unique_id).trim() !== '') {
-    //   await checkUniqueIdExists(registration.unique_id);
-    // }
-    //
-    // // Check if there's a duplicate Unique ID error after re-validation
-    // if (errors.unique_id === "Unique ID already exists") {
-    //   toast.error("Unique ID already exists. Please use a different Unique ID.");
-    //   return;
-    // }
-
-    // Re-validate Unique ID before submission (only for create mode)
-    if (isCreateMode && registration.unique_id && String(registration.unique_id).trim() !== '') {
-      const uniqueIdAlreadyTaken = await checkUniqueIdExists(registration.unique_id);
-
-      if (uniqueIdAlreadyTaken) {
-        toast.error("Unique ID already exists. Please use a different Unique ID.");
+    // Everything below is now wrapped in a single top-level try/catch. Previously
+    // only the axios call itself was protected — if anything in the Unique ID
+    // check or validate() threw unexpectedly, it failed completely silently:
+    // no toast, no console-visible-to-user error, and no request ever reached
+    // the backend (so backend logs showed nothing either). Wrapping the whole
+    // handler closes that gap so any unexpected error is at least surfaced.
+    try {
+      // Check if Unique ID validation is still in progress (only for create mode)
+      if (isCreateMode && checkingUniqueId) {
+        toast.warning("Please wait while we verify the Unique ID");
         return;
       }
-    }
 
-    if (!validate()) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-    setSaving(true);
-    try {
-      const payload = {
-        personId: props.patientObj.id,
-        dateOfObservation: commencement.visit_date,
-        data: {
-          registration,
-          commencement,
-        },
-      };
+      // Re-validate Unique ID before submission (only for create mode).
+      // Skip this only when the Unique ID field is actually locked — auto-populated
+      // from the client's own earlier enrollment record at this facility, and
+      // therefore immutable here, so re-running the "used by another patient"
+      // check would only risk a false-positive block on save. If the client is
+      // returning but their prior (often migrated) record had no Unique ID on
+      // file, the field stays open for entry and must still be checked here like
+      // any freshly entered ID. It also still runs normally for transfer-in
+      // clients (isTransferInClient) who have not yet commenced ART at this
+      // facility and are entering the Unique ID for the first time here.
+      if (isCreateMode && !uniqueIdLocked && registration.unique_id && String(registration.unique_id).trim() !== '') {
+        const uniqueIdAlreadyTaken = await checkUniqueIdExists(registration.unique_id);
 
-      if (isEditMode) {
-        await axios.put(
-            `${baseUrl}hiv/enrollment-commencement/${props.activeContent.id}`,
-            payload,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success("Enrollment and Commencement updated successfully");
-      } else {
-        await axios.post(`${baseUrl}hiv/enrollment-commencement`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Enrollment and Commencement saved successfully");
+        if (uniqueIdAlreadyTaken) {
+          toast.error("Unique ID already exists. Please use a different Unique ID.");
+          return;
+        }
       }
 
-      // Small delay to ensure backend has updated the enrollment cycle
-      // This is especially important for Part 2 returning clients to ensure
-      // the menu shows the full menu instead of limited menu
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!validate()) {
+        // Name the actual missing/invalid fields instead of a generic message —
+        // a plain toast is easy to miss and doesn't tell the user what to fix.
+        setErrors((currentErrors) => {
+          const fieldMessages = Object.values(currentErrors).filter(Boolean);
+          toast.error(
+              fieldMessages.length
+                  ? `Please fix the following: ${fieldMessages.join("; ")}`
+                  : "Please fill all required fields"
+          );
+          return currentErrors;
+        });
+        return;
+      }
 
-      // Trigger patient refresh to update menu state
-      props.setActiveContent({
-        ...props.activeContent,
-        route: "recent-history",
-        activeTab: "home",
-        refreshPatient: true,
-        refreshTimestamp: Date.now(),
-      });
-    } catch (err) {
-      const msg =
-          err?.response?.data?.apierror?.message ||
-          "An error occurred. Please try again.";
-      toast.error(msg);
-    } finally {
+      setSaving(true);
+      try {
+        const payload = {
+          personId: props.patientObj.id,
+          dateOfObservation: commencement.visit_date,
+          data: {
+            registration,
+            commencement,
+          },
+        };
+
+        if (isEditMode) {
+          await axios.put(
+              `${baseUrl}hiv/enrollment-commencement/${props.activeContent.id}`,
+              payload,
+              { headers: { Authorization: `Bearer ${token}` } }
+          );
+          toast.success("Enrollment and Commencement updated successfully");
+        } else {
+          await axios.post(`${baseUrl}hiv/enrollment-commencement`, payload, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          toast.success("Enrollment and Commencement saved successfully");
+        }
+
+        // Small delay to ensure backend has updated the enrollment cycle
+        // This is especially important for Part 2 returning clients to ensure
+        // the menu shows the full menu instead of limited menu
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Trigger patient refresh to update menu state
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "recent-history",
+          activeTab: "home",
+          refreshPatient: true,
+          refreshTimestamp: Date.now(),
+        });
+      } catch (err) {
+        // Try the shapes this backend is known to return an error message in,
+        // falling back to a generic message only if none match. This is a safety
+        // net for backend-only validation we haven't mirrored on the frontend yet
+        // — the user should always see *something* specific, not just a failure.
+        const msg =
+            err?.response?.data?.apierror?.message ||
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            (typeof err?.response?.data === "string" ? err.response.data : null) ||
+            "An error occurred. Please try again.";
+        toast.error(msg);
+      } finally {
+        setSaving(false);
+      }
+    } catch (unexpectedErr) {
+      // Catches anything that threw before we even got to the network call —
+      // e.g. a bug in validate() or a codeset lookup on unloaded data. Without
+      // this, such an error is a completely silent no-op from the user's
+      // perspective. Logged to console for engineering follow-up.
+      console.error("Unexpected error before submission:", unexpectedErr);
+      toast.error(
+          "Something went wrong while preparing this form for submission. Please refresh the page and try again, or contact support if this keeps happening."
+      );
       setSaving(false);
     }
   };
@@ -1646,9 +1742,9 @@ const EnrollmentAndCommencementForm = (props) => {
                       onChange={handleReg}
                       onBlur={handleUniqueIdBlur}
                       placeholder="Enter unique identifier"
-                      disabled={checkingUniqueId || isViewMode || isEditMode || registration.previousEnrollmentDate}
-                      readOnly={isViewMode || registration.previousEnrollmentDate}
-                      style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                      disabled={checkingUniqueId || isViewMode || isEditMode || uniqueIdLocked}
+                      readOnly={isViewMode || uniqueIdLocked}
+                      style={(isViewMode || uniqueIdLocked) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   />
                   {checkingUniqueId && (
                       <span style={{ color: "#014d88", fontSize: "12px", marginTop: "4px" }}>
@@ -1775,8 +1871,8 @@ const EnrollmentAndCommencementForm = (props) => {
                       name="care_entry_point"
                       value={registration.care_entry_point}
                       onChange={handleReg}
-                      disabled={loadingCodesets || isViewMode || registration.previousEnrollmentDate || (isCreateMode && isTransferInClient)}
-                      style={(isViewMode || registration.previousEnrollmentDate || (isCreateMode && isTransferInClient)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                      disabled={loadingCodesets || isViewMode || careEntryPointLocked || (isCreateMode && isTransferInClient)}
+                      style={(isViewMode || careEntryPointLocked || (isCreateMode && isTransferInClient)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   >
                     <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
                     {codesets.careEntryPoints.map((opt) => (
@@ -1824,7 +1920,9 @@ const EnrollmentAndCommencementForm = (props) => {
                           type="date"
                           name="date_transferred_in"
                           value={registration.date_transferred_in}
-                          max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
+                          min={registration.date_enrolled_in_hiv_care || undefined}   // ← MIN, not MAX
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          // max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
                           onChange={handleReg}
                           disabled={isViewMode}
                           style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
@@ -1909,9 +2007,9 @@ const EnrollmentAndCommencementForm = (props) => {
                         })()
                       }
                       onChange={handleReg}
-                      disabled={isViewMode || registration.previousEnrollmentDate || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
-                      readOnly={registration.previousEnrollmentDate || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
-                      style={(isViewMode || registration.previousEnrollmentDate || (isCreateMode && props.patientObj1?.dateConfirmedHiv)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                      disabled={isViewMode || dateConfirmedHivTestLocked || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
+                      readOnly={dateConfirmedHivTestLocked || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
+                      style={(isViewMode || dateConfirmedHivTestLocked || (isCreateMode && props.patientObj1?.dateConfirmedHiv)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                   />
                   {errors.date_confirmed_hiv_test && (
                       <span className={classes.error}>
