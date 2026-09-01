@@ -118,5 +118,53 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="20260901-002" author="taiwo-data.fi" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <or>
+                <sqlCheck expectedResult="1">
+                    SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+                    FROM ndr_code_set
+                    WHERE code = '5c'
+                    OR code_description = 'TDF +-3TC + ATV/r_old'
+                    OR code_description = 'TDF+3TC+ATV/r';
+                </sqlCheck>
+            </or>
+        </preConditions>
+        <sql splitStatements="true" stripComments="true">
+            DELETE FROM ndr_code_set
+            WHERE code = '5c'
+               OR code_description = 'TDF +-3TC + ATV/r_old'
+               OR code_description = 'TDF+3TC+ATV/r';
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('ARV_REGIMEN', '2d2', 'TDF+3TC+ATV/r', 'Adult 2nd-Line Regimens', '', 'NDR2d0048');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('ARV_REGIMEN', '2b', 'TDF+3TC+ATV/r', 'Adult 2nd-line regimens:', '', 'NDR2b0043');
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('ARV_REGIMEN', '5c', 'TDF+3TC+ATV/r', 'Pediatric 2nd-Line Regimens', '', 'NDR5c0127');
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260901-003" author="taiwo-data.fi" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+                FROM ndr_code_set
+                WHERE code = '4H'
+                   OR code_description = 'ABC+3TC+EFV';
+            </sqlCheck>
+        </preConditions>
+        <sql splitStatements="true" stripComments="true">
+            DELETE FROM ndr_code_set
+            WHERE code = '4H'
+               OR code_description = 'ABC+3TC+EFV';
+
+            INSERT INTO ndr_code_set (code_set_nm, code, code_description, alt_description, sys_description, ndr_code)
+            VALUES ('ARV_REGIMEN', '4f', 'ABC+3TC+EFV', 'Paediatric 1st-Line Regimens', '', 'NDR4f0113');
+        </sql>
+    </changeSet>
+
 
 </databaseChangeLog>
