@@ -96,5 +96,27 @@
         </sql>
     </changeSet>
 
+    <changeSet id="20260828-001" author="taiwo-data.fi" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ndr_code_set"/>
+        </preConditions>
+        <sqlFile dbms="postgresql"
+                 path="sql/ndr_regimen_mapping_clean_up.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="20260901-001" author="taiwo-data.fi" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="ndr_code_set"/>
+        </preConditions>
+        <sqlFile dbms="postgresql"
+                 path="sql/ndr_regimen_mapping_clean_up_2.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 
 </databaseChangeLog>
