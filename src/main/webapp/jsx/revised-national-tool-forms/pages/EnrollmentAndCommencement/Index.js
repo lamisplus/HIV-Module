@@ -194,6 +194,8 @@ const validateCommencementVital = (name, value) => {
 
 const EnrollmentAndCommencementForm = (props) => {
   const classes = useStyles();
+  // console.log("patientObj", props.patientObj)
+  // console.log("patientObj1", props.patientObj1)
 
   const getMode = () => {
     if (props.mode) return props.mode;
@@ -230,7 +232,7 @@ const EnrollmentAndCommencementForm = (props) => {
   // we can read it directly again instead of falling back to patientObj1.
   const isTransferInClient = props.patientObj?.hasTransferIn === true;
   const effectiveDob = props.patientObj?.dateOfBirth;
-  const effectiveRegDate = props.patientObj?.dateOfRegistration;
+  const effectiveRegDate = props.patientObj1?.dateOfRegistration;
   // Determine which Prior ART option to auto-populate based on ICE form
   const getPriorArtFromICE = () => {
     if (!arvHistory || previousArvExposure !== "Yes") return "";
