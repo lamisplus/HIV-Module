@@ -68,12 +68,9 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "        AND hc.archived IS FALSE\n" +
             "        AND (\n" +
             "            hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE'\n" +
-            "            OR (\n" +
-            "                COALESCE(hc.observation->>'hivEarlyDetectResult', hc.observation->>'hivEarlyDetect') IN (\n" +
-            "                    'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', \n" +
-            "                    'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE'\n" +
-            "                )\n" +
-            "                AND hc.observation->>'finalHivTestResult' IS DISTINCT FROM 'Positive'\n" +
+            "            OR COALESCE(hc.observation->>'hivEarlyDetectResult', hc.observation->>'hivEarlyDetect') IN (\n" +
+            "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', \n" +
+            "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE'\n" +
             "            )\n" +
             "            OR (\n" +
             "                hc.observation->>'suspectedAcuteInfection' = 'YES_NO_YES'\n" +
@@ -157,12 +154,9 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
             "        AND hc.archived IS FALSE " +
             "        AND ( " +
             "            hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
-            "            OR ( " +
-            "                COALESCE(hc.observation->>'hivEarlyDetectResult', hc.observation->>'hivEarlyDetect') IN ( " +
-            "                    'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
-            "                    'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
-            "                ) " +
-            "                AND hc.observation->>'finalHivTestResult' IS DISTINCT FROM 'Positive' " +
+            "            OR COALESCE(hc.observation->>'hivEarlyDetectResult', hc.observation->>'hivEarlyDetect') IN ( " +
+            "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
+            "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
             "            ) " +
             "            OR ( " +
             "                hc.observation->>'suspectedAcuteInfection' = 'YES_NO_YES' " +
@@ -243,12 +237,9 @@ public interface HivEnrollmentRepository extends JpaRepository<HivEnrollment, Lo
                     "    AND hc.archived IS FALSE " +
                     "    AND ( " +
                     "        hc.observation->>'confirmatoryHivTest' = 'HIV_CONFIRMATORY_TEST_RESULT_NEGATIVE' " +
-                    "        OR ( " +
-                    "            COALESCE(hc.observation->>'hivEarlyDetectResult', hc.observation->>'hivEarlyDetect') IN ( " +
-                    "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
-                    "                'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
-                    "            ) " +
-                    "            AND hc.observation->>'finalHivTestResult' IS DISTINCT FROM 'Positive' " +
+                    "        OR COALESCE(hc.observation->>'hivEarlyDetectResult', hc.observation->>'hivEarlyDetect') IN ( " +
+                    "            'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
+                    "            'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
                     "        ) " +
                     "        OR ( " +
                     "            hc.observation->>'suspectedAcuteInfection' = 'YES_NO_YES' " +
