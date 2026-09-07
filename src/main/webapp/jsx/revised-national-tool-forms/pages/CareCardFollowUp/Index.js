@@ -37,10 +37,7 @@ import CancelIcon from "@material-ui/icons/Cancel";
 import DeleteIcon from "@material-ui/icons/Delete";
 import AddIcon from "@material-ui/icons/Add";
 import EditIcon from "@material-ui/icons/Edit";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
+import AudioRecorder from "../../../components/Consultation/AudioRecorder";
 
 
 const WHO_STAGE_CRITERIA_OPTIONS = {
@@ -105,9 +102,6 @@ const ACCORDION_STYLES = [
   { bg: "#014d88" },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-components — ALL at module scope (never inside a component)
-// ─────────────────────────────────────────────────────────────────────────────
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -117,74 +111,75 @@ const useStyles = makeStyles((theme) => ({
     "& textarea.form-control": { height: "auto" },
   },
   button: { margin: theme.spacing(1) },
-  error:  { color: "#f85032", fontSize: "11px" },
+  error: { color: "#f85032", fontSize: "11px" },
 }));
 
-const SectionLabel = ({ children }) => (
-  <label
-    style={{
-      fontSize: "12px",
-      fontWeight: "600",
-      color: "#014d88",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      marginBottom: "6px",
-      display: "block",
-    }}
-  >
-    {children}
-  </label>
+const SectionLabel = ({ children, required }) => (
+    <label
+        style={{
+          fontSize: "12px",
+          fontWeight: "600",
+          color: "#014d88",
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+          marginBottom: "6px",
+          display: "block",
+        }}
+    >
+      {children}
+      {required && <span style={{ color: "#f85032", marginLeft: "3px" }}>*</span>}
+    </label>
 );
 
 const FieldRow = ({ children, style }) => (
-  <div className="row" style={{ marginBottom: "8px", width: "100%", marginLeft: 0, marginRight: 0, ...style }}>
-    {children}
-  </div>
+    <div className="row" style={{ marginBottom: "8px", width: "100%", marginLeft: 0, marginRight: 0, ...style }}>
+      {children}
+    </div>
 );
 
 const Col = ({ size = 3, children }) => (
-  <div className={`form-group mb-3 col-md-${size}`}>{children}</div>
+    <div className={`form-group mb-3 col-md-${size}`}>{children}</div>
 );
 
 const CheckGroup = ({ name, id, label, checked, onChange }) => (
-  <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", marginRight: "16px", marginBottom: "8px" }}>
-    <input
-      type="checkbox"
-      name={name}
-      id={id || name}
-      checked={!!checked}
-      onChange={onChange}
-      style={{ width: "15px", height: "15px", margin: 0, padding: 0, flexShrink: 0, cursor: "pointer", accentColor: "#014d88", position: "relative", top: 0 }}
-    />
-    <label
-      htmlFor={id || name}
-      style={{ margin: 0, padding: 0, cursor: "pointer", fontSize: "13px", color: "#333", fontWeight: "500", lineHeight: 1, userSelect: "none" }}
-    >
-      {label}
-    </label>
-  </div>
+    <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", marginRight: "16px", marginBottom: "8px" }}>
+      <input
+          type="checkbox"
+          name={name}
+          id={id || name}
+          checked={!!checked}
+          onChange={onChange}
+          style={{ width: "15px", height: "15px", margin: 0, padding: 0, flexShrink: 0, cursor: "pointer", accentColor: "#014d88", position: "relative", top: 0 }}
+      />
+      <label
+          htmlFor={id || name}
+          style={{ margin: 0, padding: 0, cursor: "pointer", fontSize: "13px", color: "#333", fontWeight: "500", lineHeight: 1, userSelect: "none" }}
+      >
+        {label}
+      </label>
+    </div>
 );
 
 const SubHeading = ({ children }) => (
-  <div style={{ borderLeft: "3px solid #014d88", paddingLeft: "10px", marginBottom: "12px", marginTop: "16px", color: "#014d88", fontWeight: "700", fontSize: "14px" }}>
-    {children}
-  </div>
+    <div style={{ borderLeft: "3px solid #014d88", paddingLeft: "10px", marginBottom: "12px", marginTop: "16px", color: "#014d88", fontWeight: "700", fontSize: "14px" }}>
+      {children}
+    </div>
 );
 
 const MultiSelect = ({ options, value, onChange, placeholder }) => (
-  <ReactSelect
-    isMulti
-    options={options}
-    value={value}
-    onChange={onChange}
-    placeholder={placeholder || "Select..."}
-    closeMenuOnSelect={false}
-    styles={{
-      control: (base) => ({ ...base, minHeight: "38px", fontSize: "13px" }),
-      multiValue: (base) => ({ ...base, background: "#e3f2fd" }),
-      placeholder: (base) => ({ ...base, fontSize: "13px", color: "#9e9e9e" }),
-    }}
-  />
+    <ReactSelect
+        isMulti
+        options={options}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder || "Select..."}
+        closeMenuOnSelect={false}
+        styles={{
+          control: (base) => ({ ...base, minHeight: "38px", fontSize: "13px" }),
+          multiValue: (base) => ({ ...base, background: "#e3f2fd" }),
+          placeholder: (base) => ({ ...base, fontSize: "13px", color: "#9e9e9e" }),
+        }}
+    />
 );
 
 // TransferList Component for WHO Stage Criteria Selection
@@ -208,130 +203,130 @@ const TransferList = ({ availableItems, selectedItems, onTransfer, stageName }) 
   const unselectedItems = availableItems.filter((item) => !selectedItems.includes(item));
 
   return (
-    <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
-      <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#546e7a", marginBottom: "12px" }}>
-        {stageName} options
-      </Typography>
-      <Box sx={{ display: "flex", gap: "12px", alignItems: "center" }}>
-        {/* Available Items List */}
-        <Box
-          sx={{
-            flex: 1,
-            border: "1px solid #e0e0e0",
-            borderRadius: "4px",
-            minHeight: "200px",
-            maxHeight: "300px",
-            overflowY: "auto",
-            padding: "12px",
-            background: "#fafafa",
-          }}
-        >
-          {unselectedItems.length === 0 ? (
-            <Typography sx={{ fontSize: "12px", color: "#9e9e9e", fontStyle: "italic", textAlign: "center", marginTop: "80px" }}>
-              All options selected
-            </Typography>
-          ) : (
-            unselectedItems.map((item, idx) => (
-              <Box
-                key={idx}
-                onClick={() => moveToSelected(item)}
-                sx={{
-                  padding: "8px 10px",
-                  marginBottom: "6px",
-                  background: "#fff",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  "&:hover": {
-                    background: "#e3f2fd",
-                    borderColor: "#014d88",
-                  },
-                }}
-              >
-                {item}
-              </Box>
-            ))
-          )}
-        </Box>
-
-        {/* Transfer Buttons */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <Tooltip title="Move all to selected">
-            <IconButton
-              size="small"
-              onClick={moveAllToSelected}
-              disabled={unselectedItems.length === 0}
+      <Box sx={{ marginTop: "16px", marginBottom: "16px" }}>
+        <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#546e7a", marginBottom: "12px" }}>
+          {stageName} options
+        </Typography>
+        <Box sx={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          {/* Available Items List */}
+          <Box
               sx={{
-                border: "1px solid #014d88",
+                flex: 1,
+                border: "1px solid #e0e0e0",
                 borderRadius: "4px",
-                color: "#014d88",
-                "&:disabled": { borderColor: "#ddd", color: "#ddd" },
+                minHeight: "200px",
+                maxHeight: "300px",
+                overflowY: "auto",
+                padding: "12px",
+                background: "#fafafa",
               }}
-            >
-              <span style={{ fontSize: "18px", fontWeight: "bold" }}>≫</span>
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Move all to available">
-            <IconButton
-              size="small"
-              onClick={moveAllToAvailable}
-              disabled={selectedItems.length === 0}
-              sx={{
-                border: "1px solid #014d88",
-                borderRadius: "4px",
-                color: "#014d88",
-                "&:disabled": { borderColor: "#ddd", color: "#ddd" },
-              }}
-            >
-              <span style={{ fontSize: "18px", fontWeight: "bold" }}>≪</span>
-            </IconButton>
-          </Tooltip>
-        </Box>
+          >
+            {unselectedItems.length === 0 ? (
+                <Typography sx={{ fontSize: "12px", color: "#9e9e9e", fontStyle: "italic", textAlign: "center", marginTop: "80px" }}>
+                  All options selected
+                </Typography>
+            ) : (
+                unselectedItems.map((item, idx) => (
+                    <Box
+                        key={idx}
+                        onClick={() => moveToSelected(item)}
+                        sx={{
+                          padding: "8px 10px",
+                          marginBottom: "6px",
+                          background: "#fff",
+                          border: "1px solid #ddd",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "13px",
+                          "&:hover": {
+                            background: "#e3f2fd",
+                            borderColor: "#014d88",
+                          },
+                        }}
+                    >
+                      {item}
+                    </Box>
+                ))
+            )}
+          </Box>
 
-        {/* Selected Items List */}
-        <Box
-          sx={{
-            flex: 1,
-            border: "1px solid #e0e0e0",
-            borderRadius: "4px",
-            minHeight: "200px",
-            maxHeight: "300px",
-            overflowY: "auto",
-            padding: "12px",
-            background: "#fafafa",
-          }}
-        >
-          {selectedItems.length === 0 ? (
-            <Typography sx={{ fontSize: "12px", color: "#9e9e9e", fontStyle: "italic", textAlign: "center", marginTop: "80px" }}>
-              No options selected
-            </Typography>
-          ) : (
-            selectedItems.map((item, idx) => (
-              <Box
-                key={idx}
-                onClick={() => moveToAvailable(item)}
-                sx={{
-                  padding: "8px 10px",
-                  marginBottom: "6px",
-                  background: "#e3f2fd",
-                  border: "1px solid #014d88",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                  "&:hover": {
-                    background: "#fff",
-                    borderColor: "#ddd",
-                  },
-                }}
+          {/* Transfer Buttons */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <Tooltip title="Move all to selected">
+              <IconButton
+                  size="small"
+                  onClick={moveAllToSelected}
+                  disabled={unselectedItems.length === 0}
+                  sx={{
+                    border: "1px solid #014d88",
+                    borderRadius: "4px",
+                    color: "#014d88",
+                    "&:disabled": { borderColor: "#ddd", color: "#ddd" },
+                  }}
               >
-                {item}
-              </Box>
-            ))
-          )}
+                <span style={{ fontSize: "18px", fontWeight: "bold" }}>≫</span>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Move all to available">
+              <IconButton
+                  size="small"
+                  onClick={moveAllToAvailable}
+                  disabled={selectedItems.length === 0}
+                  sx={{
+                    border: "1px solid #014d88",
+                    borderRadius: "4px",
+                    color: "#014d88",
+                    "&:disabled": { borderColor: "#ddd", color: "#ddd" },
+                  }}
+              >
+                <span style={{ fontSize: "18px", fontWeight: "bold" }}>≪</span>
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          {/* Selected Items List */}
+          <Box
+              sx={{
+                flex: 1,
+                border: "1px solid #e0e0e0",
+                borderRadius: "4px",
+                minHeight: "200px",
+                maxHeight: "300px",
+                overflowY: "auto",
+                padding: "12px",
+                background: "#fafafa",
+              }}
+          >
+            {selectedItems.length === 0 ? (
+                <Typography sx={{ fontSize: "12px", color: "#9e9e9e", fontStyle: "italic", textAlign: "center", marginTop: "80px" }}>
+                  No options selected
+                </Typography>
+            ) : (
+                selectedItems.map((item, idx) => (
+                    <Box
+                        key={idx}
+                        onClick={() => moveToAvailable(item)}
+                        sx={{
+                          padding: "8px 10px",
+                          marginBottom: "6px",
+                          background: "#e3f2fd",
+                          border: "1px solid #014d88",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "13px",
+                          "&:hover": {
+                            background: "#fff",
+                            borderColor: "#ddd",
+                          },
+                        }}
+                    >
+                      {item}
+                    </Box>
+                ))
+            )}
+          </Box>
         </Box>
       </Box>
-    </Box>
   );
 };
 
@@ -339,62 +334,56 @@ const TransferList = ({ availableItems, selectedItems, onTransfer, stageName }) 
 const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) => {
   const isOpen = expanded.includes(panel);
   return (
-    <Accordion
-      expanded={isOpen}
-      onChange={() => onToggle(panel)}
-      disableGutters
-      sx={{
-        width: "100%",
-        marginBottom: "12px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-        borderRadius: "8px !important",
-        "&:before": { display: "none !important" },
-        border: "1px solid #014d88",
-        overflow: "visible",
-        position: "relative",
-        zIndex: 1,
-      }}
-    >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
-        aria-controls={`${panel}-content`}
-        id={`${panel}-header`}
-        sx={{
-          backgroundColor: "#014d88 !important",
-          borderRadius: isOpen ? "8px 8px 0 0" : "8px",
-          minHeight: "52px !important",
-          height: "auto !important",
-          padding: "0 16px !important",
-          width: "100% !important",
-          margin: "0 !important",
-          "& .MuiAccordionSummary-content": {
-            margin: "16px 0 !important",
+      <Accordion
+          expanded={isOpen}
+          onChange={() => onToggle(panel)}
+          disableGutters
+          sx={{
             width: "100%",
-          },
-        }}
+            marginBottom: "12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            borderRadius: "8px !important",
+            "&:before": { display: "none !important" },
+            border: "1px solid #014d88",
+            overflow: "visible",
+            position: "relative",
+            zIndex: 1,
+          }}
       >
-        <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>
-          {title}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails sx={{ padding: "20px 24px", background: "#fff", width: "100%" }}>
-        {children}
-      </AccordionDetails>
-    </Accordion>
+        <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
+            aria-controls={`${panel}-content`}
+            id={`${panel}-header`}
+            sx={{
+              backgroundColor: "#014d88 !important",
+              borderRadius: isOpen ? "8px 8px 0 0" : "8px",
+              minHeight: "52px !important",
+              height: "auto !important",
+              padding: "0 16px !important",
+              width: "100% !important",
+              margin: "0 !important",
+              "& .MuiAccordionSummary-content": {
+                margin: "16px 0 !important",
+                width: "100%",
+              },
+            }}
+        >
+          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "14px" }}>
+            {title}
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ padding: "20px 24px", background: "#fff", width: "100%" }}>
+          {children}
+        </AccordionDetails>
+      </Accordion>
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────────────────────────────────────
 
 const CareCardFollowUpForm = (props) => {
   const classes = useStyles();
   const isFemale = ["female", "FEMALE", "Female"].includes(props.patientObj?.sex);
 
-  // Determine if patient is pediatric or adult based on age
-  // Pediatric: age < 15 years (use MUAC)
-  // Adult: age >= 15 years (use BMI)
   const patientAge = props.patientObj?.age || 0;
   const isPediatric = patientAge < 15;
 
@@ -431,7 +420,7 @@ const CareCardFollowUpForm = (props) => {
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [expanded, setExpanded] = useState(["visit", "vitals", "medications", "lab"]);
+  const [expanded, setExpanded] = useState(["visit", "vitals", "medications", "lab", "note"]);
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Codesets from application
@@ -470,7 +459,7 @@ const CareCardFollowUpForm = (props) => {
 
   const toggleAccordion = (panel) => {
     setExpanded((prev) =>
-      prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
+        prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
     );
   };
 
@@ -506,8 +495,8 @@ const CareCardFollowUpForm = (props) => {
         params.append('codes', 'HEALTH_INSURANCE_COVERAGE');
 
         const response = await axios.get(
-          `${baseUrl}application-codesets/v2/codeSets?${params}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+            `${baseUrl}application-codesets/v2/codeSets?${params}`,
+            { headers: { Authorization: `Bearer ${token}` } }
         );
 
 
@@ -550,7 +539,7 @@ const CareCardFollowUpForm = (props) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const artRegimen = response.data.filter(
-          (x) => x.id === 1 || x.id === 2 || x.id === 14
+            (x) => x.id === 1 || x.id === 2 || x.id === 14
         );
         setAdultRegimenLine(artRegimen);
       } catch (error) {
@@ -564,7 +553,7 @@ const CareCardFollowUpForm = (props) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const artRegimenChildren = response.data.filter(
-          (x) => x.id === 3 || x.id === 4 || x.id === 16
+            (x) => x.id === 3 || x.id === 4 || x.id === 16
         );
         setChildRegimenLine(artRegimenChildren);
       } catch (error) {
@@ -582,11 +571,11 @@ const CareCardFollowUpForm = (props) => {
 
         // Transform lab test groups into options for ReactSelect
         const options = response.data.flatMap(group =>
-          group.labTests.map(test => ({
-            value: test.id,
-            label: `${test.labTestName} (${test.unit || 'N/A'})`,
-            groupName: group.groupName
-          }))
+            group.labTests.map(test => ({
+              value: test.id,
+              label: `${test.labTestName} (${test.unit || 'N/A'})`,
+              groupName: group.groupName
+            }))
         );
 
         setLabTestOptions(options);
@@ -599,8 +588,8 @@ const CareCardFollowUpForm = (props) => {
       try {
         // Determine which API endpoint to use based on patient age
         const apiEndpoint = isPediatric
-          ? `${baseUrl}hiv/regimen/arv/children`
-          : `${baseUrl}hiv/regimen/arv/adult`;
+            ? `${baseUrl}hiv/regimen/arv/children`
+            : `${baseUrl}hiv/regimen/arv/adult`;
 
         // Fetch regimen types
         const response = await axios.get(apiEndpoint, {
@@ -613,8 +602,8 @@ const CareCardFollowUpForm = (props) => {
         if (tptRegimenType) {
           // Fetch TPT medications for regimen type 15
           const medicationsResponse = await axios.get(
-            `${baseUrl}hiv/regimen/types/15`,
-            { headers: { Authorization: `Bearer ${token}` } }
+              `${baseUrl}hiv/regimen/types/15`,
+              { headers: { Authorization: `Bearer ${token}` } }
           );
 
           setTptMedications(medicationsResponse.data || []);
@@ -632,8 +621,8 @@ const CareCardFollowUpForm = (props) => {
       try {
         // Fetch CTX medications for regimen type 8 (Cotrimoxazole)
         const response = await axios.get(
-          `${baseUrl}hiv/regimen/types/8`,
-          { headers: { Authorization: `Bearer ${token}` } }
+            `${baseUrl}hiv/regimen/types/8`,
+            { headers: { Authorization: `Bearer ${token}` } }
         );
 
         setCtxMedications(response.data || []);
@@ -663,7 +652,7 @@ const CareCardFollowUpForm = (props) => {
         duration_on_art_months: visit.durationOnArtMonths || "",
         clinician_name: visit.clinicianName || "",
       });
-
+      setClinicalNote(visit.clinicalNote || "");
       // Populate Vitals
       setVitals({
         height_cm: visit.vitalSignDto?.height || "",
@@ -862,10 +851,6 @@ const CareCardFollowUpForm = (props) => {
     }
 
     if (isPediatric) {
-      // For pediatric patients: calculate MUAC using formula
-      // MUAC (cm) = √[(weight_kg × 4) / (height_cm × 0.01 × π)]
-      // Alternative simplified formula: MUAC ≈ (weight / height) × constant
-      // Standard pediatric MUAC estimation: MUAC = (weight(kg) × 314) / height(cm)
       const muac = (weightNum * 314) / heightNum;
       return muac.toFixed(1); // Return MUAC with 1 decimal place
     } else {
@@ -876,9 +861,66 @@ const CareCardFollowUpForm = (props) => {
     }
   };
 
+  // Validate vital signs based on defined ranges
+  const validateVitalField = (name, value) => {
+    if (value === "" || value === null || value === undefined) return "";
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return "";
+
+    switch (name) {
+      case "temperature":
+        if (numValue < 35) return "Temperature cannot be less than 35°C";
+        if (numValue > 47) return "Temperature cannot be greater than 47°C";
+        break;
+      case "bp_systolic":
+        if (numValue < 90) return "Systolic pressure cannot be less than 90 mmHg";
+        if (numValue > 240) return "Systolic pressure cannot be greater than 240 mmHg";
+        break;
+      case "bp_diastolic":
+        if (numValue < 60) return "Diastolic pressure cannot be less than 60 mmHg";
+        if (numValue > 140) return "Diastolic pressure cannot be greater than 140 mmHg";
+        break;
+      case "pulse":
+        if (numValue < 40) return "Pulse cannot be less than 40 b/min";
+        if (numValue > 120) return "Pulse cannot be greater than 120 b/min";
+        break;
+      case "weight_kg":
+        if (numValue < 1) return "Weight cannot be less than 1 kg";
+        if (numValue > 200) return "Weight cannot be greater than 200 kg";
+        break;
+      case "height_cm":
+        if (numValue < 30) return "Height cannot be less than 30 cm";
+        if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
+        break;
+      case "respiratory_rate":
+        if (numValue < 5) return "Respiratory Rate cannot be less than 5 breaths/min";
+        if (numValue > 60) return "Respiratory Rate cannot be greater than 60 breaths/min";
+        break;
+      case "surface_area":
+        if (numValue < 0.1) return "Surface Area cannot be less than 0.1 m²";
+        if (numValue > 3.0) return "Surface Area cannot be greater than 3.0 m²";
+        break;
+      default:
+        break;
+    }
+    return "";
+  };
+
   const handleVitals = (e) => {
     const { name, value } = e.target;
     const updatedVitals = { ...vitals, [name]: value };
+
+    // Validate the specific field
+    const error = validateVitalField(name, value);
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors[name] = error;
+      } else {
+        delete newErrors[name];
+      }
+      return newErrors;
+    });
 
     // Auto-calculate BMI/MUAC when height or weight changes
     if (name === "height_cm" || name === "weight_kg") {
@@ -887,7 +929,7 @@ const CareCardFollowUpForm = (props) => {
       updatedVitals.bmi_muac = calculateBmiMuac(newHeight, newWeight);
     }
 
-    // Clear "On Family Planning" when Family Planning Status changes to not "on family planning"
+    // Clear "On Family Planning" when Family Planning Status changes
     if (name === "family_planning_status") {
       if (value !== "FAMILY_PLANNING_STATUS_ON_FAMILY_PLANNING") {
         updatedVitals.on_family_planning = "";
@@ -915,6 +957,17 @@ const CareCardFollowUpForm = (props) => {
   const handleClinical = (e) => {
     const { name, value } = e.target;
 
+    // Clear the validation error for this field (and any dependent field) as the user fills it in
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      if (value) {
+        delete newErrors[name];
+        if (name === "who_stage") delete newErrors.who_stage_criteria;
+        if (name === "tb_status" && value !== "TB_STATUS_CONFIRMED_TB") delete newErrors.tb_status_confirmed;
+      }
+      return newErrors;
+    });
+
     // If WHO stage is being changed, clear the criteria selection
     if (name === "who_stage") {
       setClinical((prev) => ({
@@ -928,8 +981,8 @@ const CareCardFollowUpForm = (props) => {
       setClinical((prev) => ({
         ...prev,
         [name]: value,
-        dsd_model: "", // Clear DSD model when status changes
-        date_devolved: isFacilityOrCommunity ? prev.date_devolved : "" // Clear date if not facility/community
+        dsd_model: "",
+        date_devolved: isFacilityOrCommunity ? prev.date_devolved : ""
       }));
     } else if (name === "tb_status") {
       // Clear tb_status_confirmed when tb_status changes away from "Confirmed TB"
@@ -947,6 +1000,13 @@ const CareCardFollowUpForm = (props) => {
   // Handle WHO Stage criteria transfer
   const handleWhoStageCriteriaTransfer = (newSelectedCriteria) => {
     setClinical((prev) => ({ ...prev, who_stage_criteria: newSelectedCriteria }));
+    if (newSelectedCriteria && newSelectedCriteria.length > 0) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.who_stage_criteria;
+        return newErrors;
+      });
+    }
   };
 
   // Handle Other OIs/ Other Problems multi-select change
@@ -1019,6 +1079,8 @@ const CareCardFollowUpForm = (props) => {
   });
   const [addModalRegimenTypes, setAddModalRegimenTypes] = useState([]);
   const [editModalRegimenTypes, setEditModalRegimenTypes] = useState([]);
+  const [addArvErrors, setAddArvErrors] = useState({});
+  const [editArvErrors, setEditArvErrors] = useState({});
 
   const handleArv = (index, e) => {
     const { name, value } = e.target;
@@ -1035,7 +1097,39 @@ const CareCardFollowUpForm = (props) => {
     setArvList(updatedArvList);
   };
 
-  // Open add modal
+  const isArvValueEmpty = (value) => {
+    return value === null || value === undefined || String(value).trim() === "";
+  };
+
+  const validateArvEntry = (arvEntry) => {
+    const errors = {};
+
+    if (isArvValueEmpty(arvEntry.regimen_line)) {
+      errors.regimen_line = "Required";
+    }
+
+    if (isArvValueEmpty(arvEntry.regimen)) {
+      errors.regimen = "Required";
+    }
+
+    if (isArvValueEmpty(arvEntry.adherence)) {
+      errors.adherence = "Required";
+    }
+
+    if (isArvValueEmpty(arvEntry.dose)) {
+      errors.dose = "Required";
+    }
+
+    if (
+        (arvEntry.adherence === "P" || arvEntry.adherence === "F") &&
+        isArvValueEmpty(arvEntry.why_poor_fair_adherence)
+    ) {
+      errors.why_poor_fair_adherence = "Required";
+    }
+
+    return errors;
+  };
+
   const openAddModal = () => {
     setNewArv({
       regimen_line: "",
@@ -1045,10 +1139,10 @@ const CareCardFollowUpForm = (props) => {
       why_poor_fair_adherence: "",
     });
     setAddModalRegimenTypes([]);
+    setAddArvErrors({});
     setAddModalOpen(true);
   };
 
-  // Handle add modal field changes
   const handleAddModalChange = (e) => {
     const { name, value } = e.target;
     const updatedArv = { ...newArv, [name]: value };
@@ -1061,12 +1155,42 @@ const CareCardFollowUpForm = (props) => {
     }
 
     setNewArv(updatedArv);
+
+    setAddArvErrors((prev) => {
+      const newErrors = { ...prev };
+
+      if (!isArvValueEmpty(value)) {
+        delete newErrors[name];
+      }
+
+      if (name === "adherence" && value !== "P" && value !== "F") {
+        delete newErrors.why_poor_fair_adherence;
+      }
+
+      return newErrors;
+    });
   };
 
-  // Handle regimen line change in add modal
   const handleAddModalRegimenLineChange = async (e) => {
     const regimenLineId = e.target.value;
+
     setNewArv({ ...newArv, regimen_line: regimenLineId, regimen: "" });
+
+    setAddArvErrors((prev) => {
+      const newErrors = { ...prev };
+
+      if (regimenLineId) {
+        delete newErrors.regimen_line;
+      } else {
+        newErrors.regimen_line = "Required";
+      }
+
+      // Regimen is cleared when regimen line changes,
+      // so remove stale regimen error until user clicks Add to List again.
+      delete newErrors.regimen;
+
+      return newErrors;
+    });
 
     if (regimenLineId) {
       try {
@@ -1082,18 +1206,18 @@ const CareCardFollowUpForm = (props) => {
     }
   };
 
-  // Save new ARV entry
   const saveNewArv = () => {
-    // Validation - at least regimen line should be selected
     if (arvList.length >= 1) {
       toast.error("Only one ARV regimen is allowed. Edit or delete the existing entry first.");
       setAddModalOpen(false);
       return;
     }
 
-    // Validation - at least regimen line should be selected
-    if (!newArv.regimen_line) {
-      toast.error("Please select a regimen line");
+    const newArvValidationErrors = validateArvEntry(newArv);
+    setAddArvErrors(newArvValidationErrors);
+
+    if (Object.keys(newArvValidationErrors).length > 0) {
+      toast.error("Please fill all required fields in Add ARV Regimen");
       return;
     }
 
@@ -1106,8 +1230,84 @@ const CareCardFollowUpForm = (props) => {
     }
 
     setAddModalOpen(false);
+    setAddArvErrors({});
     toast.success("ARV regimen added successfully");
   };
+
+
+  // Open add modal
+  // const openAddModal = () => {
+  //   setNewArv({
+  //     regimen_line: "",
+  //     regimen: "",
+  //     adherence: "",
+  //     dose: "",
+  //     why_poor_fair_adherence: "",
+  //   });
+  //   setAddModalRegimenTypes([]);
+  //   setAddModalOpen(true);
+  // };
+
+  // Handle add modal field changes
+  // const handleAddModalChange = (e) => {
+  //   const { name, value } = e.target;
+  //   const updatedArv = { ...newArv, [name]: value };
+  //
+  //   // Clear why_poor_fair_adherence if adherence is not Poor or Fair
+  //   if (name === "adherence") {
+  //     if (value !== "P" && value !== "F") {
+  //       updatedArv.why_poor_fair_adherence = "";
+  //     }
+  //   }
+  //
+  //   setNewArv(updatedArv);
+  // };
+
+  // Handle regimen line change in add modal
+  // const handleAddModalRegimenLineChange = async (e) => {
+  //   const regimenLineId = e.target.value;
+  //   setNewArv({ ...newArv, regimen_line: regimenLineId, regimen: "" });
+  //
+  //   if (regimenLineId) {
+  //     try {
+  //       const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+  //       setAddModalRegimenTypes(response.data);
+  //     } catch (error) {
+  //       console.error("Error fetching regimen types:", error);
+  //     }
+  //   } else {
+  //     setAddModalRegimenTypes([]);
+  //   }
+  // };
+
+  // Save new ARV entry
+  // const saveNewArv = () => {
+  //   // Validation - at least regimen line should be selected
+  //   if (arvList.length >= 1) {
+  //     toast.error("Only one ARV regimen is allowed. Edit or delete the existing entry first.");
+  //     setAddModalOpen(false);
+  //     return;
+  //   }
+  //
+  //   // Validation - at least regimen line should be selected
+  //   if (!newArv.regimen_line) {
+  //     toast.error("Please select a regimen line");
+  //     return;
+  //   }
+  //
+  //   const newIndex = arvList.length;
+  //   setArvList([...arvList, { ...newArv }]);
+  //
+  //   // Store regimen types for this index
+  //   if (addModalRegimenTypes.length > 0) {
+  //     setRegimenTypes((prev) => ({ ...prev, [newIndex]: addModalRegimenTypes }));
+  //   }
+  //
+  //   setAddModalOpen(false);
+  //   toast.success("ARV regimen added successfully");
+  // };
 
   const calculateNextAppointmentDate = (visitDate, arvEntries) => {
     if (!visitDate || !arvEntries || arvEntries.length === 0) return "";
@@ -1137,15 +1337,38 @@ const CareCardFollowUpForm = (props) => {
     setRegimenTypes(reindexedTypes);
   };
 
+
   // Open edit modal
+  // const openEditModal = (index) => {
+  //   setCurrentArvIndex(index);
+  //   setEditingArv({ ...arvList[index] });
+  //   setEditModalRegimenTypes(regimenTypes[index] || []);
+  //   setEditModalOpen(true);
+  // };
+
+  // Handle edit modal field changes
+  // const handleEditModalChange = (e) => {
+  //   const { name, value } = e.target;
+  //   const updatedArv = { ...editingArv, [name]: value };
+  //
+  //   // Clear why_poor_fair_adherence if adherence is not Poor or Fair
+  //   if (name === "adherence") {
+  //     if (value !== "P" && value !== "F") {
+  //       updatedArv.why_poor_fair_adherence = "";
+  //     }
+  //   }
+  //
+  //   setEditingArv(updatedArv);
+  // };
+
   const openEditModal = (index) => {
     setCurrentArvIndex(index);
     setEditingArv({ ...arvList[index] });
     setEditModalRegimenTypes(regimenTypes[index] || []);
+    setEditArvErrors({});
     setEditModalOpen(true);
   };
 
-  // Handle edit modal field changes
   const handleEditModalChange = (e) => {
     const { name, value } = e.target;
     const updatedArv = { ...editingArv, [name]: value };
@@ -1158,12 +1381,75 @@ const CareCardFollowUpForm = (props) => {
     }
 
     setEditingArv(updatedArv);
+
+    setEditArvErrors((prev) => {
+      const newErrors = { ...prev };
+
+      if (!isArvValueEmpty(value)) {
+        delete newErrors[name];
+      }
+
+      if (name === "adherence" && value !== "P" && value !== "F") {
+        delete newErrors.why_poor_fair_adherence;
+      }
+
+      return newErrors;
+    });
   };
 
   // Handle regimen line change in edit modal
+  // const handleEditModalRegimenLineChange = async (e) => {
+  //   const regimenLineId = e.target.value;
+  //   setEditingArv({ ...editingArv, regimen_line: regimenLineId, regimen: "" });
+  //
+  //   if (regimenLineId) {
+  //     try {
+  //       const response = await axios.get(`${baseUrl}hiv/regimen/types/${regimenLineId}`, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+  //       setEditModalRegimenTypes(response.data);
+  //     } catch (error) {
+  //       console.error("Error fetching regimen types:", error);
+  //     }
+  //   } else {
+  //     setEditModalRegimenTypes([]);
+  //   }
+  // };
+
+  // Save edited ARV entry
+  // const saveEditedArv = () => {
+  //   const updatedArvList = [...arvList];
+  //   updatedArvList[currentArvIndex] = { ...editingArv };
+  //   setArvList(updatedArvList);
+  //
+  //   // Update regimen types for this index
+  //   setRegimenTypes((prev) => ({ ...prev, [currentArvIndex]: editModalRegimenTypes }));
+  //
+  //   setEditModalOpen(false);
+  //   setCurrentArvIndex(null);
+  //   toast.success("ARV regimen updated successfully");
+  // };
+
   const handleEditModalRegimenLineChange = async (e) => {
     const regimenLineId = e.target.value;
+
     setEditingArv({ ...editingArv, regimen_line: regimenLineId, regimen: "" });
+
+    setEditArvErrors((prev) => {
+      const newErrors = { ...prev };
+
+      if (regimenLineId) {
+        delete newErrors.regimen_line;
+      } else {
+        newErrors.regimen_line = "Required";
+      }
+
+      // Regimen is cleared when regimen line changes,
+      // so remove stale regimen error until user clicks Save Changes again.
+      delete newErrors.regimen;
+
+      return newErrors;
+    });
 
     if (regimenLineId) {
       try {
@@ -1179,8 +1465,15 @@ const CareCardFollowUpForm = (props) => {
     }
   };
 
-  // Save edited ARV entry
   const saveEditedArv = () => {
+    const editArvValidationErrors = validateArvEntry(editingArv);
+    setEditArvErrors(editArvValidationErrors);
+
+    if (Object.keys(editArvValidationErrors).length > 0) {
+      toast.error("Please fill all required fields in Edit ARV Regimen");
+      return;
+    }
+
     const updatedArvList = [...arvList];
     updatedArvList[currentArvIndex] = { ...editingArv };
     setArvList(updatedArvList);
@@ -1190,8 +1483,10 @@ const CareCardFollowUpForm = (props) => {
 
     setEditModalOpen(false);
     setCurrentArvIndex(null);
+    setEditArvErrors({});
     toast.success("ARV regimen updated successfully");
   };
+
 
   // Open delete confirmation dialog
   const openDeleteDialog = (index) => {
@@ -1285,7 +1580,7 @@ const CareCardFollowUpForm = (props) => {
   };
 
   const [otherDrugs, setOtherDrugs] = useState("");
-
+  const [clinicalNote, setClinicalNote] = useState("");
   // ── Section 5: Lab Results & Follow-up ──────────────────────────────────
   const [cd4Ordered, setCd4Ordered] = useState(false);
   const [viralLoadOrdered, setViralLoadOrdered] = useState(false);
@@ -1336,6 +1631,13 @@ const CareCardFollowUpForm = (props) => {
   const handleFollowUp = (e) => {
     const { name, value } = e.target;
     setFollowUp((prev) => ({ ...prev, [name]: value }));
+    if (value) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   // ── Validation ────────────────────────────────────────────────────────────
@@ -1344,38 +1646,38 @@ const CareCardFollowUpForm = (props) => {
     if (!visitInfo.visit_date) {
       temp.visit_date = "Visit date is required";
       setErrors(temp);
-      return false;
+      return temp;
     }
 
     // Check if visit date is not earlier than DOB, HIV enrollment, or ART start
     if (minVisitDate && visitInfo.visit_date < minVisitDate) {
       const dobFormatted = props.patientObj1?.dateOfBirth ? moment(props.patientObj1.dateOfBirth).format("DD MMM YYYY") : "";
       const enrollmentFormatted = props.patientObj1?.enrollmentCommencement?.data?.registration?.date_enrolled_in_hiv_care
-        ? moment(props.patientObj1.enrollmentCommencement.data.registration.date_enrolled_in_hiv_care).format("DD MMM YYYY")
-        : "";
+          ? moment(props.patientObj1.enrollmentCommencement.data.registration.date_enrolled_in_hiv_care).format("DD MMM YYYY")
+          : "";
       const artStartFormatted = props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started
-        ? moment(props.patientObj1.enrollmentCommencement.data.commencement.date_art_started).format("DD MMM YYYY")
-        : "";
+          ? moment(props.patientObj1.enrollmentCommencement.data.commencement.date_art_started).format("DD MMM YYYY")
+          : "";
 
       temp.visit_date = `Visit date cannot be earlier than Date of Birth (${dobFormatted}), HIV Enrollment Date (${enrollmentFormatted}), or ART Start Date (${artStartFormatted})`;
       setErrors(temp);
       toast.error(temp.visit_date, {
         position: toast.POSITION.TOP_RIGHT,
       });
-      return false;
+      return temp;
     }
 
     // Check for duplicate visit date (only for new visits, not edits)
     if (!isEditMode) {
       try {
         const visitCheckResponse = await axios.get(
-          `${baseUrl}hiv/art/clinic-visit/person/${props.patientObj.id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+            `${baseUrl}hiv/art/clinic-visit/person/${props.patientObj.id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
         );
 
         const existingVisits = visitCheckResponse.data || [];
         const isDuplicate = existingVisits.some(
-          (visit) => moment(visit.visitDate).format("YYYY-MM-DD") === visitInfo.visit_date
+            (visit) => moment(visit.visitDate).format("YYYY-MM-DD") === visitInfo.visit_date
         );
 
         if (isDuplicate) {
@@ -1384,7 +1686,7 @@ const CareCardFollowUpForm = (props) => {
           toast.error("A visit already exists for this date", {
             position: toast.POSITION.TOP_RIGHT,
           });
-          return false;
+          return temp;
         }
       } catch (error) {
         console.error("Error checking for duplicate visit date:", error);
@@ -1411,7 +1713,7 @@ const CareCardFollowUpForm = (props) => {
           toast.error("Please document Care and Support for this date first", {
             position: toast.POSITION.TOP_CENTER,
           });
-          return false;
+          return temp;
         }
       } catch (error) {
         console.error("Error checking care and support:", error);
@@ -1433,6 +1735,39 @@ const CareCardFollowUpForm = (props) => {
       }
     }
 
+    // ── Required field validation ─────────────────────────────────────────
+    if (!vitals.weight_kg) {
+      temp.weight_kg = "Weight is required";
+    }
+
+    if (!vitals.height_cm) {
+      temp.height_cm = "Height is required";
+    }
+
+    if (isFemale && patientAge >= 10 && !vitals.pregnancy_breastfeeding_status) {
+      temp.pregnancy_breastfeeding_status = "Pregnancy / Breastfeeding status is required";
+    }
+
+    if (!clinical.tb_status) {
+      temp.tb_status = "TB Status is required";
+    } else if (clinical.tb_status === "TB_STATUS_CONFIRMED_TB" && !clinical.tb_status_confirmed) {
+      temp.tb_status_confirmed = "Confirmed TB is required when TB Status is Confirmed TB";
+    }
+
+    if (!clinical.who_stage) {
+      temp.who_stage = "WHO Clinical Stage is required";
+    } else if (
+        WHO_STAGE_CRITERIA_OPTIONS[clinical.who_stage] &&
+        (!clinical.who_stage_criteria || clinical.who_stage_criteria.length === 0)
+    ) {
+      const stageDisplay = whoStagingCodeset.find(opt => opt.code === clinical.who_stage)?.display || "WHO Clinical Stage";
+      temp.who_stage_criteria = `Please select at least one ${stageDisplay} option`;
+    }
+
+    if (!followUp.next_appointment_date) {
+      temp.next_appointment_date = "Next Appointment Date is required";
+    }
+
     // Validate TPT dates
     const today = moment().format("YYYY-MM-DD");
     if (tpt.start_date) {
@@ -1449,14 +1784,33 @@ const CareCardFollowUpForm = (props) => {
       }
     }
 
-    if (!isEditMode && followUp.next_appointment_date) {
-      if (moment(followUp.next_appointment_date).isBefore(today, "day")) {
-        temp.next_appointment_date = "Next Appointment Date cannot be earlier than today";
+    // if (!isEditMode && followUp.next_appointment_date) {
+    //   if (moment(followUp.next_appointment_date).isBefore(today, "day")) {
+    //     temp.next_appointment_date = "Next Appointment Date cannot be earlier than today";
+    //   }
+    // }
+      if (followUp.next_appointment_date && visitInfo.visit_date) {
+          if (moment(followUp.next_appointment_date).isBefore(visitInfo.visit_date, "day")) {
+              temp.next_appointment_date =
+                  "Next Appointment Date cannot be earlier than Visit Date";
+          }
       }
+
+    // Check for vital validation errors
+    const vitalFields = ["bp_systolic", "bp_diastolic", "weight_kg", "height_cm",];
+    const hasVitalErrors = vitalFields.some(field => errors[field]);
+    if (hasVitalErrors) {
+      toast.error("Please correct the out-of-range values in the Vitals section");
+      // Merge in the current vitals errors so handleSubmit sees them too
+      vitalFields.forEach((field) => {
+        if (errors[field]) temp[field] = errors[field];
+      });
+      setErrors(temp);
+      return temp;
     }
 
     setErrors(temp);
-    return Object.keys(temp).length === 0;
+    return temp;
   };
 
   // ── Cancel Edit ──────────────────────────────────────────────────────────
@@ -1466,12 +1820,22 @@ const CareCardFollowUpForm = (props) => {
     }
   };
 
+  // console.log("error log", errors)
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const isValid = await validate();
-    if (!isValid) {
-      toast.error("Please fill all required fields");
+    // const isValid = await validate();
+    // if (!isValid) {
+    //   toast.error("Please fill all required fields");
+    //   return;
+    // }
+    const validationErrors = await validate();
+    const hasErrors = Object.keys(validationErrors).length > 0;
+
+    if (hasErrors) {
+      // Grab the first error message to show in the toast
+      const firstErrorMsg = Object.values(validationErrors)[0];
+      toast.error(firstErrorMsg || "Please fill all required fields");
       return;
     }
     setSaving(true);
@@ -1495,8 +1859,8 @@ const CareCardFollowUpForm = (props) => {
 
       // Get patient enrollment and facility details
       const patientDetailsResponse = await axios.get(
-        `${baseUrl}hiv/patient/${props.patientObj.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+          `${baseUrl}hiv/patient/${props.patientObj.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
       );
       const patientDetails = patientDetailsResponse.data;
 
@@ -1553,8 +1917,6 @@ const CareCardFollowUpForm = (props) => {
       const whoStageOption = whoStagingCodeset.find(opt => opt.code === clinical.who_stage);
       const functionalStatusOption = functionalStatusCodeset.find(opt => opt.code === clinical.functional_status);
 
-      // Build ARTClinicVisitDto payload (matching backend DTO structure with new columns)
-      // Note: hivEnrollmentId and artStatusId are now set automatically by the backend
       const payload = {
         visitDate: visitInfo.visit_date,
         personId: props.patientObj.id,
@@ -1564,7 +1926,7 @@ const CareCardFollowUpForm = (props) => {
         whoStagingId: whoStageOption?.id || null,
         who: whoData,
         functionalStatusId: functionalStatusOption?.id || null,
-        clinicalNote: "",
+        clinicalNote: clinicalNote || "",
         vitalSignDto: vitalSignDto,
         aRVDrugsRegimen: arvdrugsRegimen,
         viralLoadOrder: viralLoadOrder,
@@ -1650,1102 +2012,1203 @@ const CareCardFollowUpForm = (props) => {
   // Render
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible", width: "100%" }}>
-      <CardContent>
+      <Card className={classes.root} style={{ borderRadius: "12px", overflow: "visible", width: "100%" }}>
+        <CardContent>
 
-        {/* ── Page Header ──────────────────────────────────────────────── */}
-        <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "20px", marginTop: "-16px", marginLeft: "-16px", marginRight: "-16px", width: "calc(100% + 32px)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
-            {isEditMode ? (
-              <>
-                Care Card — Edit Visit
-                <Chip
-                  label={moment(props.editingVisit?.visitDate).format("DD MMM YYYY")}
-                  size="small"
-                  style={{
-                    backgroundColor: "#fff3cd",
-                    color: "#856404",
-                    fontWeight: 600,
-                    fontSize: "11px",
-                    marginLeft: "12px"
-                  }}
-                />
-              </>
-            ) : (
-              "Care Card — Follow-Up Visit"
+          {/* ── Page Header ──────────────────────────────────────────────── */}
+          <Box sx={{ backgroundColor: "#014d88", padding: "14px 20px", marginBottom: "20px", marginTop: "-16px", marginLeft: "-16px", marginRight: "-16px", width: "calc(100% + 32px)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
+              {isEditMode ? (
+                  <>
+                    Care Card — Edit Visit
+                    <Chip
+                        label={moment(props.editingVisit?.visitDate).format("DD MMM YYYY")}
+                        size="small"
+                        style={{
+                          backgroundColor: "#fff3cd",
+                          color: "#856404",
+                          fontWeight: 600,
+                          fontSize: "11px",
+                          marginLeft: "12px"
+                        }}
+                    />
+                  </>
+              ) : (
+                  "Care Card — Follow-Up Visit"
+              )}
+            </Typography>
+            {isEditMode && (
+                <MatButton
+                    variant="outlined"
+                    size="small"
+                    startIcon={<CancelIcon />}
+                    onClick={handleCancelEdit}
+                    style={{
+                      color: "#fff",
+                      borderColor: "#fff",
+                      textTransform: "none",
+                      fontSize: "13px"
+                    }}
+                >
+                  Cancel Edit
+                </MatButton>
             )}
-          </Typography>
-          {isEditMode && (
-            <MatButton
-              variant="outlined"
-              size="small"
-              startIcon={<CancelIcon />}
-              onClick={handleCancelEdit}
-              style={{
-                color: "#fff",
-                borderColor: "#fff",
-                textTransform: "none",
-                fontSize: "13px"
-              }}
-            >
-              Cancel Edit
-            </MatButton>
-          )}
-        </Box>
+          </Box>
 
-        <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+          <form onSubmit={handleSubmit} style={{ width: "100%" }}>
 
-          {/* ══════════════════════════════════════════════════════════════ */}
-          {/*  SECTION 1 — VISIT INFORMATION                               */}
-          {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion panel="visit" title="Visit Information" index={0} expanded={expanded} onToggle={toggleAccordion}>
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>Visit Date <span style={{ color: "red" }}>*</span></SectionLabel>
-                <Input
-                  type="date"
-                  name="visit_date"
-                  value={visitInfo.visit_date}
-                  min={minVisitDate}
-                  max={moment(new Date()).format("YYYY-MM-DD")}
-                  onChange={handleVisit}
-                />
-                {errors.visit_date && <span className={classes.error}>{errors.visit_date}</span>}
-              </Col>
-              <Col size={6}>
-                <SectionLabel>Duration on ART (Months)</SectionLabel>
-                <Input
-                  type="number"
-                  name="duration_on_art_months"
-                  value={visitInfo.duration_on_art_months}
-                  readOnly
-                  disabled
-                  placeholder="Auto-calculated"
-                  min="0"
-                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
-                />
-              </Col>
-            </FieldRow>
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>Clinician Name</SectionLabel>
-                <Input
-                  type="text"
-                  name="clinician_name"
-                  value={visitInfo.clinician_name}
-                  onChange={handleVisit}
-                  placeholder="Full name of clinician"
-                />
-              </Col>
-            </FieldRow>
-            {isFemale && patientAge >= 10 && (
-              <>
-                <FieldRow>
-                  <Col size={6}>
-                    <SectionLabel>Pregnancy / Breastfeeding</SectionLabel>
-                    <Input type="select" name="pregnancy_breastfeeding_status" value={vitals.pregnancy_breastfeeding_status} onChange={handleVitals}>
-                      <option value="">Select</option>
-                      {pregnancyStatusCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                  <Col size={6}>
-                    <SectionLabel>Family Planning Status</SectionLabel>
-                    <Input type="select" name="family_planning_status" value={vitals.family_planning_status} onChange={handleVitals}>
-                      <option value="">Select</option>
-                      {familyPlanningStatusCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                </FieldRow>
-                {vitals.family_planning_status === "FAMILY_PLANNING_STATUS_ON_FAMILY_PLANNING" && (
-                  <FieldRow>
-                    <Col size={6}>
-                      <SectionLabel>Family Planning Type</SectionLabel>
-                      <Input type="select" name="on_family_planning" value={vitals.on_family_planning} onChange={handleVitals}>
-                        <option value="">Select</option>
-                        {familyPlanningMethodCodeset.map((option) => (
-                          <option key={option.id} value={option.code}>
-                            {option.display}
-                          </option>
-                        ))}
-                      </Input>
-                    </Col>
-                  </FieldRow>
-                )}
-              </>
-            )}
-          </FormAccordion>
-
-          {/* ══════════════════════════════════════════════════════════════ */}
-          {/*  SECTION 2 — VITALS & CLINICAL STATUS                        */}
-          {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion panel="vitals" title="Vitals & Clinical Status" index={1} expanded={expanded} onToggle={toggleAccordion}>
-
-            <SubHeading>Vitals</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "16px", marginBottom: "16px" }}>
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  SECTION 1 — VISIT INFORMATION                               */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            <FormAccordion panel="visit" title="Visit Information" index={0} expanded={expanded} onToggle={toggleAccordion}>
               <FieldRow>
-                <Col size={3}>
-                  <SectionLabel>Height (cm)</SectionLabel>
+                <Col size={6}>
+                  <SectionLabel>Visit Date <span style={{ color: "red" }}>*</span></SectionLabel>
                   <Input
-                    type="number"
-                    name="height_cm"
-                    value={vitals.height_cm}
-                    onChange={handleVitals}
-                    placeholder="cm"
-                    min="0"
-                    step="0.1"
+                      type="date"
+                      name="visit_date"
+                      value={visitInfo.visit_date}
+                      min={minVisitDate}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      onChange={handleVisit}
+                  />
+                  {errors.visit_date && <span className={classes.error}>{errors.visit_date}</span>}
+                </Col>
+                <Col size={6}>
+                  <SectionLabel>Duration on ART (Months)</SectionLabel>
+                  <Input
+                      type="number"
+                      name="duration_on_art_months"
+                      value={visitInfo.duration_on_art_months}
+                      readOnly
+                      disabled
+                      placeholder="Auto-calculated"
+                      min="0"
+                      style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
                   />
                 </Col>
-                <Col size={3}>
-                  <SectionLabel>Weight (kg)</SectionLabel>
+              </FieldRow>
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel>Clinician Name</SectionLabel>
                   <Input
-                    type="number"
-                    name="weight_kg"
-                    value={vitals.weight_kg}
-                    onChange={handleVitals}
-                    placeholder="kg"
-                    min="0"
-                    step="0.1"
+                      type="text"
+                      name="clinician_name"
+                      value={visitInfo.clinician_name}
+                      onChange={handleVisit}
+                      placeholder="Full name of clinician"
                   />
                 </Col>
-                <Col size={3}>
-                  <SectionLabel>
-                    {isPediatric ? "MUAC (cm)" : "BMI"}
-                    <span style={{ fontSize: "10px", color: "#666", fontWeight: "normal", marginLeft: "4px" }}>
+              </FieldRow>
+              {isFemale && patientAge >= 10 && (
+                  <>
+                    <FieldRow>
+                      <Col size={6}>
+                        <SectionLabel required>Pregnancy / Breastfeeding</SectionLabel>
+                        <Input type="select" name="pregnancy_breastfeeding_status" value={vitals.pregnancy_breastfeeding_status} onChange={handleVitals}>
+                          <option value="">Select</option>
+                          {pregnancyStatusCodeset.map((option) => (
+                              <option key={option.id} value={option.code}>
+                                {option.display}
+                              </option>
+                          ))}
+                        </Input>
+                        {errors.pregnancy_breastfeeding_status && <span className={classes.error}>{errors.pregnancy_breastfeeding_status}</span>}
+                      </Col>
+                      <Col size={6}>
+                        <SectionLabel>Family Planning Status</SectionLabel>
+                        <Input type="select" name="family_planning_status" value={vitals.family_planning_status} onChange={handleVitals}>
+                          <option value="">Select</option>
+                          {familyPlanningStatusCodeset.map((option) => (
+                              <option key={option.id} value={option.code}>
+                                {option.display}
+                              </option>
+                          ))}
+                        </Input>
+                      </Col>
+                    </FieldRow>
+                    {vitals.family_planning_status === "FAMILY_PLANNING_STATUS_ON_FAMILY_PLANNING" && (
+                        <FieldRow>
+                          <Col size={6}>
+                            <SectionLabel>Family Planning Type</SectionLabel>
+                            <Input type="select" name="on_family_planning" value={vitals.on_family_planning} onChange={handleVitals}>
+                              <option value="">Select</option>
+                              {familyPlanningMethodCodeset.map((option) => (
+                                  <option key={option.id} value={option.code}>
+                                    {option.display}
+                                  </option>
+                              ))}
+                            </Input>
+                          </Col>
+                        </FieldRow>
+                    )}
+                  </>
+              )}
+            </FormAccordion>
+
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  SECTION 2 — VITALS & CLINICAL STATUS                        */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            <FormAccordion panel="vitals" title="Vitals & Clinical Status" index={1} expanded={expanded} onToggle={toggleAccordion}>
+
+              <SubHeading>Vitals</SubHeading>
+              <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "16px", marginBottom: "16px" }}>
+                <FieldRow>
+                  <Col size={3}>
+                    <SectionLabel required>Height (cm)</SectionLabel>
+                    <Input
+                        type="number"
+                        name="height_cm"
+                        value={vitals.height_cm}
+                        onChange={handleVitals}
+                        placeholder="cm"
+                        min="0"
+                        step="0.1"
+                    />
+                    {errors.height_cm && <span className={classes.error}>{errors.height_cm}</span>}
+                  </Col>
+                  <Col size={3}>
+                    <SectionLabel required>Weight (kg)</SectionLabel>
+                    <Input
+                        type="number"
+                        name="weight_kg"
+                        value={vitals.weight_kg}
+                        onChange={handleVitals}
+                        placeholder="kg"
+                        min="0"
+                        step="0.1"
+                    />
+                    {errors.weight_kg && <span className={classes.error}>{errors.weight_kg}</span>}
+                  </Col>
+                  <Col size={3}>
+                    <SectionLabel>
+                      {isPediatric ? "MUAC (cm)" : "BMI"}
+                      <span style={{ fontSize: "10px", color: "#666", fontWeight: "normal", marginLeft: "4px" }}>
                       (Auto-calculated)
                     </span>
-                  </SectionLabel>
-                  <Input
-                    type="text"
-                    name="bmi_muac"
-                    value={vitals.bmi_muac}
-                    onChange={handleVitals}
-                    placeholder="Auto-calculated"
-                    readOnly
-                    style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
-                  />
-                </Col>
-                <Col size={3}>
-                  <SectionLabel>Blood Pressure (mmHg)</SectionLabel>
-                  <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                    <Input type="number" name="bp_systolic" value={vitals.bp_systolic} onChange={handleVitals} placeholder="Sys" min="0" />
-                    <span style={{ color: "#546e7a", fontSize: "18px", fontWeight: 300 }}>/</span>
-                    <Input type="number" name="bp_diastolic" value={vitals.bp_diastolic} onChange={handleVitals} placeholder="Dia" min="0" />
-                  </div>
-                </Col>
-              </FieldRow>
-            </Box>
-
-            <SubHeading>Clinical Status</SubHeading>
-            <FieldRow>
-              {patientAge < 15 && (
-                <Col size={6}>
-                  <SectionLabel>Paediatric and Adolescent Disclosure</SectionLabel>
-                  <Input type="select" name="paediatric_disclosure" value={clinical.paediatric_disclosure} onChange={handleClinical}>
-                    <option value="">Select</option>
-                    {paediatricAdolescentDisclosureCodeset.map((option) => (
-                      <option key={option.id} value={option.code}>
-                        {option.display}
-                      </option>
-                    ))}
-                  </Input>
-                </Col>
-              )}
-              <Col size={6}>
-                <SectionLabel>Functional Status</SectionLabel>
-                <Input type="select" name="functional_status" value={clinical.functional_status} onChange={handleClinical}>
-                  <option value="">Select</option>
-                  {functionalStatusCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-            </FieldRow>
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>WHO Clinical Stage</SectionLabel>
-                <Input type="select" name="who_stage" value={clinical.who_stage} onChange={handleClinical}>
-                  <option value="">Select</option>
-                  {whoStagingCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-              <Col size={6}>
-                <SectionLabel>TB Status</SectionLabel>
-                <Input type="select" name="tb_status" value={clinical.tb_status} onChange={handleClinical}>
-                  <option value="">Select</option>
-                  {tbStatusCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-            </FieldRow>
-
-            {/* Confirmed TB - Conditional Field */}
-            {clinical.tb_status === "TB_STATUS_CONFIRMED_TB" && (
-              <FieldRow>
-                <Col size={6}>
-                  <SectionLabel>Confirmed TB</SectionLabel>
-                  <Input type="select" name="tb_status_confirmed" value={clinical.tb_status_confirmed} onChange={handleClinical}>
-                    <option value="">Select</option>
-                    {tbStatusConfirmedCodeset.map((option) => (
-                      <option key={option.id} value={option.code}>
-                        {option.display}
-                      </option>
-                    ))}
-                  </Input>
-                </Col>
-              </FieldRow>
-            )}
-
-            {/* WHO Stage Criteria - Conditional Transfer List */}
-            {clinical.who_stage && WHO_STAGE_CRITERIA_OPTIONS[clinical.who_stage] && (
-              <TransferList
-                availableItems={WHO_STAGE_CRITERIA_OPTIONS[clinical.who_stage]}
-                selectedItems={clinical.who_stage_criteria}
-                onTransfer={handleWhoStageCriteriaTransfer}
-                stageName={whoStagingCodeset.find(opt => opt.code === clinical.who_stage)?.display || clinical.who_stage}
-              />
-            )}
-
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>Cryptococcal Status</SectionLabel>
-                <Input type="select" name="cryptococcal_status" value={clinical.cryptococcal_status} onChange={handleClinical}>
-                  <option value="">Select</option>
-                  {cryptococcalCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-              <Col size={6}>
-                <SectionLabel>Hepatitis Status</SectionLabel>
-                <Input type="select" name="hepatitis_status" value={clinical.hepatitis_status} onChange={handleClinical}>
-                  <option value="">Select</option>
-                  {hepatitisCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-            </FieldRow>
-            {isFemale && patientAge >= 15 && (
-              <FieldRow>
-                <Col size={6}>
-                  <SectionLabel>Cervical Cancer Status</SectionLabel>
-                  <Input
-                    type="select"
-                    value={cervical_cancer_screening}
-                    onChange={handleCervicalCancerScreeningChange}
-                  >
-                    <option value="">Select</option>
-                    {cervicalCancerCodeset.map((option) => (
-                      <option key={option.id} value={option.code}>
-                        {option.display}
-                      </option>
-                    ))}
-                  </Input>
-                </Col>
-
-                {/* Cervical Cancer Treatment - Conditional Field (beside status) */}
-                {cervical_cancer_screening === "CERVICAL_CANCER_SCREENING_STATUS_SCREENED_POSITIVE_&_TREATED" && (
-                  <Col size={6}>
-                    <SectionLabel>Cervical Cancer Treatment</SectionLabel>
+                    </SectionLabel>
                     <Input
-                      type="select"
-                      value={cervical_cancer_treatment}
-                      onChange={(e) => setCervicalCancerTreatment(e.target.value)}
-                    >
-                      <option value="">Select</option>
-                      {cervicalCancerTreatmentCodeset.map((option) => (
-                        <option key={option.id} value={option.code}>
-                          {option.display}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                )}
-
-                {/* Other Findings (Specify) - Conditional Field (beside status) */}
-                {cervical_cancer_screening === "CERVICAL_CANCER_SCREENING_STATUS__OTHER_FINDINGS_(SPECIFY)" && (
-                  <Col size={6}>
-                    <SectionLabel>Other Findings (Specify) <span style={{ color: "red" }}>*</span></SectionLabel>
-                    <Input
-                      type="text"
-                      value={cervical_cancer_other_findings}
-                      onChange={(e) => setCervicalCancerOtherFindings(e.target.value)}
-                      placeholder="Specify other findings"
-                      required
+                        type="text"
+                        name="bmi_muac"
+                        value={vitals.bmi_muac}
+                        onChange={handleVitals}
+                        placeholder="Auto-calculated"
+                        readOnly
+                        style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
                     />
                   </Col>
-                )}
-              </FieldRow>
-            )}
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>Other OIs/ Other Problems</SectionLabel>
-                <MultiSelect
-                  options={oralProblemsOptions}
-                  value={clinical.oral_problems}
-                  onChange={handleOralProblemsChange}
-                  placeholder="Select OIs/Other Problems..."
-                />
-              </Col>
-              <Col size={6}>
-                <SectionLabel>Noted Side Effect</SectionLabel>
-                <MultiSelect
-                  options={sideEffectsOptions}
-                  value={clinical.noted_side_effect}
-                  onChange={handleSideEffectsChange}
-                  placeholder="Select side effects..."
-                />
-              </Col>
-            </FieldRow>
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>DSD Status</SectionLabel>
-                <Input
-                  type="select"
-                  name="dsd_status"
-                  value={clinical.dsd_status}
-                  onChange={handleClinical}
-                >
-                  <option value="">Select</option>
-                  {dsdStatusCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-              {(clinical.dsd_status && (clinical.dsd_status.includes("FACILITY") || clinical.dsd_status.includes("Facility"))) && (
-                <Col size={6}>
-                  <SectionLabel>Facility Based DSD Model</SectionLabel>
-                  <Input
-                    type="select"
-                    name="dsd_model"
-                    value={clinical.dsd_model}
-                    onChange={handleClinical}
-                  >
-                    <option value="">Select</option>
-                    {dsdModelFacilityCodeset.map((option) => (
-                      <option key={option.id} value={option.code}>
-                        {option.display}
-                      </option>
-                    ))}
-                  </Input>
-                </Col>
-              )}
-              {(clinical.dsd_status && (clinical.dsd_status.includes("COMMUNITY") || clinical.dsd_status.includes("Community"))) && (
-                <Col size={6}>
-                  <SectionLabel>Community Based DSD Model</SectionLabel>
-                  <Input
-                    type="select"
-                    name="dsd_model"
-                    value={clinical.dsd_model}
-                    onChange={handleClinical}
-                  >
-                    <option value="">Select</option>
-                    {dsdModelCommunityCodeset.map((option) => (
-                      <option key={option.id} value={option.code}>
-                        {option.display}
-                      </option>
-                    ))}
-                  </Input>
-                </Col>
-              )}
-            </FieldRow>
-            {(clinical.dsd_status && (clinical.dsd_status.includes("FACILITY") || clinical.dsd_status.includes("COMMUNITY") || clinical.dsd_status.includes("Facility") || clinical.dsd_status.includes("Community"))) && (
-              <FieldRow>
-                <Col size={6}>
-                  <SectionLabel>Date Devolved</SectionLabel>
-                  <Input
-                    type="date"
-                    name="date_devolved"
-                    value={clinical.date_devolved}
-                    onChange={handleClinical}
-                    min={props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started || ""}
-                    max={moment(new Date()).format("YYYY-MM-DD")}
-                  />
-                </Col>
-              </FieldRow>
-            )}
-          </FormAccordion>
-
-          {/* ══════════════════════════════════════════════════════════════ */}
-          {/*  SECTION 3 — MEDICATIONS                                     */}
-          {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion panel="medications" title="Medications" index={2} expanded={expanded}
-                         onToggle={toggleAccordion}>
-
-            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px"}}>
-              <SubHeading style={{marginBottom: 0}}>ARV Drugs</SubHeading>
-              <Tooltip
-                  title={arvList.length >= 1 ? "Only one ARV regimen is allowed. Edit or delete the existing entry first." : ""}>
-                    <span>
-                      <MatButton
-                          size="small"
-                          variant="contained"
-                          startIcon={<AddIcon/>}
-                          style={{
-                            backgroundColor: arvList.length >= 1 ? "#bdbdbd" : "#014d88",
-                            color: "#fff",
-                            textTransform: "none",
-                          }}
-                          onClick={openAddModal}
-                          disabled={arvList.length >= 1}
-                      >
-                        Add ARV Regimen
-                      </MatButton>
-                    </span>
-              </Tooltip>
-            </div>
-
-            {errors.arv_regimen && (
-                <div style={{marginBottom: "12px"}}>
-                  <span className={classes.error}>{errors.arv_regimen}</span>
-                </div>
-            )}
-
-            {arvList.length > 0 && (
-                <TableContainer component={Paper} sx={{marginBottom: "16px", border: "1px solid #014d88"}}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{backgroundColor: "#014d88"}}>
-                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>#</TableCell>
-                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>Regimen Line</TableCell>
-                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>Regimen</TableCell>
-                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>Adherence</TableCell>
-                        <TableCell sx={{color: "#fff", fontWeight: "bold", fontSize: "12px"}}>Dose</TableCell>
-                        <TableCell sx={{
-                          color: "#fff",
-                          fontWeight: "bold",
-                          fontSize: "12px",
-                          textAlign: "center"
-                        }}>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {arvList.map((arv, index) => (
-                          <TableRow key={index} sx={{"&:hover": {backgroundColor: "#f5f5f5"}}}>
-                            <TableCell sx={{fontSize: "13px"}}>{index + 1}</TableCell>
-                            <TableCell sx={{fontSize: "13px"}}>
-                              {arv.regimen_line ? getRegimenLineDisplay(arv.regimen_line) :
-                                  <span style={{color: "#9e9e9e"}}>Not set</span>}
-                            </TableCell>
-                            <TableCell sx={{fontSize: "13px"}}>
-                              {arv.regimen ? getRegimenDisplay(arv.regimen, index) :
-                                  <span style={{color: "#9e9e9e"}}>Not set</span>}
-                            </TableCell>
-                            <TableCell sx={{fontSize: "13px"}}>
-                              {arv.adherence ? getAdherenceDisplay(arv.adherence) :
-                                  <span style={{color: "#9e9e9e"}}>Not set</span>}
-                            </TableCell>
-                            <TableCell sx={{fontSize: "13px"}}>
-                              {arv.dose || <span style={{color: "#9e9e9e"}}>Not set</span>}
-                            </TableCell>
-                            <TableCell sx={{textAlign: "center"}}>
-                              <Tooltip title="Edit">
-                                <IconButton
-                                    size="small"
-                                    onClick={() => openEditModal(index)}
-                                    sx={{color: "#014d88", marginRight: "4px"}}
-                                >
-                                  <EditIcon fontSize="small"/>
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton
-                                    size="small"
-                                    onClick={() => openDeleteDialog(index)}
-                                    sx={{color: "#d32f2f"}}
-                                >
-                                  <DeleteIcon fontSize="small"/>
-                                </IconButton>
-                              </Tooltip>
-                            </TableCell>
-                          </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-            )}
-
-            {/* Add ARV Modal */}
-            <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)} maxWidth="md" fullWidth>
-              <DialogTitle sx={{backgroundColor: "#014d88", color: "#fff", fontWeight: "bold"}}>
-                Add ARV Regimen
-              </DialogTitle>
-              <DialogContent sx={{paddingTop: "20px !important"}}>
-                <FieldRow style={{marginTop: "16px"}}>
-                  <Col size={6}>
-                    <SectionLabel>Regimen Line <span style={{color: "red"}}>*</span></SectionLabel>
-                    <Input
-                        type="select"
-                        name="regimen_line"
-                        value={newArv.regimen_line}
-                        onChange={handleAddModalRegimenLineChange}
-                    >
-                      <option value="">Select</option>
-                      {patientAge >= 15 && (
-                          <>
-                            {adultRegimenLine.map((value) => (
-                                <option key={value.id} value={value.id}>
-                                  {value.description}
-                                </option>
-                            ))}
-                          </>
-                      )}
-                      {patientAge < 15 && (
-                          <>
-                            {childRegimenLine.map((value) => (
-                                <option key={value.id} value={value.id}>
-                                  {value.description}
-                                </option>
-                            ))}
-                          </>
-                      )}
-                    </Input>
-                  </Col>
-                  <Col size={6}>
-                    <SectionLabel>Regimen</SectionLabel>
-                    <Input
-                        type="select"
-                        name="regimen"
-                        value={newArv.regimen}
-                        onChange={handleAddModalChange}
-                    >
-                      <option value="">Select</option>
-                      {addModalRegimenTypes.map((value) => (
-                          <option key={value.id} value={value.id}>
-                            {value.description}
-                          </option>
-                      ))}
-                    </Input>
+                  <Col size={3}>
+                    <SectionLabel>Blood Pressure (mmHg)</SectionLabel>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                      <Input type="number" name="bp_systolic" value={vitals.bp_systolic} onChange={handleVitals} placeholder="Sys" min="0" />
+                      <span style={{ color: "#546e7a", fontSize: "18px", fontWeight: 300 }}>/</span>
+                      <Input type="number" name="bp_diastolic" value={vitals.bp_diastolic} onChange={handleVitals} placeholder="Dia" min="0" />
+                    </div>
+                    {(errors.bp_systolic || errors.bp_diastolic) && <span className={classes.error}>{errors.bp_systolic || errors.bp_diastolic}</span>}
                   </Col>
                 </FieldRow>
-                <FieldRow>
-                  <Col size={6}>
-                    <SectionLabel>Adherence</SectionLabel>
-                    <Input
-                        type="select"
-                        name="adherence"
-                        value={newArv.adherence}
-                        onChange={handleAddModalChange}
-                    >
-                      <option value="">Select</option>
-                      {arvDrugAdherenceCodeset.map((option) => (
-                          <option key={option.id} value={option.code}>
-                            {option.display}
-                          </option>
-                      ))}
-                    </Input>
-                  </Col>
-                  <Col size={6}>
-                    <SectionLabel>Dose</SectionLabel>
-                    <Input
-                        type="number"
-                        name="dose"
-                        value={newArv.dose}
-                        onChange={handleAddModalChange}
-                        placeholder="e.g. 1 tablet daily"
-                        min="0"
-                        step="1"
-                    />
-                  </Col>
-                </FieldRow>
-                {(newArv.adherence === "P" || newArv.adherence === "F") && (
-                    <FieldRow>
-                      <Col size={12}>
-                        <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
-                        <Input
-                            type="select"
-                            name="why_poor_fair_adherence"
-                            value={newArv.why_poor_fair_adherence}
-                            onChange={handleAddModalChange}
-                        >
-                          <option value="">Select</option>
-                          {whyPoorFairAdherenceCodeset.map((option) => (
-                              <option key={option.id} value={option.code}>
-                                {option.display}
-                              </option>
-                          ))}
-                        </Input>
-                      </Col>
-                    </FieldRow>
-                )}
-              </DialogContent>
-              <DialogActions sx={{padding: "16px"}}>
-                <MatButton
-                    onClick={() => setAddModalOpen(false)}
-                    style={{textTransform: "none"}}
-                >
-                  Cancel
-                </MatButton>
-                <MatButton
-                    onClick={saveNewArv}
-                    variant="contained"
-                    style={{backgroundColor: "#014d88", color: "#fff", textTransform: "none"}}
-                    startIcon={<AddIcon/>}
-                >
-                  Add to List
-                </MatButton>
-              </DialogActions>
-            </Dialog>
+              </Box>
 
-            {/* Edit ARV Modal */}
-            <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)} maxWidth="md" fullWidth>
-              <DialogTitle sx={{backgroundColor: "#014d88", color: "#fff", fontWeight: "bold"}}>
-                Edit ARV Regimen
-              </DialogTitle>
-              <DialogContent sx={{paddingTop: "20px !important"}}>
-                <FieldRow style={{marginTop: "16px"}}>
-                  <Col size={6}>
-                    <SectionLabel>Regimen Line <span style={{color: "red"}}>*</span></SectionLabel>
-                    <Input
-                        type="select"
-                        name="regimen_line"
-                        value={editingArv.regimen_line}
-                        onChange={handleEditModalRegimenLineChange}
-                    >
-                      <option value="">Select</option>
-                      {patientAge >= 15 && (
-                          <>
-                            {adultRegimenLine.map((value) => (
-                                <option key={value.id} value={value.id}>
-                                  {value.description}
-                                </option>
-                            ))}
-                          </>
-                      )}
-                      {patientAge < 15 && (
-                          <>
-                            {childRegimenLine.map((value) => (
-                                <option key={value.id} value={value.id}>
-                                  {value.description}
-                                </option>
-                            ))}
-                          </>
-                      )}
-                    </Input>
-                  </Col>
-                  <Col size={6}>
-                    <SectionLabel>Regimen</SectionLabel>
-                    <Input
-                        type="select"
-                        name="regimen"
-                        value={editingArv.regimen}
-                        onChange={handleEditModalChange}
-                    >
-                      <option value="">Select</option>
-                      {editModalRegimenTypes.map((value) => (
-                          <option key={value.id} value={value.id}>
-                            {value.description}
-                          </option>
-                      ))}
-                    </Input>
-                  </Col>
-                </FieldRow>
-                <FieldRow>
-                  <Col size={6}>
-                    <SectionLabel>Adherence</SectionLabel>
-                    <Input
-                        type="select"
-                        name="adherence"
-                        value={editingArv.adherence}
-                        onChange={handleEditModalChange}
-                    >
-                      <option value="">Select</option>
-                      {arvDrugAdherenceCodeset.map((option) => (
-                          <option key={option.id} value={option.code}>
-                            {option.display}
-                          </option>
-                      ))}
-                    </Input>
-                  </Col>
-                  <Col size={6}>
-                    <SectionLabel>Dose</SectionLabel>
-                    <Input
-                        type="number"
-                        name="dose"
-                        value={editingArv.dose}
-                        onChange={handleEditModalChange}
-                        placeholder="e.g. 1 tablet daily"
-                        min="0"
-                        step="1"
-                    />
-                  </Col>
-                </FieldRow>
-                {(editingArv.adherence === "P" || editingArv.adherence === "F") && (
-                    <FieldRow>
-                      <Col size={12}>
-                        <SectionLabel>Why Poor/Fair Adherence</SectionLabel>
-                        <Input
-                            type="select"
-                            name="why_poor_fair_adherence"
-                            value={editingArv.why_poor_fair_adherence}
-                            onChange={handleEditModalChange}
-                        >
-                          <option value="">Select</option>
-                          {whyPoorFairAdherenceCodeset.map((option) => (
-                              <option key={option.id} value={option.code}>
-                                {option.display}
-                              </option>
-                          ))}
-                        </Input>
-                      </Col>
-                    </FieldRow>
-                )}
-              </DialogContent>
-              <DialogActions sx={{padding: "16px"}}>
-                <MatButton
-                    onClick={() => setEditModalOpen(false)}
-                    style={{textTransform: "none"}}
-                >
-                  Cancel
-                </MatButton>
-                <MatButton
-                    onClick={saveEditedArv}
-                    variant="contained"
-                    style={{backgroundColor: "#014d88", color: "#fff", textTransform: "none"}}
-                >
-                  Save Changes
-                </MatButton>
-              </DialogActions>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={deleteDialogOpen} onClose={cancelDelete} maxWidth="xs" fullWidth>
-              <DialogTitle sx={{backgroundColor: "#d32f2f", color: "#fff", fontWeight: "bold"}}>
-                Confirm Delete
-              </DialogTitle>
-              <DialogContent sx={{paddingTop: "20px !important"}}>
-                <Typography sx={{fontSize: "14px", marginBottom: "8px"}}>
-                  Are you sure you want to delete this ARV regimen?
-                </Typography>
-                <Typography sx={{fontSize: "13px", color: "#666", fontStyle: "italic"}}>
-                  This action cannot be undone.
-                </Typography>
-              </DialogContent>
-              <DialogActions sx={{padding: "16px"}}>
-                <MatButton
-                    onClick={cancelDelete}
-                    variant="outlined"
-                    style={{textTransform: "none", borderColor: "#666", color: "#666"}}
-                >
-                  Cancel
-                </MatButton>
-                <MatButton
-                    onClick={confirmDelete}
-                    variant="contained"
-                    style={{backgroundColor: "#d32f2f", color: "#fff", textTransform: "none"}}
-                >
-                  Delete
-                </MatButton>
-              </DialogActions>
-            </Dialog>
-
-            {/* Cotrimoxazole */}
-            <SubHeading>Cotrimoxazole (CTX)</SubHeading>
-            <Box sx={{
-              background: "#fff",
-              border: "1px solid #014d88",
-              borderRadius: "4px",
-              padding: "14px 16px",
-              marginBottom: "16px"
-            }}>
+              <SubHeading>Clinical Status</SubHeading>
               <FieldRow>
-                <Col size={6}>
-                  <SectionLabel>Cotrimoxazole (CTX) Medication</SectionLabel>
-                  <Input type="select" value={ctx_medication} onChange={handleCtxMedication}>
-                    <option value="">Select</option>
-                    {ctxMedications.map((medication) => (
-                        <option key={medication.id} value={medication.id}>
-                          {medication.description}
-                        </option>
-                    ))}
-                  </Input>
-                </Col>
-                <Col size={6}>
-                  <SectionLabel>Dose</SectionLabel>
-                  <Input type="number" value={ctx} onChange={handleCtx} placeholder="e.g. 1 tablet daily, 960mg" min="0"
-                         step="1"/>
-                </Col>
-              </FieldRow>
-            </Box>
-
-            {/* TB Preventive Therapy */}
-            <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
-            <Box sx={{
-              background: "#fff",
-              border: "1px solid #014d88",
-              borderRadius: "4px",
-              padding: "14px 16px",
-              marginBottom: "16px"
-            }}>
-              <FieldRow>
-                <Col size={6}>
-                  <SectionLabel>TPT Medication (Code)</SectionLabel>
-                  <Input type="select" name="code" value={tpt.code} onChange={handleTpt}>
-                    <option value="">Select</option>
-                    {tptMedications.map((medication) => (
-                        <option key={medication.id} value={medication.id}>
-                          {medication.description}
-                        </option>
-                    ))}
-                  </Input>
-                </Col>
-                <Col size={6}>
-                  <SectionLabel>Dose</SectionLabel>
-                  <Input type="number" name="dose" value={tpt.dose} onChange={handleTpt} placeholder="e.g. 300mg"
-                         min="0" step="1"/>
-                </Col>
-              </FieldRow>
-              <FieldRow>
-                <Col size={6}>
-                  <SectionLabel>Start Date</SectionLabel>
-                  <Input type="date" name="start_date" value={tpt.start_date} onChange={handleTpt}/>
-                  {errors.tpt_start_date && <span className={classes.error}>{errors.tpt_start_date}</span>}
-                </Col>
-                <Col size={6}>
-                  <SectionLabel>Completion Date</SectionLabel>
-                  <Input type="date" name="completion_date" value={tpt.completion_date} onChange={handleTpt}/>
-                  {errors.tpt_completion_date && <span className={classes.error}>{errors.tpt_completion_date}</span>}
-                </Col>
-              </FieldRow>
-            </Box>
-
-            {/* Other Drugs */}
-            <SubHeading>Other Drugs Prescribed</SubHeading>
-            <Box sx={{
-              background: "#fff",
-              border: "1px solid #014d88",
-              borderRadius: "4px",
-              padding: "14px 16px",
-              marginBottom: "16px"
-            }}>
-              <FieldRow>
-                <Col size={12}>
-                  <SectionLabel>Other Medications</SectionLabel>
-                  <Input
-                      type="textarea"
-                      value={otherDrugs}
-                      onChange={(e) => setOtherDrugs(e.target.value)}
-                      rows={2}
-                      placeholder="List any other drugs prescribed at this visit..."
-                      style={{height: "auto"}}
-                  />
-                </Col>
-              </FieldRow>
-            </Box>
-          </FormAccordion>
-
-          {/* ══════════════════════════════════════════════════════════════ */}
-          {/*  SECTION 4 — LAB RESULTS & FOLLOW-UP                         */}
-          {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion panel="lab" title="Lab Results & Follow-up" index={3} expanded={expanded}
-                         onToggle={toggleAccordion}>
-
-            {/* CD4 */}
-            <SubHeading>CD4 Count</SubHeading>
-            <Box sx={{
-              background: "#fff",
-              border: "1px solid #014d88",
-              borderRadius: "4px",
-              padding: "14px 16px",
-              marginBottom: "16px"
-            }}>
-              <FieldRow>
-                <Col size={12}>
-                  <CheckGroup
-                      name="cd4_ordered"
-                      id="cd4_ordered"
-                    label="Ordered"
-                    checked={cd4Ordered}
-                    onChange={(e) => setCd4Ordered(e.target.checked)}
-                  />
-                </Col>
-              </FieldRow>
-              {cd4Ordered && (
-                <FieldRow>
-                  <Col size={6}>
-                    <SectionLabel>Result</SectionLabel>
-                    <Input type="number" name="cd4_count" value={lab.cd4_count} onChange={handleLab} placeholder="cells/mm³" min="0" />
-                  </Col>
-                  <Col size={6}>
-                    <SectionLabel>Result Date</SectionLabel>
-                    <Input type="date" name="cd4_date" value={lab.cd4_date} onChange={handleLab} />
-                  </Col>
-                </FieldRow>
-              )}
-            </Box>
-
-            {/* Viral Load */}
-            <SubHeading>Viral Load</SubHeading>
-            <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
-              <FieldRow>
-                <Col size={12}>
-                  <CheckGroup
-                    name="viral_load_ordered"
-                    id="viral_load_ordered"
-                    label="Ordered"
-                    checked={viralLoadOrdered}
-                    onChange={(e) => setViralLoadOrdered(e.target.checked)}
-                  />
-                </Col>
-              </FieldRow>
-              {viralLoadOrdered && (
-                <>
-                  <FieldRow>
+                {patientAge < 15 && (
                     <Col size={6}>
-                      <SectionLabel>Result</SectionLabel>
-                      <Input type="number" name="viral_load_result" value={lab.viral_load_result} onChange={handleLab} placeholder="e.g. 200" min="0" />
-                    </Col>
-                    <Col size={6}>
-                      <SectionLabel>Result Date</SectionLabel>
-                      <Input type="date" name="viral_load_date" value={lab.viral_load_date} onChange={handleLab} />
-                    </Col>
-                  </FieldRow>
-                  <FieldRow>
-                    <Col size={6}>
-                      <SectionLabel>Indication for Viral Load Test</SectionLabel>
-                      <Input type="select" name="viral_load_indication" value={lab.viral_load_indication} onChange={handleLab}>
+                      <SectionLabel>Paediatric and Adolescent Disclosure</SectionLabel>
+                      <Input type="select" name="paediatric_disclosure" value={clinical.paediatric_disclosure} onChange={handleClinical}>
                         <option value="">Select</option>
-                        {labOrderIndicationCodeset.map((option) => (
-                          <option key={option.id} value={option.code}>
-                            {option.display}
-                          </option>
+                        {paediatricAdolescentDisclosureCodeset.map((option) => (
+                            <option key={option.id} value={option.code}>
+                              {option.display}
+                            </option>
                         ))}
                       </Input>
                     </Col>
-                  </FieldRow>
+                )}
+                <Col size={6}>
+                  <SectionLabel>Functional Status</SectionLabel>
+                  <Input type="select" name="functional_status" value={clinical.functional_status} onChange={handleClinical}>
+                    <option value="">Select</option>
+                    {functionalStatusCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                    ))}
+                  </Input>
+                </Col>
+              </FieldRow>
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel required>WHO Clinical Stage</SectionLabel>
+                  <Input type="select" name="who_stage" value={clinical.who_stage} onChange={handleClinical}>
+                    <option value="">Select</option>
+                    {whoStagingCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                    ))}
+                  </Input>
+                  {errors.who_stage && <span className={classes.error}>{errors.who_stage}</span>}
+                </Col>
+                <Col size={6}>
+                  <SectionLabel required>TB Status</SectionLabel>
+                  <Input type="select" name="tb_status" value={clinical.tb_status} onChange={handleClinical}>
+                    <option value="">Select</option>
+                    {tbStatusCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                    ))}
+                  </Input>
+                  {errors.tb_status && <span className={classes.error}>{errors.tb_status}</span>}
+                </Col>
+              </FieldRow>
 
-                  {/* EAC - Only show if viral load >= 1000 */}
-                  {parseFloat(lab.viral_load_result) >= 1000 && (
+              {/* Confirmed TB - Conditional Field */}
+              {clinical.tb_status === "TB_STATUS_CONFIRMED_TB" && (
+                  <FieldRow>
+                    <Col size={6}>
+                      <SectionLabel required>Confirmed TB</SectionLabel>
+                      <Input type="select" name="tb_status_confirmed" value={clinical.tb_status_confirmed} onChange={handleClinical}>
+                        <option value="">Select</option>
+                        {tbStatusConfirmedCodeset.map((option) => (
+                            <option key={option.id} value={option.code}>
+                              {option.display}
+                            </option>
+                        ))}
+                      </Input>
+                      {errors.tb_status_confirmed && <span className={classes.error}>{errors.tb_status_confirmed}</span>}
+                    </Col>
+                  </FieldRow>
+              )}
+
+              {/* WHO Stage Criteria - Conditional Transfer List */}
+              {clinical.who_stage && WHO_STAGE_CRITERIA_OPTIONS[clinical.who_stage] && (
+                  <>
+                    <TransferList
+                        availableItems={WHO_STAGE_CRITERIA_OPTIONS[clinical.who_stage]}
+                        selectedItems={clinical.who_stage_criteria}
+                        onTransfer={handleWhoStageCriteriaTransfer}
+                        stageName={whoStagingCodeset.find(opt => opt.code === clinical.who_stage)?.display || clinical.who_stage}
+                    />
+                    {errors.who_stage_criteria && <span className={classes.error}>{errors.who_stage_criteria}</span>}
+                  </>
+              )}
+
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel>Cryptococcal Status</SectionLabel>
+                  <Input type="select" name="cryptococcal_status" value={clinical.cryptococcal_status} onChange={handleClinical}>
+                    <option value="">Select</option>
+                    {cryptococcalCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                    ))}
+                  </Input>
+                </Col>
+                <Col size={6}>
+                  <SectionLabel>Hepatitis Status</SectionLabel>
+                  <Input type="select" name="hepatitis_status" value={clinical.hepatitis_status} onChange={handleClinical}>
+                    <option value="">Select</option>
+                    {hepatitisCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                    ))}
+                  </Input>
+                </Col>
+              </FieldRow>
+              {isFemale && patientAge >= 15 && (
+                  <FieldRow>
+                    <Col size={6}>
+                      <SectionLabel>Cervical Cancer Status</SectionLabel>
+                      <Input
+                          type="select"
+                          value={cervical_cancer_screening}
+                          onChange={handleCervicalCancerScreeningChange}
+                      >
+                        <option value="">Select</option>
+                        {cervicalCancerCodeset.map((option) => (
+                            <option key={option.id} value={option.code}>
+                              {option.display}
+                            </option>
+                        ))}
+                      </Input>
+                    </Col>
+
+                    {/* Cervical Cancer Treatment - Conditional Field (beside status) */}
+                    {cervical_cancer_screening === "CERVICAL_CANCER_SCREENING_STATUS_SCREENED_POSITIVE_&_TREATED" && (
+                        <Col size={6}>
+                          <SectionLabel>Cervical Cancer Treatment</SectionLabel>
+                          <Input
+                              type="select"
+                              value={cervical_cancer_treatment}
+                              onChange={(e) => setCervicalCancerTreatment(e.target.value)}
+                          >
+                            <option value="">Select</option>
+                            {cervicalCancerTreatmentCodeset.map((option) => (
+                                <option key={option.id} value={option.code}>
+                                  {option.display}
+                                </option>
+                            ))}
+                          </Input>
+                        </Col>
+                    )}
+
+                    {/* Other Findings (Specify) - Conditional Field (beside status) */}
+                    {cervical_cancer_screening === "CERVICAL_CANCER_SCREENING_STATUS__OTHER_FINDINGS_(SPECIFY)" && (
+                        <Col size={6}>
+                          <SectionLabel>Other Findings (Specify) <span style={{ color: "red" }}>*</span></SectionLabel>
+                          <Input
+                              type="text"
+                              value={cervical_cancer_other_findings}
+                              onChange={(e) => setCervicalCancerOtherFindings(e.target.value)}
+                              placeholder="Specify other findings"
+                              required
+                          />
+                          {errors.cervical_cancer_other_findings && <span className={classes.error}>{errors.cervical_cancer_other_findings}</span>}
+                        </Col>
+                    )}
+                  </FieldRow>
+              )}
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel>Other OIs/ Other Problems</SectionLabel>
+                  <MultiSelect
+                      options={oralProblemsOptions}
+                      value={clinical.oral_problems}
+                      onChange={handleOralProblemsChange}
+                      placeholder="Select OIs/Other Problems..."
+                  />
+                </Col>
+                <Col size={6}>
+                  <SectionLabel>Noted Side Effect</SectionLabel>
+                  <MultiSelect
+                      options={sideEffectsOptions}
+                      value={clinical.noted_side_effect}
+                      onChange={handleSideEffectsChange}
+                      placeholder="Select side effects..."
+                  />
+                </Col>
+              </FieldRow>
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel>DSD Status</SectionLabel>
+                  <Input
+                      type="select"
+                      name="dsd_status"
+                      value={clinical.dsd_status}
+                      onChange={handleClinical}
+                  >
+                    <option value="">Select</option>
+                    {dsdStatusCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                    ))}
+                  </Input>
+                </Col>
+                {(clinical.dsd_status && (clinical.dsd_status.includes("FACILITY") || clinical.dsd_status.includes("Facility"))) && (
+                    <Col size={6}>
+                      <SectionLabel>Facility Based DSD Model</SectionLabel>
+                      <Input
+                          type="select"
+                          name="dsd_model"
+                          value={clinical.dsd_model}
+                          onChange={handleClinical}
+                      >
+                        <option value="">Select</option>
+                        {dsdModelFacilityCodeset.map((option) => (
+                            <option key={option.id} value={option.code}>
+                              {option.display}
+                            </option>
+                        ))}
+                      </Input>
+                    </Col>
+                )}
+                {(clinical.dsd_status && (clinical.dsd_status.includes("COMMUNITY") || clinical.dsd_status.includes("Community"))) && (
+                    <Col size={6}>
+                      <SectionLabel>Community Based DSD Model</SectionLabel>
+                      <Input
+                          type="select"
+                          name="dsd_model"
+                          value={clinical.dsd_model}
+                          onChange={handleClinical}
+                      >
+                        <option value="">Select</option>
+                        {dsdModelCommunityCodeset.map((option) => (
+                            <option key={option.id} value={option.code}>
+                              {option.display}
+                            </option>
+                        ))}
+                      </Input>
+                    </Col>
+                )}
+              </FieldRow>
+              {(clinical.dsd_status && (clinical.dsd_status.includes("FACILITY") || clinical.dsd_status.includes("COMMUNITY") || clinical.dsd_status.includes("Facility") || clinical.dsd_status.includes("Community"))) && (
+                  <FieldRow>
+                    <Col size={6}>
+                      <SectionLabel>Date Devolved</SectionLabel>
+                      <Input
+                          type="date"
+                          name="date_devolved"
+                          value={clinical.date_devolved}
+                          onChange={handleClinical}
+                          min={props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started || ""}
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                      />
+                    </Col>
+                  </FieldRow>
+              )}
+            </FormAccordion>
+
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  SECTION 3 — MEDICATIONS                                     */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            <FormAccordion panel="medications" title="Medications" index={2} expanded={expanded}
+                           onToggle={toggleAccordion}>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <SubHeading style={{ marginBottom: 0 }}>ARV Drugs</SubHeading>
+                <Tooltip
+                    title={arvList.length >= 1 ? "Only one ARV regimen is allowed. Edit or delete the existing entry first." : ""}>
+                <span>
+                  <MatButton
+                      size="small"
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      style={{
+                        backgroundColor: arvList.length >= 1 ? "#bdbdbd" : "#014d88",
+                        color: "#fff",
+                        textTransform: "none",
+                      }}
+                      onClick={openAddModal}
+                      disabled={arvList.length >= 1}
+                  >
+                    Add ARV Regimen
+                  </MatButton>
+                </span>
+                </Tooltip>
+              </div>
+
+              {errors.arv_regimen && (
+                  <div style={{ marginBottom: "12px" }}>
+                    <span className={classes.error}>{errors.arv_regimen}</span>
+                  </div>
+              )}
+
+              {arvList.length > 0 && (
+                  <TableContainer component={Paper} sx={{ marginBottom: "16px", border: "1px solid #014d88" }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ backgroundColor: "#014d88" }}>
+                          <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>#</TableCell>
+                          <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen Line</TableCell>
+                          <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Regimen</TableCell>
+                          <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Adherence</TableCell>
+                          <TableCell sx={{ color: "#fff", fontWeight: "bold", fontSize: "12px" }}>Dose</TableCell>
+                          <TableCell sx={{
+                            color: "#fff",
+                            fontWeight: "bold",
+                            fontSize: "12px",
+                            textAlign: "center"
+                          }}>Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {arvList.map((arv, index) => (
+                            <TableRow key={index} sx={{ "&:hover": { backgroundColor: "#f5f5f5" } }}>
+                              <TableCell sx={{ fontSize: "13px" }}>{index + 1}</TableCell>
+                              <TableCell sx={{ fontSize: "13px" }}>
+                                {arv.regimen_line ? getRegimenLineDisplay(arv.regimen_line) :
+                                    <span style={{ color: "#9e9e9e" }}>Not set</span>}
+                              </TableCell>
+                              <TableCell sx={{ fontSize: "13px" }}>
+                                {arv.regimen ? getRegimenDisplay(arv.regimen, index) :
+                                    <span style={{ color: "#9e9e9e" }}>Not set</span>}
+                              </TableCell>
+                              <TableCell sx={{ fontSize: "13px" }}>
+                                {arv.adherence ? getAdherenceDisplay(arv.adherence) :
+                                    <span style={{ color: "#9e9e9e" }}>Not set</span>}
+                              </TableCell>
+                              <TableCell sx={{ fontSize: "13px" }}>
+                                {arv.dose || <span style={{ color: "#9e9e9e" }}>Not set</span>}
+                              </TableCell>
+                              <TableCell sx={{ textAlign: "center" }}>
+                                <Tooltip title="Edit">
+                                  <IconButton
+                                      size="small"
+                                      onClick={() => openEditModal(index)}
+                                      sx={{ color: "#014d88", marginRight: "4px" }}
+                                  >
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                  <IconButton
+                                      size="small"
+                                      onClick={() => openDeleteDialog(index)}
+                                      sx={{ color: "#d32f2f" }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </TableCell>
+                            </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+              )}
+
+              {/* Add ARV Modal */}
+              <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)} maxWidth="md" fullWidth>
+                <DialogTitle sx={{ backgroundColor: "#014d88", color: "#fff", fontWeight: "bold" }}>
+                  Add ARV Regimen
+                </DialogTitle>
+                <DialogContent sx={{ paddingTop: "20px !important" }}>
+                  <FieldRow style={{ marginTop: "16px" }}>
+                    <Col size={6}>
+                      <SectionLabel>
+                        Regimen Line <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="select"
+                          name="regimen_line"
+                          value={newArv.regimen_line}
+                          onChange={handleAddModalRegimenLineChange}
+                      >
+                        <option value="">Select</option>
+                        {patientAge >= 15 && (
+                            <>
+                              {adultRegimenLine.map((value) => (
+                                  <option key={value.id} value={value.id}>
+                                    {value.description}
+                                  </option>
+                              ))}
+                            </>
+                        )}
+                        {patientAge < 15 && (
+                            <>
+                              {childRegimenLine.map((value) => (
+                                  <option key={value.id} value={value.id}>
+                                    {value.description}
+                                  </option>
+                              ))}
+                            </>
+                        )}
+                      </Input>
+                      {addArvErrors.regimen_line && (
+                          <span className={classes.error}>{addArvErrors.regimen_line}</span>
+                      )}
+                    </Col>
+
+                    <Col size={6}>
+                      <SectionLabel>
+                        Regimen <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="select"
+                          name="regimen"
+                          value={newArv.regimen}
+                          onChange={handleAddModalChange}
+                      >
+                        <option value="">Select</option>
+                        {addModalRegimenTypes.map((value) => (
+                            <option key={value.id} value={value.id}>
+                              {value.description}
+                            </option>
+                        ))}
+                      </Input>
+                      {addArvErrors.regimen && (
+                          <span className={classes.error}>{addArvErrors.regimen}</span>
+                      )}
+                    </Col>
+                  </FieldRow>
+                  <FieldRow>
+                    <Col size={6}>
+                      <SectionLabel>
+                        Adherence <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="select"
+                          name="adherence"
+                          value={newArv.adherence}
+                          onChange={handleAddModalChange}
+                      >
+                        <option value="">Select</option>
+                        {arvDrugAdherenceCodeset.map((option) => (
+                            <option key={option.id} value={option.code}>
+                              {option.display}
+                            </option>
+                        ))}
+                      </Input>
+                      {addArvErrors.adherence && (
+                          <span className={classes.error}>{addArvErrors.adherence}</span>
+                      )}
+                    </Col>
+
+                    <Col size={6}>
+                      <SectionLabel>
+                        Dose <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="number"
+                          name="dose"
+                          value={newArv.dose}
+                          onChange={handleAddModalChange}
+                          placeholder="e.g. 30"
+                          min="0"
+                          step="1"
+                      />
+                      {addArvErrors.dose && (
+                          <span className={classes.error}>{addArvErrors.dose}</span>
+                      )}
+                    </Col>
+                  </FieldRow>
+                  {(newArv.adherence === "P" || newArv.adherence === "F") && (
+                      <FieldRow>
+                        <Col size={12}>
+                          <SectionLabel>
+                            Why Poor/Fair Adherence <span style={{ color: "red" }}>*</span>
+                          </SectionLabel>
+                          <Input
+                              type="select"
+                              name="why_poor_fair_adherence"
+                              value={newArv.why_poor_fair_adherence}
+                              onChange={handleAddModalChange}
+                          >
+                            <option value="">Select</option>
+                            {whyPoorFairAdherenceCodeset.map((option) => (
+                                <option key={option.id} value={option.code}>
+                                  {option.display}
+                                </option>
+                            ))}
+                          </Input>
+                          {addArvErrors.why_poor_fair_adherence && (
+                              <span className={classes.error}>
+                        {addArvErrors.why_poor_fair_adherence}
+                      </span>
+                          )}
+                        </Col>
+                      </FieldRow>
+                  )}
+                </DialogContent>
+                <DialogActions sx={{ padding: "16px" }}>
+                  <MatButton
+                      onClick={() => setAddModalOpen(false)}
+                      style={{ textTransform: "none" }}
+                  >
+                    Cancel
+                  </MatButton>
+                  <MatButton
+                      onClick={saveNewArv}
+                      variant="contained"
+                      style={{ backgroundColor: "#014d88", color: "#fff", textTransform: "none" }}
+                      startIcon={<AddIcon />}
+                  >
+                    Add to List
+                  </MatButton>
+                </DialogActions>
+              </Dialog>
+
+              {/* Edit ARV Modal */}
+              <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)} maxWidth="md" fullWidth>
+                <DialogTitle sx={{ backgroundColor: "#014d88", color: "#fff", fontWeight: "bold" }}>
+                  Edit ARV Regimen
+                </DialogTitle>
+                <DialogContent sx={{ paddingTop: "20px !important" }}>
+                  <FieldRow style={{ marginTop: "16px" }}>
+                    <Col size={6}>
+                      <SectionLabel>
+                        Regimen Line <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="select"
+                          name="regimen_line"
+                          value={editingArv.regimen_line}
+                          onChange={handleEditModalRegimenLineChange}
+                      >
+                        <option value="">Select</option>
+                        {patientAge >= 15 && (
+                            <>
+                              {adultRegimenLine.map((value) => (
+                                  <option key={value.id} value={value.id}>
+                                    {value.description}
+                                  </option>
+                              ))}
+                            </>
+                        )}
+                        {patientAge < 15 && (
+                            <>
+                              {childRegimenLine.map((value) => (
+                                  <option key={value.id} value={value.id}>
+                                    {value.description}
+                                  </option>
+                              ))}
+                            </>
+                        )}
+                      </Input>
+                      {editArvErrors.regimen_line && (
+                          <span className={classes.error}>{editArvErrors.regimen_line}</span>
+                      )}
+                    </Col>
+
+                    <Col size={6}>
+                      <SectionLabel>
+                        Regimen <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="select"
+                          name="regimen"
+                          value={editingArv.regimen}
+                          onChange={handleEditModalChange}
+                      >
+                        <option value="">Select</option>
+                        {editModalRegimenTypes.map((value) => (
+                            <option key={value.id} value={value.id}>
+                              {value.description}
+                            </option>
+                        ))}
+                      </Input>
+                      {editArvErrors.regimen && (
+                          <span className={classes.error}>{editArvErrors.regimen}</span>
+                      )}
+                    </Col>
+                  </FieldRow>
+                  <FieldRow>
+                    <Col size={6}>
+                      <SectionLabel>
+                        Adherence <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="select"
+                          name="adherence"
+                          value={editingArv.adherence}
+                          onChange={handleEditModalChange}
+                      >
+                        <option value="">Select</option>
+                        {arvDrugAdherenceCodeset.map((option) => (
+                            <option key={option.id} value={option.code}>
+                              {option.display}
+                            </option>
+                        ))}
+                      </Input>
+                      {editArvErrors.adherence && (
+                          <span className={classes.error}>{editArvErrors.adherence}</span>
+                      )}
+                    </Col>
+
+                    <Col size={6}>
+                      <SectionLabel>
+                        Dose <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="number"
+                          name="dose"
+                          value={editingArv.dose}
+                          onChange={handleEditModalChange}
+                          placeholder="e.g. 30"
+                          min="0"
+                          step="1"
+                      />
+                      {editArvErrors.dose && (
+                          <span className={classes.error}>{editArvErrors.dose}</span>
+                      )}
+                    </Col>
+                  </FieldRow>
+                  {(editingArv.adherence === "P" || editingArv.adherence === "F") && (
+                      <FieldRow>
+                        <Col size={12}>
+                          <SectionLabel>
+                            Why Poor/Fair Adherence <span style={{ color: "red" }}>*</span>
+                          </SectionLabel>
+                          <Input
+                              type="select"
+                              name="why_poor_fair_adherence"
+                              value={editingArv.why_poor_fair_adherence}
+                              onChange={handleEditModalChange}
+                          >
+                            <option value="">Select</option>
+                            {whyPoorFairAdherenceCodeset.map((option) => (
+                                <option key={option.id} value={option.code}>
+                                  {option.display}
+                                </option>
+                            ))}
+                          </Input>
+                          {editArvErrors.why_poor_fair_adherence && (
+                              <span className={classes.error}>
+                          {editArvErrors.why_poor_fair_adherence}
+                        </span>
+                          )}
+                        </Col>
+                      </FieldRow>
+                  )}
+                </DialogContent>
+                <DialogActions sx={{ padding: "16px" }}>
+                  <MatButton
+                      onClick={() => setEditModalOpen(false)}
+                      style={{ textTransform: "none" }}
+                  >
+                    Cancel
+                  </MatButton>
+                  <MatButton
+                      onClick={saveEditedArv}
+                      variant="contained"
+                      style={{ backgroundColor: "#014d88", color: "#fff", textTransform: "none" }}
+                  >
+                    Save Changes
+                  </MatButton>
+                </DialogActions>
+              </Dialog>
+
+              {/* Delete Confirmation Dialog */}
+              <Dialog open={deleteDialogOpen} onClose={cancelDelete} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ backgroundColor: "#d32f2f", color: "#fff", fontWeight: "bold" }}>
+                  Confirm Delete
+                </DialogTitle>
+                <DialogContent sx={{ paddingTop: "20px !important" }}>
+                  <Typography sx={{ fontSize: "14px", marginBottom: "8px" }}>
+                    Are you sure you want to delete this ARV regimen?
+                  </Typography>
+                  <Typography sx={{ fontSize: "13px", color: "#666", fontStyle: "italic" }}>
+                    This action cannot be undone.
+                  </Typography>
+                </DialogContent>
+                <DialogActions sx={{ padding: "16px" }}>
+                  <MatButton
+                      onClick={cancelDelete}
+                      variant="outlined"
+                      style={{ textTransform: "none", borderColor: "#666", color: "#666" }}
+                  >
+                    Cancel
+                  </MatButton>
+                  <MatButton
+                      onClick={confirmDelete}
+                      variant="contained"
+                      style={{ backgroundColor: "#d32f2f", color: "#fff", textTransform: "none" }}
+                  >
+                    Delete
+                  </MatButton>
+                </DialogActions>
+              </Dialog>
+
+              {/* Cotrimoxazole */}
+              <SubHeading>Cotrimoxazole (CTX)</SubHeading>
+              <Box sx={{
+                background: "#fff",
+                border: "1px solid #014d88",
+                borderRadius: "4px",
+                padding: "14px 16px",
+                marginBottom: "16px"
+              }}>
+                <FieldRow>
+                  <Col size={6}>
+                    <SectionLabel>Cotrimoxazole (CTX) Medication</SectionLabel>
+                    <Input type="select" value={ctx_medication} onChange={handleCtxMedication}>
+                      <option value="">Select</option>
+                      {ctxMedications.map((medication) => (
+                          <option key={medication.id} value={medication.id}>
+                            {medication.description}
+                          </option>
+                      ))}
+                    </Input>
+                  </Col>
+                  <Col size={6}>
+                    <SectionLabel>Dose</SectionLabel>
+                    <Input type="number" value={ctx} onChange={handleCtx} placeholder="e.g. 1 tablet daily, 960mg" min="0"
+                           step="1" />
+                  </Col>
+                </FieldRow>
+              </Box>
+
+              {/* TB Preventive Therapy */}
+              <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
+              <Box sx={{
+                background: "#fff",
+                border: "1px solid #014d88",
+                borderRadius: "4px",
+                padding: "14px 16px",
+                marginBottom: "16px"
+              }}>
+                <FieldRow>
+                  <Col size={6}>
+                    <SectionLabel>TPT Medication (Code)</SectionLabel>
+                    <Input type="select" name="code" value={tpt.code} onChange={handleTpt}>
+                      <option value="">Select</option>
+                      {tptMedications.map((medication) => (
+                          <option key={medication.id} value={medication.id}>
+                            {medication.description}
+                          </option>
+                      ))}
+                    </Input>
+                  </Col>
+                  <Col size={6}>
+                    <SectionLabel>Dose</SectionLabel>
+                    <Input type="number" name="dose" value={tpt.dose} onChange={handleTpt} placeholder="e.g. 300mg"
+                           min="0" step="1" />
+                  </Col>
+                </FieldRow>
+                <FieldRow>
+                  <Col size={6}>
+                    <SectionLabel>Start Date</SectionLabel>
+                    <Input type="date" name="start_date" value={tpt.start_date} onChange={handleTpt} />
+                    {errors.tpt_start_date && <span className={classes.error}>{errors.tpt_start_date}</span>}
+                  </Col>
+                  <Col size={6}>
+                    <SectionLabel>Completion Date</SectionLabel>
+                    <Input type="date" name="completion_date" value={tpt.completion_date} onChange={handleTpt} />
+                    {errors.tpt_completion_date && <span className={classes.error}>{errors.tpt_completion_date}</span>}
+                  </Col>
+                </FieldRow>
+              </Box>
+
+              {/* Other Drugs */}
+              <SubHeading>Other Drugs Prescribed</SubHeading>
+              <Box sx={{
+                background: "#fff",
+                border: "1px solid #014d88",
+                borderRadius: "4px",
+                padding: "14px 16px",
+                marginBottom: "16px"
+              }}>
+                <FieldRow>
+                  <Col size={12}>
+                    <SectionLabel>Other Medications</SectionLabel>
+                    <Input
+                        type="textarea"
+                        value={otherDrugs}
+                        onChange={(e) => setOtherDrugs(e.target.value)}
+                        rows={2}
+                        placeholder="List any other drugs prescribed at this visit..."
+                        style={{ height: "auto" }}
+                    />
+                  </Col>
+                </FieldRow>
+              </Box>
+            </FormAccordion>
+
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  SECTION 4 — LAB RESULTS & FOLLOW-UP                         */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            <FormAccordion panel="lab" title="Lab Results & Follow-up" index={3} expanded={expanded}
+                           onToggle={toggleAccordion}>
+
+              {/* CD4 */}
+              <SubHeading>CD4 Count</SubHeading>
+              <Box sx={{
+                background: "#fff",
+                border: "1px solid #014d88",
+                borderRadius: "4px",
+                padding: "14px 16px",
+                marginBottom: "16px"
+              }}>
+                <FieldRow>
+                  <Col size={12}>
+                    <CheckGroup
+                        name="cd4_ordered"
+                        id="cd4_ordered"
+                        label="Ordered"
+                        checked={cd4Ordered}
+                        onChange={(e) => setCd4Ordered(e.target.checked)}
+                    />
+                  </Col>
+                </FieldRow>
+                {cd4Ordered && (
+                    <FieldRow>
+                      <Col size={6}>
+                        <SectionLabel>Result</SectionLabel>
+                        <Input type="number" name="cd4_count" value={lab.cd4_count} onChange={handleLab} placeholder="cells/mm³" min="0" />
+                      </Col>
+                      <Col size={6}>
+                        <SectionLabel>Result Date</SectionLabel>
+                        <Input type="date" name="cd4_date" value={lab.cd4_date} onChange={handleLab} />
+                      </Col>
+                    </FieldRow>
+                )}
+              </Box>
+
+              {/* Viral Load */}
+              <SubHeading>Viral Load</SubHeading>
+              <Box sx={{ background: "#fff", border: "1px solid #014d88", borderRadius: "4px", padding: "14px 16px", marginBottom: "16px" }}>
+                <FieldRow>
+                  <Col size={12}>
+                    <CheckGroup
+                        name="viral_load_ordered"
+                        id="viral_load_ordered"
+                        label="Ordered"
+                        checked={viralLoadOrdered}
+                        onChange={(e) => setViralLoadOrdered(e.target.checked)}
+                    />
+                  </Col>
+                </FieldRow>
+                {viralLoadOrdered && (
                     <>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography sx={{ fontSize: "12px", color: "#546e7a", marginBottom: "10px" }}>
-                        Enhanced Adherence Counseling (EAC) — record if conducted following a high viral load result
-                      </Typography>
                       <FieldRow>
                         <Col size={6}>
-                          <SectionLabel>EAC</SectionLabel>
-                          <Input type="select" name="eac" value={lab.eac} onChange={handleLab}>
+                          <SectionLabel>Result</SectionLabel>
+                          <Input type="number" name="viral_load_result" value={lab.viral_load_result} onChange={handleLab} placeholder="e.g. 200" min="0" />
+                        </Col>
+                        <Col size={6}>
+                          <SectionLabel>Result Date</SectionLabel>
+                          <Input type="date" name="viral_load_date" value={lab.viral_load_date} onChange={handleLab} />
+                        </Col>
+                      </FieldRow>
+                      <FieldRow>
+                        <Col size={6}>
+                          <SectionLabel>Indication for Viral Load Test</SectionLabel>
+                          <Input type="select" name="viral_load_indication" value={lab.viral_load_indication} onChange={handleLab}>
                             <option value="">Select</option>
-                            {EAC_OPTIONS.map((option) => (
-                              <option key={option} value={option}>{option}</option>
+                            {labOrderIndicationCodeset.map((option) => (
+                                <option key={option.id} value={option.code}>
+                                  {option.display}
+                                </option>
                             ))}
                           </Input>
                         </Col>
                       </FieldRow>
+
+                      {/* EAC - Only show if viral load >= 1000 */}
+                      {parseFloat(lab.viral_load_result) >= 1000 && (
+                          <>
+                            <Divider sx={{ my: 1 }} />
+                            <Typography sx={{ fontSize: "12px", color: "#546e7a", marginBottom: "10px" }}>
+                              Enhanced Adherence Counseling (EAC) — record if conducted following a high viral load result
+                            </Typography>
+                            <FieldRow>
+                              <Col size={6}>
+                                <SectionLabel>EAC</SectionLabel>
+                                <Input type="select" name="eac" value={lab.eac} onChange={handleLab}>
+                                  <option value="">Select</option>
+                                  {EAC_OPTIONS.map((option) => (
+                                      <option key={option} value={option}>{option}</option>
+                                  ))}
+                                </Input>
+                              </Col>
+                            </FieldRow>
+                          </>
+                      )}
                     </>
-                  )}
-                </>
-              )}
-            </Box>
+                )}
+              </Box>
 
-            {/* RBS & Other Tests */}
-            <SubHeading>Other Lab Tests</SubHeading>
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>RBS — Random Blood Sugar (mmol/L)</SectionLabel>
-                <Input type="number" name="rbs" value={lab.rbs} onChange={handleLab} placeholder="mmol/L" min="0" step="0.1" />
-              </Col>
-              <Col size={6}>
-                <SectionLabel>Other Tests Done</SectionLabel>
-                <MultiSelect
-                  options={labTestOptions}
-                  value={lab.other_tests_done}
-                  onChange={handleOtherTestsChange}
-                  placeholder="Select lab tests..."
+              {/* RBS & Other Tests */}
+              <SubHeading>Other Lab Tests</SubHeading>
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel>RBS — Random Blood Sugar (mmol/L)</SectionLabel>
+                  <Input type="number" name="rbs" value={lab.rbs} onChange={handleLab} placeholder="mmol/L" min="0" step="0.1" />
+                </Col>
+                <Col size={6}>
+                  <SectionLabel>Other Tests Done</SectionLabel>
+                  <MultiSelect
+                      options={labTestOptions}
+                      value={lab.other_tests_done}
+                      onChange={handleOtherTestsChange}
+                      placeholder="Select lab tests..."
+                  />
+                </Col>
+              </FieldRow>
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel>Type of Appointment</SectionLabel>
+                  <Input type="select" name="type_of_appointment" value={lab.type_of_appointment} onChange={handleLab}>
+                    <option value="">Select</option>
+                    {typeOfAppointmentCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                    ))}
+                  </Input>
+                </Col>
+              </FieldRow>
+
+              {/* Follow-up */}
+              <Divider sx={{ my: 2 }} />
+              <SubHeading>Follow-up</SubHeading>
+              <FieldRow>
+                <Col size={6}>
+                  <SectionLabel>Currently on any health insurance coverage</SectionLabel>
+                  <Input type="select" name="health_insurance_coverage" value={followUp.health_insurance_coverage} onChange={handleFollowUp}>
+                    <option value="">Select</option>
+                    {healthInsuranceCoverageCodeset.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                    ))}
+                  </Input>
+                </Col>
+                <Col size={6}>
+                  <SectionLabel required>Next Appointment Date</SectionLabel>
+                  <Input
+                      type="date"
+                      name="next_appointment_date"
+                      value={followUp.next_appointment_date}
+                      onChange={handleFollowUp}
+                  />
+                  {errors.next_appointment_date && <span className={classes.error}>{errors.next_appointment_date}</span>}
+                </Col>
+              </FieldRow>
+            </FormAccordion>
+
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  SECTION 5 — CLINICAL NOTE                                   */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            <FormAccordion panel="note" title="Clinical Note" index={4} expanded={expanded} onToggle={toggleAccordion}>
+              <FieldRow>
+                <AudioRecorder
+                    patient={props.patientObj}
+                    onTranscriptionComplete={(data) => {
+                      setClinicalNote((prev) =>
+                          prev && prev.trim()
+                              ? `${prev.trim()}\n\n${data.corrected_transcription}`
+                              : data.corrected_transcription
+                      );
+                    }}
                 />
-              </Col>
-            </FieldRow>
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>Type of Appointment</SectionLabel>
-                <Input type="select" name="type_of_appointment" value={lab.type_of_appointment} onChange={handleLab}>
-                  <option value="">Select</option>
-                  {typeOfAppointmentCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-            </FieldRow>
+                <Col size={12}>
+                  <SectionLabel>Clinical Note</SectionLabel>
+                  <Input
+                      type="textarea"
+                      name="clinical_note"
+                      value={clinicalNote}
+                      onChange={(e) => setClinicalNote(e.target.value)}
+                      rows={5}
+                      placeholder="Enter any additional clinical notes, observations, or remarks for this visit..."
+                      style={{ height: "auto", minHeight: "120px" }}
+                  />
+                </Col>
+              </FieldRow>
+            </FormAccordion>
 
-            {/* Follow-up */}
-            <Divider sx={{ my: 2 }} />
-            <SubHeading>Follow-up</SubHeading>
-            <FieldRow>
-              <Col size={6}>
-                <SectionLabel>Currently on any health insurance coverage</SectionLabel>
-                <Input type="select" name="health_insurance_coverage" value={followUp.health_insurance_coverage} onChange={handleFollowUp}>
-                  <option value="">Select</option>
-                  {healthInsuranceCoverageCodeset.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-              <Col size={6}>
-                <SectionLabel>Next Appointment Date</SectionLabel>
-                <Input
-                  type="date"
-                  name="next_appointment_date"
-                  value={followUp.next_appointment_date}
-                  onChange={handleFollowUp}
-                />
-              </Col>
-            </FieldRow>
-          </FormAccordion>
 
-          {/* ── Action Buttons ────────────────────────────────────────────── */}
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid #e0e0e0", marginTop: "8px" }}>
-            <MatButton
-              variant="contained"
-              className={classes.button}
-              startIcon={<CancelIcon style={{ color: "#fff" }} />}
-              style={{ backgroundColor: "#992E62", color: "#fff" }}
-              onClick={isEditMode ? handleCancelEdit : () => props.setActiveContent({ ...props.activeContent, route: "recent-history" })}
-            >
-              <span style={{ textTransform: "capitalize", color: "#fff" }}>Cancel</span>
-            </MatButton>
-            <MatButton
-              type="submit"
-              variant="contained"
-              className={classes.button}
-              startIcon={<SaveIcon style={{ color: "#fff" }} />}
-              style={{ backgroundColor: "#014d88", color: "#fff" }}
-              disabled={saving}
-            >
+            {/* ── Action Buttons ────────────────────────────────────────────── */}
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid #e0e0e0", marginTop: "8px" }}>
+              <MatButton
+                  variant="contained"
+                  className={classes.button}
+                  startIcon={<CancelIcon style={{ color: "#fff" }} />}
+                  style={{ backgroundColor: "#992E62", color: "#fff" }}
+                  onClick={isEditMode ? handleCancelEdit : () => props.setActiveContent({ ...props.activeContent, route: "recent-history" })}
+              >
+                <span style={{ textTransform: "capitalize", color: "#fff" }}>Cancel</span>
+              </MatButton>
+              <MatButton
+                  type="submit"
+                  variant="contained"
+                  className={classes.button}
+                  startIcon={<SaveIcon style={{ color: "#fff" }} />}
+                  style={{ backgroundColor: "#014d88", color: "#fff" }}
+                  disabled={saving}
+              >
               <span style={{ textTransform: "capitalize", color: "#fff" }}>
                 {saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update Visit" : "Save")}
               </span>
-            </MatButton>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+              </MatButton>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
   );
 };
 

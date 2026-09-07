@@ -3,12 +3,7 @@ package org.lamisplus.modules.hiv.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lamisplus.modules.hiv.domain.dto.FacilityProjection;
-import org.lamisplus.modules.hiv.domain.dto.ObservationDto;
-import org.lamisplus.modules.hiv.domain.dto.PEPClientProjection;
-import org.lamisplus.modules.hiv.domain.dto.TBCompletionStatusDTO;
-import org.lamisplus.modules.hiv.domain.dto.TPtCompletionStatusInfoDTO;
-import org.lamisplus.modules.hiv.domain.dto.ViralLoadEligibilityProjection;
+import org.lamisplus.modules.hiv.domain.dto.*;
 import org.lamisplus.modules.hiv.repositories.ObservationRepository;
 import org.lamisplus.modules.hiv.service.ObservationService;
 import org.springframework.data.domain.Page;
@@ -142,6 +137,22 @@ public class ObservationController {
         return ResponseEntity.ok(facilities);
     }
 
+
+
+    @PutMapping("/hiv-test-result")
+    public ResponseEntity<Map<String, Object>> updateFinalHivTestResult(
+            @RequestBody HtsTestResultUpdateRequest request) {
+
+        Map<String, Object> response = observationService.updateFinalHivTestResultFromEarlyDetect(
+                request.getPatientUuid(),
+                request.getResult(),
+                request.getHtsEncounterId(),
+                request.getDateOfFinalHivTestDone()
+        );
+
+        return createResponseEntity(response);
+    }
+
     /**
      * Helper method to create ResponseEntity based on service response
      */
@@ -153,4 +164,5 @@ public class ObservationController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 }

@@ -1,5 +1,6 @@
 package org.lamisplus.modules.hiv.service;
 
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.base.controller.apierror.EntityNotFoundException;
@@ -26,16 +27,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class HIVEacService {
-	
+
 	private final HIVEacRepository hivEacRepository;
-	
+
 	private final PersonRepository personRepository;
-	
+
 	private final HandleHIVVisitEncounter handleHIVisitEncounter;
-	
-	
+
+
 	private final ModuleService moduleService;
-	
+
 	private final HIVEacSessionRepository hivEacSessionRepository;
 
 	public List<HIVEacDto> getPatientEAcs(Long patientId) {
@@ -44,36 +45,54 @@ public class HIVEacService {
 
 		if (moduleService.exist("Lab")) {
 			List<LabEacInfo> patientAllEacs = hivEacRepository.getPatientAllEacs(patientId);
-			List<LocalDate> existingDates = hivEacRepository
-					.getAllByPersonAndArchived(person, 0)
-					.stream()
-					.map(HIVEac::getDateOfLastViralLoad)
-					.collect(Collectors.toList());
+			List<HIVEac> existingEacs = hivEacRepository.getAllByPersonAndArchived(person, 0);
 
-			// Deduplicate LabEacInfo objects by resultDate, retaining only the first occurrence
-			Map<LocalDate, LabEacInfo> uniqueRecordsByDate = patientAllEacs.stream()
-					.filter(labEacInfo -> !existingDates.contains(labEacInfo.getResultDate().toLocalDate()))
+			// Key existing EACs by the underlying lab result id (testResultId), which stays
+			// constant across edits to that result - unlike dateOfLastViralLoad, which changes
+			// whenever the result's dateResultReceived is edited on the viral load form.
+			Map<Long, HIVEac> existingEacsByTestResultId = existingEacs.stream()
+					.filter(eac -> eac.getTestResultId() != null)
 					.collect(Collectors.toMap(
-							labEacInfo -> labEacInfo.getResultDate().toLocalDate(), // Key: resultDate
-							labEacInfo -> labEacInfo,                              // Value: LabEacInfo object
-							(existing, replacement) -> existing                     // Keep the first occurrence
+							HIVEac::getTestResultId,
+							eac -> eac,
+							(existing, replacement) -> existing
 					));
 
-			// Process the unique records
-			uniqueRecordsByDate.values().stream()
-					.map(labEacInfo -> HIVEacDto.builder()
+			// Deduplicate LabEacInfo objects by testResultId, retaining only the first occurrence
+			Map<Long, LabEacInfo> uniqueRecordsByTestResultId = patientAllEacs.stream()
+					.collect(Collectors.toMap(
+							LabEacInfo::getTestResultId, // Key: the stable id of the underlying lab result
+							labEacInfo -> labEacInfo,     // Value: LabEacInfo object
+							(existing, replacement) -> existing // Keep the first occurrence
+					));
+
+			for (LabEacInfo labEacInfo : uniqueRecordsByTestResultId.values()) {
+				LocalDate newDate = labEacInfo.getResultDate().toLocalDate();
+				Double newViralLoad = Double.valueOf(labEacInfo.getResult());
+				HIVEac existingEac = existingEacsByTestResultId.get(labEacInfo.getTestResultId());
+
+				if (existingEac == null) {
+					// A genuinely new viral load result - create a new EAC record for it
+					HIVEacDto dto = HIVEacDto.builder()
 							.labNumber(labEacInfo.getLabNumber())
-							.dateOfLastViralLoad(labEacInfo.getResultDate().toLocalDate())
+							.dateOfLastViralLoad(newDate)
 							.testGroup(labEacInfo.getTestGroup())
 							.testName(labEacInfo.getTestName())
-							.lastViralLoad(Double.valueOf(labEacInfo.getResult()))
+							.lastViralLoad(newViralLoad)
 							.testResultId(labEacInfo.getTestResultId())
 							.status("NOT COMMENCED")
-							.personId(patientId).build()
-					)
-					.map(this::mapDtoEntity)
-					.map(hivEacRepository::save)
-					.collect(Collectors.toList());
+							.personId(patientId).build();
+					hivEacRepository.save(mapDtoEntity(dto));
+				} else if (!newDate.equals(existingEac.getDateOfLastViralLoad())
+						|| !newViralLoad.equals(existingEac.getLastViralLoad())) {
+					// Same underlying lab result was edited (e.g. dateResultReceived or result
+					// value changed on the viral load form) - update the existing EAC in place
+					// instead of creating a duplicate.
+					existingEac.setDateOfLastViralLoad(newDate);
+					existingEac.setLastViralLoad(newViralLoad);
+					hivEacRepository.save(existingEac);
+				}
+			}
 		}
 
 		return hivEacRepository.getAllByPersonAndArchived(person, 0)
@@ -83,7 +102,7 @@ public class HIVEacService {
 	}
 
 
-	
+
 	public EACPharmacyDisplayDto getPatientOpenEAc(Long patientId) {
 		Person person = personRepository.findById(patientId)
 				.orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(patientId)));
@@ -110,13 +129,13 @@ public class HIVEacService {
 						currentSession.get().getFollowUpDate()
 				);
 			}
-			
+
 		}
 		return new EACPharmacyDisplayDto(0.0, LocalDate.now(),"Default",LocalDate.now());
-		
-		
+
+
 	}
-	
+
 	public HIVEacDto stopEac(Long id, EACStopDto data) {
 		HIVEac exists = hivEacRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException(HIVEac.class, "id", String.valueOf(id)));
@@ -124,10 +143,10 @@ public class HIVEacService {
 		exists.setStatus("STOPPED");
 		hivEacRepository.save(exists);
 		return mapEntityDto(exists);
-		
+
 	}
-	
-	
+
+
 	private HIVEac mapDtoEntity(HIVEacDto dto) {
 		HIVEac hIVEac = new HIVEac();
 		Long personId = dto.getPersonId();
@@ -150,8 +169,8 @@ public class HIVEacService {
 		return hIVEac;
 
 	}
-	
-	
+
+
 	private HIVEacDto mapEntityDto(HIVEac entity) {
 		HIVEacDto hIVEacDto = new HIVEacDto();
 		hIVEacDto.setId(entity.getId());
@@ -168,14 +187,14 @@ public class HIVEacService {
 		hIVEacDto.setLabNumber(entity.getLabNumber());
 		hIVEacDto.setReasonStopped(entity.getReasonToStopEac());
 		return hIVEacDto;
-		
+
 	}
-	
+
 	private Person getPerson(Long personId) {
 		return personRepository.findById(personId).orElseThrow(() -> new EntityNotFoundException(Person.class, "id", String.valueOf(personId)));
 	}
-	
-	
+
+
 	public void deleteEac(Long id) {
 		HIVEac hivEac = hivEacRepository
 				.findById(id)

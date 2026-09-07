@@ -1483,11 +1483,11 @@ const InitialClinicalEvaluationForm = (props) => {
         if (numValue > 120) return "Pulse cannot be greater than 120 b/min";
         break;
       case "weight":
-        if (numValue < 48.26) return "Weight cannot be less than 48.26 kg";
-        if (numValue > 216.408) return "Weight cannot be greater than 216.408 kg";
+        if (numValue < 1) return "Weight cannot be less than 1 kg";
+        if (numValue > 200) return "Weight cannot be greater than 200 kg";
         break;
       case "height":
-        if (numValue < 48.26) return "Height cannot be less than 48.26 cm";
+        if (numValue < 30) return "Height cannot be less than 30 cm";
         if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
         break;
       case "respiratoryRate":

@@ -165,6 +165,7 @@ const PEPPatients = (props) => {
                                 surname: row.surname,
                                 otherName: row.otherName,
                                 dateOfBirth: row.dateOfBirth,
+                                htsEncounterId: row.htsEncounterId,
                               }
                             },
                           }}
@@ -198,7 +199,7 @@ const PEPPatients = (props) => {
 
                         // Check for numeric values
                         const numericValue = parseFloat(resultStr);
-                        if (!isNaN(numericValue) && numericValue > 0) {
+                        if (!isNaN(numericValue) && numericValue >= 1000 ) {
                           return true;
                         }
 
@@ -311,6 +312,7 @@ const PEPPatients = (props) => {
                                     surname: row.surname,
                                     otherName: row.otherName,
                                     dateOfBirth: row.dateOfBirth,
+                                    htsEncounterId: row.htsEncounterId,
                                   },
                                   ...routeState,
                                 }

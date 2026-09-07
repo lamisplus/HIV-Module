@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const ONLINE_SERVER_URL = process.env.REACT_APP_TRANSCRIPTION_URL || 'http://96.0.47.224:7860/api/v1';
+const ONLINE_SERVER_URL = process.env.REACT_APP_TRANSCRIPTION_URL || 'http://13.245.108.34:7860/api/v1';
 const OFFLINE_SERVER_URL = 'http://localhost:7860/api/v1';
 
 

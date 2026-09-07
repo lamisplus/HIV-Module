@@ -16,53 +16,31 @@ public interface EnrollmentCommencementRepository extends JpaRepository<Enrollme
     @Deprecated
     Optional<EnrollmentCommencement> findByPersonAndArchived(Person person, Integer archived);
 
-    // NEW: Get all enrollment commencement records for a person
     List<EnrollmentCommencement> findAllByPersonAndArchivedOrderByDateArtStartedDesc(Person person, Integer archived);
 
-    // NEW: Get latest enrollment commencement by ART start date
-    // Using native query because JPQL doesn't support LIMIT keyword
-    // Orders by date_art_started DESC and id DESC to ensure the most recent enrollment is returned
-    // This prevents NonUniqueResultException for returning clients with multiple enrollments
     @Query(value = "SELECT * FROM hiv_enrollment_commencement e WHERE e.person_uuid = " +
             "(SELECT p.uuid FROM patient_person p WHERE p.id = :personId) " +
             "AND e.archived = :archived ORDER BY e.date_art_started DESC, e.id DESC LIMIT 1", nativeQuery = true)
     Optional<EnrollmentCommencement> findLatestByPersonIdAndArchived(@Param("personId") Long personId, @Param("archived") Integer archived);
 
-    // NEW: Get first/earliest enrollment commencement by ART start date
-    // Using native query because JPQL doesn't support LIMIT keyword
     @Query(value = "SELECT * FROM hiv_enrollment_commencement e WHERE e.person_uuid = " +
             "(SELECT p.uuid FROM patient_person p WHERE p.id = :personId) " +
             "AND e.archived = :archived ORDER BY e.date_art_started ASC, e.id ASC LIMIT 1", nativeQuery = true)
     Optional<EnrollmentCommencement> findFirstByPersonIdAndArchived(@Param("personId") Long personId, @Param("archived") Integer archived);
 
-    // NEW: Check if enrollment exists for person on specific ART start date
     boolean existsByPersonAndArchivedAndDateArtStarted(Person person, Integer archived, LocalDate dateArtStarted);
 
     Optional<EnrollmentCommencement> findByIdAndArchived(Long id, Integer archived);
 
     Optional<EnrollmentCommencement> findByUuid(String uuid);
 
-    // Keep this - it just checks if ANY records exist (still useful)
     boolean existsByPersonAndArchived(Person person, Integer archived);
 
     Optional<EnrollmentCommencement> findByUniqueIdAndArchived(String uniqueId, Integer archived);
 
     Optional<EnrollmentCommencement> findByUniqueIdAndArchivedAndPersonNot(String uniqueId, Integer archived, Person person);
 
-//    @Query(value = "SELECT hc.hiv_test_result FROM hts_client hc " +
-//            "WHERE hc.person_uuid = :personUuid " +
-//            "AND hc.archived = 0 " +
-//            "ORDER BY hc.date_created DESC LIMIT 1", nativeQuery = true)
-//    String getLatestHivTestResultByPersonUuid(@Param("personUuid") String personUuid);
-
-    /**
-     * Session-based queries for enrollment cycle tracking
-     * Find EnrollmentCommencement by enrollment session UUID and archived status
-     */
     Optional<EnrollmentCommencement> findByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 
-    /**
-     * Check if EnrollmentCommencement exists for a specific enrollment session
-     */
     boolean existsByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
 }

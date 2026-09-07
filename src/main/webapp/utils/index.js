@@ -94,3 +94,16 @@ export const calculateAge = (dob) => {
 
   return age;
 };
+
+export const getAgeInMonths = (dob) => {
+  if (!dob) return -1;
+  const birth = new Date(dob);
+  const now = new Date();
+  let months = (now.getFullYear() - birth.getFullYear()) * 12;
+  months += now.getMonth() - birth.getMonth();
+  // If the current day of the month is before the birth day, subtract a month
+  if (now.getDate() < birth.getDate()) {
+    months--;
+  }
+  return months;
+};

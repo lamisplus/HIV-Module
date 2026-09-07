@@ -49,45 +49,45 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const SectionLabel = ({ children }) => (
-  <label
-    style={{
-      fontSize: "12px",
-      fontWeight: "600",
-      color: "#014d88",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      marginBottom: "6px",
-      display: "block",
-    }}
-  >
-    {children}
-  </label>
+    <label
+        style={{
+          fontSize: "12px",
+          fontWeight: "600",
+          color: "#014d88",
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+          marginBottom: "6px",
+          display: "block",
+        }}
+    >
+      {children}
+    </label>
 );
 
 const FieldRow = ({ children, style }) => (
-  <div className="row" style={{ marginBottom: "8px", ...style }}>
-    {children}
-  </div>
+    <div className="row" style={{ marginBottom: "8px", ...style }}>
+      {children}
+    </div>
 );
 
 const Col = ({ size = 6, children }) => (
-  <div className={`form-group mb-3 col-md-${size}`}>{children}</div>
+    <div className={`form-group mb-3 col-md-${size}`}>{children}</div>
 );
 
 const SubHeading = ({ children }) => (
-  <div
-    style={{
-      borderLeft: "3px solid #014d88",
-      paddingLeft: "10px",
-      marginBottom: "12px",
-      marginTop: "16px",
-      color: "#014d88",
-      fontWeight: "700",
-      fontSize: "14px",
-    }}
-  >
-    {children}
-  </div>
+    <div
+        style={{
+          borderLeft: "3px solid #014d88",
+          paddingLeft: "10px",
+          marginBottom: "12px",
+          marginTop: "16px",
+          color: "#014d88",
+          fontWeight: "700",
+          fontSize: "14px",
+        }}
+    >
+      {children}
+    </div>
 );
 
 // FormAccordion MUST be at module scope — never inside another component
@@ -95,52 +95,52 @@ const FormAccordion = ({ panel, title, index, children, expanded, onToggle }) =>
   const style = ACCORDION_STYLES[index] || ACCORDION_STYLES[0];
   const isOpen = expanded.includes(panel);
   return (
-    <Accordion
-      expanded={isOpen}
-      onChange={() => onToggle(panel)}
-      disableGutters
-      sx={{
-        width: "100%",
-        marginBottom: "12px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-        borderRadius: "8px !important",
-        "&:before": { display: "none !important" },
-        border: "1px solid #014d88",
-        overflow: "visible",
-        position: "relative",
-        zIndex: 1,
-      }}
-    >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
-        aria-controls={`${panel}-content`}
-        id={`${panel}-header`}
-        sx={{
-          backgroundColor: "#014d88 !important",
-          borderRadius: isOpen ? "8px 8px 0 0" : "8px",
-          minHeight: "52px !important",
-          height: "auto !important",
-          padding: "0 16px !important",
-          width: "100% !important",
-          margin: "0 !important",
-          "& .MuiAccordionSummary-content": {
-            margin: "16px 0 !important",
+      <Accordion
+          expanded={isOpen}
+          onChange={() => onToggle(panel)}
+          disableGutters
+          sx={{
             width: "100%",
-          },
-        }}
+            marginBottom: "12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            borderRadius: "8px !important",
+            "&:before": { display: "none !important" },
+            border: "1px solid #014d88",
+            overflow: "visible",
+            position: "relative",
+            zIndex: 1,
+          }}
       >
-        <Typography
-          sx={{ color: "#fff", fontWeight: 700, fontSize: "15px", letterSpacing: "0.3px" }}
+        <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ color: "#fff" }} />}
+            aria-controls={`${panel}-content`}
+            id={`${panel}-header`}
+            sx={{
+              backgroundColor: "#014d88 !important",
+              borderRadius: isOpen ? "8px 8px 0 0" : "8px",
+              minHeight: "52px !important",
+              height: "auto !important",
+              padding: "0 16px !important",
+              width: "100% !important",
+              margin: "0 !important",
+              "& .MuiAccordionSummary-content": {
+                margin: "16px 0 !important",
+                width: "100%",
+              },
+            }}
         >
-          {title}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails
-        sx={{ padding: "20px 24px", background: "#fff", width: "100%" }}
-      >
-        {children}
-      </AccordionDetails>
-    </Accordion>
+          <Typography
+              sx={{ color: "#fff", fontWeight: 700, fontSize: "15px", letterSpacing: "0.3px" }}
+          >
+            {title}
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails
+            sx={{ padding: "20px 24px", background: "#fff", width: "100%" }}
+        >
+          {children}
+        </AccordionDetails>
+      </Accordion>
   );
 };
 
@@ -158,12 +158,6 @@ const calcBmi = (weightKg, heightCm) => {
   return "";
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MUAC indication helper (pediatric only)
-//  < 12.5 cm  → Underweight
-//  12.5–16 cm → Well Nourished
-//  ≥ 16 cm    → Overweight/Obese
-// ─────────────────────────────────────────────────────────────────────────────
 
 const calcMuacIndication = (muacCm) => {
   const v = parseFloat(muacCm);
@@ -173,16 +167,36 @@ const calcMuacIndication = (muacCm) => {
   return "Overweight/Obese";
 };
 
+// Validate Height and Weight based on defined ranges (Optional fields)
+const validateCommencementVital = (name, value) => {
+  if (value === "" || value === null || value === undefined || String(value).trim() === "") return "";
+  const numValue = parseFloat(value);
+  if (isNaN(numValue)) return "";
+
+  switch (name) {
+    case "weight_kg":
+      if (numValue < 1) return "Weight cannot be less than 1 kg";
+      if (numValue > 200) return "Weight cannot be greater than 200 kg";
+      break;
+    case "height_cm":
+      if (numValue < 30) return "Height cannot be less than 30 cm";
+      if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
+      break;
+    default:
+      break;
+  }
+  return "";
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
 
 const EnrollmentAndCommencementForm = (props) => {
   const classes = useStyles();
+  // console.log("patientObj", props.patientObj)
+  // console.log("patientObj1", props.patientObj1)
 
-  // ── Determine Mode ─────────────────────────────────────────────────────────
-  // Mode can be: 'create', 'edit', or 'view'
-  // Determine based on props.mode OR activeContent.route
   const getMode = () => {
     if (props.mode) return props.mode;
     const route = props.activeContent?.route;
@@ -198,7 +212,7 @@ const EnrollmentAndCommencementForm = (props) => {
 
   const patientAge = calculate_age_to_number(props.patientObj?.dateOfBirth);
   const isPediatric = patientAge >= 0 && patientAge <= 15;
-  const isInfant    = patientAge < 1.5;
+  const isInfant    = patientAge <= 2;
   const isFemale    = ["female", "FEMALE", "Female"].includes(props.patientObj?.sex);
   const isMale      = ["male", "MALE", "Male"].includes(props.patientObj?.sex);
   // Pregnancy / breastfeeding only relevant for adult females
@@ -209,6 +223,16 @@ const EnrollmentAndCommencementForm = (props) => {
   const arvHistory = props.patientObj1?.initialClinicalEvaluation?.data?.arvHistory;
   const previousArvExposure = arvHistory?.previousArvExposure;
 
+  const isReturningClient =
+      isCreateMode && localStorage.getItem("currentStatus")?.toUpperCase() === "TRANSFER-IN NOT ACTIVE";
+
+  // patientObj is now kept fresh by the parent (PatientDetail.js) — it refetches
+  // the patient record and merges hasTransferIn/hasiceform/hasenrollmentform back
+  // into patientObj every time this Enrollment & Commencement step is reached, so
+  // we can read it directly again instead of falling back to patientObj1.
+  const isTransferInClient = props.patientObj?.hasTransferIn === true;
+  const effectiveDob = props.patientObj?.dateOfBirth;
+  const effectiveRegDate = props.patientObj1?.dateOfRegistration;
   // Determine which Prior ART option to auto-populate based on ICE form
   const getPriorArtFromICE = () => {
     if (!arvHistory || previousArvExposure !== "Yes") return "";
@@ -278,6 +302,22 @@ const EnrollmentAndCommencementForm = (props) => {
   const [hasExistingRecord, setHasExistingRecord] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [checkingUniqueId, setCheckingUniqueId] = useState(false);
+  // True whenever a previous Enrollment & Commencement record was found for this
+  // returning client. Used only for things that don't depend on which individual
+  // fields that record actually had data in (e.g. skipping the "no existing
+  // record" check). Do NOT use this alone to lock a specific input — see the
+  // per-field flags below.
+  const [hasPreviousEnrollmentRecord, setHasPreviousEnrollmentRecord] = useState(false);
+  // Per-field lock flags: true only when the prior record actually had a real
+  // value that got auto-populated into that field. Migrated/legacy records are
+  // frequently missing individual fields (uniqueId, dateConfirmedHivTest), and
+  // locking+disabling a required field that ends up empty would trap the user —
+  // unable to fill it in and unable to save. Each flag is set exactly at the
+  // point its field is actually populated, so a missing source value leaves the
+  // field editable (and still subject to normal required-field validation).
+  const [uniqueIdLocked, setUniqueIdLocked] = useState(false);
+  const [dateConfirmedHivTestLocked, setDateConfirmedHivTestLocked] = useState(false);
+  const [careEntryPointLocked, setCareEntryPointLocked] = useState(false);
 
   // ── Facility State ──────────────────────────────────────────────────────
   const [facilities, setFacilities] = useState([]);
@@ -332,6 +372,10 @@ const EnrollmentAndCommencementForm = (props) => {
 
   const checkForExistingRecord = async () => {
     setCheckingExisting(true);
+    setHasPreviousEnrollmentRecord(false);
+    setUniqueIdLocked(false);
+    setDateConfirmedHivTestLocked(false);
+    setCareEntryPointLocked(false);
     try {
       // Check if this is a returning client (Part 2 Transfer IN)
       const currentStatus = localStorage.getItem("currentStatus");
@@ -353,8 +397,8 @@ const EnrollmentAndCommencementForm = (props) => {
 
       // For new clients, check if record already exists (only one allowed)
       const response = await axios.get(
-        `${baseUrl}hiv/enrollment-commencement/exists/person/${props.patientObj.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+          `${baseUrl}hiv/enrollment-commencement/exists/person/${props.patientObj.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.data === true) {
         setHasExistingRecord(true);
@@ -373,13 +417,16 @@ const EnrollmentAndCommencementForm = (props) => {
     try {
       // Fetch the FIRST/EARLIEST enrollment record (not the latest) for auto-population
       const response = await axios.get(
-        `${baseUrl}hiv/enrollment-commencement/person/${props.patientObj.id}/first`,
-        { headers: { Authorization: `Bearer ${token}` } }
+          `${baseUrl}hiv/enrollment-commencement/person/${props.patientObj.id}/first`,
+          { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const previousData = response.data;
 
       if (previousData) {
+        const hasUniqueId = Boolean(previousData.uniqueId && String(previousData.uniqueId).trim() !== '');
+        const hasDateConfirmedHivTest = Boolean(previousData.dateConfirmedHivTest);
+
         // Auto-populate registration fields from previous enrollment
         setRegistration((prev) => ({
           ...prev,
@@ -390,7 +437,29 @@ const EnrollmentAndCommencementForm = (props) => {
           previousEnrollmentDate: previousData.dateEnrolledInHivCare ? moment(previousData.dateEnrolledInHivCare).format("YYYY-MM-DD") : undefined
         }));
 
-        toast.info("Previous enrollment data loaded successfully", { autoClose: 2000 });
+        // A previous record exists for this person.
+        setHasPreviousEnrollmentRecord(true);
+        // Lock each field ONLY if the prior record actually had a value for it.
+        // A migrated record missing this value leaves the field open for entry
+        // instead of trapping the user with a blank, disabled, required field.
+        setUniqueIdLocked(hasUniqueId);
+        setDateConfirmedHivTestLocked(hasDateConfirmedHivTest);
+
+        if (hasUniqueId || hasDateConfirmedHivTest) {
+          toast.info("Previous enrollment data loaded successfully", { autoClose: 2000 });
+        }
+        if (!hasUniqueId) {
+          toast.warning(
+              "This client's earlier record has no Unique ID on file. Please enter it manually.",
+              { autoClose: 4000 }
+          );
+        }
+        if (!hasDateConfirmedHivTest) {
+          toast.warning(
+              "This client's earlier record has no Date of Confirmed HIV Test on file. Please enter it manually.",
+              { autoClose: 4000 }
+          );
+        }
       }
     } catch (error) {
       console.error("Error fetching previous enrollment data:", error);
@@ -474,13 +543,36 @@ const EnrollmentAndCommencementForm = (props) => {
     }
   }, [isCreateMode, props.patientObj1?.dateConfirmedHiv, registration.date_confirmed_hiv_test]);
 
+  // ── Auto-populate & lock Care Entry Point as "Transfer In" for transfer-in clients ──
+  // Date Enrolled in HIV Care is captured before Care Entry Point in this form, so the
+  // DOB-based validation can't be gated on Care Entry Point being selected — that's why
+  // it's driven by patientObj.hasTransferIn (isTransferInClient) instead. Since the system
+  // already knows this client came through a Transfer-In record, auto-select "Transfer In"
+  // here too and lock the field (mirroring what's done for returning clients below), so the
+  // user doesn't need to — and can't — pick something inconsistent with that record.
+  // Kept as its own effect (separate from the returning-client auto-select in fetchCodesets)
+  // so it still fires correctly if isTransferInClient becomes true only after codesets load.
+  useEffect(() => {
+    if (isCreateMode && isTransferInClient && !loadingCodesets && codesets?.careEntryPoints?.length > 0 && !registration.care_entry_point) {
+      const transferInOption = codesets.careEntryPoints.find(opt =>
+          opt.code === "POINT_ENTRY_TRANSFER-IN" || opt.display?.toLowerCase().includes("transfer")
+      );
+      if (transferInOption) {
+        setRegistration((prev) => ({
+          ...prev,
+          care_entry_point: transferInOption.code
+        }));
+      }
+    }
+  }, [isCreateMode, isTransferInClient, loadingCodesets, codesets?.careEntryPoints, registration.care_entry_point]);
+
   // ── Fetch Existing Data for Edit/View Mode ──────────────────────────────
   const fetchExistingData = async () => {
     setLoading(true);
     try {
       const endpoint = isViewMode
-        ? `${baseUrl}hiv/enrollment-commencement/person/${props.patientObj.id}`
-        : `${baseUrl}hiv/enrollment-commencement/${props.activeContent.id}`;
+          ? `${baseUrl}hiv/enrollment-commencement/person/${props.patientObj.id}`
+          : `${baseUrl}hiv/enrollment-commencement/${props.activeContent.id}`;
 
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
@@ -570,8 +662,8 @@ const EnrollmentAndCommencementForm = (props) => {
       }
     } catch (error) {
       const msg =
-        error?.response?.data?.apierror?.message ||
-        "Failed to load enrollment data";
+          error?.response?.data?.apierror?.message ||
+          "Failed to load enrollment data";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -592,8 +684,8 @@ const EnrollmentAndCommencementForm = (props) => {
       params.append('codes', 'ENROLLMENT_SETTING');
 
       const response = await axios.get(
-        `${baseUrl}application-codesets/v2/codeSets?${params}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+          `${baseUrl}application-codesets/v2/codeSets?${params}`,
+          { headers: { Authorization: `Bearer ${token}` } }
       );
 
 
@@ -615,7 +707,7 @@ const EnrollmentAndCommencementForm = (props) => {
 
         if (isReturningClient && response.data.POINT_ENTRY) {
           const transferInOption = response.data.POINT_ENTRY.find(opt =>
-            opt.code === "POINT_ENTRY_TRANSFER-IN" || opt.display?.toLowerCase().includes("transfer")
+              opt.code === "POINT_ENTRY_TRANSFER-IN" || opt.display?.toLowerCase().includes("transfer")
           );
 
           if (transferInOption) {
@@ -623,6 +715,11 @@ const EnrollmentAndCommencementForm = (props) => {
               ...prev,
               care_entry_point: transferInOption.code
             }));
+            // Only lock the field once we've actually applied a value — if the
+            // codeset lookup ever fails to find a Transfer-in option, the field
+            // stays open so the user can pick one manually instead of being
+            // stuck with an empty, disabled, required dropdown.
+            setCareEntryPointLocked(true);
           }
         }
       }
@@ -695,8 +792,8 @@ const EnrollmentAndCommencementForm = (props) => {
   const fetchRegimenLines = async () => {
     try {
       const endpoint = isPediatric
-        ? `${baseUrl}hiv/regimen/arv/children`
-        : `${baseUrl}hiv/regimen/arv/adult`;
+          ? `${baseUrl}hiv/regimen/arv/children`
+          : `${baseUrl}hiv/regimen/arv/adult`;
 
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
@@ -704,8 +801,8 @@ const EnrollmentAndCommencementForm = (props) => {
 
       // Filter for ART regimen lines only
       const artLines = isPediatric
-        ? response.data.filter((x) => x.id === 3 || x.id === 4 || x.id === 16)
-        : response.data.filter((x) => x.id === 1 || x.id === 2 || x.id === 14);
+          ? response.data.filter((x) => x.id === 3 || x.id === 4 || x.id === 16)
+          : response.data.filter((x) => x.id === 1 || x.id === 2 || x.id === 14);
 
       setRegimenLines(artLines);
     } catch (error) {
@@ -775,7 +872,7 @@ const EnrollmentAndCommencementForm = (props) => {
 
   const toggleAccordion = (panel) => {
     setExpanded((prev) =>
-      prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
+        prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
     );
   };
 
@@ -804,11 +901,45 @@ const EnrollmentAndCommencementForm = (props) => {
   };
 
   // ── Check if Unique ID already exists ────────────────────────────────────
+  // const checkUniqueIdExists = async (uniqueId) => {
+  //   if (!uniqueId || String(uniqueId).trim() === '') {
+  //     return;
+  //   }
+  //
+  //   setCheckingUniqueId(true);
+  //   try {
+  //     const personId = props.patientObj?.id;
+  //     const url = `${baseUrl}hiv/enrollment-commencement/unique-id-exists?uniqueId=${encodeURIComponent(uniqueId)}${personId ? `&personId=${personId}` : ''}`;
+  //
+  //     const response = await axios.get(url, {
+  //       headers: { Authorization: `Bearer ${token}` }
+  //     });
+  //
+  //     if (response.data === true) {
+  //       setErrors((prev) => ({
+  //         ...prev,
+  //         unique_id: "Unique ID already exists"
+  //       }));
+  //     } else {
+  //       // Clear error if ID is unique
+  //       setErrors((prev) => {
+  //         const newErrors = { ...prev };
+  //         delete newErrors.unique_id;
+  //         return newErrors;
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking unique ID:", error);
+  //     // Don't block the user if the check fails - let backend handle it
+  //   } finally {
+  //     setCheckingUniqueId(false);
+  //   }
+  // };
+
   const checkUniqueIdExists = async (uniqueId) => {
     if (!uniqueId || String(uniqueId).trim() === '') {
-      return;
+      return false;
     }
-
     setCheckingUniqueId(true);
     try {
       const personId = props.patientObj?.id;
@@ -823,17 +954,20 @@ const EnrollmentAndCommencementForm = (props) => {
           ...prev,
           unique_id: "Unique ID already exists"
         }));
+
+        return true;
       } else {
-        // Clear error if ID is unique
         setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.unique_id;
           return newErrors;
         });
+
+        return false;
       }
     } catch (error) {
       console.error("Error checking unique ID:", error);
-      // Don't block the user if the check fails - let backend handle it
+      return false;
     } finally {
       setCheckingUniqueId(false);
     }
@@ -841,7 +975,10 @@ const EnrollmentAndCommencementForm = (props) => {
 
   // Handler for unique_id onBlur event
   const handleUniqueIdBlur = () => {
-    if (registration.unique_id && String(registration.unique_id).trim() !== '') {
+    // Skip only when the field is locked with an inherited value — a returning
+    // client whose prior record had no Unique ID gets an editable field here
+    // and must still be validated like any freshly entered ID.
+    if (!uniqueIdLocked && registration.unique_id && String(registration.unique_id).trim() !== '') {
       checkUniqueIdExists(registration.unique_id);
     }
   };
@@ -885,29 +1022,33 @@ const EnrollmentAndCommencementForm = (props) => {
 
       // Date Enrolled in HIV Care — special validation
       if (name === 'date_enrolled_in_hiv_care' && value && String(value).trim() !== '') {
-        const patientRegDate = props.patientObj?.dateOfRegistration;
-        const isValidAgainstRegDate = !patientRegDate || value >= patientRegDate;
-        const isValidAgainstTestDate = !registration.date_confirmed_hiv_test || value >= registration.date_confirmed_hiv_test;
+        const isValid = isTransferInClient
+            ? (!effectiveDob || value >= effectiveDob)
+            : (
+                (!effectiveRegDate || value >= effectiveRegDate) &&
+                (!registration.date_confirmed_hiv_test || value >= registration.date_confirmed_hiv_test) &&
+                (!registration.previousEnrollmentDate || value >= registration.previousEnrollmentDate)
+            );
 
-        if (isValidAgainstRegDate && isValidAgainstTestDate) {
+        if (isValid) {
           delete newErrors[name];
         }
       }
 
       // Always-required fields (excluding date_enrolled_in_hiv_care which has special validation above)
       if (['unique_id', 'date_confirmed_hiv_test', 'hiv_test_location',
-           'mode_of_hiv_test', 'care_entry_point'].includes(name)) {
+        'mode_of_hiv_test', 'care_entry_point'].includes(name)) {
         if (value && String(value).trim() !== '') {
           delete newErrors[name];
         }
       }
 
       // Conditionally required — mother_unique_id
-      if (name === 'mother_unique_id' && isInfant) {
-        if (value && String(value).trim() !== '') {
-          delete newErrors[name];
-        }
-      }
+      // if (name === 'mother_unique_id' && isInfant) {
+      //   if (value && String(value).trim() !== '') {
+      //     delete newErrors[name];
+      //   }
+      // }
 
       // Conditionally required — kp_typology
       if (name === 'kp_typology' && registration.is_kp === 'Yes') {
@@ -952,11 +1093,15 @@ const EnrollmentAndCommencementForm = (props) => {
       const enrollmentDate = registration.date_enrolled_in_hiv_care;
 
       if (enrollmentDate) {
-        const patientRegDate = props.patientObj?.dateOfRegistration;
-        const isValidAgainstRegDate = !patientRegDate || enrollmentDate >= patientRegDate;
-        const isValidAgainstTestDate = !value || enrollmentDate >= value;
+        const isValid = isTransferInClient
+            ? (!effectiveDob || enrollmentDate >= effectiveDob)
+            : (
+                (!effectiveRegDate || enrollmentDate >= effectiveRegDate) &&
+                (!value || enrollmentDate >= value) &&
+                (!registration.previousEnrollmentDate || enrollmentDate >= registration.previousEnrollmentDate)
+            );
 
-        if (isValidAgainstRegDate && isValidAgainstTestDate) {
+        if (isValid) {
           delete newErrors.date_enrolled_in_hiv_care;
           setErrors(newErrors);
         }
@@ -974,13 +1119,33 @@ const EnrollmentAndCommencementForm = (props) => {
     }
 
     // If regimen line changes, fetch regimens for that line
+    // If regimen line changes, fetch regimens for that line
     if (name === "regimen_line_id") {
       fetchRegimens(value);
+
       setCommencement((prev) => ({
         ...prev,
         regimen_line_id: inputValue,
         first_art_regimen: null // Clear selected regimen when line changes
       }));
+
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+
+        // Regimen is reset when regimen line changes, so clear its error
+        delete newErrors.first_art_regimen;
+
+        if (inputValue) {
+          delete newErrors.regimen_line_id;
+        } else {
+          newErrors.regimen_line_id = `${
+              isPediatric ? "Child" : "Adult"
+          } First ART Regimen Line is required`;
+        }
+
+        return newErrors;
+      });
+
       return;
     }
 
@@ -1031,11 +1196,12 @@ const EnrollmentAndCommencementForm = (props) => {
           return updates;
         });
 
-        if (errors[name]) {
-          const newErrors = { ...errors };
-          delete newErrors[name];
-          setErrors(newErrors);
-        }
+        // Clear visit_date error if it exists
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.visit_date;
+          return newErrors;
+        });
         return;
       }
     }
@@ -1065,24 +1231,45 @@ const EnrollmentAndCommencementForm = (props) => {
       });
     }
 
-    if (errors[name]) {
-      const newErrors = { ...errors };
-      if (name === 'visit_date' && value && String(value).trim() !== '') {
-        const isValid = !props.patientObj?.dateOfBirth || value >= props.patientObj1.dateOfBirth;
-        if (isValid) {
-          delete newErrors[name];
-        }
-      } else if (name === 'date_art_started' && value && String(value).trim() !== '') {
+    // 👇 UNIFIED ERROR HANDLING (Fixes the stale closure bug)
+    setErrors((prevErrors) => {
+      const newErrors = { ...prevErrors };
+
+      // 1. Handle Vital Signs Validation (Weight & Height)
+      // If empty or valid, vitalError is "", which triggers the delete.
+      const vitalError = validateCommencementVital(name, inputValue);
+      if (vitalError) {
+        newErrors[name] = vitalError;
+      } else {
         delete newErrors[name];
       }
-      // if ((name === 'date_art_started' || name === 'visit_date') && value && String(value).trim() !== '') {
-      //   delete newErrors[name];
-      // }
 
-      setErrors(newErrors);
-    }
+      // 2. Handle Visit Date Validation
+      if (name === 'visit_date' && value && String(value).trim() !== '') {
+        const isValid = !effectiveDob || value >= effectiveDob;
+        if (isValid) {
+          delete newErrors.visit_date;
+        }
+      }
+
+      // 3. Handle Date ART Started Validation
+      if (name === 'date_art_started' && value && String(value).trim() !== '') {
+        delete newErrors.date_art_started;
+      }
+
+      // 4. Handle First ART Regimen Validation
+      if (name === 'first_art_regimen') {
+        if (inputValue) {
+          delete newErrors.first_art_regimen;
+        } else {
+          newErrors.first_art_regimen = "First ART Regimen is required";
+        }
+      }
+
+      return newErrors;
+    });
   };
-  // Handler for the nested TPT object
+
   const handleTpt = (e) => {
     const { name, value } = e.target;
     // If TPT Completed changes to "No" or empty, clear completion date and error
@@ -1116,32 +1303,44 @@ const EnrollmentAndCommencementForm = (props) => {
           setErrors(newErrors);
         }
       }
+
+      // Real-time validation — clear error if start_date becomes valid
+      if (name === 'start_date' && errors.tpt_start_date) {
+        const validAgainstDob = !effectiveDob || value >= effectiveDob;
+        const validAgainstEnrollment = isTransferInClient || !registration.date_enrolled_in_hiv_care || value >= registration.date_enrolled_in_hiv_care;
+
+        if (value && String(value).trim() !== '' && validAgainstDob && validAgainstEnrollment) {
+          const newErrors = { ...errors };
+          delete newErrors.tpt_start_date;
+          setErrors(newErrors);
+        }
+      }
     }
   };
 
   // ── Auto-populate Date ART Started with Date Enrolled in HIV Care ────────
-  useEffect(() => {
-    // Find the selected care entry point
-    const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.code == registration.care_entry_point);
-    // Check if Care Entry Point is Transfer-in using code or display
-    const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
-                         selectedCareEntryPoint?.display?.toLowerCase().includes("transfer");
-
-    const hasPriorArt = registration.prior_art && String(registration.prior_art).trim() !== '';
-    const hasEnrollmentDate = registration.date_enrolled_in_hiv_care && String(registration.date_enrolled_in_hiv_care).trim() !== '';
-
-    // Only auto-populate if:
-    // 1. Date enrolled in HIV care is filled
-    // 2. Care entry point is NOT Transfer-in
-    // 3. Prior ART is NOT documented (empty)
-    // 4. Date ART started is currently empty (don't override user's edits)
-    if (hasEnrollmentDate && !isTransferIn && !hasPriorArt && !commencement.date_art_started) {
-      setCommencement((prev) => ({
-        ...prev,
-        date_art_started: registration.date_enrolled_in_hiv_care
-      }));
-    }
-  }, [registration.date_enrolled_in_hiv_care, registration.care_entry_point, registration.prior_art, codesets.careEntryPoints]);
+  // useEffect(() => {
+  //   // Find the selected care entry point
+  //   const selectedCareEntryPoint = codesets.careEntryPoints.find(opt => opt.code == registration.care_entry_point);
+  //   // Check if Care Entry Point is Transfer-in using code or display
+  //   const isTransferIn = selectedCareEntryPoint?.code?.includes("TRANSFER") ||
+  //                        selectedCareEntryPoint?.display?.toLowerCase().includes("transfer");
+  //
+  //   const hasPriorArt = registration.prior_art && String(registration.prior_art).trim() !== '';
+  //   const hasEnrollmentDate = registration.date_enrolled_in_hiv_care && String(registration.date_enrolled_in_hiv_care).trim() !== '';
+  //
+  //   // Only auto-populate if:
+  //   // 1. Date enrolled in HIV care is filled
+  //   // 2. Care entry point is NOT Transfer-in
+  //   // 3. Prior ART is NOT documented (empty)
+  //   // 4. Date ART started is currently empty (don't override user's edits)
+  //   if (hasEnrollmentDate && !isTransferIn && !hasPriorArt && !commencement.date_art_started) {
+  //     setCommencement((prev) => ({
+  //       ...prev,
+  //       date_art_started: registration.date_enrolled_in_hiv_care
+  //     }));
+  //   }
+  // }, [registration.date_enrolled_in_hiv_care, registration.care_entry_point, registration.prior_art, codesets.careEntryPoints]);
 
   // ── Auto-populate Weight, Height from Triage/Vital Signs ────────────────
   useEffect(() => {
@@ -1153,8 +1352,8 @@ const EnrollmentAndCommencementForm = (props) => {
 
       try {
         const response = await axios.get(
-          `${baseUrl}patient/vital-sign/person/${props.patientObj.id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+            `${baseUrl}patient/vital-sign/person/${props.patientObj.id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
         );
 
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
@@ -1212,28 +1411,35 @@ const EnrollmentAndCommencementForm = (props) => {
 
     if (!registration.unique_id || String(registration.unique_id).trim() === '') {
       temp.unique_id = "Unique ID is required";
-    } else if (errors.unique_id === "Unique ID already exists") {
-      // Preserve existing duplicate error
+    } else if (!uniqueIdLocked && errors.unique_id === "Unique ID already exists") {
+      // Preserve existing duplicate error — but never when the field is locked:
+      // a locked Unique ID is auto-populated from the client's own previous
+      // enrollment record at this facility, so it can't actually be a duplicate.
+      // A returning client whose prior record had no Unique ID gets an editable
+      // field and must still be checked like a freshly entered ID.
       temp.unique_id = "Unique ID already exists";
     }
 
     if (!registration.date_enrolled_in_hiv_care || String(registration.date_enrolled_in_hiv_care).trim() === '') {
       temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care is required";
     } else {
-      // Validate that date_enrolled_in_hiv_care is not earlier than patient registration date
-      const patientRegDate = props.patientObj?.dateOfRegistration;
-      if (patientRegDate && registration.date_enrolled_in_hiv_care < patientRegDate) {
-        temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than patient registration date";
-      }
-
-      // Validate that date_enrolled_in_hiv_care is not earlier than date of confirmed HIV test
-      if (registration.date_confirmed_hiv_test && registration.date_enrolled_in_hiv_care < registration.date_confirmed_hiv_test) {
-        temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than date of confirmed HIV test";
-      }
-
-      // For returning clients, validate that new enrollment date is not earlier than previous enrollment date
-      if (registration.previousEnrollmentDate && registration.date_enrolled_in_hiv_care < registration.previousEnrollmentDate) {
-        temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than previous enrollment date";
+      if (isTransferInClient) {
+        // For transfer-in clients, only validate against date of birth
+        if (effectiveDob && registration.date_enrolled_in_hiv_care < effectiveDob) {
+          temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than date of birth";
+        }
+      } else {
+        // For regular clients, validate against registration date, HIV test date, and previous enrollment date
+        const patientRegDate = effectiveRegDate;
+        if (patientRegDate && registration.date_enrolled_in_hiv_care < patientRegDate) {
+          temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than patient registration date";
+        }
+        if (registration.date_confirmed_hiv_test && registration.date_enrolled_in_hiv_care < registration.date_confirmed_hiv_test) {
+          temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than date of confirmed HIV test";
+        }
+        if (registration.previousEnrollmentDate && registration.date_enrolled_in_hiv_care < registration.previousEnrollmentDate) {
+          temp.date_enrolled_in_hiv_care = "Date enrolled in HIV care cannot be earlier than previous enrollment date";
+        }
       }
     }
 
@@ -1241,6 +1447,14 @@ const EnrollmentAndCommencementForm = (props) => {
       temp.date_confirmed_hiv_test = "Date of confirmed HIV test is required";
     }
 
+
+    // hiv_test_location and mode_of_hiv_test are required by the backend for
+    // every client type (see EnrollmentCommencementService.validateRequiredFields,
+    // which has no returning-client exception) — validate them here too so a
+    // returning client sees an inline error instead of a raw backend exception
+    // after submit. Both fields are auto-populated from the client's previous
+    // record when available (fetchPreviousEnrollmentData) and stay editable, so
+    // this only blocks submission when the value is genuinely still missing.
     if (!registration.hiv_test_location || String(registration.hiv_test_location).trim() === '') {
       temp.hiv_test_location = "HIV test location is required";
     }
@@ -1248,6 +1462,7 @@ const EnrollmentAndCommencementForm = (props) => {
     if (!registration.mode_of_hiv_test || String(registration.mode_of_hiv_test).trim() === '') {
       temp.mode_of_hiv_test = "Mode of HIV test is required";
     }
+
 
     if (!registration.enrollment_setting || String(registration.enrollment_setting).trim() === '') {
       temp.enrollment_setting = "Enrollment setting is required";
@@ -1258,7 +1473,6 @@ const EnrollmentAndCommencementForm = (props) => {
     }
 
     // Prior ART is optional - no validation required
-
     if (!commencement.visit_date || String(commencement.visit_date).trim() === '') {
       temp.visit_date = "Visit date is required";
     }
@@ -1271,16 +1485,27 @@ const EnrollmentAndCommencementForm = (props) => {
     if (!commencement.date_art_started || String(commencement.date_art_started).trim() === '') {
       temp.date_art_started = "Date ART started is required";
     } else {
-      // Validate that date_art_started is not earlier than date_enrolled_in_hiv_care
-      if (registration.date_enrolled_in_hiv_care && commencement.date_art_started < registration.date_enrolled_in_hiv_care) {
+      if (props.patientObj?.dateOfBirth && commencement.date_art_started < props.patientObj.dateOfBirth) {
+        temp.date_art_started = "Date ART started cannot be earlier than date of birth";
+      } else if (registration.date_enrolled_in_hiv_care && commencement.date_art_started < registration.date_enrolled_in_hiv_care) {
         temp.date_art_started = "Date ART started cannot be earlier than date enrolled in HIV care";
       }
     }
+    if (!commencement.regimen_line_id) {
+      temp.regimen_line_id = `${
+          isPediatric ? "Child" : "Adult"
+      } First ART Regimen Line is required`;
+    }
+
+    if (!commencement.first_art_regimen) {
+      temp.first_art_regimen = "First ART Regimen is required";
+    }
+
 
     // 1. Mother's Unique ID — Required if patient age < 18 months (infant)
-    if (isInfant && (!registration.mother_unique_id || String(registration.mother_unique_id).trim() === '')) {
-      temp.mother_unique_id = "Mother's Unique ID is required for infants (age < 18 months)";
-    }
+    // if (isInfant && (!registration.mother_unique_id || String(registration.mother_unique_id).trim() === '')) {
+    //   temp.mother_unique_id = "Mother's Unique ID is required for infants (age < 18 months)";
+    // }
 
     // 2. KP Typology — Required if is_kp = "Yes"
     if (registration.is_kp === 'Yes' && (!registration.kp_typology || String(registration.kp_typology).trim() === '')) {
@@ -1306,6 +1531,23 @@ const EnrollmentAndCommencementForm = (props) => {
       temp.tpt_completion_date = "TPT Completion Date is required when TPT is marked as completed";
     }
 
+    // TPT Start Date validation
+    if (commencement.tpt_started && commencement.tb_preventive_therapy.start_date) {
+      const startDate = commencement.tb_preventive_therapy.start_date;
+
+      if (effectiveDob && startDate < effectiveDob) {
+        temp.tpt_start_date = "TPT Start Date cannot be earlier than date of birth";
+      }
+
+    }
+
+    const vitalFields = ["weight_kg", "height_cm"];
+    const hasVitalErrors = vitalFields.some(field => errors[field]);
+    if (hasVitalErrors) {
+      toast.error("Please correct the out-of-range values for Weight and Height");
+      return false;
+    }
+
     setErrors(temp);
     return Object.keys(temp).length === 0;
   };
@@ -1313,71 +1555,115 @@ const EnrollmentAndCommencementForm = (props) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if Unique ID validation is still in progress (only for create mode)
-    if (isCreateMode && checkingUniqueId) {
-      toast.warning("Please wait while we verify the Unique ID");
-      return;
-    }
-
-    // Re-validate Unique ID before submission (only for create mode)
-    if (isCreateMode && registration.unique_id && String(registration.unique_id).trim() !== '') {
-      await checkUniqueIdExists(registration.unique_id);
-    }
-
-    // Check if there's a duplicate Unique ID error after re-validation
-    if (errors.unique_id === "Unique ID already exists") {
-      toast.error("Unique ID already exists. Please use a different Unique ID.");
-      return;
-    }
-
-    if (!validate()) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-    setSaving(true);
+    // Everything below is now wrapped in a single top-level try/catch. Previously
+    // only the axios call itself was protected — if anything in the Unique ID
+    // check or validate() threw unexpectedly, it failed completely silently:
+    // no toast, no console-visible-to-user error, and no request ever reached
+    // the backend (so backend logs showed nothing either). Wrapping the whole
+    // handler closes that gap so any unexpected error is at least surfaced.
     try {
-      const payload = {
-        personId: props.patientObj.id,
-        dateOfObservation: commencement.visit_date,
-        data: {
-          registration,
-          commencement,
-        },
-      };
-
-      if (isEditMode) {
-        await axios.put(
-          `${baseUrl}hiv/enrollment-commencement/${props.activeContent.id}`,
-          payload,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success("Enrollment and Commencement updated successfully");
-      } else {
-        await axios.post(`${baseUrl}hiv/enrollment-commencement`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toast.success("Enrollment and Commencement saved successfully");
+      // Check if Unique ID validation is still in progress (only for create mode)
+      if (isCreateMode && checkingUniqueId) {
+        toast.warning("Please wait while we verify the Unique ID");
+        return;
       }
 
-      // Small delay to ensure backend has updated the enrollment cycle
-      // This is especially important for Part 2 returning clients to ensure
-      // the menu shows the full menu instead of limited menu
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Re-validate Unique ID before submission (only for create mode).
+      // Skip this only when the Unique ID field is actually locked — auto-populated
+      // from the client's own earlier enrollment record at this facility, and
+      // therefore immutable here, so re-running the "used by another patient"
+      // check would only risk a false-positive block on save. If the client is
+      // returning but their prior (often migrated) record had no Unique ID on
+      // file, the field stays open for entry and must still be checked here like
+      // any freshly entered ID. It also still runs normally for transfer-in
+      // clients (isTransferInClient) who have not yet commenced ART at this
+      // facility and are entering the Unique ID for the first time here.
+      if (isCreateMode && !uniqueIdLocked && registration.unique_id && String(registration.unique_id).trim() !== '') {
+        const uniqueIdAlreadyTaken = await checkUniqueIdExists(registration.unique_id);
 
-      // Trigger patient refresh to update menu state
-      props.setActiveContent({
-        ...props.activeContent,
-        route: "recent-history",
-        activeTab: "home",
-        refreshPatient: true,
-        refreshTimestamp: Date.now(),
-      });
-    } catch (err) {
-      const msg =
-        err?.response?.data?.apierror?.message ||
-        "An error occurred. Please try again.";
-      toast.error(msg);
-    } finally {
+        if (uniqueIdAlreadyTaken) {
+          toast.error("Unique ID already exists. Please use a different Unique ID.");
+          return;
+        }
+      }
+
+      if (!validate()) {
+        // Name the actual missing/invalid fields instead of a generic message —
+        // a plain toast is easy to miss and doesn't tell the user what to fix.
+        setErrors((currentErrors) => {
+          const fieldMessages = Object.values(currentErrors).filter(Boolean);
+          toast.error(
+              fieldMessages.length
+                  ? `Please fix the following: ${fieldMessages.join("; ")}`
+                  : "Please fill all required fields"
+          );
+          return currentErrors;
+        });
+        return;
+      }
+
+      setSaving(true);
+      try {
+        const payload = {
+          personId: props.patientObj.id,
+          dateOfObservation: commencement.visit_date,
+          data: {
+            registration,
+            commencement,
+          },
+        };
+
+        if (isEditMode) {
+          await axios.put(
+              `${baseUrl}hiv/enrollment-commencement/${props.activeContent.id}`,
+              payload,
+              { headers: { Authorization: `Bearer ${token}` } }
+          );
+          toast.success("Enrollment and Commencement updated successfully");
+        } else {
+          await axios.post(`${baseUrl}hiv/enrollment-commencement`, payload, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          toast.success("Enrollment and Commencement saved successfully");
+        }
+
+        // Small delay to ensure backend has updated the enrollment cycle
+        // This is especially important for Part 2 returning clients to ensure
+        // the menu shows the full menu instead of limited menu
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Trigger patient refresh to update menu state
+        props.setActiveContent({
+          ...props.activeContent,
+          route: "recent-history",
+          activeTab: "home",
+          refreshPatient: true,
+          refreshTimestamp: Date.now(),
+        });
+      } catch (err) {
+        // Try the shapes this backend is known to return an error message in,
+        // falling back to a generic message only if none match. This is a safety
+        // net for backend-only validation we haven't mirrored on the frontend yet
+        // — the user should always see *something* specific, not just a failure.
+        const msg =
+            err?.response?.data?.apierror?.message ||
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            (typeof err?.response?.data === "string" ? err.response.data : null) ||
+            "An error occurred. Please try again.";
+        toast.error(msg);
+      } finally {
+        setSaving(false);
+      }
+    } catch (unexpectedErr) {
+      // Catches anything that threw before we even got to the network call —
+      // e.g. a bug in validate() or a codeset lookup on unloaded data. Without
+      // this, such an error is a completely silent no-op from the user's
+      // perspective. Logged to console for engineering follow-up.
+      console.error("Unexpected error before submission:", unexpectedErr);
+      toast.error(
+          "Something went wrong while preparing this form for submission. Please refresh the page and try again, or contact support if this keeps happening."
+      );
       setSaving(false);
     }
   };
@@ -1389,995 +1675,871 @@ const EnrollmentAndCommencementForm = (props) => {
   // Show loading state while checking for existing record OR loading data
   if (checkingExisting || loading) {
     return (
-      <Card className={classes.root} style={{ borderRadius: "12px" }}>
-        <CardContent>
-          <Box sx={{ textAlign: "center", padding: "40px" }}>
-            <Typography>{loading ? "Loading..." : "Checking existing records..."}</Typography>
-          </Box>
-        </CardContent>
-      </Card>
+        <Card className={classes.root} style={{ borderRadius: "12px" }}>
+          <CardContent>
+            <Box sx={{ textAlign: "center", padding: "40px" }}>
+              <Typography>{loading ? "Loading..." : "Checking existing records..."}</Typography>
+            </Box>
+          </CardContent>
+        </Card>
     );
   }
 
   return (
-    <Card
-      className={classes.root}
-      style={{ borderRadius: "12px", overflow: "visible", width: "100%" }}
-    >
-      <CardContent>
-        {/* ── Page Header ─────────────────────────────────────────────── */}
-        <Box
-          sx={{
-            backgroundColor: "#014d88",
-            padding: "14px 20px",
-            marginBottom: "20px",
-          }}
-        >
-          <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
-            Enrollment &amp; ART Commencement {isEditMode && "(Update)"} {isViewMode && "(View)"}
-            {isPediatric && (
-              <span
-                style={{
-                  marginLeft: "12px",
-                  fontSize: "12px",
-                  fontWeight: 400,
-                  background: "rgba(255,255,255,0.2)",
-                  borderRadius: "10px",
-                  padding: "2px 10px",
-                }}
-              >
+      <Card
+          className={classes.root}
+          style={{ borderRadius: "12px", overflow: "visible", width: "100%" }}
+      >
+        <CardContent>
+          {/* ── Page Header ─────────────────────────────────────────────── */}
+          <Box
+              sx={{
+                backgroundColor: "#014d88",
+                padding: "14px 20px",
+                marginBottom: "20px",
+              }}
+          >
+            <Typography sx={{ color: "#fff", fontWeight: 700, fontSize: "16px" }}>
+              Enrollment &amp; ART Commencement {isEditMode && "(Update)"} {isViewMode && "(View)"}
+              {isPediatric && (
+                  <span
+                      style={{
+                        marginLeft: "12px",
+                        fontSize: "12px",
+                        fontWeight: 400,
+                        background: "rgba(255,255,255,0.2)",
+                        borderRadius: "10px",
+                        padding: "2px 10px",
+                      }}
+                  >
                 Pediatric
               </span>
-            )}
-          </Typography>
-        </Box>
+              )}
+            </Typography>
+          </Box>
 
-        <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
 
-          {/* ══════════════════════════════════════════════════════════════ */}
-          {/*  SECTION 1 — PATIENT REGISTRATION DETAILS                    */}
-          {/* ══════════════════════════════════════════════════════════════ */}
-          <FormAccordion
-            panel="registration"
-            title="Enrollment"
-            index={0}
-            expanded={expanded}
-            onToggle={toggleAccordion}
-          >
-            {/* Row 1: Unique ID, Date Enrolled in HIV Care */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>
-                  Unique ID{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="text"
-                  name="unique_id"
-                  value={registration.unique_id}
-                  onChange={handleReg}
-                  onBlur={handleUniqueIdBlur}
-                  placeholder="Enter unique identifier"
-                  disabled={checkingUniqueId || isViewMode || isEditMode || registration.previousEnrollmentDate}
-                  readOnly={isViewMode || registration.previousEnrollmentDate}
-                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                />
-                {checkingUniqueId && (
-                  <span style={{ color: "#014d88", fontSize: "12px", marginTop: "4px" }}>
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  SECTION 1 — PATIENT REGISTRATION DETAILS                    */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            <FormAccordion
+                panel="registration"
+                title="Enrollment"
+                index={0}
+                expanded={expanded}
+                onToggle={toggleAccordion}
+            >
+              {/* Row 1: Unique ID, Date Enrolled in HIV Care */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>
+                    Unique ID{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="text"
+                      name="unique_id"
+                      value={registration.unique_id}
+                      onChange={handleReg}
+                      onBlur={handleUniqueIdBlur}
+                      placeholder="Enter unique identifier"
+                      disabled={checkingUniqueId || isViewMode || isEditMode || uniqueIdLocked}
+                      readOnly={isViewMode || uniqueIdLocked}
+                      style={(isViewMode || uniqueIdLocked) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  />
+                  {checkingUniqueId && (
+                      <span style={{ color: "#014d88", fontSize: "12px", marginTop: "4px" }}>
                     Checking Unique ID...
                   </span>
-                )}
-                {errors.unique_id && (
-                  <span className={classes.error}>
+                  )}
+                  {errors.unique_id && (
+                      <span className={classes.error}>
                     {errors.unique_id}
                   </span>
-                )}
-              </Col>
-              <Col>
-                <SectionLabel>
-                  Date Enrolled in HIV Care{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="date"
-                  name="date_enrolled_in_hiv_care"
-                  value={registration.date_enrolled_in_hiv_care}
-                  min={
-                    // Calculate min date as the latest of patient registration date, HIV test date, and previous enrollment date (for returning clients)
-                    (() => {
-                      const dates = [
-                        props.patientObj?.dateOfRegistration,
-                        registration.date_confirmed_hiv_test,
-                        registration.previousEnrollmentDate // For returning clients
-                      ].filter(Boolean);
-                      return dates.length > 0 ? dates.reduce((a, b) => a > b ? a : b) : undefined;
-                    })()
-                  }
-                  max={moment(new Date()).format("YYYY-MM-DD")}
-                  onChange={handleReg}
-                  disabled={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                />
-                {errors.date_enrolled_in_hiv_care && (
-                  <span className={classes.error}>
+                  )}
+                </Col>
+                <Col>
+                  <SectionLabel>
+                    Date Enrolled in HIV Care{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="date"
+                      name="date_enrolled_in_hiv_care"
+                      value={registration.date_enrolled_in_hiv_care}
+                      // min={
+                      //   // Calculate min date as the latest of patient registration date, HIV test date, and previous enrollment date (for returning clients)
+                      //   (() => {
+                      //     const dates = [
+                      //       props.patientObj?.dateOfRegistration,
+                      //       registration.date_confirmed_hiv_test,
+                      //       registration.previousEnrollmentDate // For returning clients
+                      //     ].filter(Boolean);
+                      //     return dates.length > 0 ? dates.reduce((a, b) => a > b ? a : b) : undefined;
+                      //   })()
+                      // }
+
+                      min={
+                        // For transfer-in clients, only validate against date of birth
+                        // For regular clients, validate against the latest of registration date, HIV test date, and previous enrollment date
+                        (() => {
+                          if (isTransferInClient) {
+                            return effectiveDob || undefined;
+                          }
+                          const dates = [
+                            effectiveRegDate,
+                            registration.date_confirmed_hiv_test,
+                            registration.previousEnrollmentDate
+                          ].filter(Boolean);
+                          return dates.length > 0 ? dates.reduce((a, b) => a > b ? a : b) : undefined;
+                        })()
+                      }
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      onChange={handleReg}
+                      disabled={isViewMode}
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  />
+                  {errors.date_enrolled_in_hiv_care && (
+                      <span className={classes.error}>
                     {errors.date_enrolled_in_hiv_care}
                   </span>
-                )}
-              </Col>
-            </FieldRow>
-
-            {/* Row 2: Mother's Unique ID (if infant) */}
-            {isInfant && (
-              <FieldRow>
-                <Col>
-                  <SectionLabel>
-                    Mother's Unique ID
-                    <span style={{ color: "red" }}> *</span>
-                  </SectionLabel>
-                  <Input
-                    type="text"
-                    name="mother_unique_id"
-                    value={registration.mother_unique_id}
-                    onChange={handleReg}
-                    placeholder="Required for infants < 18 months"
-                    disabled={isViewMode}
-                    readOnly={isViewMode}
-                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                  />
-                  {errors.mother_unique_id && (
-                    <span className={classes.error}>
-                      {errors.mother_unique_id}
-                    </span>
                   )}
                 </Col>
               </FieldRow>
-            )}
 
-            {/* Row 3: Enrollment Setting, Care Entry Point */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>
-                  Enrollment Setting{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="select"
-                  name="enrollment_setting"
-                  value={registration.enrollment_setting}
-                  onChange={handleReg}
-                  disabled={isViewMode || loadingCodesets}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                >
-                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                  {codesets.enrollmentSetting.map((option) => (
-                    <option key={option.id} value={option.code}>
-                      {option.display}
-                    </option>
-                  ))}
-                </Input>
-                {errors.enrollment_setting && (
-                  <span className={classes.error}>
-                    {errors.enrollment_setting}
-                  </span>
-                )}
-              </Col>
-              <Col>
-                <SectionLabel>
-                  Care Entry Point{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="select"
-                  name="care_entry_point"
-                  value={registration.care_entry_point}
-                  onChange={handleReg}
-                  disabled={loadingCodesets || isViewMode || registration.previousEnrollmentDate}
-                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                >
-                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                  {codesets.careEntryPoints.map((opt) => (
-                    <option key={opt.id} value={opt.code}>
-                      {opt.display}
-                    </option>
-                  ))}
-                </Input>
-                {errors.care_entry_point && (
-                  <span className={classes.error}>
-                    {errors.care_entry_point}
-                  </span>
-                )}
-              </Col>
-            </FieldRow>
-
-            {/* Row 4: Specify Entry Point (if Others selected) */}
-            {registration.care_entry_point == getCodesetCodeByPattern(codesets.careEntryPoints, "OTHERS") && (
-              <FieldRow>
-                <Col>
-                  <SectionLabel>Specify Entry Point</SectionLabel>
-                  <Input
-                    type="text"
-                    name="care_entry_point_other"
-                    value={registration.care_entry_point_other}
-                    onChange={handleReg}
-                    placeholder="Please specify..."
-                    disabled={isViewMode}
-                    readOnly={isViewMode}
-                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                  />
-                </Col>
-              </FieldRow>
-            )}
-
-            {/* Row 5: Date Transferred In, Facility Transferred From (if Transfer-in selected) */}
-            {registration.care_entry_point == getCodesetCodeByPattern(codesets.careEntryPoints, "TRANSFER") && (
-              <FieldRow>
-                <Col>
-                  <SectionLabel>
-                    Date Transferred In{" "}
-                    <span style={{ color: "red" }}>*</span>
-                  </SectionLabel>
-                  <Input
-                    type="date"
-                    name="date_transferred_in"
-                    value={registration.date_transferred_in}
-                    max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
-                    onChange={handleReg}
-                    disabled={isViewMode}
-                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                  />
-                  {errors.date_transferred_in && (
-                    <span className={classes.error}>
-                      {errors.date_transferred_in}
-                    </span>
-                  )}
-                </Col>
-                <Col>
-                  <SectionLabel>
-                    Facility Transferred From
-                    {registration.date_transferred_in && registration.date_transferred_in.trim() !== "" && (
-                      <span style={{ color: "red" }}> *</span>
-                    )}
-                  </SectionLabel>
-                  {isViewMode ? (
-                    <Input
-                      type="text"
-                      name="facility_transferred_from"
-                      value={registration.facility_transferred_from}
-                      readOnly
-                      style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}
-                    />
-                  ) : (
-                    <Select
-                      name="facility_transferred_from"
-                      value={getFacilityOptions().find(option => option.value === registration.facility_transferred_from)}
-                      onChange={handleFacilitySelect}
-                      options={getFacilityOptions()}
-                      isLoading={loadingFacilities}
-                      placeholder="Search or select facility..."
-                      isSearchable={true}
-                      isClearable={true}
-                      noOptionsMessage={() => "No facilities found"}
-                      styles={{
-                        control: (base) => ({
-                          ...base,
-                          minHeight: '41px',
-                          borderColor: '#ced4da',
-                          borderRadius: '0.25rem',
-                          '&:hover': {
-                            borderColor: '#ced4da'
-                          }
-                        }),
-                        valueContainer: (base) => ({
-                          ...base,
-                          padding: '2px 8px'
-                        })
-                      }}
-                    />
-                  )}
-                  {errors.facility_transferred_from && (
-                    <span className={classes.error}>
-                      {errors.facility_transferred_from}
-                    </span>
-                  )}
-                </Col>
-              </FieldRow>
-            )}
-
-            {/* Row 5: Date of Confirmed HIV Test, Mode of HIV Test */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>
-                  Date of Confirmed HIV Test{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="date"
-                  name="date_confirmed_hiv_test"
-                  value={registration.date_confirmed_hiv_test}
-                  min={props.patientObj1?.dateOfBirth || undefined}
-                  max={
-                    (() => {
-                      const dates = [
-                        registration.date_enrolled_in_hiv_care,
-                        props.patientObj1?.initialClinicalEvaluation?.data?.arvHistory?.durationOfCareFrom
-                      ].filter(Boolean);
-                      return dates.length > 0 ? dates.reduce((a, b) => a < b ? a : b) : moment(new Date()).format("YYYY-MM-DD");
-                    })()
-                  }
-                  onChange={handleReg}
-                  disabled={isViewMode || registration.previousEnrollmentDate || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
-                  readOnly={registration.previousEnrollmentDate || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
-                  style={(isViewMode || registration.previousEnrollmentDate || (isCreateMode && props.patientObj1?.dateConfirmedHiv)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                />
-                {errors.date_confirmed_hiv_test && (
-                  <span className={classes.error}>
-                    {errors.date_confirmed_hiv_test}
-                  </span>
-                )}
-              </Col>
-              <Col>
-                <SectionLabel>
-                  Mode of HIV Test{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="select"
-                  name="mode_of_hiv_test"
-                  value={registration.mode_of_hiv_test}
-                  onChange={handleReg}
-                  disabled={loadingCodesets || isViewMode || registration.previousEnrollmentDate}
-                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                >
-                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                  {codesets.mode_of_hiv_test.map((opt) => (
-                    <option key={opt.id} value={opt.code}>{opt.display}</option>
-                  ))}
-                </Input>
-                {errors.mode_of_hiv_test && (
-                  <span className={classes.error}>
-                    {errors.mode_of_hiv_test}
-                  </span>
-                )}
-              </Col>
-            </FieldRow>
-
-            {/* Row 6: HIV Test Location, Prior ART (conditional) */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>
-                  HIV Test Location{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="text"
-                  name="hiv_test_location"
-                  value={registration.hiv_test_location}
-                  onChange={handleReg}
-                  placeholder="e.g. ANC, HTS Site"
-                  disabled={isViewMode || registration.previousEnrollmentDate}
-                  readOnly={isViewMode || registration.previousEnrollmentDate}
-                  style={(isViewMode || registration.previousEnrollmentDate) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                />
-                {errors.hiv_test_location && (
-                  <span className={classes.error}>
-                    {errors.hiv_test_location}
-                  </span>
-                )}
-              </Col>
-              {showPriorArtField && (
-                <Col>
-                  <SectionLabel>
-                    Prior ART
-                    {isCreateMode && priorArtFromICE && (
-                      <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0, fontSize: "11px", marginLeft: "6px" }}>
-                        (auto-populated from ICE)
-                      </span>
-                    )}
-                  </SectionLabel>
-                  <Input
-                    type="select"
-                    name="prior_art"
-                    value={registration.prior_art}
-                    onChange={handleReg}
-                    disabled={loadingCodesets || isViewMode || (isCreateMode && priorArtFromICE)}
-                    readOnly={isViewMode || (isCreateMode && priorArtFromICE)}
-                    style={(isViewMode || (isCreateMode && priorArtFromICE)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                  >
-                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                    {getFilteredPriorArt(codesets.priorArt).map((opt) => (
-                      <option key={opt.id} value={opt.code}>
-                        {opt.display}
-                      </option>
-                    ))}
-                  </Input>
-                  {errors.prior_art && (
-                    <span className={classes.error}>
-                      {errors.prior_art}
-                    </span>
-                  )}
-                </Col>
-              )}
-            </FieldRow>
-
-            {/* Row 7: Is Patient KP, KP Typology */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>Is Patient KP?</SectionLabel>
-                <Input
-                  type="select"
-                  name="is_kp"
-                  value={registration.is_kp}
-                  onChange={handleReg}
-                  disabled={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                >
-                  <option value="">Select</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </Input>
-              </Col>
-              {registration.is_kp === "Yes" && (
-                <Col>
-                  <SectionLabel>
-                    KP Typology{" "}
-                    <span style={{ color: "red" }}>*</span>
-                  </SectionLabel>
-                  <Input
-                    type="select"
-                    name="kp_typology"
-                    value={registration.kp_typology}
-                    onChange={handleReg}
-                    disabled={loadingCodesets || isViewMode}
-                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                  >
-                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                    {getFilteredKpTypology(codesets.kpTypology).map((opt) => (
-                      <option key={opt.id} value={opt.code}>{opt.display}</option>
-                    ))}
-                  </Input>
-                  {errors.kp_typology && (
-                    <span className={classes.error}>
-                      {errors.kp_typology}
-                    </span>
-                  )}
-                </Col>
-              )}
-            </FieldRow>
-          </FormAccordion>
-
-          <FormAccordion
-            panel="commencement"
-            title="ART Commencement"
-            index={1}
-            expanded={expanded}
-            onToggle={toggleAccordion}
-          >
-            {/* Visit Date */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>
-                  Visit Date{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="date"
-                  name="visit_date"
-                  value={commencement.visit_date}
-                  max={moment(new Date()).format("YYYY-MM-DD")}
-                  min={props.patientObj?.dateOfBirth || undefined}
-                  onChange={handleCommencement}
-                  disabled={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                />
-                {errors.visit_date && (
-                  <span className={classes.error}>
-                    {errors.visit_date}
-                  </span>
-                )}
-              </Col>
-            </FieldRow>
-
-            {/* Clinical Status */}
-            <Divider sx={{ my: 2 }} />
-            <SubHeading>Clinical Status at ART Start</SubHeading>
-
-            {/* Row 1: Clinical Stage at Start of ART, CD4 Count at Start of ART */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>
-                  Clinical Stage at Start of ART{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="select"
-                  name="clinical_stage_at_art_start"
-                  value={commencement.clinical_stage_at_art_start}
-                  onChange={handleCommencement}
-                  disabled={loadingCodesets || isViewMode || (isCreateMode && props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage)}
-                  style={(isViewMode || (isCreateMode && props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                >
-                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                  {codesets.clinicalStages.map((opt) => (
-                    <option key={opt.id} value={opt.code}>{opt.display}</option>
-                  ))}
-                </Input>
-                {errors.clinical_stage_at_art_start && (
-                  <span className={classes.error}>
-                    {errors.clinical_stage_at_art_start}
-                  </span>
-                )}
-              </Col>
-              <Col>
-                <SectionLabel>CD4 Count at Start of ART</SectionLabel>
-                <Input
-                  type="number"
-                  name="cd4_at_art_start"
-                  value={commencement.cd4_at_art_start}
-                  onChange={handleCommencement}
-                  placeholder="cells/mm³"
-                  min="0"
-                  step="1"
-                  disabled={isViewMode}
-                  readOnly={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                />
-              </Col>
-            </FieldRow>
-
-            {/* Row 2: CD4 LF */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>CD4 LF</SectionLabel>
-                <Input
-                  type="select"
-                  name="cd4_lf"
-                  value={commencement.cd4_lf}
-                  onChange={handleCommencement}
-                  disabled={loadingCodesets || isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                >
-                  <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
-                  {codesets.cd4_lf.map((opt) => (
-                    <option key={opt.id} value={opt.code}>
-                      {opt.display}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-            </FieldRow>
-
-            {/* ART Dates & Regimen */}
-            <Divider sx={{ my: 2 }} />
-            <SubHeading>ART Dates &amp; Regimen</SubHeading>
-
-            {/* Row 3: Date Initial Adherence Counseling Completed, Date ART Started */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>
-                  Date Initial Adherence Counseling Completed
-                </SectionLabel>
-                <Input
-                  type="date"
-                  name="date_adherence_counseling_completed"
-                  value={commencement.date_adherence_counseling_completed}
-                  min={props.patientObj1?.dateOfBirth || undefined}
-                  max={moment(new Date()).format("YYYY-MM-DD")}
-                  onChange={handleCommencement}
-                  disabled={isViewMode || (isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate)}
-                  readOnly={isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate}
-                  style={(isViewMode || (isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                />
-              </Col>
-              <Col>
-                <SectionLabel>
-                  Date ART Started{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </SectionLabel>
-                <Input
-                  type="date"
-                  name="date_art_started"
-                  value={commencement.date_art_started}
-                  max={moment(new Date()).format("YYYY-MM-DD")}
-                  onChange={handleCommencement}
-                  disabled={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                />
-                {errors.date_art_started && (
-                  <span className={classes.error}>
-                    {errors.date_art_started}
-                  </span>
-                )}
-              </Col>
-            </FieldRow>
-
-            {/* Row 4: First ART Regimen Line, First ART Regimen */}
-            <FieldRow>
-              <Col>
-                <SectionLabel>{isPediatric ? "Child" : "Adult"} First ART Regimen Line</SectionLabel>
-                <Input
-                  type="select"
-                  name="regimen_line_id"
-                  value={commencement.regimen_line_id}
-                  onChange={handleCommencement}
-                  disabled={isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                >
-                  <option value="">Select regimen line first...</option>
-                  {regimenLines.map((line) => (
-                    <option key={line.id} value={line.id}>
-                      {line.description}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-              <Col>
-                <SectionLabel>First ART Regimen</SectionLabel>
-                <Input
-                  type="select"
-                  name="first_art_regimen"
-                  value={commencement.first_art_regimen}
-                  onChange={handleCommencement}
-                  disabled={!commencement.regimen_line_id || loadingRegimens || isViewMode}
-                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                >
-                  <option value="">
-                    {!commencement.regimen_line_id
-                      ? "Select regimen line first..."
-                      : loadingRegimens
-                      ? "Loading..."
-                      : "Select regimen..."}
-                  </option>
-                  {regimens.map((regimen) => (
-                    <option key={regimen.id} value={regimen.id}>
-                      {regimen.description}
-                    </option>
-                  ))}
-                </Input>
-              </Col>
-            </FieldRow>
-
-            {/* Vitals at Commencement */}
-            <Divider sx={{ my: 2 }} />
-            <SubHeading>Vitals at Commencement</SubHeading>
-            <Box
-              sx={{
-                background: "#fff",
-                border: "1px solid #014d88",
-                borderRadius: "4px",
-                padding: "16px",
-                marginBottom: "16px",
-              }}
-            >
-              {/* Row 5: Weight, Height */}
-              <FieldRow>
-                <Col>
-                  <SectionLabel>Weight (kg)</SectionLabel>
-                  <Input
-                    type="number"
-                    name="weight_kg"
-                    value={commencement.weight_kg}
-                    onChange={handleCommencement}
-                    placeholder="kg"
-                    min="0"
-                    step="0.1"
-                    disabled={isViewMode}
-                    readOnly={isViewMode}
-                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                  />
-                </Col>
-                <Col>
-                  <SectionLabel>Height / Length (cm)</SectionLabel>
-                  <Input
-                    type="number"
-                    name="height_cm"
-                    value={commencement.height_cm}
-                    onChange={handleCommencement}
-                    placeholder="cm"
-                    min="0"
-                    step="0.1"
-                    disabled={isViewMode}
-                    readOnly={isViewMode}
-                    style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                  />
-                </Col>
-              </FieldRow>
-
-              {/* Row 6: BMI */}
-              <FieldRow>
-                <Col>
-                  <SectionLabel>
-                    BMI{" "}
-                    <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0 }}>
-                      (auto-calculated)
-                    </span>
-                  </SectionLabel>
-                  <Input
-                    type="text"
-                    name="bmi"
-                    value={commencement.bmi}
-                    readOnly
-                    placeholder="kg/m²"
-                    style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}
-                  />
-                </Col>
-              </FieldRow>
-
-              {/* ── MUAC — pediatric only ──────────────────────────── */}
-              {isPediatric && (
-                <>
-                  {/* Row 7: MUAC (cm), MUAC Indication */}
+              {/* Row 2: Mother's Unique ID (if infant) */}
+              {isInfant && (
                   <FieldRow>
                     <Col>
-                      <SectionLabel>MUAC (cm)</SectionLabel>
+                      <SectionLabel>
+                        Mother's Unique ID
+                        {/*<span style={{ color: "red" }}> *</span>*/}
+                      </SectionLabel>
                       <Input
-                        type="number"
-                        name="muac"
-                        value={commencement.muac}
-                        onChange={handleCommencement}
-                        placeholder="e.g. 13.5"
-                        min="0"
-                        step="0.1"
-                        disabled={isViewMode}
-                        readOnly={isViewMode}
-                        style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                          type="text"
+                          name="mother_unique_id"
+                          value={registration.mother_unique_id}
+                          onChange={handleReg}
+                          // placeholder="Required for infants < 18 months"
+                          disabled={isViewMode}
+                          readOnly={isViewMode}
+                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                       />
+                      {errors.mother_unique_id && (
+                          <span className={classes.error}>
+                      {errors.mother_unique_id}
+                    </span>
+                      )}
+                    </Col>
+                  </FieldRow>
+              )}
+
+              {/* Row 3: Enrollment Setting, Care Entry Point */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>
+                    Enrollment Setting{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="select"
+                      name="enrollment_setting"
+                      value={registration.enrollment_setting}
+                      onChange={handleReg}
+                      disabled={isViewMode || loadingCodesets}
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  >
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.enrollmentSetting.map((option) => (
+                        <option key={option.id} value={option.code}>
+                          {option.display}
+                        </option>
+                    ))}
+                  </Input>
+                  {errors.enrollment_setting && (
+                      <span className={classes.error}>
+                    {errors.enrollment_setting}
+                  </span>
+                  )}
+                </Col>
+                <Col>
+                  <SectionLabel>
+                    Care Entry Point{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="select"
+                      name="care_entry_point"
+                      value={registration.care_entry_point}
+                      onChange={handleReg}
+                      disabled={loadingCodesets || isViewMode || careEntryPointLocked || (isCreateMode && isTransferInClient)}
+                      style={(isViewMode || careEntryPointLocked || (isCreateMode && isTransferInClient)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  >
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.careEntryPoints.map((opt) => (
+                        <option key={opt.id} value={opt.code}>
+                          {opt.display}
+                        </option>
+                    ))}
+                  </Input>
+                  {errors.care_entry_point && (
+                      <span className={classes.error}>
+                    {errors.care_entry_point}
+                  </span>
+                  )}
+                </Col>
+              </FieldRow>
+
+              {/* Row 4: Specify Entry Point (if Others selected) */}
+              {registration.care_entry_point == getCodesetCodeByPattern(codesets.careEntryPoints, "OTHERS") && (
+                  <FieldRow>
+                    <Col>
+                      <SectionLabel>Specify Entry Point</SectionLabel>
+                      <Input
+                          type="text"
+                          name="care_entry_point_other"
+                          value={registration.care_entry_point_other}
+                          onChange={handleReg}
+                          placeholder="Please specify..."
+                          disabled={isViewMode}
+                          readOnly={isViewMode}
+                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                      />
+                    </Col>
+                  </FieldRow>
+              )}
+
+              {/* Row 5: Date Transferred In, Facility Transferred From (if Transfer-in selected) */}
+              {registration.care_entry_point == getCodesetCodeByPattern(codesets.careEntryPoints, "TRANSFER") && (
+                  <FieldRow>
+                    <Col>
+                      <SectionLabel>
+                        Date Transferred In{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="date"
+                          name="date_transferred_in"
+                          value={registration.date_transferred_in}
+                          min={registration.date_enrolled_in_hiv_care || undefined}   // ← MIN, not MAX
+                          max={moment(new Date()).format("YYYY-MM-DD")}
+                          // max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
+                          onChange={handleReg}
+                          disabled={isViewMode}
+                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                      />
+                      {errors.date_transferred_in && (
+                          <span className={classes.error}>
+                      {errors.date_transferred_in}
+                    </span>
+                      )}
                     </Col>
                     <Col>
                       <SectionLabel>
-                        MUAC Indication{" "}
-                        <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0 }}>
-                          (auto-derived)
-                        </span>
+                        Facility Transferred From
+                        {registration.date_transferred_in && registration.date_transferred_in.trim() !== "" && (
+                            <span style={{ color: "red" }}> *</span>
+                        )}
+                      </SectionLabel>
+                      {isViewMode ? (
+                          <Input
+                              type="text"
+                              name="facility_transferred_from"
+                              value={registration.facility_transferred_from}
+                              readOnly
+                              style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}
+                          />
+                      ) : (
+                          <Select
+                              name="facility_transferred_from"
+                              value={getFacilityOptions().find(option => option.value === registration.facility_transferred_from)}
+                              onChange={handleFacilitySelect}
+                              options={getFacilityOptions()}
+                              isLoading={loadingFacilities}
+                              placeholder="Search or select facility..."
+                              isSearchable={true}
+                              isClearable={true}
+                              noOptionsMessage={() => "No facilities found"}
+                              styles={{
+                                control: (base) => ({
+                                  ...base,
+                                  minHeight: '41px',
+                                  borderColor: '#ced4da',
+                                  borderRadius: '0.25rem',
+                                  '&:hover': {
+                                    borderColor: '#ced4da'
+                                  }
+                                }),
+                                valueContainer: (base) => ({
+                                  ...base,
+                                  padding: '2px 8px'
+                                })
+                              }}
+                          />
+                      )}
+                      {errors.facility_transferred_from && (
+                          <span className={classes.error}>
+                      {errors.facility_transferred_from}
+                    </span>
+                      )}
+                    </Col>
+                  </FieldRow>
+              )}
+
+              {/* Row 5: Date of Confirmed HIV Test, Mode of HIV Test */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>
+                    Date of Confirmed HIV Test{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="date"
+                      name="date_confirmed_hiv_test"
+                      value={registration.date_confirmed_hiv_test}
+                      min={props.patientObj1?.dateOfBirth || undefined}
+                      max={
+                        (() => {
+                          const dates = [
+                            registration.date_enrolled_in_hiv_care,
+                            props.patientObj1?.initialClinicalEvaluation?.data?.arvHistory?.durationOfCareFrom
+                          ].filter(Boolean);
+                          return dates.length > 0 ? dates.reduce((a, b) => a < b ? a : b) : moment(new Date()).format("YYYY-MM-DD");
+                        })()
+                      }
+                      onChange={handleReg}
+                      disabled={isViewMode || dateConfirmedHivTestLocked || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
+                      readOnly={dateConfirmedHivTestLocked || (isCreateMode && props.patientObj1?.dateConfirmedHiv)}
+                      style={(isViewMode || dateConfirmedHivTestLocked || (isCreateMode && props.patientObj1?.dateConfirmedHiv)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  />
+                  {errors.date_confirmed_hiv_test && (
+                      <span className={classes.error}>
+                    {errors.date_confirmed_hiv_test}
+                  </span>
+                  )}
+                </Col>
+                <Col>
+                  <SectionLabel>
+                    Mode of HIV Test{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="select"
+                      name="mode_of_hiv_test"
+                      value={registration.mode_of_hiv_test}
+                      onChange={handleReg}
+                      disabled={loadingCodesets || isViewMode || (registration.previousEnrollmentDate && !isReturningClient)}
+                      style={(isViewMode || (registration.previousEnrollmentDate && !isReturningClient)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  >
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.mode_of_hiv_test.map((opt) => (
+                        <option key={opt.id} value={opt.code}>{opt.display}</option>
+                    ))}
+                  </Input>
+                  {errors.mode_of_hiv_test && (
+                      <span className={classes.error}>
+                    {errors.mode_of_hiv_test}
+                  </span>
+                  )}
+                </Col>
+              </FieldRow>
+
+              {/* Row 6: HIV Test Location, Prior ART (conditional) */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>
+                    HIV Test Location{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="text"
+                      name="hiv_test_location"
+                      value={registration.hiv_test_location}
+                      onChange={handleReg}
+                      placeholder="e.g. ANC, HTS Site"
+                      disabled={isViewMode || (registration.previousEnrollmentDate && !isReturningClient)}
+                      readOnly={isViewMode || (registration.previousEnrollmentDate && !isReturningClient)}
+                      style={(isViewMode || (registration.previousEnrollmentDate && !isReturningClient)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  />
+                  {errors.hiv_test_location && (
+                      <span className={classes.error}>
+                    {errors.hiv_test_location}
+                  </span>
+                  )}
+                </Col>
+                {showPriorArtField && (
+                    <Col>
+                      <SectionLabel>
+                        Prior ART
+                        {isCreateMode && priorArtFromICE && (
+                            <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0, fontSize: "11px", marginLeft: "6px" }}>
+                        (auto-populated from ICE)
+                      </span>
+                        )}
                       </SectionLabel>
                       <Input
-                        type="text"
-                        name="muac_indication"
-                        value={commencement.muac_indication}
-                        readOnly
-                        placeholder="—"
-                        style={{
-                          fontWeight: 600,
-                          background:
-                            commencement.muac_indication === "Underweight"
-                              ? "#fff3e0"
-                              : commencement.muac_indication === "Well Nourished"
-                              ? "#e8f5e9"
-                              : commencement.muac_indication === "Overweight/Obese"
-                              ? "#fce4ec"
-                              : "#f5f9ff",
-                          color:
-                            commencement.muac_indication === "Underweight"
-                              ? "#e65100"
-                              : commencement.muac_indication === "Well Nourished"
-                              ? "#2e7d32"
-                              : commencement.muac_indication === "Overweight/Obese"
-                              ? "#880e4f"
-                              : "#014d88",
-                        }}
-                      />
-                    </Col>
-                  </FieldRow>
-                </>
-              )}
-
-              {/* ── Pregnancy Status — adult females only ──────────── */}
-              {showPregnancyStatus && (
-                <>
-                  {/* Row 8: Is Pregnant?, Is Breastfeeding? (conditional) */}
-                  <FieldRow>
-                    <Col>
-                      <SectionLabel>Is Pregnant?</SectionLabel>
-                      <Input
-                        type="select"
-                        name="is_pregnant"
-                        value={commencement.is_pregnant}
-                        onChange={handleCommencement}
-                        disabled={isViewMode}
-                        style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                      >
-                        <option value="">Select</option>
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                      </Input>
-                    </Col>
-                    {commencement.is_pregnant === "No" && (
-                      <Col>
-                        <SectionLabel>Is Breastfeeding?</SectionLabel>
-                        <Input
                           type="select"
-                          name="is_breast_feeding"
-                          value={commencement.is_breast_feeding}
-                          onChange={handleCommencement}
-                          disabled={isViewMode}
-                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                        >
-                          <option value="">Select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </Input>
-                      </Col>
-                    )}
-                  </FieldRow>
-                </>
-              )}
-            </Box>
+                          name="prior_art"
+                          value={registration.prior_art}
+                          onChange={handleReg}
+                          disabled={loadingCodesets || isViewMode || (isCreateMode && priorArtFromICE)}
+                          readOnly={isViewMode || (isCreateMode && priorArtFromICE)}
+                          style={(isViewMode || (isCreateMode && priorArtFromICE)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                      >
+                        <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                        {getFilteredPriorArt(codesets.priorArt).map((opt) => (
+                            <option key={opt.id} value={opt.code}>
+                              {opt.display}
+                            </option>
+                        ))}
+                      </Input>
+                      {errors.prior_art && (
+                          <span className={classes.error}>
+                      {errors.prior_art}
+                    </span>
+                      )}
+                    </Col>
+                )}
+              </FieldRow>
 
-            {/* TB Preventive Therapy */}
-            <Divider sx={{ my: 2 }} />
-            <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
-
-            {/* Has Client ever had TPT? Checkbox */}
-            <FieldRow>
-              <Col size={12}>
-                <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
-                  <input
-                    type="checkbox"
-                    id="tpt_started"
-                    name="tpt_started"
-                    checked={commencement.tpt_started}
-                    onChange={handleCommencement}
-                    disabled={isViewMode}
-                    style={{
-                      width: "18px",
-                      height: "18px",
-                      marginRight: "8px",
-                      cursor: isViewMode ? "not-allowed" : "pointer"
-                    }}
-                  />
-                  <label
-                    htmlFor="tpt_started"
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      color: "#014d88",
-                      cursor: isViewMode ? "not-allowed" : "pointer",
-                      margin: 0
-                    }}
-                  >
-                    Has Client ever had TPT?
-                  </label>
-                </div>
-              </Col>
-            </FieldRow>
-
-            {/* TPT Details - Only show if checkbox is checked */}
-            {commencement.tpt_started && (
-              <Box
-                sx={{
-                  background: "#fff",
-                  border: "1px solid #014d88",
-                  borderRadius: "4px",
-                  padding: "16px",
-                }}
-              >
-                {/* Row 9: TPT MEDICATION */}
-                <FieldRow>
-                  <Col>
-                    <SectionLabel>TPT MEDICATION</SectionLabel>
-                    <Input
+              {/* Row 7: Is Patient KP, KP Typology */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>Is Patient KP?</SectionLabel>
+                  <Input
                       type="select"
-                      name="medication"
-                      value={commencement.tb_preventive_therapy.medication}
-                      onChange={handleTpt}
-                      disabled={loadingTptMedications || isViewMode}
+                      name="is_kp"
+                      value={registration.is_kp}
+                      onChange={handleReg}
+                      disabled={isViewMode}
                       style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                    >
-                      <option value="">{loadingTptMedications ? "Loading..." : "Select"}</option>
-                      {tptMedications.map((med) => (
-                        <option key={med.id} value={med.id}>
-                          {med.description}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                </FieldRow>
+                  >
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </Input>
+                </Col>
+                {registration.is_kp === "Yes" && (
+                    <Col>
+                      <SectionLabel>
+                        KP Typology{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </SectionLabel>
+                      <Input
+                          type="select"
+                          name="kp_typology"
+                          value={registration.kp_typology}
+                          onChange={handleReg}
+                          disabled={loadingCodesets || isViewMode}
+                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                      >
+                        <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                        {getFilteredKpTypology(codesets.kpTypology).map((opt) => (
+                            <option key={opt.id} value={opt.code}>{opt.display}</option>
+                        ))}
+                      </Input>
+                      {errors.kp_typology && (
+                          <span className={classes.error}>
+                      {errors.kp_typology}
+                    </span>
+                      )}
+                    </Col>
+                )}
+              </FieldRow>
+            </FormAccordion>
 
-                {/* Row 10: Dose, Start Date */}
-                <FieldRow>
-                  <Col>
-                    <SectionLabel>Dose</SectionLabel>
-                    <Input
+            <FormAccordion
+                panel="commencement"
+                title="ART Commencement"
+                index={1}
+                expanded={expanded}
+                onToggle={toggleAccordion}
+            >
+              {/* Visit Date */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>
+                    Visit Date{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="date"
+                      name="visit_date"
+                      value={commencement.visit_date}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      min={props.patientObj?.dateOfBirth || undefined}
+                      onChange={handleCommencement}
+                      disabled={isViewMode}
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  />
+                  {errors.visit_date && (
+                      <span className={classes.error}>
+                    {errors.visit_date}
+                  </span>
+                  )}
+                </Col>
+              </FieldRow>
+
+              {/* Clinical Status */}
+              <Divider sx={{ my: 2 }} />
+              <SubHeading>Clinical Status at ART Start</SubHeading>
+
+              {/* Row 1: Clinical Stage at Start of ART, CD4 Count at Start of ART */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>
+                    Clinical Stage at Start of ART{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="select"
+                      name="clinical_stage_at_art_start"
+                      value={commencement.clinical_stage_at_art_start}
+                      onChange={handleCommencement}
+                      disabled={loadingCodesets || isViewMode || (isCreateMode && props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage)}
+                      style={(isViewMode || (isCreateMode && props.patientObj1?.initialClinicalEvaluation?.data?.assessment?.whoStage)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  >
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.clinicalStages.map((opt) => (
+                        <option key={opt.id} value={opt.code}>{opt.display}</option>
+                    ))}
+                  </Input>
+                  {errors.clinical_stage_at_art_start && (
+                      <span className={classes.error}>
+                    {errors.clinical_stage_at_art_start}
+                  </span>
+                  )}
+                </Col>
+                <Col>
+                  <SectionLabel>CD4 Count at Start of ART</SectionLabel>
+                  <Input
                       type="number"
-                      name="dose"
-                      value={commencement.tb_preventive_therapy.dose}
-                      onChange={handleTpt}
-                      placeholder="e.g. 300"
+                      name="cd4_at_art_start"
+                      value={commencement.cd4_at_art_start}
+                      onChange={handleCommencement}
+                      placeholder="cells/mm³"
                       min="0"
                       step="1"
                       disabled={isViewMode}
                       readOnly={isViewMode}
                       style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                    />
-                  </Col>
-                  <Col>
-                    <SectionLabel>Start Date</SectionLabel>
-                    <Input
+                  />
+                </Col>
+              </FieldRow>
+
+              {/* Row 2: CD4 LF */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>CD4 LF</SectionLabel>
+                  <Input
+                      type="select"
+                      name="cd4_lf"
+                      value={commencement.cd4_lf}
+                      onChange={handleCommencement}
+                      disabled={loadingCodesets || isViewMode}
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  >
+                    <option value="">{loadingCodesets ? "Loading..." : "Select"}</option>
+                    {codesets.cd4_lf.map((opt) => (
+                        <option key={opt.id} value={opt.code}>
+                          {opt.display}
+                        </option>
+                    ))}
+                  </Input>
+                </Col>
+              </FieldRow>
+
+              {/* ART Dates & Regimen */}
+              <Divider sx={{ my: 2 }} />
+              <SubHeading>ART Dates &amp; Regimen</SubHeading>
+
+              {/* Row 3: Date Initial Adherence Counseling Completed, Date ART Started */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>
+                    Date Initial Adherence Counseling Completed
+                  </SectionLabel>
+                  <Input
                       type="date"
-                      name="start_date"
-                      value={commencement.tb_preventive_therapy.start_date}
+                      name="date_adherence_counseling_completed"
+                      value={commencement.date_adherence_counseling_completed}
                       min={props.patientObj1?.dateOfBirth || undefined}
                       max={moment(new Date()).format("YYYY-MM-DD")}
-                      onChange={handleTpt}
+                      onChange={handleCommencement}
+                      disabled={isViewMode || (isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate)}
+                      readOnly={isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate}
+                      style={(isViewMode || (isCreateMode && props.patientObj1?.adherencePreparation?.serviceDate)) ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  />
+                </Col>
+                <Col>
+                  <SectionLabel>
+                    Date ART Started{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="date"
+                      name="date_art_started"
+                      value={commencement.date_art_started}
+                      max={moment(new Date()).format("YYYY-MM-DD")}
+                      onChange={handleCommencement}
+                      disabled={isViewMode}
+                      min={props.patientObj?.dateOfBirth || undefined}
+
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  />
+                  {errors.date_art_started && (
+                      <span className={classes.error}>
+                    {errors.date_art_started}
+                  </span>
+                  )}
+                </Col>
+              </FieldRow>
+
+              {/* Row 4: First ART Regimen Line, First ART Regimen */}
+              <FieldRow>
+                <Col>
+                  <SectionLabel>
+                    {isPediatric ? "Child" : "Adult"} First ART Regimen Line{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="select"
+                      name="regimen_line_id"
+                      value={commencement.regimen_line_id}
+                      onChange={handleCommencement}
                       disabled={isViewMode}
                       style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  >
+                    <option value="">Select regimen line first...</option>
+                    {regimenLines.map((line) => (
+                        <option key={line.id} value={line.id}>
+                          {line.description}
+                        </option>
+                    ))}
+                  </Input>
+                  {errors.regimen_line_id && (
+                      <span className={classes.error}>
+                  {errors.regimen_line_id}
+                </span>
+                  )}
+                </Col>
+                <Col>
+                  <SectionLabel>
+                    First ART Regimen{" "}
+                    <span style={{ color: "red" }}>*</span>
+                  </SectionLabel>
+                  <Input
+                      type="select"
+                      name="first_art_regimen"
+                      value={commencement.first_art_regimen}
+                      onChange={handleCommencement}
+                      disabled={!commencement.regimen_line_id || loadingRegimens || isViewMode}
+                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                  >
+                    <option value="">
+                      {!commencement.regimen_line_id
+                          ? "Select regimen line first..."
+                          : loadingRegimens
+                              ? "Loading..."
+                              : "Select regimen..."}
+                    </option>
+                    {regimens.map((regimen) => (
+                        <option key={regimen.id} value={regimen.id}>
+                          {regimen.description}
+                        </option>
+                    ))}
+                  </Input>
+                  {errors.first_art_regimen && (
+                      <span className={classes.error}>
+                  {errors.first_art_regimen}
+                </span>
+                  )}
+                </Col>
+              </FieldRow>
+
+              {/* Vitals at Commencement */}
+              <Divider sx={{ my: 2 }} />
+              <SubHeading>Vitals at Commencement</SubHeading>
+              <Box
+                  sx={{
+                    background: "#fff",
+                    border: "1px solid #014d88",
+                    borderRadius: "4px",
+                    padding: "16px",
+                    marginBottom: "16px",
+                  }}
+              >
+                {/* Row 5: Weight, Height */}
+                <FieldRow>
+                  <Col>
+                    <SectionLabel>Weight (kg)</SectionLabel>
+                    <Input
+                        type="number"
+                        name="weight_kg"
+                        value={commencement.weight_kg}
+                        onChange={handleCommencement}
+                        placeholder="kg"
+                        min="0"
+                        step="0.1"
+                        disabled={isViewMode}
+                        readOnly={isViewMode}
+                        style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                    />
+                    {errors.weight_kg && <span className={classes.error}>{errors.weight_kg}</span>}
+                  </Col>
+                  <Col>
+                    <SectionLabel>Height / Length (cm)</SectionLabel>
+                    <Input
+                        type="number"
+                        name="height_cm"
+                        value={commencement.height_cm}
+                        onChange={handleCommencement}
+                        placeholder="cm"
+                        min="0"
+                        step="0.1"
+                        disabled={isViewMode}
+                        readOnly={isViewMode}
+                        style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                    />
+                    {errors.height_cm && <span className={classes.error}>{errors.height_cm}</span>}
+                  </Col>
+                </FieldRow>
+
+                {/* Row 6: BMI */}
+                <FieldRow>
+                  <Col>
+                    <SectionLabel>
+                      BMI{" "}
+                      <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0 }}>
+                      (auto-calculated)
+                    </span>
+                    </SectionLabel>
+                    <Input
+                        type="text"
+                        name="bmi"
+                        value={commencement.bmi}
+                        readOnly
+                        placeholder="kg/m²"
+                        style={{ background: "#f5f9ff", color: "#014d88", fontWeight: 600 }}
                     />
                   </Col>
                 </FieldRow>
 
-                {/* Row 11: TPT Completed, Completion Date (conditional) */}
-                <FieldRow>
-                  <Col>
-                    <SectionLabel>TPT Completed</SectionLabel>
-                    <Input
-                      type="select"
-                      name="tpt_completed"
-                      value={commencement.tb_preventive_therapy.tpt_completed}
-                      onChange={handleTpt}
-                      disabled={isViewMode}
-                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                    >
-                      <option value="">Select</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </Input>
-                  </Col>
-                  {commencement.tb_preventive_therapy.tpt_completed === "Yes" && (
-                    <Col>
-                      <SectionLabel>
-                        Completion Date{" "}
-                        <span style={{ color: "red" }}>*</span>
-                      </SectionLabel>
-                      <Input
-                        type="date"
-                        name="completion_date"
-                        value={commencement.tb_preventive_therapy.completion_date}
-                        min={commencement.tb_preventive_therapy.start_date}
-                        max={moment(new Date()).format("YYYY-MM-DD")}
-                        onChange={handleTpt}
-                        disabled={isViewMode}
-                        style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                      />
-                      {errors.tpt_completion_date && (
-                        <span className={classes.error}>
-                          {errors.tpt_completion_date}
+                {/* ── MUAC — pediatric only ──────────────────────────── */}
+                {isPediatric && (
+                    <>
+                      {/* Row 7: MUAC (cm), MUAC Indication */}
+                      <FieldRow>
+                        <Col>
+                          <SectionLabel>MUAC (cm)</SectionLabel>
+                          <Input
+                              type="number"
+                              name="muac"
+                              value={commencement.muac}
+                              onChange={handleCommencement}
+                              placeholder="e.g. 13.5"
+                              min="0"
+                              step="0.1"
+                              disabled={isViewMode}
+                              readOnly={isViewMode}
+                              style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                          />
+                        </Col>
+                        <Col>
+                          <SectionLabel>
+                            MUAC Indication{" "}
+                            <span style={{ fontWeight: 400, color: "#546e7a", textTransform: "none", letterSpacing: 0 }}>
+                          (auto-derived)
                         </span>
-                      )}
-                    </Col>
-                  )}
-                </FieldRow>
+                          </SectionLabel>
+                          <Input
+                              type="text"
+                              name="muac_indication"
+                              value={commencement.muac_indication}
+                              readOnly
+                              placeholder="—"
+                              style={{
+                                fontWeight: 600,
+                                background:
+                                    commencement.muac_indication === "Underweight"
+                                        ? "#fff3e0"
+                                        : commencement.muac_indication === "Well Nourished"
+                                            ? "#e8f5e9"
+                                            : commencement.muac_indication === "Overweight/Obese"
+                                                ? "#fce4ec"
+                                                : "#f5f9ff",
+                                color:
+                                    commencement.muac_indication === "Underweight"
+                                        ? "#e65100"
+                                        : commencement.muac_indication === "Well Nourished"
+                                            ? "#2e7d32"
+                                            : commencement.muac_indication === "Overweight/Obese"
+                                                ? "#880e4f"
+                                                : "#014d88",
+                              }}
+                          />
+                        </Col>
+                      </FieldRow>
+                    </>
+                )}
+
+                {/* ── Pregnancy Status — adult females only ──────────── */}
+                {showPregnancyStatus && (
+                    <>
+                      {/* Row 8: Is Pregnant?, Is Breastfeeding? (conditional) */}
+                      <FieldRow>
+                        <Col>
+                          <SectionLabel>Is Pregnant?</SectionLabel>
+                          <Input
+                              type="select"
+                              name="is_pregnant"
+                              value={commencement.is_pregnant}
+                              onChange={handleCommencement}
+                              disabled={isViewMode}
+                              style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                          >
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                          </Input>
+                        </Col>
+                        {commencement.is_pregnant === "No" && (
+                            <Col>
+                              <SectionLabel>Is Breastfeeding?</SectionLabel>
+                              <Input
+                                  type="select"
+                                  name="is_breast_feeding"
+                                  value={commencement.is_breast_feeding}
+                                  onChange={handleCommencement}
+                                  disabled={isViewMode}
+                                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                              >
+                                <option value="">Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                              </Input>
+                            </Col>
+                        )}
+                      </FieldRow>
+                    </>
+                )}
               </Box>
-            )}
 
-            {/* OVC Section - Only show for patients 18 years and below */}
-            {patientAge <= 18 && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <SubHeading>Orphans and Vulnerable Children (OVC) Information</SubHeading>
+              {/* TB Preventive Therapy */}
+              <Divider sx={{ my: 2 }} />
+              <SubHeading>TB Preventive Therapy (TPT)</SubHeading>
 
-                {/* Has OVC Information Checkbox */}
-                <FieldRow>
-                  <Col size={12}>
-                    <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
-                      <input
+              {/* Has Client ever had TPT? Checkbox */}
+              <FieldRow>
+                <Col size={12}>
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
+                    <input
                         type="checkbox"
-                        id="has_ovc_information"
-                        name="has_ovc_information"
-                        checked={commencement.has_ovc_information}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setCommencement((prev) => ({
-                            ...prev,
-                            has_ovc_information: checked,
-                            ovc_data: checked ? prev.ovc_data : {
-                              household_unique_number: "",
-                              ovc_unique_id: "",
-                              referred_to_ovc_partner: "",
-                              date_referred_to_ovc_partner: "",
-                              referred_from_ovc_partner: "",
-                              date_referred_from_ovc_partner: "",
-                            }
-                          }));
-                        }}
+                        id="tpt_started"
+                        name="tpt_started"
+                        checked={commencement.tpt_started}
+                        onChange={handleCommencement}
                         disabled={isViewMode}
                         style={{
                           width: "18px",
@@ -2385,9 +2547,9 @@ const EnrollmentAndCommencementForm = (props) => {
                           marginRight: "8px",
                           cursor: isViewMode ? "not-allowed" : "pointer"
                         }}
-                      />
-                      <label
-                        htmlFor="has_ovc_information"
+                    />
+                    <label
+                        htmlFor="tpt_started"
                         style={{
                           fontSize: "14px",
                           fontWeight: "600",
@@ -2395,256 +2557,427 @@ const EnrollmentAndCommencementForm = (props) => {
                           cursor: isViewMode ? "not-allowed" : "pointer",
                           margin: 0
                         }}
-                      >
-                        Client has OVC Information
-                      </label>
-                    </div>
-                  </Col>
-                </FieldRow>
+                    >
+                      Has Client ever had TPT?
+                    </label>
+                  </div>
+                </Col>
+              </FieldRow>
 
-                {/* OVC Details - Only show if checkbox is checked */}
-                {commencement.has_ovc_information && (
+              {/* TPT Details - Only show if checkbox is checked */}
+              {commencement.tpt_started && (
                   <Box
-                    sx={{
-                      background: "#fff",
-                      border: "1px solid #014d88",
-                      borderRadius: "4px",
-                      padding: "16px",
-                    }}
+                      sx={{
+                        background: "#fff",
+                        border: "1px solid #014d88",
+                        borderRadius: "4px",
+                        padding: "16px",
+                      }}
                   >
-                    {/* Row 1: Household Unique Number, OVC Unique ID */}
+                    {/* Row 9: TPT MEDICATION */}
                     <FieldRow>
                       <Col>
-                        <SectionLabel>Household Unique Number</SectionLabel>
+                        <SectionLabel>TPT MEDICATION</SectionLabel>
                         <Input
-                          type="text"
-                          name="household_unique_number"
-                          value={commencement.ovc_data.household_unique_number}
-                          onChange={(e) => {
-                            setCommencement((prev) => ({
-                              ...prev,
-                              ovc_data: {
-                                ...prev.ovc_data,
-                                household_unique_number: e.target.value
-                              }
-                            }));
-                          }}
-                          placeholder="Enter household unique number"
-                          disabled={isViewMode}
-                          readOnly={isViewMode}
-                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                        />
-                      </Col>
-                      <Col>
-                        <SectionLabel>OVC Unique ID</SectionLabel>
-                        <Input
-                          type="text"
-                          name="ovc_unique_id"
-                          value={commencement.ovc_data.ovc_unique_id}
-                          onChange={(e) => {
-                            setCommencement((prev) => ({
-                              ...prev,
-                              ovc_data: {
-                                ...prev.ovc_data,
-                                ovc_unique_id: e.target.value
-                              }
-                            }));
-                          }}
-                          placeholder="Enter OVC unique ID"
-                          disabled={isViewMode}
-                          readOnly={isViewMode}
-                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                        />
+                            type="select"
+                            name="medication"
+                            value={commencement.tb_preventive_therapy.medication}
+                            onChange={handleTpt}
+                            disabled={loadingTptMedications || isViewMode}
+                            style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                        >
+                          <option value="">{loadingTptMedications ? "Loading..." : "Select"}</option>
+                          {tptMedications.map((med) => (
+                              <option key={med.id} value={med.id}>
+                                {med.description}
+                              </option>
+                          ))}
+                        </Input>
                       </Col>
                     </FieldRow>
 
-                    {/* Row 2: Referred to OVC Partner, Date Referred to OVC Partner */}
+                    {/* Row 10: Dose, Start Date */}
                     <FieldRow>
                       <Col>
-                        <SectionLabel>Referred to OVC Partner</SectionLabel>
+                        <SectionLabel>Dose</SectionLabel>
                         <Input
-                          type="select"
-                          name="referred_to_ovc_partner"
-                          value={commencement.ovc_data.referred_to_ovc_partner}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setCommencement((prev) => ({
-                              ...prev,
-                              ovc_data: {
-                                ...prev.ovc_data,
-                                referred_to_ovc_partner: value,
-                                date_referred_to_ovc_partner: value !== "Yes" ? "" : prev.ovc_data.date_referred_to_ovc_partner
-                              }
-                            }));
-                          }}
-                          disabled={isViewMode}
-                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                            type="number"
+                            name="dose"
+                            value={commencement.tb_preventive_therapy.dose}
+                            onChange={handleTpt}
+                            placeholder="e.g. 300"
+                            min="0"
+                            step="1"
+                            disabled={isViewMode}
+                            readOnly={isViewMode}
+                            style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                        />
+                      </Col>
+                      <Col>
+                        <SectionLabel>Start Date</SectionLabel>
+                        <Input
+                            type="date"
+                            name="start_date"
+                            value={commencement.tb_preventive_therapy.start_date}
+                            min={
+                              isTransferInClient
+                                  ? (effectiveDob || undefined)
+                                  : (registration.date_enrolled_in_hiv_care || effectiveDob || undefined)
+                            }
+                            max={moment(new Date()).format("YYYY-MM-DD")}
+                            onChange={handleTpt}
+                            disabled={isViewMode}
+                            style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                        />
+                        {errors.tpt_start_date && (
+                            <span className={classes.error}>
+                      {errors.tpt_start_date}
+                    </span>
+                        )}
+                      </Col>
+                    </FieldRow>
+
+                    {/* Row 11: TPT Completed, Completion Date (conditional) */}
+                    <FieldRow>
+                      <Col>
+                        <SectionLabel>TPT Completed</SectionLabel>
+                        <Input
+                            type="select"
+                            name="tpt_completed"
+                            value={commencement.tb_preventive_therapy.tpt_completed}
+                            onChange={handleTpt}
+                            disabled={isViewMode}
+                            style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                         >
                           <option value="">Select</option>
                           <option value="Yes">Yes</option>
                           <option value="No">No</option>
                         </Input>
                       </Col>
-                      {commencement.ovc_data.referred_to_ovc_partner === "Yes" && (
-                        <Col>
-                          <SectionLabel>Date Referred to OVC Partner</SectionLabel>
-                          <Input
-                            type="date"
-                            name="date_referred_to_ovc_partner"
-                            value={commencement.ovc_data.date_referred_to_ovc_partner}
-                            onChange={(e) => {
-                              setCommencement((prev) => ({
-                                ...prev,
-                                ovc_data: {
-                                  ...prev.ovc_data,
-                                  date_referred_to_ovc_partner: e.target.value
-                                }
-                              }));
-                            }}
-                            max={moment(new Date()).format("YYYY-MM-DD")}
-                            disabled={isViewMode}
-                            style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                          />
-                        </Col>
-                      )}
-                    </FieldRow>
-
-                    {/* Row 3: Referred from OVC Partner, Date Referred from OVC Partner */}
-                    <FieldRow>
-                      <Col>
-                        <SectionLabel>Referred from OVC Partner</SectionLabel>
-                        <Input
-                          type="select"
-                          name="referred_from_ovc_partner"
-                          value={commencement.ovc_data.referred_from_ovc_partner}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setCommencement((prev) => ({
-                              ...prev,
-                              ovc_data: {
-                                ...prev.ovc_data,
-                                referred_from_ovc_partner: value,
-                                date_referred_from_ovc_partner: value !== "Yes" ? "" : prev.ovc_data.date_referred_from_ovc_partner
-                              }
-                            }));
-                          }}
-                          disabled={isViewMode}
-                          style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                        >
-                          <option value="">Select</option>
-                          <option value="Yes">Yes</option>
-                          <option value="No">No</option>
-                        </Input>
-                      </Col>
-                      {commencement.ovc_data.referred_from_ovc_partner === "Yes" && (
-                        <Col>
-                          <SectionLabel>Date Referred from OVC Partner</SectionLabel>
-                          <Input
-                            type="date"
-                            name="date_referred_from_ovc_partner"
-                            value={commencement.ovc_data.date_referred_from_ovc_partner}
-                            onChange={(e) => {
-                              setCommencement((prev) => ({
-                                ...prev,
-                                ovc_data: {
-                                  ...prev.ovc_data,
-                                  date_referred_from_ovc_partner: e.target.value
-                                }
-                              }));
-                            }}
-                            max={moment(new Date()).format("YYYY-MM-DD")}
-                            disabled={isViewMode}
-                            style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
-                          />
-                        </Col>
+                      {commencement.tb_preventive_therapy.tpt_completed === "Yes" && (
+                          <Col>
+                            <SectionLabel>
+                              Completion Date{" "}
+                              <span style={{ color: "red" }}>*</span>
+                            </SectionLabel>
+                            <Input
+                                type="date"
+                                name="completion_date"
+                                value={commencement.tb_preventive_therapy.completion_date}
+                                min={commencement.tb_preventive_therapy.start_date}
+                                max={moment(new Date()).format("YYYY-MM-DD")}
+                                onChange={handleTpt}
+                                disabled={isViewMode}
+                                style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                            />
+                            {errors.tpt_completion_date && (
+                                <span className={classes.error}>
+                          {errors.tpt_completion_date}
+                        </span>
+                            )}
+                          </Col>
                       )}
                     </FieldRow>
                   </Box>
-                )}
-              </>
-            )}
-          </FormAccordion>
+              )}
 
-          {/* ── Action Buttons ─────────────────────────────────────────── */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: "12px",
-              justifyContent: "flex-end",
-              padding: "16px 0",
-              borderTop: "1px solid #e0e0e0",
-              marginTop: "8px",
-            }}
-          >
-            {isViewMode ? (
-              <>
-                {/* View Mode Buttons: Back + Edit */}
-                <MatButton
-                  variant="contained"
-                  className={classes.button}
-                  startIcon={<ArrowBackIcon style={{ color: "#fff" }} />}
-                  style={{ backgroundColor: "#992E62" }}
-                  onClick={() =>
-                    props.setActiveContent({
-                      ...props.activeContent,
-                      route: "recent-history",
-                    })
-                  }
-                  type="button"
-                >
-                  <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>Back</span>
-                </MatButton>
-                <MatButton
-                  variant="contained"
-                  className={classes.button}
-                  startIcon={<EditIcon style={{ color: "#fff" }} />}
-                  style={{ backgroundColor: "#014d88" }}
-                  onClick={() =>
-                    props.setActiveContent({
-                      ...props.activeContent,
-                      route: "enrollment-and-commencement-update",
-                    })
-                  }
-                >
-                  <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>Edit</span>
-                </MatButton>
-              </>
-            ) : (
-              <>
-                {/* Create/Edit Mode Buttons: Cancel + Save/Update */}
-                <MatButton
-                  variant="contained"
-                  className={classes.button}
-                  startIcon={<CancelIcon style={{ color: "#fff" }} />}
-                  style={{ backgroundColor: "#992E62" }}
-                  onClick={() =>
-                    props.setActiveContent({
-                      ...props.activeContent,
-                      route: "recent-history",
-                    })
-                  }
-                  type="button"
-                >
-                  <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>Cancel</span>
-                </MatButton>
-                <MatButton
-                  type="submit"
-                  variant="contained"
-                  className={classes.button}
-                  startIcon={<SaveIcon style={{ color: "#fff" }} />}
-                  style={{ backgroundColor: "#014d88" }}
-                  disabled={saving}
-                >
+              {/* OVC Section - Only show for patients 18 years and below */}
+              {patientAge <= 18 && (
+                  <>
+                    <Divider sx={{ my: 2 }} />
+                    <SubHeading>Orphans and Vulnerable Children (OVC) Information</SubHeading>
+
+                    {/* Has OVC Information Checkbox */}
+                    <FieldRow>
+                      <Col size={12}>
+                        <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
+                          <input
+                              type="checkbox"
+                              id="has_ovc_information"
+                              name="has_ovc_information"
+                              checked={commencement.has_ovc_information}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setCommencement((prev) => ({
+                                  ...prev,
+                                  has_ovc_information: checked,
+                                  ovc_data: checked ? prev.ovc_data : {
+                                    household_unique_number: "",
+                                    ovc_unique_id: "",
+                                    referred_to_ovc_partner: "",
+                                    date_referred_to_ovc_partner: "",
+                                    referred_from_ovc_partner: "",
+                                    date_referred_from_ovc_partner: "",
+                                  }
+                                }));
+                              }}
+                              disabled={isViewMode}
+                              style={{
+                                width: "18px",
+                                height: "18px",
+                                marginRight: "8px",
+                                cursor: isViewMode ? "not-allowed" : "pointer"
+                              }}
+                          />
+                          <label
+                              htmlFor="has_ovc_information"
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#014d88",
+                                cursor: isViewMode ? "not-allowed" : "pointer",
+                                margin: 0
+                              }}
+                          >
+                            Client has OVC Information
+                          </label>
+                        </div>
+                      </Col>
+                    </FieldRow>
+
+                    {/* OVC Details - Only show if checkbox is checked */}
+                    {commencement.has_ovc_information && (
+                        <Box
+                            sx={{
+                              background: "#fff",
+                              border: "1px solid #014d88",
+                              borderRadius: "4px",
+                              padding: "16px",
+                            }}
+                        >
+                          {/* Row 1: Household Unique Number, OVC Unique ID */}
+                          <FieldRow>
+                            <Col>
+                              <SectionLabel>Household Unique Number</SectionLabel>
+                              <Input
+                                  type="text"
+                                  name="household_unique_number"
+                                  value={commencement.ovc_data.household_unique_number}
+                                  onChange={(e) => {
+                                    setCommencement((prev) => ({
+                                      ...prev,
+                                      ovc_data: {
+                                        ...prev.ovc_data,
+                                        household_unique_number: e.target.value
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="Enter household unique number"
+                                  disabled={isViewMode}
+                                  readOnly={isViewMode}
+                                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                              />
+                            </Col>
+                            <Col>
+                              <SectionLabel>OVC Unique ID</SectionLabel>
+                              <Input
+                                  type="text"
+                                  name="ovc_unique_id"
+                                  value={commencement.ovc_data.ovc_unique_id}
+                                  onChange={(e) => {
+                                    setCommencement((prev) => ({
+                                      ...prev,
+                                      ovc_data: {
+                                        ...prev.ovc_data,
+                                        ovc_unique_id: e.target.value
+                                      }
+                                    }));
+                                  }}
+                                  placeholder="Enter OVC unique ID"
+                                  disabled={isViewMode}
+                                  readOnly={isViewMode}
+                                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                              />
+                            </Col>
+                          </FieldRow>
+
+                          {/* Row 2: Referred to OVC Partner, Date Referred to OVC Partner */}
+                          <FieldRow>
+                            <Col>
+                              <SectionLabel>Referred to OVC Partner</SectionLabel>
+                              <Input
+                                  type="select"
+                                  name="referred_to_ovc_partner"
+                                  value={commencement.ovc_data.referred_to_ovc_partner}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    setCommencement((prev) => ({
+                                      ...prev,
+                                      ovc_data: {
+                                        ...prev.ovc_data,
+                                        referred_to_ovc_partner: value,
+                                        date_referred_to_ovc_partner: value !== "Yes" ? "" : prev.ovc_data.date_referred_to_ovc_partner
+                                      }
+                                    }));
+                                  }}
+                                  disabled={isViewMode}
+                                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                              >
+                                <option value="">Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                              </Input>
+                            </Col>
+                            {commencement.ovc_data.referred_to_ovc_partner === "Yes" && (
+                                <Col>
+                                  <SectionLabel>Date Referred to OVC Partner</SectionLabel>
+                                  <Input
+                                      type="date"
+                                      name="date_referred_to_ovc_partner"
+                                      value={commencement.ovc_data.date_referred_to_ovc_partner}
+                                      onChange={(e) => {
+                                        setCommencement((prev) => ({
+                                          ...prev,
+                                          ovc_data: {
+                                            ...prev.ovc_data,
+                                            date_referred_to_ovc_partner: e.target.value
+                                          }
+                                        }));
+                                      }}
+                                      max={moment(new Date()).format("YYYY-MM-DD")}
+                                      disabled={isViewMode}
+                                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                                  />
+                                </Col>
+                            )}
+                          </FieldRow>
+
+                          {/* Row 3: Referred from OVC Partner, Date Referred from OVC Partner */}
+                          <FieldRow>
+                            <Col>
+                              <SectionLabel>Referred from OVC Partner</SectionLabel>
+                              <Input
+                                  type="select"
+                                  name="referred_from_ovc_partner"
+                                  value={commencement.ovc_data.referred_from_ovc_partner}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    setCommencement((prev) => ({
+                                      ...prev,
+                                      ovc_data: {
+                                        ...prev.ovc_data,
+                                        referred_from_ovc_partner: value,
+                                        date_referred_from_ovc_partner: value !== "Yes" ? "" : prev.ovc_data.date_referred_from_ovc_partner
+                                      }
+                                    }));
+                                  }}
+                                  disabled={isViewMode}
+                                  style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                              >
+                                <option value="">Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                              </Input>
+                            </Col>
+                            {commencement.ovc_data.referred_from_ovc_partner === "Yes" && (
+                                <Col>
+                                  <SectionLabel>Date Referred from OVC Partner</SectionLabel>
+                                  <Input
+                                      type="date"
+                                      name="date_referred_from_ovc_partner"
+                                      value={commencement.ovc_data.date_referred_from_ovc_partner}
+                                      onChange={(e) => {
+                                        setCommencement((prev) => ({
+                                          ...prev,
+                                          ovc_data: {
+                                            ...prev.ovc_data,
+                                            date_referred_from_ovc_partner: e.target.value
+                                          }
+                                        }));
+                                      }}
+                                      max={moment(new Date()).format("YYYY-MM-DD")}
+                                      disabled={isViewMode}
+                                      style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
+                                  />
+                                </Col>
+                            )}
+                          </FieldRow>
+                        </Box>
+                    )}
+                  </>
+              )}
+            </FormAccordion>
+
+            {/* ── Action Buttons ─────────────────────────────────────────── */}
+            <Box
+                sx={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "flex-end",
+                  padding: "16px 0",
+                  borderTop: "1px solid #e0e0e0",
+                  marginTop: "8px",
+                }}
+            >
+              {isViewMode ? (
+                  <>
+                    {/* View Mode Buttons: Back + Edit */}
+                    <MatButton
+                        variant="contained"
+                        className={classes.button}
+                        startIcon={<ArrowBackIcon style={{ color: "#fff" }} />}
+                        style={{ backgroundColor: "#992E62" }}
+                        onClick={() =>
+                            props.setActiveContent({
+                              ...props.activeContent,
+                              route: "recent-history",
+                            })
+                        }
+                        type="button"
+                    >
+                      <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>Back</span>
+                    </MatButton>
+                    <MatButton
+                        variant="contained"
+                        className={classes.button}
+                        startIcon={<EditIcon style={{ color: "#fff" }} />}
+                        style={{ backgroundColor: "#014d88" }}
+                        onClick={() =>
+                            props.setActiveContent({
+                              ...props.activeContent,
+                              route: "enrollment-and-commencement-update",
+                            })
+                        }
+                    >
+                      <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>Edit</span>
+                    </MatButton>
+                  </>
+              ) : (
+                  <>
+                    {/* Create/Edit Mode Buttons: Cancel + Save/Update */}
+                    <MatButton
+                        variant="contained"
+                        className={classes.button}
+                        startIcon={<CancelIcon style={{ color: "#fff" }} />}
+                        style={{ backgroundColor: "#992E62" }}
+                        onClick={() =>
+                            props.setActiveContent({
+                              ...props.activeContent,
+                              route: "recent-history",
+                            })
+                        }
+                        type="button"
+                    >
+                      <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>Cancel</span>
+                    </MatButton>
+                    <MatButton
+                        type="submit"
+                        variant="contained"
+                        className={classes.button}
+                        startIcon={<SaveIcon style={{ color: "#fff" }} />}
+                        style={{ backgroundColor: "#014d88" }}
+                        disabled={saving}
+                    >
                   <span style={{ textTransform: "capitalize", color: "#fff", fontWeight: "bold" }}>
                     {saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update" : "Save")}
                   </span>
-                </MatButton>
-              </>
-            )}
-          </Box>
-        </form>
-      </CardContent>
-    </Card>
+                    </MatButton>
+                  </>
+              )}
+            </Box>
+          </form>
+        </CardContent>
+      </Card>
   );
 };
 

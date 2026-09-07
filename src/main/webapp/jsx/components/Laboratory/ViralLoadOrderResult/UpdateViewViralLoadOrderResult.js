@@ -63,6 +63,8 @@ const CODESET_KEYS = ["VIRAL_LOAD_INDICATION"];
 
 const Laboratory = (props) => {
     let visitId=""
+    const isPepClient = props.activeContent?.pepClient || false;
+
     const patientObj = props.patientObj;
     const enrollDate = patientObj && patientObj.artCommence ? patientObj.artCommence.visitDate : null
     const classes = useStyles();
@@ -281,8 +283,52 @@ const Laboratory = (props) => {
         setErrors({
             ...temp
         })
+          console.log("Error", temp)
         return Object.values(temp).every(x => x == "")
     }
+
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+    //
+    //     if(validate()){
+    //         setSaving(true);
+    //         const payload = {
+    //             ...tests,
+    //             labTestGroupId: 4,
+    //             labTestId: 16,
+    //             sampleCollectionDate: tests.sampleCollectionDate
+    //                 ? moment(tests.sampleCollectionDate).format("YYYY-MM-DD HH:mm:ss")
+    //                 : "",
+    //             dateResultReceived: tests.dateResultReceived
+    //                 ? moment(tests.dateResultReceived).format("YYYY-MM-DD HH:mm:ss")
+    //                 : "",
+    //             dateReceivedAtPcrLab: tests.dateReceivedAtPcrLab
+    //                 ? moment(tests.dateReceivedAtPcrLab).format("YYYY-MM-DD HH:mm:ss")
+    //                 : "",
+    //         };
+    //
+    //         axios.put(`${baseUrl}laboratory/vl-results/${props.activeContent.obj.orderId}`,payload,
+    //         { headers: {"Authorization" : `Bearer ${token}`}},)
+    //         .then(response => {
+    //             //Please do not remove
+    //             queryClient.invalidateQueries()
+    //             setSaving(false);
+    //             toast.success("Viral Load order & result updated successful!",  {position: toast.POSITION.BOTTOM_CENTER});
+    //             //props.LabOrders();
+    //             props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', activeTab:"history"})
+    //             //props.LabOrders();
+    //         })
+    //         .catch(error => {
+    //             setSaving(false);
+    //             if(error.response && error.response.data){
+    //                 let errorMessage = error.response.data && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+    //                 toast.error(errorMessage,  {position: toast.POSITION.BOTTOM_CENTER});
+    //             }else{
+    //                 toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER});
+    //             }
+    //         });
+    //     }
+    // }
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -305,25 +351,57 @@ const Laboratory = (props) => {
             };
 
             axios.put(`${baseUrl}laboratory/vl-results/${props.activeContent.obj.orderId}`,payload,
-            { headers: {"Authorization" : `Bearer ${token}`}},)
-            .then(response => {
-                //Please do not remove
-                queryClient.invalidateQueries()
-                setSaving(false);
-                toast.success("Viral Load order & result updated successful!",  {position: toast.POSITION.BOTTOM_CENTER});
-                //props.LabOrders();
-                props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', activeTab:"history"})
-                //props.LabOrders();
-            })
-            .catch(error => {
-                setSaving(false);
-                if(error.response && error.response.data){
-                    let errorMessage = error.response.data && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
-                    toast.error(errorMessage,  {position: toast.POSITION.BOTTOM_CENTER}); 
-                }else{
-                    toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER}); 
-                }                  
-            }); 
+                { headers: {"Authorization" : `Bearer ${token}`}},)
+                .then(response => {
+                    //Please do not remove
+                    queryClient.invalidateQueries()
+                    setSaving(false);
+                    toast.success("Viral Load order & result updated successful!",  {position: toast.POSITION.BOTTOM_CENTER});
+
+                    // ==========================================
+                    // NEW: UPDATE PEP CLIENT RECORD LOGIC (ON UPDATE)
+                    // ==========================================
+                    const htsId = props.patientObj?.htsEncounterId;
+                    const personUuid = props.patientObj?.personUuid;
+
+                    // Determine if it's a PEP client (checks props, activeContent, or the saved payload category)
+                    const isPepClient = props.pepClient || props.activeContent?.pepClient || payload.patientCategory?.toUpperCase() === 'PEP';
+                    const savedResult = payload.result;
+                    const savedDateResultReceived =  payload.dateResultReceived;
+
+                    // Check if it's a PEP client (has htsId) AND result is not null/empty
+                    if (htsId && personUuid && isPepClient && savedResult && String(savedResult).trim() !== "") {
+
+                        // Call backend to update the PEP client record using PATCH
+                        axios.put(`${baseUrl}observation/hiv-test-result`, {
+                            patientUuid: personUuid,
+                            result: savedResult,
+                            dateOfFinalHivTestDone: savedDateResultReceived,
+                            htsEncounterId: htsId
+                        }, {
+                            headers: { "Authorization": `Bearer ${token}` }
+                        })
+                            .then((patchResponse) => {
+                                toast.info("HTS record updated for PEP client.", {position: toast.POSITION.BOTTOM_CENTER});
+                            })
+                            .catch(pepError => {
+                                console.error("Error updating PEP client record in HTS:", pepError);
+                                toast.warning("Viral load updated, but failed to update HTS PEP client record", {position: toast.POSITION.BOTTOM_CENTER});
+                            });
+                    }
+                    // ==========================================
+
+                    props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', activeTab:"history"})
+                })
+                .catch(error => {
+                    setSaving(false);
+                    if(error.response && error.response.data){
+                        let errorMessage = error.response.data && error.response.data.apierror.message!=="" ? error.response.data.apierror.message :  "Something went wrong, please try again";
+                        toast.error(errorMessage,  {position: toast.POSITION.BOTTOM_CENTER});
+                    }else{
+                        toast.error("Something went wrong. Please try again...",  {position: toast.POSITION.BOTTOM_CENTER});
+                    }
+                });
         }
     }
     const handleCheckBox =e =>{

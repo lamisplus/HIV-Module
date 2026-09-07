@@ -86,7 +86,7 @@ const Laboratory = (props) => {
     // Check if this is a PEP client from the props (passed from index.js)
     const isPepClient = props.pepClient || false;
 
-    console.log("ViralLoadOrderResult - props.pepClient:", props.pepClient, "isPepClient:", isPepClient);
+    // console.log("ViralLoadOrderResult - props.pepClient:", props.pepClient, "isPepClient:", isPepClient);
 
     let temp = { ...errors }
     const [tests, setTests]=useState({
@@ -402,44 +402,127 @@ const Laboratory = (props) => {
             //if(showResult){
                 axios.post(`${baseUrl}laboratory/vl-results`,tests,
                 { headers: {"Authorization" : `Bearer ${token}`}},)
-                .then(response => {
-                    setSaving(false);
-                    //Please do not remove
-                    queryClient.invalidateQueries()
-                    props.LabOrders();
-                    toast.success("Viral Load order & result created successful!",  {position: toast.POSITION.BOTTOM_CENTER});
-                    setTests({
-                        approvedBy: "",
-                        assayedBy: "",
-                        checkedBy: "",
-                        comments: "",
-                        dateApproved: "",
-                        dateAssayedBy: "",
-                        dateCheckedBy: "",
-                        dateCollectedBy: "",
-                        dateOrderBy: "",
-                        dateReceivedAtPcrLab: "",
-                        dateResultReceived: "",
-                        dateSampleLoggedRemotely: "",
-                        id: "",
-                        labNumber: "",
-                        labTestGroupId: "",
-                        labTestId: "",
-                        orderBy: "",
-                        patientId: props.patientObj?props.patientObj.id:"",
-                        patientCategory: isPepClient ? "PEP" : "NON-PEP",
-                        pcrLabName: "",
-                        pcrLabSampleNumber: "",
-                        result: "",
-                        sampleCollectedBy: "",
-                        sampleCollectionDate: "",
-                        sampleLoggedRemotely: "",
-                        sampleTypeId: "",
-                        viralLoadIndication: "",
-                        sampleNumber:""
+                // .then(response => {
+                //     setSaving(false);
+                //     //Please do not remove
+                //     queryClient.invalidateQueries()
+                //     props.LabOrders();
+                //     toast.success("Viral Load order & result created successful!",  {position: toast.POSITION.BOTTOM_CENTER});
+                //     setTests({
+                //         approvedBy: "",
+                //         assayedBy: "",
+                //         checkedBy: "",
+                //         comments: "",
+                //         dateApproved: "",
+                //         dateAssayedBy: "",
+                //         dateCheckedBy: "",
+                //         dateCollectedBy: "",
+                //         dateOrderBy: "",
+                //         dateReceivedAtPcrLab: "",
+                //         dateResultReceived: "",
+                //         dateSampleLoggedRemotely: "",
+                //         id: "",
+                //         labNumber: "",
+                //         labTestGroupId: "",
+                //         labTestId: "",
+                //         orderBy: "",
+                //         patientId: props.patientObj?props.patientObj.id:"",
+                //         patientCategory: isPepClient ? "PEP" : "NON-PEP",
+                //         pcrLabName: "",
+                //         pcrLabSampleNumber: "",
+                //         result: "",
+                //         sampleCollectedBy: "",
+                //         sampleCollectionDate: "",
+                //         sampleLoggedRemotely: "",
+                //         sampleTypeId: "",
+                //         viralLoadIndication: "",
+                //         sampleNumber:""
+                //     })
+                //     props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', activeTab:"history"})
+                // })
+
+                    .then(response => {
+                        setSaving(false);
+                        queryClient.invalidateQueries();
+                        props.LabOrders();
+                        toast.success("Viral Load order & result created successful!", {position: toast.POSITION.BOTTOM_CENTER});
+
+                        // ==========================================
+                        // NEW: UPDATE PEP CLIENT RECORD LOGIC
+                        // ==========================================
+                        const htsId = props.patientObj?.htsEncounterId;
+                        const personUuid = props.patientObj?.personUuid; // Mapped from your PEP API response
+
+                        // Extract result from the API response array (fallback to tests.result just in case)
+                        const apiResponseData = response.data;
+                        const savedResult = Array.isArray(apiResponseData) && apiResponseData.length > 0
+                            ? apiResponseData[0].result
+                            : tests.result;
+
+                        const savedDateResultReceived = Array.isArray(apiResponseData) && apiResponseData.length > 0
+                            ? apiResponseData[0].dateResultReceived
+                            : payload.dateResultReceived;
+
+                        // Check if it's a PEP client (has htsId) AND result is not null/empty
+                        if (htsId && personUuid && isPepClient && savedResult && String(savedResult).trim() !== "") {
+
+                            // Call backend to update the PEP client record
+                            // 1. Use axios.patch to match @PatchMapping
+                            // 2. Do NOT append htsId to the URL path
+                            // 3. Map personUuid to the backend's expected 'patientUuid' field
+                            axios.put(`${baseUrl}observation/hiv-test-result`, {
+                                patientUuid: personUuid,
+                                result: savedResult,
+                                dateOfFinalHivTestDone: savedDateResultReceived,
+                                htsEncounterId: htsId
+                            }, {
+                                headers: { "Authorization": `Bearer ${token}` }
+                            })
+                                .then((patchResponse) => {
+                                    toast.info("HTS record updated for PEP client.", {position: toast.POSITION.BOTTOM_CENTER});
+                                })
+                                .catch(pepError => {
+                                    console.error("Error updating PEP client record in HTS:", pepError);
+                                    toast.warning("Viral load saved, but failed to update HTS PEP client record", {position: toast.POSITION.BOTTOM_CENTER});
+                                });
+                        }
+                        // ==========================================
+
+                        // EXISTING: Reset form state
+                        setTests({
+                            approvedBy: "",
+                            assayedBy: "",
+                            checkedBy: "",
+                            comments: "",
+                            dateApproved: "",
+                            dateAssayedBy: "",
+                            dateCheckedBy: "",
+                            dateCollectedBy: "",
+                            dateOrderBy: "",
+                            dateReceivedAtPcrLab: "",
+                            dateResultReceived: "",
+                            dateSampleLoggedRemotely: "",
+                            id: "",
+                            labNumber: "",
+                            labTestGroupId: "",
+                            labTestId: "",
+                            orderBy: "",
+                            patientId: props.patientObj ? props.patientObj.id : "",
+                            patientCategory: isPepClient ? "PEP" : "NON-PEP",
+                            pcrLabName: "",
+                            pcrLabSampleNumber: "",
+                            result: "",
+                            sampleCollectedBy: "",
+                            sampleCollectionDate: "",
+                            sampleLoggedRemotely: "",
+                            sampleTypeId: "",
+                            viralLoadIndication: "",
+                            sampleNumber: ""
+                        });
+
+                        // EXISTING: Switch to history tab
+                        props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', activeTab:"history"});
                     })
-                    props.setActiveContent({...props.activeContent, route:'laboratoryViralLoadOrderResult', activeTab:"history"})
-                })
                 .catch(error => {
                     setSaving(false);
                     if(error.response && error.response.data){

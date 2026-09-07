@@ -71,6 +71,10 @@ public class EnrollmentCommencementService {
         }
 
         validateRequiredFields(request, person);
+        validateUniqueIdNotUsedByAnotherPatient(
+                request.getData().getRegistration().getUniqueId(),
+                person
+        );
         String enrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
         if (enrollmentSessionUuid == null) {
             log.error("Cannot create Enrollment & Commencement for person ID: {} - No enrollment session UUID found.", person.getId());
@@ -109,6 +113,10 @@ public class EnrollmentCommencementService {
         EnrollmentCommencement existing = getById(id);
         Person person = existing.getPerson();
         validateRequiredFields(request, person);
+        validateUniqueIdNotUsedByAnotherPatient(
+                request.getData().getRegistration().getUniqueId(),
+                person
+        );
         EnrollmentCommencement updated = buildEntity(request, person);
         updated.setId(existing.getId());
         updated.setUuid(existing.getUuid());
@@ -239,18 +247,18 @@ public class EnrollmentCommencementService {
         }
 
         LocalDate dateArtStarted = parseDate(com.getDateArtStarted());
-        if (dateArtStarted != null && dateEnrolled != null && dateArtStarted.isBefore(dateEnrolled)) {
-            throw new IllegalArgumentException(
-                "date_art_started cannot be before date_enrolled_in_hiv_care");
-        }
+//        if (dateArtStarted != null && dateEnrolled != null && dateArtStarted.isBefore(dateEnrolled)) {
+//            throw new IllegalArgumentException(
+//                "date_art_started cannot be before date_enrolled_in_hiv_care");
+//        }
         //  Mother's Unique ID — Required if patient age < 18 months (infant)
-        if (person.getDateOfBirth() != null) {
-            long ageInMonths = ChronoUnit.MONTHS.between(person.getDateOfBirth(), LocalDate.now());
-            if (ageInMonths < 18 && isNullOrEmpty(reg.getMotherUniqueId())) {
-                throw new IllegalArgumentException(
-                    "mother_unique_id is required for infants (age < 18 months)");
-            }
-        }
+//        if (person.getDateOfBirth() != null) {
+//            long ageInMonths = ChronoUnit.MONTHS.between(person.getDateOfBirth(), LocalDate.now());
+//            if (ageInMonths < 18 && isNullOrEmpty(reg.getMotherUniqueId())) {
+//                throw new IllegalArgumentException(
+//                    "mother_unique_id is required for infants (age < 18 months)");
+//            }
+//        }
 
         //  KP Typology — Required if is_kp = "Yes"
         if ("Yes".equalsIgnoreCase(reg.getIsKp()) && reg.getKpTypology() == null) {
@@ -265,25 +273,8 @@ public class EnrollmentCommencementService {
                 "facility_transferred_from is required when date_transferred_in is provided");
         }
 
-        // Date transferred in must not be after date enrolled in HIV care
-        if (!isNullOrEmpty(reg.getDateTransferredIn())) {
-            LocalDate dateTransferred = parseDate(reg.getDateTransferredIn());
-            if (dateTransferred != null && dateEnrolled != null && dateTransferred.isAfter(dateEnrolled)) {
-                throw new IllegalArgumentException(
-                    "date_transferred_in cannot be after date_enrolled_in_hiv_care");
-            }
-        }
-
         TbPreventiveTherapyDto tpt = com.getTbPreventiveTherapy();
         if (tpt != null) {
-            // TPT start date must not be before date enrolled in HIV care
-            if (!isNullOrEmpty(tpt.getStartDate())) {
-                LocalDate tptStartDate = parseDate(tpt.getStartDate());
-                if (tptStartDate != null && dateEnrolled != null && tptStartDate.isBefore(dateEnrolled)) {
-                    throw new IllegalArgumentException(
-                        "tpt_start_date cannot be before date_enrolled_in_hiv_care");
-                }
-            }
 
             // TPT completion date must not be before TPT start date
             if (!isNullOrEmpty(tpt.getCompletionDate()) && !isNullOrEmpty(tpt.getStartDate())) {
@@ -333,16 +324,6 @@ public class EnrollmentCommencementService {
         LocalDate artStartDate = parseDate(com.getDateArtStarted());
         LocalDate visitDate = parseDate(request.getDateOfObservation());
         Visit visit = hivVisitEncounter.processAndCreateVisit(person.getId(), artStartDate);
-
-        // CRITICAL: Get enrollment session UUID from the latest AdherencePreparation record
-//        String enrollmentSessionUuid = getLatestEnrollmentSessionUuid(person);
-//        if (enrollmentSessionUuid == null) {
-//            log.error("Cannot create Enrollment & Commencement for person ID: {} - No enrollment session UUID found.", person.getId());
-//            throw new IllegalStateException(
-//                "Cannot create Enrollment & Commencement without an active enrollment session. " +
-//                "Please ensure Adherence Preparation has been completed first for this patient."
-//            );
-//        }
 
         EnrollmentCommencement entity = new EnrollmentCommencement();
         entity.setUuid(UUID.randomUUID().toString());
@@ -457,5 +438,25 @@ public class EnrollmentCommencementService {
                 .findFirst()
                 .map(adherencePrep -> adherencePrep.getEnrollmentSessionUuid())
                 .orElse(null);
+    }
+
+    private void validateUniqueIdNotUsedByAnotherPatient(String uniqueId, Person person) {
+        if (uniqueId == null || uniqueId.trim().isEmpty()) {
+            return;
+        }
+
+        String trimmedUniqueId = uniqueId.trim();
+
+        boolean usedByAnotherPatient = repository
+                .findByUniqueIdAndArchivedAndPersonNot(trimmedUniqueId, 0, person)
+                .isPresent();
+
+        if (usedByAnotherPatient) {
+            throw new RecordExistException(
+                    EnrollmentCommencement.class,
+                    "uniqueId",
+                    "This Unique ID is already assigned to another patient."
+            );
+        }
     }
 }
