@@ -175,11 +175,11 @@ const validateCommencementVital = (name, value) => {
 
   switch (name) {
     case "weight_kg":
-      if (numValue < 48.26) return "Weight cannot be less than 48.26 kg";
-      if (numValue > 216.408) return "Weight cannot be greater than 216.408 kg";
+      if (numValue < 1) return "Weight cannot be less than 1 kg";
+      if (numValue > 200) return "Weight cannot be greater than 200 kg";
       break;
     case "height_cm":
-      if (numValue < 48.26) return "Height cannot be less than 48.26 cm";
+      if (numValue < 30) return "Height cannot be less than 30 cm";
       if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
       break;
     default:
