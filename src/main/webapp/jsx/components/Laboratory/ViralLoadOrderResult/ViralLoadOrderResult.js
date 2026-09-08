@@ -116,7 +116,7 @@ const Laboratory = (props) => {
             sampleCollectionDate: "",
             sampleLoggedRemotely: "",
             sampleTypeId: "",
-            viralLoadIndication: ""
+            viralLoadIndication: isPepClient ? "2216" : ""
     })
     useEffect(() => {
         GetPatientDTOObj()
@@ -649,7 +649,8 @@ const Laboratory = (props) => {
                                 name="viralLoadIndication"
                                 id="viralLoadIndication"
                                 value={tests.viralLoadIndication}
-                                onChange={handleInputChange}  
+                                onChange={handleInputChange}
+                                disabled={isPepClient}
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}                 
                                 >
                                 <option value="">Select </option>

@@ -63,7 +63,9 @@ const CODESET_KEYS = ["VIRAL_LOAD_INDICATION"];
 
 const Laboratory = (props) => {
     let visitId=""
-    const isPepClient = props.activeContent?.pepClient || false;
+    // const isPepClient = props.activeContent?.pepClient || false;
+    // Checks props, activeContent, AND the saved patientCategory from the database
+    const isPepClient = props.pepClient || props.activeContent?.pepClient || props.activeContent?.obj?.patientCategory === 'PEP' || false;
 
     const patientObj = props.patientObj;
     const enrollDate = patientObj && patientObj.artCommence ? patientObj.artCommence.visitDate : null
@@ -115,7 +117,7 @@ const Laboratory = (props) => {
             sampleCollectionDate: "",
             sampleLoggedRemotely: "",
             sampleTypeId: "",
-            viralLoadIndication: ""
+            viralLoadIndication: isPepClient ? "2216" : ""
     })
 
     useEffect(() => {
@@ -528,9 +530,9 @@ const Laboratory = (props) => {
                                 name="viralLoadIndication"
                                 id="viralLoadIndication"
                                 value={tests.viralLoadIndication}
-                                onChange={handleInputChange}  
+                                onChange={handleInputChange}
                                 style={{border: "1px solid #014D88", borderRadius:"0.25rem"}}   
-                                disabled={disabledField}              
+                                disabled={disabledField || isPepClient}
                                 >
                                 <option value="">Select </option>
                                                 
