@@ -1826,6 +1826,20 @@ const InitialClinicalEvaluationForm = (props) => {
     }
   }, [pregnancy.currentlyPregnant]);
 
+
+    const getMinVisitDate = () => {
+        if (props.patientObj1?.adherencePreparation?.serviceDate) {
+            return moment(props.patientObj1.adherencePreparation.serviceDate).format("YYYY-MM-DD");
+        }
+        if (enrollDate) {
+            return moment(enrollDate).format("YYYY-MM-DD");
+        }
+        if (props.patientObj?.dateOfBirth) {
+            return moment(props.patientObj.dateOfBirth).format("YYYY-MM-DD");
+        }
+        return ""; // Fallback to no minimum date constraint
+    };
+
   // ── Real-time Payload Logging ────────────────────────────────────────────
   useEffect(() => {
     // Build the payload structure that would be sent
@@ -1886,7 +1900,15 @@ const InitialClinicalEvaluationForm = (props) => {
   // ── Validation ───────────────────────────────────────────────────────────
   const validate = () => {
     const temp = {};
-    if (!visitDate) temp.visitDate = "Visit date is required";
+    // if (!visitDate) temp.visitDate = "Visit date is required";
+        if (!visitDate) {
+          temp.visitDate = "Visit date is required";
+      } else {
+          const adherenceServiceDate = props.patientObj1?.adherencePreparation?.serviceDate;
+          if (adherenceServiceDate && visitDate < adherenceServiceDate) {
+              temp.visitDate = `Visit date cannot be earlier than the Adherence Preparation date (${moment(adherenceServiceDate).format("DD MMM YYYY")})`;
+          }
+      }
     if (!tbAssessment.assessedForTb) temp.assessedForTb = "Patient Assessed for TB is required";
 
     // Developmental Assessment is required for patients 0-2 years (infants/toddlers)
@@ -2871,11 +2893,7 @@ const InitialClinicalEvaluationForm = (props) => {
                 <Input
                   type="date"
                   value={visitDate}
-                  min={
-                    props.patientObj1?.adherencePreparation?.serviceDate
-                      ? moment(props.patientObj1.adherencePreparation.serviceDate).format("YYYY-MM-DD")
-                      : (enrollDate || props.patientObj?.dateOfBirth)
-                  }
+                  min={getMinVisitDate()}
                   max={moment(new Date()).format("YYYY-MM-DD")}
                   onChange={(e) => setVisitDate(e.target.value)}
                   disabled={isReadOnly}

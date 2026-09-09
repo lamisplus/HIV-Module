@@ -1472,12 +1472,16 @@ const EnrollmentAndCommencementForm = (props) => {
       temp.care_entry_point = "Care entry point is required";
     }
 
-    // Prior ART is optional - no validation required
     if (!commencement.visit_date || String(commencement.visit_date).trim() === '') {
       temp.visit_date = "Visit date is required";
-    }
-    else {
-      if (props.patientObj?.dateOfBirth && commencement.visit_date < props.patientObj.dateOfBirth) {
+    } else {
+      // 1. Check against ICE dateOfObservation (The direct predecessor in the flow)
+      const iceVisitDate = props.patientObj1?.initialClinicalEvaluation?.dateOfObservation;
+      if (iceVisitDate && commencement.visit_date < iceVisitDate) {
+        temp.visit_date = `Visit date cannot be earlier than the Initial Clinical Evaluation date (${moment(iceVisitDate).format("DD MMM YYYY")})`;
+      }
+      // 2. Fallback check against Date of Birth
+      else if (props.patientObj?.dateOfBirth && commencement.visit_date < props.patientObj.dateOfBirth) {
         temp.visit_date = "Visit date cannot be earlier than date of birth";
       }
     }
@@ -2168,7 +2172,8 @@ const EnrollmentAndCommencementForm = (props) => {
                       name="visit_date"
                       value={commencement.visit_date}
                       max={moment(new Date()).format("YYYY-MM-DD")}
-                      min={props.patientObj?.dateOfBirth || undefined}
+                      // min={props.patientObj?.dateOfBirth || undefined}
+                      min={props.patientObj1?.initialClinicalEvaluation?.dateOfObservation || props.patientObj?.dateOfBirth || undefined}
                       onChange={handleCommencement}
                       disabled={isViewMode}
                       style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
