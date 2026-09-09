@@ -1953,17 +1953,31 @@ const InitialClinicalEvaluationForm = (props) => {
 
       // Require facility and duration fields only if ARV Exposure Type is selected
       // and it's NOT PrEP or PEP (these don't require facility/duration fields)
-      if (hasArvExposureTypeSelected && !arvHistory.prep && !arvHistory.pep) {
-        if (!arvHistory.nameOfFacility || arvHistory.nameOfFacility.trim() === "") {
-          temp.nameOfFacility = "Name of Facility is required when ARV Exposure Type is selected";
+      // if (hasArvExposureTypeSelected && !arvHistory.prep && !arvHistory.pep) {
+      //   if (!arvHistory.nameOfFacility || arvHistory.nameOfFacility.trim() === "") {
+      //     temp.nameOfFacility = "Name of Facility is required when ARV Exposure Type is selected";
+      //   }
+      //   if (!arvHistory.durationOfCareFrom) {
+      //     temp.durationOfCareFrom = "Duration of Care From is required when ARV Exposure Type is selected";
+      //   }
+      //   if (!arvHistory.durationOfCareTo) {
+      //     temp.durationOfCareTo = "Duration of Care To is required when ARV Exposure Type is selected";
+      //   }
+      // }
+
+        // Require facility and duration fields ONLY if "Transfer-in" is selected.
+        // If "Earlier ARV (not a Transfer-in)", "PrEP", or "PEP" is selected, these fields are optional.
+        if (arvHistory.tran) {
+            if (!arvHistory.nameOfFacility || arvHistory.nameOfFacility.trim() === "") {
+                temp.nameOfFacility = "Name of Facility is required for Transfer-in";
+            }
+            if (!arvHistory.durationOfCareFrom) {
+                temp.durationOfCareFrom = "Duration of Care From is required for Transfer-in";
+            }
+            if (!arvHistory.durationOfCareTo) {
+                temp.durationOfCareTo = "Duration of Care To is required for Transfer-in";
+            }
         }
-        if (!arvHistory.durationOfCareFrom) {
-          temp.durationOfCareFrom = "Duration of Care From is required when ARV Exposure Type is selected";
-        }
-        if (!arvHistory.durationOfCareTo) {
-          temp.durationOfCareTo = "Duration of Care To is required when ARV Exposure Type is selected";
-        }
-      }
     }
 
     if (assessment.assessmentItems.length === 0) temp.assessmentItems = "Assessment is required (select at least one option)";
@@ -3369,7 +3383,15 @@ const InitialClinicalEvaluationForm = (props) => {
                 <SubHeading>ARV Exposure Type <span style={{ color: "red" }}>*</span></SubHeading>
                 <Box sx={{ background: "#fff", border: `1px solid ${errors.arvExposureType ? '#d32f2f' : '#014d88'}`, borderRadius: "4px", padding: "12px 16px", marginBottom: "16px" }}>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                    <CheckGroup name="earlierArvNotTransfer" id="arv_earlier" label="Earlier ARV (not a Transfer-in)" checked={arvHistory.earlierArvNotTransfer} onChange={handleArv} />
+                      {!transferIn && (
+                          <CheckGroup
+                              name="earlierArvNotTransfer"
+                              id="arv_earlier"
+                              label="Earlier ARV (not a Transfer-in)"
+                              checked={arvHistory.earlierArvNotTransfer}
+                              onChange={handleArv}
+                          />
+                      )}
                     <CheckGroup name="prep" id="arv_prep" label="PrEP" checked={arvHistory.prep} onChange={handleArv} />
                     <CheckGroup name="pep" id="arv_pep" label="PEP" checked={arvHistory.pep} onChange={handleArv} />
                     <CheckGroup name="tran" id="arv_tran" label="Transfer-in" checked={arvHistory.tran} onChange={handleArv} />
@@ -3379,80 +3401,162 @@ const InitialClinicalEvaluationForm = (props) => {
                   <span className={classes.error} style={{ display: "block", marginTop: "-12px", marginBottom: "16px" }}>{errors.arvExposureType}</span>
                 )}
 
-                {(arvHistory.earlierArvNotTransfer || arvHistory.tran) && (
-                  <>
-                    <SubHeading>Facility &amp; Duration</SubHeading>
-                    <FieldRow>
-                      <Col>
-                        <SectionLabel>Name of Facility <span style={{ color: "red" }}>*</span></SectionLabel>
-                        <ReactSelect
-                          name="nameOfFacility"
-                          value={getFacilityOptions().find(option => option.value === arvHistory.nameOfFacility)}
-                          onChange={handleFacilitySelect}
-                          options={getFacilityOptions()}
-                          isLoading={loadingFacilities}
-                          placeholder="Search or select facility..."
-                          isSearchable={true}
-                          isClearable={true}
-                          noOptionsMessage={() => "No facilities found"}
-                          styles={{
-                            control: (base) => ({
-                              ...base,
-                              minHeight: '41px',
-                              borderColor: errors.nameOfFacility ? '#d32f2f' : '#ced4da',
-                              borderRadius: '0.25rem',
-                              '&:hover': {
-                                borderColor: errors.nameOfFacility ? '#d32f2f' : '#ced4da'
-                              }
-                            }),
-                            valueContainer: (base) => ({
-                              ...base,
-                              padding: '2px 8px'
-                            })
-                          }}
-                        />
-                        {errors.nameOfFacility && (
-                          <span className={classes.error}>{errors.nameOfFacility}</span>
-                        )}
-                      </Col>
-                    </FieldRow>
-                    <FieldRow>
-                      <Col>
-                        <SectionLabel>Duration of Care From <span style={{ color: "red" }}>*</span></SectionLabel>
-                        <Input
-                          type="date"
-                          name="durationOfCareFrom"
-                          value={arvHistory.durationOfCareFrom}
-                          onChange={handleArv}
-                          min={props.patientObj?.dateOfBirth || undefined}
-                          max={arvHistory.durationOfCareTo || moment(new Date()).format("YYYY-MM-DD")}
-                          style={{ borderColor: errors.durationOfCareFrom ? "#d32f2f" : "" }}
-                        />
-                        {errors.durationOfCareFrom && (
-                          <span className={classes.error}>{errors.durationOfCareFrom}</span>
-                        )}
-                      </Col>
-                      <Col>
-                        <SectionLabel>Duration of Care To <span style={{ color: "red" }}>*</span></SectionLabel>
-                        <Input
-                          type="date"
-                          name="durationOfCareTo"
-                          value={arvHistory.durationOfCareTo}
-                          onChange={handleArv}
-                          min={arvHistory.durationOfCareFrom || undefined}
-                          max={moment(new Date()).format("YYYY-MM-DD")}
-                          style={{ borderColor: errors.durationOfCareTo || arvHistoryErrors.durationOfCareTo ? "#d32f2f" : "" }}
-                        />
-                        {errors.durationOfCareTo && (
-                          <span className={classes.error}>{errors.durationOfCareTo}</span>
-                        )}
-                        {arvHistoryErrors.durationOfCareTo && (
-                          <span className={classes.error}>{arvHistoryErrors.durationOfCareTo}</span>
-                        )}
-                      </Col>
-                    </FieldRow>
-                  </>
-                )}
+                {/*{(arvHistory.earlierArvNotTransfer || arvHistory.tran) && (*/}
+                {/*  <>*/}
+                {/*    <SubHeading>Facility &amp; Duration</SubHeading>*/}
+                {/*    <FieldRow>*/}
+                {/*      <Col>*/}
+                {/*        <SectionLabel>Name of Facility <span style={{ color: "red" }}>*</span></SectionLabel>*/}
+                {/*        <ReactSelect*/}
+                {/*          name="nameOfFacility"*/}
+                {/*          value={getFacilityOptions().find(option => option.value === arvHistory.nameOfFacility)}*/}
+                {/*          onChange={handleFacilitySelect}*/}
+                {/*          options={getFacilityOptions()}*/}
+                {/*          isLoading={loadingFacilities}*/}
+                {/*          placeholder="Search or select facility..."*/}
+                {/*          isSearchable={true}*/}
+                {/*          isClearable={true}*/}
+                {/*          noOptionsMessage={() => "No facilities found"}*/}
+                {/*          styles={{*/}
+                {/*            control: (base) => ({*/}
+                {/*              ...base,*/}
+                {/*              minHeight: '41px',*/}
+                {/*              borderColor: errors.nameOfFacility ? '#d32f2f' : '#ced4da',*/}
+                {/*              borderRadius: '0.25rem',*/}
+                {/*              '&:hover': {*/}
+                {/*                borderColor: errors.nameOfFacility ? '#d32f2f' : '#ced4da'*/}
+                {/*              }*/}
+                {/*            }),*/}
+                {/*            valueContainer: (base) => ({*/}
+                {/*              ...base,*/}
+                {/*              padding: '2px 8px'*/}
+                {/*            })*/}
+                {/*          }}*/}
+                {/*        />*/}
+                {/*        {errors.nameOfFacility && (*/}
+                {/*          <span className={classes.error}>{errors.nameOfFacility}</span>*/}
+                {/*        )}*/}
+                {/*      </Col>*/}
+                {/*    </FieldRow>*/}
+                {/*    <FieldRow>*/}
+                {/*      <Col>*/}
+                {/*        <SectionLabel>Duration of Care From <span style={{ color: "red" }}>*</span></SectionLabel>*/}
+                {/*        <Input*/}
+                {/*          type="date"*/}
+                {/*          name="durationOfCareFrom"*/}
+                {/*          value={arvHistory.durationOfCareFrom}*/}
+                {/*          onChange={handleArv}*/}
+                {/*          min={props.patientObj?.dateOfBirth || undefined}*/}
+                {/*          max={arvHistory.durationOfCareTo || moment(new Date()).format("YYYY-MM-DD")}*/}
+                {/*          style={{ borderColor: errors.durationOfCareFrom ? "#d32f2f" : "" }}*/}
+                {/*        />*/}
+                {/*        {errors.durationOfCareFrom && (*/}
+                {/*          <span className={classes.error}>{errors.durationOfCareFrom}</span>*/}
+                {/*        )}*/}
+                {/*      </Col>*/}
+                {/*      <Col>*/}
+                {/*        <SectionLabel>Duration of Care To <span style={{ color: "red" }}>*</span></SectionLabel>*/}
+                {/*        <Input*/}
+                {/*          type="date"*/}
+                {/*          name="durationOfCareTo"*/}
+                {/*          value={arvHistory.durationOfCareTo}*/}
+                {/*          onChange={handleArv}*/}
+                {/*          min={arvHistory.durationOfCareFrom || undefined}*/}
+                {/*          max={moment(new Date()).format("YYYY-MM-DD")}*/}
+                {/*          style={{ borderColor: errors.durationOfCareTo || arvHistoryErrors.durationOfCareTo ? "#d32f2f" : "" }}*/}
+                {/*        />*/}
+                {/*        {errors.durationOfCareTo && (*/}
+                {/*          <span className={classes.error}>{errors.durationOfCareTo}</span>*/}
+                {/*        )}*/}
+                {/*        {arvHistoryErrors.durationOfCareTo && (*/}
+                {/*          <span className={classes.error}>{arvHistoryErrors.durationOfCareTo}</span>*/}
+                {/*        )}*/}
+                {/*      </Col>*/}
+                {/*    </FieldRow>*/}
+                {/*  </>*/}
+                {/*)}*/}
+
+                  {(arvHistory.earlierArvNotTransfer || arvHistory.tran) && (
+                      <>
+                          <SubHeading>Facility &amp; Duration</SubHeading>
+                          <FieldRow>
+                              <Col>
+                                  <SectionLabel>
+                                      Name of Facility {arvHistory.tran && <span style={{ color: "red" }}>*</span>}
+                                  </SectionLabel>
+                                  <ReactSelect
+                                      name="nameOfFacility"
+                                      value={getFacilityOptions().find(option => option.value === arvHistory.nameOfFacility)}
+                                      onChange={handleFacilitySelect}
+                                      options={getFacilityOptions()}
+                                      isLoading={loadingFacilities}
+                                      placeholder="Search or select facility..."
+                                      isSearchable={true}
+                                      isClearable={true}
+                                      noOptionsMessage={() => "No facilities found"}
+                                      styles={{
+                                          control: (base) => ({
+                                              ...base,
+                                              minHeight: '41px',
+                                              borderColor: errors.nameOfFacility ? '#d32f2f' : '#ced4da',
+                                              borderRadius: '0.25rem',
+                                              '&:hover': {
+                                                  borderColor: errors.nameOfFacility ? '#d32f2f' : '#ced4da'
+                                              }
+                                          }),
+                                          valueContainer: (base) => ({
+                                              ...base,
+                                              padding: '2px 8px'
+                                          })
+                                      }}
+                                  />
+                                  {errors.nameOfFacility && (
+                                      <span className={classes.error}>{errors.nameOfFacility}</span>
+                                  )}
+                              </Col>
+                          </FieldRow>
+                          <FieldRow>
+                              <Col>
+                                  <SectionLabel>
+                                      Duration of Care From {arvHistory.tran && <span style={{ color: "red" }}>*</span>}
+                                  </SectionLabel>
+                                  <Input
+                                      type="date"
+                                      name="durationOfCareFrom"
+                                      value={arvHistory.durationOfCareFrom}
+                                      onChange={handleArv}
+                                      min={props.patientObj?.dateOfBirth || undefined}
+                                      max={arvHistory.durationOfCareTo || moment(new Date()).format("YYYY-MM-DD")}
+                                      style={{ borderColor: errors.durationOfCareFrom ? "#d32f2f" : "" }}
+                                  />
+                                  {errors.durationOfCareFrom && (
+                                      <span className={classes.error}>{errors.durationOfCareFrom}</span>
+                                  )}
+                              </Col>
+                              <Col>
+                                  <SectionLabel>
+                                      Duration of Care To {arvHistory.tran && <span style={{ color: "red" }}>*</span>}
+                                  </SectionLabel>
+                                  <Input
+                                      type="date"
+                                      name="durationOfCareTo"
+                                      value={arvHistory.durationOfCareTo}
+                                      onChange={handleArv}
+                                      min={arvHistory.durationOfCareFrom || undefined}
+                                      max={moment(new Date()).format("YYYY-MM-DD")}
+                                      style={{ borderColor: errors.durationOfCareTo || arvHistoryErrors.durationOfCareTo ? "#d32f2f" : "" }}
+                                  />
+                                  {errors.durationOfCareTo && (
+                                      <span className={classes.error}>{errors.durationOfCareTo}</span>
+                                  )}
+                                  {arvHistoryErrors.durationOfCareTo && (
+                                      <span className={classes.error}>{arvHistoryErrors.durationOfCareTo}</span>
+                                  )}
+                              </Col>
+                          </FieldRow>
+                      </>
+                  )}
+
               </>
             )}
 
