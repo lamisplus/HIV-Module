@@ -50,6 +50,7 @@ public class ResponseArtPharmacyDto implements Serializable {
     private JsonNode extra;
     private JsonNode adverseDrugReactions;
     private Set<RegimenDto> regimens;
+    private String dispensedByUserUuid;
 
     @Data
     @AllArgsConstructor

@@ -107,6 +107,9 @@ public class ArtPharmacy extends HivAuditEntity implements Persistable<Long> ,Se
     @Basic
     @Column(name = "latitude")
     private  String latitude;
+    @Column(name = "dispensed_by_user_uuid")
+    private String dispensedByUserUuid;
+
     @OneToMany
     @ToString.Exclude
     private Set<Regimen> regimens = new LinkedHashSet<> ();

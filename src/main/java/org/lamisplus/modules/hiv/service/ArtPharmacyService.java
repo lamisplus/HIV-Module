@@ -348,5 +348,9 @@ public class ArtPharmacyService {
         return objectMapper.readValue(jsonResult, CurrentRegimenInfoDTO.class);
 	}
 
+	public List<DispensedByProjection> getDispensedByUsers() {
+		Long orgId = organizationUtil.getCurrentUserOrganization();
+		return artPharmacyRepository.getActiveUsersByOrganization(orgId);
+	}
 
 }

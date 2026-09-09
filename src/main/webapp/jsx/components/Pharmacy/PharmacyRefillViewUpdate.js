@@ -130,6 +130,8 @@ const Pharmacy = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [tptCareAndSupportRegimen, setTptCareAndSupportRegimen] = useState("")
   const [selectedOIRegimen, setSelectedOIRegimen] = useState("");
+  const [dispensedByUsers, setDispensedByUsers] = useState([]);
+  const [dispensedByDesignation, setDispensedByDesignation] = useState("");
   const [objValues, setObjValues] = useState({
     adherence: "",
     adrScreened: "",
@@ -154,6 +156,7 @@ const Pharmacy = (props) => {
     substitute: "",
     iptType: "",
     visitType: "",
+    dispensedByUserUuid: "",
   });
   const [vital, setVitalSignDto] = useState({
     bodyWeight: "",
@@ -233,6 +236,20 @@ const Pharmacy = (props) => {
         });
   };
 
+  // Fetch dispensed by users
+  useEffect(() => {
+    axios
+        .get(`${baseUrl}hiv/art/pharmacy/users/dispensed-by`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((response) => {
+          setDispensedByUsers(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching dispensed by users:", error);
+        });
+  }, []);
+
   useEffect(() => {
     GetCareAndSupportTptRegimen();
   }, [objValues.visitDate]);
@@ -297,23 +314,37 @@ const Pharmacy = (props) => {
       })
       .catch((error) => {});
   };
+
   //Get Pharmacy refill Detail
   const PharmacyRefillDetail = () => {
     axios
-      .get(`${baseUrl}hiv/art/pharmacy/${props.activeContent.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        const data = response.data;
-
-        setObjValues(data);
-        setRegimenDrugList(data && data.extra ? data.extra.regimens : []);
-        setDsdModelType(getDsdModelOptions(objValues.dsdModel));
-        objValues.dsdModelType = data.dsdModelType;
-        //}
-      })
-      .catch((error) => {});
+        .get(`${baseUrl}hiv/art/pharmacy/${props.activeContent.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          const data = response.data;
+          setObjValues(data);
+          setRegimenDrugList(data && data.extra ? data.extra.regimens : []);
+          setDsdModelType(getDsdModelOptions(objValues.dsdModel));
+          objValues.dsdModelType = data.dsdModelType;
+        })
+        .catch((error) => {});
   };
+  // Add this useEffect to automatically resolve the designation
+  useEffect(() => {
+    // Only run if we have a saved UUID and the users list has finished loading
+    if (objValues.dispensedByUserUuid && dispensedByUsers.length > 0) {
+      const selectedUser = dispensedByUsers.find(
+          (user) => user.uuid === objValues.dispensedByUserUuid
+      );
+
+      if (selectedUser) {
+        setDispensedByDesignation(selectedUser.designation || "");
+      } else {
+        setDispensedByDesignation("");
+      }
+    }
+  }, [objValues.dispensedByUserUuid, dispensedByUsers]);
   //GET AdultRegimenLine
   const AdultRegimenLine = () => {
     axios
@@ -809,6 +840,19 @@ const Pharmacy = (props) => {
     regimenDrugList.splice(index, 1);
     setRegimenDrugList([...regimenDrugList]);
   };
+
+  const handleDispensedByChange = (e) => {
+    const selectedUuid = e.target.value;
+    setObjValues({ ...objValues, dispensedByUserUuid: selectedUuid });
+    // Auto-populate designation based on selection
+    const selectedUser = dispensedByUsers.find(user => user.uuid === selectedUuid);
+    if (selectedUser) {
+      setDispensedByDesignation(selectedUser.designation || "");
+    } else {
+      setDispensedByDesignation("");
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setSaving(true);
@@ -2341,6 +2385,53 @@ const Pharmacy = (props) => {
                     ""
                 )}
               </div>
+              {/* Dispensed By and Designation Fields - After drug list, before Update button */}
+              {regimenDrugList.length > 0 && (
+                  <div className="row" style={{ marginTop: "20px", paddingTop: "20px", borderTop: "2px solid #e0e0e0" }}>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>Dispensed By <span style={{ color: "red" }}> *</span></Label>
+                        <Input
+                            type="select"
+                            name="dispensedByUserUuid"
+                            id="dispensedByUserUuid"
+                            value={objValues.dispensedByUserUuid || ""}
+                            onChange={handleDispensedByChange}
+                            disabled={disabledField}
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.25rem",
+                            }}
+                            required
+                        >
+                          <option value="">Select User</option>
+                          {dispensedByUsers.map((user) => (
+                              <option key={user.uuid} value={user.uuid}>
+                                {user.firstName} {user.lastName}
+                              </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
+                    </div>
+                    <div className="form-group mb-3 col-md-6">
+                      <FormGroup>
+                        <Label>Designation</Label>
+                        <Input
+                            type="text"
+                            name="dispensedByDesignation"
+                            id="dispensedByDesignation"
+                            value={dispensedByDesignation}
+                            disabled
+                            style={{
+                              border: "1px solid #014D88",
+                              borderRadius: "0.25rem",
+                              backgroundColor: "#e9ecef"
+                            }}
+                        />
+                      </FormGroup>
+                    </div>
+                  </div>
+              )}
               {saving ? <Spinner/> : ""}
               <br/>
               {regimenDrugList.length > 0 && (

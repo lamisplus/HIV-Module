@@ -1,5 +1,6 @@
 package org.lamisplus.modules.hiv.repositories;
 
+import org.lamisplus.modules.hiv.domain.dto.DispensedByProjection;
 import org.lamisplus.modules.hiv.domain.dto.PharmacyReport;
 import org.lamisplus.modules.hiv.domain.entity.ArtPharmacy;
 import org.lamisplus.modules.patient.domain.entity.Person;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -101,4 +103,10 @@ public interface ArtPharmacyRepository extends JpaRepository<ArtPharmacy, Long> 
 	Optional<ArtPharmacy> findByUuid(String uuid);
 
 	Optional<ArtPharmacy> findByUuidAndFacilityId(String uuid, Long facilityId);
+
+	@Query(value = "SELECT uuid, user_name AS userName, first_name AS firstName, last_name AS lastName, designation " +
+			"FROM base_application_user " +
+			"WHERE archived = 0 AND current_organisation_unit_id = :orgId " +
+			"ORDER BY first_name, last_name", nativeQuery = true)
+	List<DispensedByProjection> getActiveUsersByOrganization(@Param("orgId") Long orgId);
 }

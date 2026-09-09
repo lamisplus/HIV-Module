@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lamisplus.modules.hiv.domain.dto.CurrentRegimenInfoDTO;
+import org.lamisplus.modules.hiv.domain.dto.DispensedByProjection;
 import org.lamisplus.modules.hiv.domain.dto.RegisterArtPharmacyDTO;
 import org.lamisplus.modules.hiv.domain.entity.Regimen;
 import org.lamisplus.modules.hiv.service.ArtPharmacyService;
@@ -63,6 +64,11 @@ public class ArtPharmacyController {
     public ResponseEntity<CurrentRegimenInfoDTO> getCurrentRegimenInfo(@RequestParam String personUuid) throws JsonProcessingException {
         CurrentRegimenInfoDTO response = artPharmacyService.getCurrentRegimenInfo(personUuid);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/users/dispensed-by")
+    public ResponseEntity<List<DispensedByProjection>> getDispensedByUsers() {
+        return ResponseEntity.ok(artPharmacyService.getDispensedByUsers());
     }
     
 

@@ -55,5 +55,6 @@ public class RegisterArtPharmacyDTO implements Serializable {
     private String longitude;
     @Basic
     private  String latitude;
+    private String dispensedByUserUuid;
 
 }
