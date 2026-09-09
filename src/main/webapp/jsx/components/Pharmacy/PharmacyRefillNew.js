@@ -1159,6 +1159,12 @@ const Pharmacy = (props) => {
         setSaving(false);
         return;
       }
+      if (!objValues.dispensedByUserUuid) {
+        toast.error("Dispensed By is required", { position: toast.POSITION.BOTTOM_CENTER });
+        setSaving(false);
+        return;
+      }
+
       objValues.adverseDrugReactions = selectedOptionAdr;
       objValues.personId = props.patientObj.id;
       objValues.extra["regimens"] = regimenDrugList;

@@ -855,6 +855,10 @@ const Pharmacy = (props) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!objValues.dispensedByUserUuid) {
+      toast.error("Dispensed By is required", { position: toast.POSITION.BOTTOM_CENTER });
+      return;
+    }
     setSaving(true);
     objValues.adverseDrugReactions = selectedOptionAdr;
     objValues.personId = props.patientObj.id;
