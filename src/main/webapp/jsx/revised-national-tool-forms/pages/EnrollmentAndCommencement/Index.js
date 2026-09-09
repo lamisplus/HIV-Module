@@ -1472,15 +1472,33 @@ const EnrollmentAndCommencementForm = (props) => {
       temp.care_entry_point = "Care entry point is required";
     }
 
+    // if (!commencement.visit_date || String(commencement.visit_date).trim() === '') {
+    //   temp.visit_date = "Visit date is required";
+    // } else {
+    //   // 1. Check against ICE dateOfObservation (The direct predecessor in the flow)
+    //   const iceVisitDate = props.patientObj1?.initialClinicalEvaluation?.dateOfObservation;
+    //   if (iceVisitDate && commencement.visit_date < iceVisitDate) {
+    //     temp.visit_date = `Visit date cannot be earlier than the Initial Clinical Evaluation date (${moment(iceVisitDate).format("DD MMM YYYY")})`;
+    //   }
+    //   // 2. Fallback check against Date of Birth
+    //   else if (props.patientObj?.dateOfBirth && commencement.visit_date < props.patientObj.dateOfBirth) {
+    //     temp.visit_date = "Visit date cannot be earlier than date of birth";
+    //   }
+    // }
+
     if (!commencement.visit_date || String(commencement.visit_date).trim() === '') {
       temp.visit_date = "Visit date is required";
     } else {
-      // 1. Check against ICE dateOfObservation (The direct predecessor in the flow)
       const iceVisitDate = props.patientObj1?.initialClinicalEvaluation?.dateOfObservation;
+      // 1. Check against ICE dateOfObservation (Immediate predecessor in the flow)
       if (iceVisitDate && commencement.visit_date < iceVisitDate) {
         temp.visit_date = `Visit date cannot be earlier than the Initial Clinical Evaluation date (${moment(iceVisitDate).format("DD MMM YYYY")})`;
       }
-      // 2. Fallback check against Date of Birth
+      // 2. Check against Date of Patient Registration
+      else if (effectiveRegDate && commencement.visit_date < effectiveRegDate) {
+        temp.visit_date = `Visit date cannot be earlier than Date of Patient Registration (${moment(effectiveRegDate).format("DD MMM YYYY")})`;
+      }
+      // 3. Fallback check against Date of Birth
       else if (props.patientObj?.dateOfBirth && commencement.visit_date < props.patientObj.dateOfBirth) {
         temp.visit_date = "Visit date cannot be earlier than date of birth";
       }
@@ -1517,9 +1535,14 @@ const EnrollmentAndCommencementForm = (props) => {
     }
 
     // 3. Transfer-in date — Required if care_entry_point is Transfer-in
+    // 3. Transfer-in date — Required if care_entry_point is Transfer-in
     const transferInCode = getCodesetCodeByPattern(codesets.careEntryPoints, "TRANSFER");
-    if (registration.care_entry_point == transferInCode && (!registration.date_transferred_in || String(registration.date_transferred_in).trim() === '')) {
-      temp.date_transferred_in = "Transfer-in date is required when care entry point is 'Transfer-in'";
+    if (registration.care_entry_point == transferInCode) {
+      if (!registration.date_transferred_in || String(registration.date_transferred_in).trim() === '') {
+        temp.date_transferred_in = "Transfer-in date is required when care entry point is 'Transfer-in'";
+      } else if (effectiveRegDate && registration.date_transferred_in < effectiveRegDate) {
+        temp.date_transferred_in = `Date Transferred In cannot be earlier than the patient's registration date (${moment(effectiveRegDate).format("DD MMM YYYY")})`;
+      }
     }
 
     // 4. Facility Transferred From — Required if date_transferred_in is provided
@@ -1914,7 +1937,7 @@ const EnrollmentAndCommencementForm = (props) => {
                           type="date"
                           name="date_transferred_in"
                           value={registration.date_transferred_in}
-                          min={registration.date_enrolled_in_hiv_care || undefined}   // ← MIN, not MAX
+                          min={ effectiveRegDate || registration.date_enrolled_in_hiv_care || undefined}   // ← MIN, not MAX
                           max={moment(new Date()).format("YYYY-MM-DD")}
                           // max={registration.date_enrolled_in_hiv_care || moment(new Date()).format("YYYY-MM-DD")}
                           onChange={handleReg}
