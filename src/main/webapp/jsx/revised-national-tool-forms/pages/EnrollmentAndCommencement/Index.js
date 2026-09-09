@@ -1772,18 +1772,6 @@ const EnrollmentAndCommencementForm = (props) => {
                       type="date"
                       name="date_enrolled_in_hiv_care"
                       value={registration.date_enrolled_in_hiv_care}
-                      // min={
-                      //   // Calculate min date as the latest of patient registration date, HIV test date, and previous enrollment date (for returning clients)
-                      //   (() => {
-                      //     const dates = [
-                      //       props.patientObj?.dateOfRegistration,
-                      //       registration.date_confirmed_hiv_test,
-                      //       registration.previousEnrollmentDate // For returning clients
-                      //     ].filter(Boolean);
-                      //     return dates.length > 0 ? dates.reduce((a, b) => a > b ? a : b) : undefined;
-                      //   })()
-                      // }
-
                       min={
                         // For transfer-in clients, only validate against date of birth
                         // For regular clients, validate against the latest of registration date, HIV test date, and previous enrollment date
