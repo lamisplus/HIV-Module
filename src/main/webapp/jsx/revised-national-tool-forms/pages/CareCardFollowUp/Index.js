@@ -1784,16 +1784,20 @@ const CareCardFollowUpForm = (props) => {
       }
     }
 
-    // if (!isEditMode && followUp.next_appointment_date) {
-    //   if (moment(followUp.next_appointment_date).isBefore(today, "day")) {
-    //     temp.next_appointment_date = "Next Appointment Date cannot be earlier than today";
-    //   }
-    // }
       if (followUp.next_appointment_date && visitInfo.visit_date) {
           if (moment(followUp.next_appointment_date).isBefore(visitInfo.visit_date, "day")) {
               temp.next_appointment_date =
                   "Next Appointment Date cannot be earlier than Visit Date";
           }
+      }
+
+      if (lab.cd4_count && !lab.cd4_date) {
+          temp.cd4_date = "CD4 Result Date is required when Result is provided";
+      }
+
+      // Viral Load: If Result is provided, Date is required
+      if (lab.viral_load_result && !lab.viral_load_date) {
+          temp.viral_load_date = "Viral Load Result Date is required when Result is provided";
       }
 
     // Check for vital validation errors
@@ -3020,10 +3024,11 @@ const CareCardFollowUpForm = (props) => {
                         <SectionLabel>Result</SectionLabel>
                         <Input type="number" name="cd4_count" value={lab.cd4_count} onChange={handleLab} placeholder="cells/mm³" min="0" />
                       </Col>
-                      <Col size={6}>
-                        <SectionLabel>Result Date</SectionLabel>
-                        <Input type="date" name="cd4_date" value={lab.cd4_date} onChange={handleLab} />
-                      </Col>
+                        <Col size={6}>
+                            <SectionLabel>Result Date {lab.cd4_count && <span style={{ color: "red" }}>*</span>}</SectionLabel>
+                            <Input type="date" name="cd4_date" value={lab.cd4_date} max={moment(new Date()).format("YYYY-MM-DD")}  onChange={handleLab} />
+                            {errors.cd4_date && <span className={classes.error}>{errors.cd4_date}</span>}
+                        </Col>
                     </FieldRow>
                 )}
               </Box>
@@ -3044,16 +3049,17 @@ const CareCardFollowUpForm = (props) => {
                 </FieldRow>
                 {viralLoadOrdered && (
                     <>
-                      <FieldRow>
-                        <Col size={6}>
-                          <SectionLabel>Result</SectionLabel>
-                          <Input type="number" name="viral_load_result" value={lab.viral_load_result} onChange={handleLab} placeholder="e.g. 200" min="0" />
-                        </Col>
-                        <Col size={6}>
-                          <SectionLabel>Result Date</SectionLabel>
-                          <Input type="date" name="viral_load_date" value={lab.viral_load_date} onChange={handleLab} />
-                        </Col>
-                      </FieldRow>
+                        <FieldRow>
+                            <Col size={6}>
+                                <SectionLabel>Result</SectionLabel>
+                                <Input type="number" name="viral_load_result" value={lab.viral_load_result} onChange={handleLab} placeholder="e.g. 200" min="0" />
+                            </Col>
+                            <Col size={6}>
+                                <SectionLabel>Result Date {lab.viral_load_result && <span style={{ color: "red" }}>*</span>}</SectionLabel>
+                                <Input type="date" name="viral_load_date" value={lab.viral_load_date} max={moment(new Date()).format("YYYY-MM-DD")}  onChange={handleLab} />
+                                {errors.viral_load_date && <span className={classes.error}>{errors.viral_load_date}</span>}
+                            </Col>
+                        </FieldRow>
                       <FieldRow>
                         <Col size={6}>
                           <SectionLabel>Indication for Viral Load Test</SectionLabel>
