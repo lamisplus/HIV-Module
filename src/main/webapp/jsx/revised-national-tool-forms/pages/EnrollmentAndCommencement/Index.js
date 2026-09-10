@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import axios from "axios";
 import { Input } from "reactstrap";
 import * as moment from "moment";
@@ -9,7 +9,7 @@ import {
   AccordionDetails,
   Typography,
   Box,
-  Divider,
+  Divider, Alert
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { makeStyles } from "@material-ui/core/styles";
@@ -22,7 +22,7 @@ import SaveIcon from "@material-ui/icons/Save";
 import CancelIcon from "@material-ui/icons/Cancel";
 import EditIcon from "@material-ui/icons/Edit";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
-import { calculate_age_to_number } from "../../../../utils";
+import { calculate_age_to_number , getWeightRangeWarning, getHeightRangeWarning } from "../../../../utils";
 
 
 const ACCORDION_STYLES = [
@@ -176,12 +176,12 @@ const validateCommencementVital = (name, value) => {
   switch (name) {
     case "weight_kg":
       if (numValue < 1) return "Weight cannot be less than 1 kg";
-      if (numValue > 200) return "Weight cannot be greater than 200 kg";
+    //   if (numValue > 200) return "Weight cannot be greater than 200 kg";
       break;
     case "height_cm":
-      if (numValue < 30) return "Height cannot be less than 30 cm";
-      if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
-      break;
+      if (numValue < 1) return "Height cannot be less than 1 cm";
+    //   if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
+    //   break;
     default:
       break;
   }
@@ -358,6 +358,15 @@ const EnrollmentAndCommencementForm = (props) => {
       date_referred_from_ovc_partner: "",
     },
   });
+
+  const weightWarning = useMemo(
+      () => getWeightRangeWarning(commencement.weight_kg, patientAge),
+      [commencement.weight_kg, patientAge]
+  );
+  const heightWarning = useMemo(
+      () => getHeightRangeWarning(commencement.height_cm, patientAge),
+      [commencement.height_cm, patientAge]
+  );
 
   // ── Check if patient already has enrollment-commencement record ──────────
   // Only check for existing record in CREATE mode
@@ -2403,7 +2412,11 @@ const EnrollmentAndCommencementForm = (props) => {
                         style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                     />
                     {errors.weight_kg && <span className={classes.error}>{errors.weight_kg}</span>}
-                  </Col>
+                    {!errors.weight_kg && weightWarning && (
+                        <Alert severity="warning" sx={{ marginTop: "6px", fontSize: "12px" }}>
+                          {weightWarning}
+                        </Alert>
+                    )}                  </Col>
                   <Col>
                     <SectionLabel>Height / Length (cm)</SectionLabel>
                     <Input
@@ -2419,7 +2432,11 @@ const EnrollmentAndCommencementForm = (props) => {
                         style={isViewMode ? { background: "#f5f9ff", color: "#014d88", fontWeight: 600 } : {}}
                     />
                     {errors.height_cm && <span className={classes.error}>{errors.height_cm}</span>}
-                  </Col>
+                    {!errors.height_cm && heightWarning && (
+                        <Alert severity="warning" sx={{ marginTop: "6px", fontSize: "12px" }}>
+                          {heightWarning}
+                        </Alert>
+                    )}                  </Col>
                 </FieldRow>
 
                 {/* Row 6: BMI */}

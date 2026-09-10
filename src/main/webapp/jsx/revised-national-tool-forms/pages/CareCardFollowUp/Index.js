@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useMemo} from "react";
 import axios from "axios";
 import { Input } from "reactstrap";
 import * as moment from "moment";
@@ -23,7 +23,7 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Chip,
+  Chip,Alert
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { makeStyles } from "@material-ui/core/styles";
@@ -38,6 +38,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import AddIcon from "@material-ui/icons/Add";
 import EditIcon from "@material-ui/icons/Edit";
 import AudioRecorder from "../../../components/Consultation/AudioRecorder";
+import {calculate_age_to_number , getWeightRangeWarning, getHeightRangeWarning} from "../../../../utils";
 
 
 const WHO_STAGE_CRITERIA_OPTIONS = {
@@ -384,7 +385,8 @@ const CareCardFollowUpForm = (props) => {
   const classes = useStyles();
   const isFemale = ["female", "FEMALE", "Female"].includes(props.patientObj?.sex);
 
-  const patientAge = props.patientObj?.age || 0;
+  // const patientAge = props.patientObj?.age || 0;
+  const patientAge = calculate_age_to_number(props.patientObj?.dateOfBirth) || 0;
   const isPediatric = patientAge < 15;
 
   // Calculate minimum visit date (should not be earlier than DOB, HIV enrollment, or ART start)
@@ -841,6 +843,16 @@ const CareCardFollowUpForm = (props) => {
     on_family_planning: "",
   });
 
+    const weightWarning = useMemo(
+        () => getWeightRangeWarning(vitals.weight_kg, patientAge),
+        [vitals.weight_kg, patientAge]
+    );
+    const heightWarning = useMemo(
+        () => getHeightRangeWarning(vitals.height_cm, patientAge),
+        [vitals.height_cm, patientAge]
+    );
+
+
   // Calculate BMI for adults or MUAC for pediatrics
   const calculateBmiMuac = (height, weight) => {
     const heightNum = parseFloat(height);
@@ -886,11 +898,11 @@ const CareCardFollowUpForm = (props) => {
         break;
       case "weight_kg":
         if (numValue < 1) return "Weight cannot be less than 1 kg";
-        if (numValue > 200) return "Weight cannot be greater than 200 kg";
+      //   if (numValue > 200) return "Weight cannot be greater than 200 kg";
         break;
       case "height_cm":
-        if (numValue < 30) return "Height cannot be less than 30 cm";
-        if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
+        if (numValue < 1) return "Height cannot be less than 1 cm";
+      //   if (numValue > 216.408) return "Height cannot be greater than 216.408 cm";
         break;
       case "respiratory_rate":
         if (numValue < 5) return "Respiratory Rate cannot be less than 5 breaths/min";
@@ -2170,6 +2182,11 @@ const CareCardFollowUpForm = (props) => {
                         step="0.1"
                     />
                     {errors.height_cm && <span className={classes.error}>{errors.height_cm}</span>}
+                      {!errors.height_cm && heightWarning && (
+                          <Alert severity="warning" sx={{ marginTop: "6px", fontSize: "12px" }}>
+                              {heightWarning}
+                          </Alert>
+                      )}
                   </Col>
                   <Col size={3}>
                     <SectionLabel required>Weight (kg)</SectionLabel>
@@ -2183,6 +2200,11 @@ const CareCardFollowUpForm = (props) => {
                         step="0.1"
                     />
                     {errors.weight_kg && <span className={classes.error}>{errors.weight_kg}</span>}
+                      {!errors.weight_kg && weightWarning && (
+                          <Alert severity="warning" sx={{ marginTop: "6px", fontSize: "12px" }}>
+                              {weightWarning}
+                          </Alert>
+                      )}
                   </Col>
                   <Col size={3}>
                     <SectionLabel>

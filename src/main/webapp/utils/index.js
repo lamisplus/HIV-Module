@@ -107,3 +107,58 @@ export const getAgeInMonths = (dob) => {
   }
   return months;
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Add these to your existing ../../../../utils module, next to
+// calculate_age_to_number. Pure functions — no React, no side effects — so
+// they can be imported identically by all three vitals forms.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Non-blocking weight range warning for clients >= 15 years old.
+ * Returns null when there's nothing to warn about (including when the
+ * client is under 15 — pediatric ranges are out of scope for this check).
+ *
+ * @param {string|number} weightKg
+ * @param {number} ageYears
+ * @returns {string|null}
+ */
+export const getWeightRangeWarning = (weightKg, ageYears) => {
+  if (ageYears == null || ageYears < 15) return null;
+  if (weightKg === "" || weightKg === null || weightKg === undefined) return null;
+
+  const value = parseFloat(weightKg);
+  if (isNaN(value)) return null;
+
+  if (value < 30) {
+    return "The recorded weight is below the minimum expected range for the client's age.";
+  }
+  if (value > 150) {
+    return "The recorded weight is above the maximum expected range for the client's age.";
+  }
+  return null;
+};
+
+/**
+ * Non-blocking height range warning for clients >= 15 years old.
+ * Returns null when there's nothing to warn about.
+ *
+ * @param {string|number} heightCm
+ * @param {number} ageYears
+ * @returns {string|null}
+ */
+export const getHeightRangeWarning = (heightCm, ageYears) => {
+  if (ageYears == null || ageYears < 15) return null;
+  if (heightCm === "" || heightCm === null || heightCm === undefined) return null;
+
+  const value = parseFloat(heightCm);
+  if (isNaN(value)) return null;
+
+  if (value < 48.5) {
+    return "The recorded height is below the minimum expected range for the client's age.";
+  }
+  if (value > 216.5) {
+    return "The recorded height is above the maximum expected range for the client's age.";
+  }
+  return null;
+};
