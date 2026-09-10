@@ -640,6 +640,7 @@ function PatientCard(props) {
             {activeContent.route === "initial-clinical-evaluation" && (
                 <InitialClinicalEvaluationForm
                     patientObj={patientObj}
+                    patientObj1={patientObj1}
                     setActiveContent={setActiveContent}
                     activeContent={activeContent}
                     fromTransferIn={fromTransferIn}
