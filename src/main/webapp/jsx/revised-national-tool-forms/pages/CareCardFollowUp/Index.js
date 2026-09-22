@@ -1808,8 +1808,17 @@ const CareCardFollowUpForm = (props) => {
       }
 
       // Viral Load: If Result is provided, Date is required
-      if (lab.viral_load_result && !lab.viral_load_date) {
-          temp.viral_load_date = "Viral Load Result Date is required when Result is provided";
+      // if (lab.viral_load_result && !lab.viral_load_date) {
+      //     temp.viral_load_date = "Viral Load Result Date is required when Result is provided";
+      // }
+
+      if (lab.viral_load_result) {
+          if (!lab.viral_load_date) {
+              temp.viral_load_date = "Viral Load Result Date is required when Result is provided";
+          }
+          if (!lab.viral_load_indication) {
+              temp.viral_load_indication = "Viral Load Indication is required when Result is provided";
+          }
       }
 
     // Check for vital validation errors
@@ -3093,6 +3102,7 @@ const CareCardFollowUpForm = (props) => {
                                 </option>
                             ))}
                           </Input>
+                            {errors.viral_load_indication && <span className={classes.error}>{errors.viral_load_indication}</span>}
                         </Col>
                       </FieldRow>
 
