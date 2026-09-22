@@ -57,4 +57,16 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="20260922-01" author="Taiwo Gboyegun">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="dsd_outlet"/>
+        </preConditions>
+        <comment>Add new records of ids (207-224) to dsd_outlet table</comment>
+        <sqlFile dbms="postgresql"
+                 path="sql/dsd_outlet_batch_2.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>

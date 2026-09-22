@@ -8,7 +8,7 @@ import org.springframework.core.annotation.Order;
 @Order(11)
 @Installer(name = "dsd-outlet-schema-installer",
         description = "create dsd outlet table",
-        version = 3)
+        version = 4)
 public class  DSDOutletSchemaInstaller extends AcrossLiquibaseInstaller {
     public  DSDOutletSchemaInstaller() {
         super("classpath:installers/hiv/schema/dsd_outlet.xml");
