@@ -347,6 +347,7 @@ public class ArtClinicVisitService {
 				.sideEffects(safeSideEffects)
 				.dsdStatus(visit.getDsdStatus())
 				.dsdModel(visit.getDsdModel())
+				.dsdOutlet(visit.getDsdOutlet())
 				.dateDevolved(visit.getDateDevolved())
 				.cotrimoxazoleDose(visit.getCotrimoxazoleDose())
 				.tptData(visit.getTptData())

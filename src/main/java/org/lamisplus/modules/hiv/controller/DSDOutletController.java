@@ -3,11 +3,13 @@ package org.lamisplus.modules.hiv.controller;
 import lombok.RequiredArgsConstructor;
 import org.lamisplus.modules.hiv.domain.dto.DsdOutletDTO;
 import org.lamisplus.modules.hiv.domain.dto.DsdOutletProjection;
+import org.lamisplus.modules.hiv.repositories.DSDOutletRepository;
 import org.lamisplus.modules.hiv.service.DSDOutletService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -16,6 +18,7 @@ import java.util.List;
 public class DSDOutletController {
 
     private final DSDOutletService dsdOutletService;
+    private final DSDOutletRepository dsdOutletRepository;
 
     @GetMapping(value = "/{lga}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<DsdOutletDTO>> getDsdOutletByLga(@PathVariable("lga") String lga) {
@@ -32,5 +35,14 @@ public class DSDOutletController {
     public ResponseEntity<List<DsdOutletProjection>> getDsdOutlets(@RequestParam("organisationUnitId") Long organisationUnitId, @RequestParam("code") String code) {
         return ResponseEntity.ok(dsdOutletService.getDsdOutlets(organisationUnitId, code));
     }
+
+    @GetMapping(value = "/by-hub-and-dsd-type", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<DsdOutletProjection>> getDsdOutletsByHubAndDsdType(
+            @RequestParam("hubName") String hubName,
+            @RequestParam("dsdType") String dsdType) {
+
+        return ResponseEntity.ok(dsdOutletService.getByHubAndDsdType(hubName, dsdType));
+    }
+
 
 }

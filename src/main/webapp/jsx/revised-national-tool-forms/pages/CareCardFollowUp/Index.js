@@ -682,6 +682,7 @@ const CareCardFollowUpForm = (props) => {
         noted_side_effect: visit.sideEffects ? visit.sideEffects.map(se => ({ value: se.code, label: se.display })) : [],
         dsd_status: visit.dsdStatus || "",
         dsd_model: visit.dsdModel || "",
+        dsd_outlet: visit.dsdOutlet || "",
         date_devolved: visit.dateDevolved ? moment(visit.dateDevolved).format("YYYY-MM-DD") : "",
       });
 
@@ -964,8 +965,12 @@ const CareCardFollowUpForm = (props) => {
     noted_side_effect: [],
     dsd_status: "",
     dsd_model: "",
+    dsd_outlet: " ",
     date_devolved: "",
+
   });
+
+  const [dsdOutletOptions, setDsdOutletOptions] = useState([]);
   const handleClinical = (e) => {
     const { name, value } = e.target;
 
@@ -1977,6 +1982,7 @@ const CareCardFollowUpForm = (props) => {
         sideEffects: clinical.noted_side_effect.map(se => se.value),
         dsdStatus: clinical.dsd_status || "",
         dsdModel: clinical.dsd_model || "",
+        dsdOutlet: clinical.dsd_outlet || "",
         dateDevolved: clinical.date_devolved || "",
         cotrimoxazoleDose: {
           medication: ctx_medication || "",
@@ -2032,6 +2038,44 @@ const CareCardFollowUpForm = (props) => {
       setFollowUp((prev) => ({ ...prev, next_appointment_date: nextAppointment }));
     }
   }, [arvList, visitInfo.visit_date]);
+
+    // Fetch DSD Outlets based on selected Community DSD Model and Current Facility
+    useEffect(() => {
+        if (clinical.dsd_status && (clinical.dsd_status.includes("COMMUNITY") || clinical.dsd_status.includes("Community")) && clinical.dsd_model) {
+            const selectedModel = dsdModelCommunityCodeset.find(m => m.code === clinical.dsd_model);
+            if (selectedModel) {
+                // Extract "CBM1" from "CBM1 - Community Pharmacy ART refill"
+                const dsdTypeShort = selectedModel.display.split(' - ')[0].trim();
+
+                const userAccountStr = localStorage.getItem('user_account');
+                let hubName = '';
+                if (userAccountStr) {
+                    try {
+                        const userAccount = JSON.parse(userAccountStr);
+                        hubName = userAccount.currentOrganisationUnitName || '';
+                    } catch (e) { console.error("Error parsing user account", e); }
+                }
+
+                if (hubName && dsdTypeShort) {
+                    axios.get(`${baseUrl}hiv/dsd-outlet/by-hub-and-dsd-type?hubName=${encodeURIComponent(hubName)}&dsdType=${encodeURIComponent(dsdTypeShort)}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }).then(res => {
+                        if (res.data && res.data.length > 0) {
+                            setDsdOutletOptions(res.data);
+                        } else {
+                            setDsdOutletOptions([]);
+                        }
+                    }).catch(err => {
+                        console.error("Error fetching DSD outlets:", err);
+                        setDsdOutletOptions([]);
+                    });
+                }
+            }
+        } else {
+            setDsdOutletOptions([]);
+            setClinical(prev => ({ ...prev, dsd_outlet: "" }));
+        }
+    }, [clinical.dsd_model, clinical.dsd_status, dsdModelCommunityCodeset]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Render
@@ -2480,21 +2524,36 @@ const CareCardFollowUpForm = (props) => {
                     </Col>
                 )}
               </FieldRow>
-              {(clinical.dsd_status && (clinical.dsd_status.includes("FACILITY") || clinical.dsd_status.includes("COMMUNITY") || clinical.dsd_status.includes("Facility") || clinical.dsd_status.includes("Community"))) && (
-                  <FieldRow>
-                    <Col size={6}>
-                      <SectionLabel>Date Devolved</SectionLabel>
-                      <Input
-                          type="date"
-                          name="date_devolved"
-                          value={clinical.date_devolved}
-                          onChange={handleClinical}
-                          min={props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started || ""}
-                          max={moment(new Date()).format("YYYY-MM-DD")}
-                      />
-                    </Col>
-                  </FieldRow>
-              )}
+                {(clinical.dsd_status && (clinical.dsd_status.includes("FACILITY") || clinical.dsd_status.includes("COMMUNITY") || clinical.dsd_status.includes("Facility") || clinical.dsd_status.includes("Community"))) && (
+                    <FieldRow>
+                        {/* DSD Outlet Field - Only displays if API returned options */}
+                        {dsdOutletOptions.length > 0 && (
+                            <Col size={6}>
+                                <SectionLabel>DSD Outlet</SectionLabel>
+                                <Input type="select" name="dsd_outlet" value={clinical.dsd_outlet} onChange={handleClinical}>
+                                    <option value="">Select</option>
+                                    {dsdOutletOptions.map((option) => (
+                                        <option key={option.id} value={option.spokeName}>
+                                            {option.spokeName}
+                                        </option>
+                                    ))}
+                                </Input>
+                            </Col>
+                        )}
+
+                        <Col size={6}>
+                            <SectionLabel>Date Devolved</SectionLabel>
+                            <Input
+                                type="date"
+                                name="date_devolved"
+                                value={clinical.date_devolved}
+                                onChange={handleClinical}
+                                min={props.patientObj1?.enrollmentCommencement?.data?.commencement?.date_art_started || ""}
+                                max={moment(new Date()).format("YYYY-MM-DD")}
+                            />
+                        </Col>
+                    </FieldRow>
+                )}
             </FormAccordion>
 
             {/* ══════════════════════════════════════════════════════════════ */}

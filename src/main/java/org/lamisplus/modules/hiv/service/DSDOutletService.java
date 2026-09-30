@@ -49,4 +49,9 @@ public class DSDOutletService {
         return result != null ? result : new ArrayList<>();
     }
 
+    public List<DsdOutletProjection> getByHubAndDsdType(String hubName, String dsdType) {
+        List<DsdOutletProjection> result = dsdOutletRepository.findByHubNameAndDsdType(hubName, dsdType);
+        return result != null ? result : new ArrayList<>();
+    }
+
 }

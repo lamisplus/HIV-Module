@@ -183,6 +183,9 @@ public class ARTClinical extends HivAuditEntity implements Serializable, Persist
 	@Column(name = "dsd_model")
 	private String dsdModel;
 
+	@Column(name = "dsd_outlet") // <-- ADDED
+	private String dsdOutlet;
+
 	@Column(name = "date_devolved")
 	private LocalDate dateDevolved;
 

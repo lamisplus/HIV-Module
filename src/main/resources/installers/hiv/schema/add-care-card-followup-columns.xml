@@ -94,4 +94,15 @@
         </sql>
     </changeSet>
 
+    <changeSet failOnError="false" id="20260923-001" author="taiwogboyegun">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="hiv_art_clinical" columnName="dsd_outlet" />
+            </not>
+        </preConditions>
+        <sql dbms="postgresql">
+            ALTER TABLE hiv_art_clinical ADD COLUMN IF NOT EXISTS dsd_outlet VARCHAR(255);
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

@@ -103,6 +103,7 @@ public class ARTClinicalVisitDisplayDto implements Serializable {
 	private JsonNode sideEffects;
 	private String dsdStatus;
 	private String dsdModel;
+	private String dsdOutlet;
 	@Convert(converter = LocalDateConverter.class)
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private LocalDate dateDevolved;
