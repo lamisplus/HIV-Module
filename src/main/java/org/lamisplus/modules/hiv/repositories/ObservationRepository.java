@@ -341,7 +341,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "SELECT hap.person_uuid, CAST(hap.visit_date AS DATE) visitDate, refill_period, ROW_NUMBER() OVER (PARTITION BY hap.person_uuid ORDER BY hap.visit_date DESC) as rnk\n" +
             "FROM public.hiv_art_pharmacy hap \n" +
             "INNER JOIN public.hiv_art_pharmacy_regimens pr ON pr.art_pharmacy_id = hap.id \n" +
-            "INNER JOIN hiv_enrollment h ON h.person_uuid = hap.person_uuid AND h.archived = 0 \n" +
+            "INNER JOIN hiv_enrollment_commencement h ON h.person_uuid = hap.person_uuid AND h.archived = 0 \n" +
             "INNER JOIN public.hiv_regimen r on r.id = pr.regimens_id \n" +
             "INNER JOIN public.hiv_regimen_type rt on rt.id = r.regimen_type_id \n" +
             "WHERE r.regimen_type_id in (1,2,3,4,14, 16) \n" +
@@ -387,203 +387,6 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "LEFT JOIN tbStatus tbStat ON tbImpl.person_uuid = tbStat.person_uuid\n" +
             "WHERE tbImpl.person_uuid = ?1", nativeQuery = true)
     Optional<String> findCurrentTbStatus(String personUuid);
-
-
-//    @Query(value = "SELECT p.id AS id, hts.client_code AS uniqueId, hts.id as htsEncounterId, p.hospital_number AS hospitalNumber, " +
-//            "p.surname AS surname, p.first_name AS firstName, p.other_name AS otherName, " +
-//            "hts.date_of_visit AS dateEnrolled, p.date_of_birth AS dateOfBirth, p.uuid AS personUuid, " +
-//            "CASE WHEN ls.patient_uuid IS NOT NULL THEN TRUE ELSE FALSE END AS hasSample, " +
-//            "CASE WHEN lr.patient_uuid IS NOT NULL THEN TRUE ELSE FALSE END AS hasResult, " +
-//            "lr.result_reported AS testResult " +
-//            "FROM patient_person p " +
-//            "INNER JOIN ( " +
-//            "    SELECT DISTINCT ON (patient_uuid) " +
-//            "        patient_uuid, id, client_code, date_of_visit, observation " +
-//            "    FROM hts_encounter " +
-//            "    WHERE COALESCE(observation->>'hivEarlyDetectResult', observation->>'hivEarlyDetect') IN ( " +
-//            "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
-//            "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
-//            "    ) AND observation->>'finalHivTestResult' != 'Positive' " +
-//            "    ORDER BY patient_uuid, date_of_visit DESC " +
-//            ") hts ON CAST(hts.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//            "LEFT JOIN ( " +
-//            "    SELECT DISTINCT ON (patient_uuid) patient_uuid, date_sample_collected " +
-//            "    FROM laboratory_sample " +
-//            "    WHERE archived = 0 AND LOWER(patient_category) = 'pep' " +
-//            "    ORDER BY patient_uuid, date_sample_collected DESC " +
-//            ") ls ON CAST(ls.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//            "LEFT JOIN ( " +
-//            "    SELECT DISTINCT ON (lr.patient_uuid) " +
-//            "        lr.patient_uuid, lr.result_reported, lr.date_result_reported " +
-//            "    FROM laboratory_result lr " +
-//            "    INNER JOIN laboratory_test lt ON lt.id = lr.test_id " +
-//            "    INNER JOIN laboratory_sample lsamp ON lsamp.test_id = lt.id " +
-//            "    WHERE lr.archived = 0 AND lt.lab_test_id = 16 " +
-//            "    AND LOWER(lsamp.patient_category) = 'pep' " +
-//            "    ORDER BY lr.patient_uuid, lr.date_result_reported DESC " +
-//            ") lr ON CAST(lr.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//            "WHERE p.archived = 0 " +
-//            "AND p.facility_id = :facilityId " +
-//            "AND (lr.result_reported IS NULL OR " +
-//            "(LOWER(lr.result_reported) NOT LIKE '%negative%' " +
-//            "AND LOWER(lr.result_reported) NOT LIKE '%undetected%' " +
-//            "AND TRIM(lr.result_reported) != '0' " +
-//            "AND TRIM(lr.result_reported) != '0.0')) " +
-//            "AND (:searchValue IS NULL OR :searchValue = '' OR " +
-//            "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//            "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//            "LOWER(p.surname) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//            "LOWER(hts.client_code) LIKE LOWER(CONCAT('%', :searchValue, '%'))) " +
-//            "ORDER BY hts.date_of_visit DESC",
-//            countQuery = "SELECT COUNT(*) " +
-//                    "FROM patient_person p " +
-//                    "INNER JOIN ( " +
-//                    "    SELECT DISTINCT ON (patient_uuid) " +
-//                    "        patient_uuid, id, client_code, date_of_visit " +
-//                    "    FROM hts_encounter " +
-//                    "    WHERE COALESCE(observation->>'hivEarlyDetectResult', observation->>'hivEarlyDetect') IN ( " +
-//                    "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
-//                    "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
-//                    "    ) AND observation->>'finalHivTestResult' != 'Positive' " +
-//                    "    ORDER BY patient_uuid, date_of_visit DESC " +
-//                    ") hts ON CAST(hts.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//                    "LEFT JOIN ( " +
-//                    "    SELECT DISTINCT ON (lr.patient_uuid) " +
-//                    "        lr.patient_uuid, lr.result_reported " +
-//                    "    FROM laboratory_result lr " +
-//                    "    INNER JOIN laboratory_test lt ON lt.id = lr.test_id " +
-//                    "    INNER JOIN laboratory_sample lsamp ON lsamp.test_id = lt.id " +
-//                    "    WHERE lr.archived = 0 AND lt.lab_test_id = 16 " +
-//                    "    AND LOWER(lsamp.patient_category) = 'pep' " +
-//                    "    ORDER BY lr.patient_uuid, lr.date_result_reported DESC " +
-//                    ") lr ON CAST(lr.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//                    "WHERE p.archived = 0 " +
-//                    "AND p.facility_id = :facilityId " +
-//                    "AND (lr.result_reported IS NULL OR " +
-//                    "(LOWER(lr.result_reported) NOT LIKE '%negative%' " +
-//                    "AND LOWER(lr.result_reported) NOT LIKE '%undetected%' " +
-//                    "AND TRIM(lr.result_reported) != '0' " +
-//                    "AND TRIM(lr.result_reported) != '0.0')) " +
-//                    "AND (:searchValue IS NULL OR :searchValue = '' OR " +
-//                    "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//                    "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//                    "LOWER(p.surname) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//                    "LOWER(hts.client_code) LIKE LOWER(CONCAT('%', :searchValue, '%')))",
-//            nativeQuery = true)
-//    Page<PEPClientProjection> findAllPEPClients(
-//            @Param("facilityId") Long facilityId,
-//            @Param("searchValue") String searchValue,
-//            Pageable pageable);
-
-//    @Query(value = "SELECT p.id AS id, hts.client_code AS uniqueId, hts.id as htsEncounterId, p.hospital_number AS hospitalNumber, " +
-//            "p.surname AS surname, p.first_name AS firstName, p.other_name AS otherName, " +
-//            "hts.date_of_visit AS dateEnrolled, p.date_of_birth AS dateOfBirth, p.uuid AS personUuid, " +
-//            "CASE WHEN ls.patient_uuid IS NOT NULL THEN TRUE ELSE FALSE END AS hasSample, " +
-//            "CASE WHEN lr.patient_uuid IS NOT NULL THEN TRUE ELSE FALSE END AS hasResult, " +
-//            "lr.result_reported AS testResult " +
-//            "FROM patient_person p " +
-//            "INNER JOIN ( " +
-//            "    SELECT DISTINCT ON (patient_uuid) " +
-//            "        patient_uuid, id, client_code, date_of_visit, observation " +
-//            "    FROM hts_encounter " +
-//            "    WHERE COALESCE(observation->>'hivEarlyDetectResult', observation->>'hivEarlyDetect') IN ( " +
-//            "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
-//            "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
-//            "    ) AND observation->>'finalHivTestResult' != 'Positive' " +
-//            "    ORDER BY patient_uuid, date_of_visit DESC " +
-//            ") hts ON CAST(hts.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//            "LEFT JOIN ( " +
-//            "    SELECT DISTINCT ON (patient_uuid) patient_uuid, date_sample_collected " +
-//            "    FROM laboratory_sample " +
-//            "    WHERE archived = 0 AND LOWER(patient_category) = 'pep' " +
-//            "    ORDER BY patient_uuid, date_sample_collected DESC " +
-//            ") ls ON CAST(ls.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//            "LEFT JOIN ( " +
-//            "    SELECT DISTINCT ON (lr.patient_uuid) " +
-//            "        lr.patient_uuid, lr.result_reported, lr.date_result_reported " +
-//            "    FROM laboratory_result lr " +
-//            "    INNER JOIN laboratory_test lt ON lt.id = lr.test_id " +
-//            "    INNER JOIN laboratory_sample lsamp ON lsamp.test_id = lt.id " +
-//            "    WHERE lr.archived = 0 AND lt.lab_test_id = 16 " +
-//            "    AND LOWER(lsamp.patient_category) = 'pep' " +
-//            "    ORDER BY lr.patient_uuid, lr.date_result_reported DESC " +
-//            ") lr ON CAST(lr.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//            "WHERE p.archived = 0 " +
-//            "AND p.facility_id = :facilityId " +
-//            "AND (lr.result_reported IS NULL OR " +
-//            "(LOWER(lr.result_reported) NOT LIKE '%negative%' " +
-//            "AND LOWER(lr.result_reported) NOT LIKE '%undetected%' " +
-//            "AND TRIM(lr.result_reported) != '0' " +
-//            "AND TRIM(lr.result_reported) != '0.0')) " +
-//            "AND NOT EXISTS ( " +
-//            "    SELECT 1 FROM hiv_initial_clinical_evaluation hice " +
-//            "    WHERE hice.archived = 0 AND CAST(hice.person_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//            ") " +
-//            "AND NOT EXISTS ( " +
-//            "    SELECT 1 FROM hiv_enrollment_commencement hec " +
-//            "    WHERE hec.archived = 0 AND CAST(hec.person_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//            ") " +
-//            "AND NOT EXISTS ( " +
-//            "    SELECT 1 FROM hiv_patient_transfer_in hpt " +
-//            "    WHERE hpt.archived = 0 AND CAST(hpt.person_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//            ") " +
-//            "AND (:searchValue IS NULL OR :searchValue = '' OR " +
-//            "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//            "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//            "LOWER(p.surname) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//            "LOWER(hts.client_code) LIKE LOWER(CONCAT('%', :searchValue, '%'))) " +
-//            "ORDER BY hts.date_of_visit DESC",
-//            countQuery = "SELECT COUNT(*) " +
-//                    "FROM patient_person p " +
-//                    "INNER JOIN ( " +
-//                    "    SELECT DISTINCT ON (patient_uuid) " +
-//                    "        patient_uuid, id, client_code, date_of_visit " +
-//                    "    FROM hts_encounter " +
-//                    "    WHERE COALESCE(observation->>'hivEarlyDetectResult', observation->>'hivEarlyDetect') IN ( " +
-//                    "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_REACTIVE', " +
-//                    "        'HIV_EARLY_DETECT_RESULT_ANTIGEN_+_ANTIBODY_REACTIVE' " +
-//                    "    ) AND observation->>'finalHivTestResult' != 'Positive' " +
-//                    "    ORDER BY patient_uuid, date_of_visit DESC " +
-//                    ") hts ON CAST(hts.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//                    "LEFT JOIN ( " +
-//                    "    SELECT DISTINCT ON (lr.patient_uuid) " +
-//                    "        lr.patient_uuid, lr.result_reported " +
-//                    "    FROM laboratory_result lr " +
-//                    "    INNER JOIN laboratory_test lt ON lt.id = lr.test_id " +
-//                    "    INNER JOIN laboratory_sample lsamp ON lsamp.test_id = lt.id " +
-//                    "    WHERE lr.archived = 0 AND lt.lab_test_id = 16 " +
-//                    "    AND LOWER(lsamp.patient_category) = 'pep' " +
-//                    "    ORDER BY lr.patient_uuid, lr.date_result_reported DESC " +
-//                    ") lr ON CAST(lr.patient_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//                    "WHERE p.archived = 0 " +
-//                    "AND p.facility_id = :facilityId " +
-//                    "AND (lr.result_reported IS NULL OR " +
-//                    "(LOWER(lr.result_reported) NOT LIKE '%negative%' " +
-//                    "AND LOWER(lr.result_reported) NOT LIKE '%undetected%' " +
-//                    "AND TRIM(lr.result_reported) != '0' " +
-//                    "AND TRIM(lr.result_reported) != '0.0')) " +
-//                    "AND NOT EXISTS ( " +
-//                    "    SELECT 1 FROM hiv_initial_clinical_evaluation hice " +
-//                    "    WHERE hice.archived = 0 AND CAST(hice.person_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//                    ") " +
-//                    "AND NOT EXISTS ( " +
-//                    "    SELECT 1 FROM hiv_enrollment_commencement hec " +
-//                    "    WHERE hec.archived = 0 AND CAST(hec.person_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//                    ") " +
-//                    "AND NOT EXISTS ( " +
-//                    "    SELECT 1 FROM hiv_patient_transfer_in hpt " +
-//                    "    WHERE hpt.archived = 0 AND CAST(hpt.person_uuid AS TEXT) = CAST(p.uuid AS TEXT) " +
-//                    ") " +
-//                    "AND (:searchValue IS NULL OR :searchValue = '' OR " +
-//                    "LOWER(p.hospital_number) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//                    "LOWER(p.first_name) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//                    "LOWER(p.surname) LIKE LOWER(CONCAT('%', :searchValue, '%')) OR " +
-//                    "LOWER(hts.client_code) LIKE LOWER(CONCAT('%', :searchValue, '%')))",
-//            nativeQuery = true)
-//    Page<PEPClientProjection> findAllPEPClients(
-//            @Param("facilityId") Long facilityId,
-//            @Param("searchValue") String searchValue,
-//            Pageable pageable);
 
     @Query(value = "SELECT p.id AS id, hts.client_code AS uniqueId, hts.id as htsEncounterId, p.hospital_number AS hospitalNumber, " +
             "p.surname AS surname, p.first_name AS firstName, p.other_name AS otherName, " +
@@ -721,7 +524,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
             "           pp.date_of_birth AS dateOfBirth, pp.hospital_number AS hospitalNumber, " +
             "           hac.visit_date AS artStartDate " +
             "    FROM patient_person pp " +
-            "    INNER JOIN hiv_enrollment h ON pp.uuid = h.person_uuid " +
+            "    INNER JOIN hiv_enrollment_commencement h ON pp.uuid = h.person_uuid " +
             "    INNER JOIN hiv_art_clinical hac ON hac.hiv_enrollment_uuid = h.uuid " +
             "        AND hac.archived = 0 AND hac.is_commencement = true " +
             "    WHERE pp.archived = 0 AND pp.facility_id = :facilityId " +
@@ -883,28 +686,6 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
     Optional<Observation> findByEnrollmentSessionUuidAndTypeAndArchived(String enrollmentSessionUuid, String type, Integer archived);
     boolean existsByEnrollmentSessionUuidAndTypeAndArchived(String enrollmentSessionUuid, String type, Integer archived);
     List<Observation> findAllByEnrollmentSessionUuidAndArchived(String enrollmentSessionUuid, Integer archived);
-
-
-//    @Modifying
-//    @Transactional
-//    @Query(value = "UPDATE hts_encounter " +
-//            "SET observation = jsonb_set(" +
-//            "                     jsonb_set(" +
-//            "                       jsonb_set(" +
-//            "                         jsonb_set(observation, '{finalHivTestResult}', to_jsonb(CAST(:finalResult AS text)), true), " +
-//            "                         '{hivEarlyDetectResult}', to_jsonb(CAST('' AS text)), true" +
-//            "                       ), " +
-//            "                       '{suspectedAcuteInfection}', to_jsonb(CAST('' AS text)), true" +
-//            "                     ), " +
-//            "                     '{dateOfFinalHivTestDone}', to_jsonb(CAST(:dateOfFinalHivTestDone AS text)), true" + // <--- NEW JSONB_SET
-//            "                   ) " +
-//            "WHERE id = :htsEncounterId AND patient_uuid = :patientUuid",
-//            nativeQuery = true)
-//    int updateFinalHivTestResult(@Param("htsEncounterId") Long htsEncounterId,
-//                                 @Param("patientUuid") String patientUuid,
-//                                 @Param("finalResult") String finalResult,
-//                                 @Param("dateOfFinalHivTestDone") String dateOfFinalHivTestDone);
-
 
     @Modifying
     @Transactional
