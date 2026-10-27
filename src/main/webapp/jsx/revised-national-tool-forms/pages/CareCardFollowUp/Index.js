@@ -3152,7 +3152,7 @@ const CareCardFollowUpForm = (props) => {
                         </FieldRow>
                       <FieldRow>
                         <Col size={6}>
-                          <SectionLabel>Indication for Viral Load Test</SectionLabel>
+                          <SectionLabel>Indication for Viral Load Test {lab.viral_load_result && <span style={{ color: "red" }}>*</span>}</SectionLabel>
                           <Input type="select" name="viral_load_indication" value={lab.viral_load_indication} onChange={handleLab}>
                             <option value="">Select</option>
                             {labOrderIndicationCodeset.map((option) => (

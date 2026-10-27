@@ -323,7 +323,7 @@ public interface ObservationRepository extends JpaRepository<Observation, Long> 
     Optional<Observation> findMostRecentTransferOut(@Param("personUuid") String personUuid);
 
     @Query(value = "WITH tbImpl AS (\n" +
-            "SELECT he.person_uuid FROM hiv_enrollment he WHERE archived = 0\n" +
+            "SELECT he.person_uuid FROM hiv_enrollment_commencement he WHERE archived = 0\n" +
             "),\n" +
             "tbStartDate AS (\n" +
             "SELECT person_uuid, visitDate, tbTreatmentStartDate, tbCompletionDate, status, status_date, CAST(tbTreatmentStartDate + INTERVAL '6 Month' AS DATE) AS intervalDate,\n" +
